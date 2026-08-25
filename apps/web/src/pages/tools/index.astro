@@ -1,0 +1,45 @@
+---
+import SiteLayout from '@/layouts/SiteLayout.astro';
+import { SEO_TOOL_TAXONOMY } from '@/lib/content-taxonomy';
+import type { SeoMetadata } from '@/lib/seo';
+
+const seo: SeoMetadata = {
+  title: 'Astrology Tools | NatalNode',
+  description: 'A clear home for future NatalNode utilities built around useful transformations and educational lookup.',
+  canonical: '/tools/'
+};
+
+const plannedToolCount = SEO_TOOL_TAXONOMY.length;
+---
+
+<SiteLayout seo={seo}>
+  <main class="mx-auto w-[calc(100%-2rem)] max-w-5xl pb-16 pt-14 sm:pt-20">
+    <header class="max-w-3xl">
+      <p class="text-xs font-bold uppercase tracking-[0.16em] text-natal-accent">Tools</p>
+      <h1 class="mt-4 text-4xl font-semibold leading-tight tracking-[-0.04em] text-white sm:text-6xl">
+        Useful astrology utilities, kept focused.
+      </h1>
+      <p class="mt-5 max-w-2xl text-lg leading-8 text-natal-muted">
+        This public surface is reserved for standalone tools that answer a focused question or make a chart concept easier to understand.
+      </p>
+    </header>
+
+    <section class="mt-14 max-w-3xl rounded-2xl border border-natal-border bg-natal-surface/75 p-6 sm:p-8" aria-labelledby="tools-principles-title">
+      <p class="text-xs font-bold uppercase tracking-[0.16em] text-natal-accent">Foundation</p>
+      <h2 class="mt-2 text-2xl font-semibold tracking-[-0.03em] text-white" id="tools-principles-title">
+        Start with useful, provider-neutral work
+      </h2>
+      <div class="mt-4 space-y-4 text-sm leading-7 text-natal-muted">
+        <p>
+          The first {plannedToolCount} planned utilities are reserved for stable educational lookup and transformations that do not need a browser astronomy engine.
+        </p>
+        <p>
+          No tool pages are linked from this foundation until their functionality exists. That keeps the directory useful instead of filling it with placeholder inventory.
+        </p>
+      </div>
+      <a class="mt-6 inline-flex text-sm font-semibold text-natal-accent hover:text-white" href="/">
+        Open the chart workspace →
+      </a>
+    </section>
+  </main>
+</SiteLayout>

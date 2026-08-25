@@ -1,0 +1,93 @@
+---
+import { getCollection } from 'astro:content';
+import SiteLayout from '@/layouts/SiteLayout.astro';
+import { LEARN_CATEGORIES } from '@/lib/content-taxonomy';
+import type { SeoMetadata } from '@/lib/seo';
+
+const articles = (await getCollection('learn', ({ data }) => !data.draft)).sort(
+  (first, second) => second.data.publishedAt.getTime() - first.data.publishedAt.getTime()
+);
+
+const seo: SeoMetadata = {
+  title: 'Learn Astrology with Clarity | NatalNode',
+  description: 'Foundational astrology education with clear language, explicit inputs, and transparent interpretation.',
+  canonical: '/learn/'
+};
+
+function formatDate(date: Date): string {
+  return new Intl.DateTimeFormat('en-US', {
+    dateStyle: 'long',
+    timeZone: 'UTC'
+  }).format(date);
+}
+---
+
+<SiteLayout seo={seo}>
+  <main class="mx-auto w-[calc(100%-2rem)] max-w-5xl pb-16 pt-14 sm:pt-20">
+    <header class="max-w-3xl">
+      <p class="text-xs font-bold uppercase tracking-[0.16em] text-natal-accent">Learn</p>
+      <h1 class="mt-4 text-4xl font-semibold leading-tight tracking-[-0.04em] text-white sm:text-6xl">
+        Astrology explained with clarity.
+      </h1>
+      <p class="mt-5 max-w-2xl text-lg leading-8 text-natal-muted">
+        Start with the structure of a natal chart, understand the language it uses, and keep calculated facts distinct from interpretation.
+      </p>
+    </header>
+
+    <section class="mt-14" aria-labelledby="learn-categories-title">
+      <div class="max-w-2xl">
+        <p class="text-xs font-bold uppercase tracking-[0.16em] text-natal-accent">Explore the structure</p>
+        <h2 class="mt-2 text-2xl font-semibold tracking-[-0.03em] text-white" id="learn-categories-title">
+          Learn categories
+        </h2>
+      </div>
+      <ul class="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        {LEARN_CATEGORIES.map((category) => (
+          <li class="rounded-2xl border border-natal-border bg-natal-surface/75 p-5">
+            <h3 class="text-lg font-semibold text-white">{category.label}</h3>
+            <p class="mt-2 text-sm leading-6 text-natal-muted">{category.description}</p>
+          </li>
+        ))}
+      </ul>
+    </section>
+
+    <section class="mt-14" aria-labelledby="learn-articles-title">
+      <div class="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+        <div>
+          <p class="text-xs font-bold uppercase tracking-[0.16em] text-natal-accent">Editorial guide</p>
+          <h2 class="mt-2 text-2xl font-semibold tracking-[-0.03em] text-white" id="learn-articles-title">
+            Articles
+          </h2>
+        </div>
+        <p class="text-sm text-slate-400">{articles.length} published article{articles.length === 1 ? '' : 's'}</p>
+      </div>
+
+      {articles.length > 0 ? (
+        <ul class="mt-6 grid gap-4">
+          {articles.map((article) => (
+            <li class="rounded-2xl border border-natal-border bg-natal-surface/75 p-5 sm:p-6">
+              <article>
+                <p class="text-xs font-bold uppercase tracking-[0.14em] text-slate-400">{article.data.category.replace('_', ' ')}</p>
+                <h3 class="mt-2 text-xl font-semibold text-white">
+                  <a class="hover:text-natal-accent" href={`/learn/${article.data.slug}`}>
+                    {article.data.title}
+                  </a>
+                </h3>
+                <p class="mt-2 max-w-3xl text-sm leading-6 text-natal-muted">
+                  {article.data.summary ?? article.data.description}
+                </p>
+                <time class="mt-4 block text-xs text-slate-400" datetime={article.data.publishedAt.toISOString()}>
+                  Published {formatDate(article.data.publishedAt)}
+                </time>
+              </article>
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <p class="mt-6 rounded-2xl border border-dashed border-natal-border p-6 text-sm text-natal-muted">
+          Published articles will appear here once they are ready for readers.
+        </p>
+      )}
+    </section>
+  </main>
+</SiteLayout>

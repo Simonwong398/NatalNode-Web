@@ -1,0 +1,72 @@
+export const LEARN_CATEGORY_KEYS = [
+  'FOUNDATIONS',
+  'PLANETS',
+  'SIGNS',
+  'HOUSES',
+  'ASPECTS',
+  'CHART_READING'
+] as const;
+
+export type LearnCategory = (typeof LEARN_CATEGORY_KEYS)[number];
+
+export const LEARN_CATEGORIES = [
+  {
+    key: 'FOUNDATIONS',
+    label: 'Foundations',
+    description: 'Start with the vocabulary and structure used to read a natal chart.'
+  },
+  {
+    key: 'PLANETS',
+    label: 'Planets',
+    description: 'Learn what each planet represents in an astrological chart.'
+  },
+  {
+    key: 'SIGNS',
+    label: 'Signs',
+    description: 'Understand the twelve signs as styles of expression and attention.'
+  },
+  {
+    key: 'HOUSES',
+    label: 'Houses',
+    description: 'Explore the life areas represented by the twelve houses.'
+  },
+  {
+    key: 'ASPECTS',
+    label: 'Aspects',
+    description: 'See how angular relationships connect themes within a chart.'
+  },
+  {
+    key: 'CHART_READING',
+    label: 'Chart Reading',
+    description: 'Bring individual chart elements together into a clear reading process.'
+  }
+] as const satisfies readonly {
+  key: LearnCategory;
+  label: string;
+  description: string;
+}[];
+
+/**
+ * Internal roadmap taxonomy only. These entries do not create routes or
+ * public links until their underlying utilities exist.
+ */
+export const SEO_TOOL_TAXONOMY = [
+  {
+    intendedPath: '/tools/sign-lookup',
+    label: 'Sign Lookup',
+    purpose: 'A focused educational reference for the twelve zodiac signs.',
+    requiresEngine: false
+  },
+  {
+    intendedPath: '/tools/house-lookup',
+    label: 'House Lookup',
+    purpose: 'A focused educational reference for the twelve chart houses.',
+    requiresEngine: false
+  },
+  {
+    intendedPath: '/tools/aspect-lookup',
+    label: 'Aspect Lookup',
+    purpose: 'A focused educational reference for common chart relationships.',
+    requiresEngine: false
+  }
+] as const;

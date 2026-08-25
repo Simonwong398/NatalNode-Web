@@ -31,3 +31,25 @@
     font: inherit;
   }
 }
+
+@layer components {
+  .content-prose {
+    @apply max-w-none text-base leading-8 text-slate-300;
+  }
+
+  .content-prose h2 {
+    @apply mt-10 text-2xl font-semibold leading-tight tracking-[-0.03em] text-white;
+  }
+
+  .content-prose p {
+    @apply mt-5;
+  }
+
+  .content-prose h2 + p {
+    @apply mt-4;
+  }
+
+  .content-prose a {
+    @apply text-natal-accent underline decoration-natal-accent/50 underline-offset-4 hover:text-white;
+  }
+}

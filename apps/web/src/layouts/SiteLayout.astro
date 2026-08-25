@@ -1,0 +1,64 @@
+---
+import SeoHead from '@/components/SeoHead.astro';
+import type { SeoMetadata } from '@/lib/seo';
+import '@/styles/global.css';
+
+interface Props {
+  seo: SeoMetadata;
+}
+
+const { seo } = Astro.props;
+const currentPath = Astro.url.pathname;
+const isLearnPage = currentPath.startsWith('/learn');
+const isToolsPage = currentPath.startsWith('/tools');
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width" />
+    <SeoHead seo={seo} />
+  </head>
+  <body>
+    <header class="mx-auto flex w-[calc(100%-2rem)] max-w-5xl items-center justify-between gap-6 border-b border-natal-border/70 py-5">
+      <a class="text-sm font-bold uppercase tracking-[0.16em] text-white" href="/" aria-label="NatalNode home">
+        NatalNode
+      </a>
+      <nav aria-label="Primary navigation">
+        <ul class="flex items-center gap-4 text-sm text-slate-300 sm:gap-6">
+          <li>
+            <a
+              class:list={[
+                'transition-colors hover:text-white',
+                isLearnPage ? 'text-white' : undefined
+              ]}
+              href="/learn/"
+              aria-current={isLearnPage ? 'page' : undefined}
+            >
+              Learn
+            </a>
+          </li>
+          <li>
+            <a
+              class:list={[
+                'transition-colors hover:text-white',
+                isToolsPage ? 'text-white' : undefined
+              ]}
+              href="/tools/"
+              aria-current={isToolsPage ? 'page' : undefined}
+            >
+              Tools
+            </a>
+          </li>
+          <li>
+            <a class="transition-colors hover:text-white" href="/">
+              Chart
+            </a>
+          </li>
+        </ul>
+      </nav>
+    </header>
+    <slot />
+  </body>
+</html>

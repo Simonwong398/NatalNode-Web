@@ -1,7 +1,14 @@
 ---
+import SeoHead from '@/components/SeoHead.astro';
 import ScaffoldStatus from '@/components/ScaffoldStatus';
 import { BirthInputForm } from '@/features/chart-input';
 import '@/styles/global.css';
+
+const seo = {
+  title: 'NatalNode — Birth Input',
+  description: 'Enter the birth details needed to begin a NatalNode chart.',
+  canonical: '/'
+} as const;
 ---
 
 <!doctype html>
@@ -9,11 +16,7 @@ import '@/styles/global.css';
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width" />
-    <meta
-      name="description"
-      content="Enter the birth details needed to begin a NatalNode chart."
-    />
-    <title>NatalNode — Birth Input</title>
+    <SeoHead seo={seo} />
   </head>
   <body>
     <main class="mx-auto flex min-h-screen w-[calc(100%-2rem)] max-w-3xl flex-col pb-12 pt-16 sm:pt-28">
