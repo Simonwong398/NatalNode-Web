@@ -1,5 +1,6 @@
 ---
 import ScaffoldStatus from '@/components/ScaffoldStatus';
+import { BirthInputForm } from '@/features/chart-input';
 import '@/styles/global.css';
 ---
 
@@ -10,19 +11,20 @@ import '@/styles/global.css';
     <meta name="viewport" content="width=device-width" />
     <meta
       name="description"
-      content="Minimal Astro, React, and TypeScript scaffold for NatalNode.com."
+      content="Enter the birth details needed to begin a NatalNode chart."
     />
-    <title>NatalNode — Web Scaffold</title>
+    <title>NatalNode — Birth Input</title>
   </head>
   <body>
     <main class="mx-auto flex min-h-screen w-[calc(100%-2rem)] max-w-3xl flex-col pb-12 pt-16 sm:pt-28">
       <p class="text-xs font-bold uppercase tracking-[0.16em] text-natal-accent">NatalNode</p>
       <h1 class="mt-4 max-w-2xl text-4xl font-semibold leading-[0.98] tracking-[-0.055em] text-white sm:text-7xl">
-        Professional natal charts, built for transparency.
+        Start with the birth details you know.
       </h1>
       <p class="mt-5 max-w-xl text-lg leading-7 text-natal-muted">
-        A minimal website shell for the NatalNode Engine’s first-party web experience.
+        NatalNode keeps location and time resolution explicit before a chart is calculated.
       </p>
+      <BirthInputForm client:load />
       <ScaffoldStatus client:load />
     </main>
   </body>
