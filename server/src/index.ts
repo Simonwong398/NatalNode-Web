@@ -10,5 +10,7 @@ export type {
 export type { SqlExecutor, SqlQueryResult } from './db/index.js';
 export {
   PostgresAuthIdentityRepository,
-  PostgresUserRepository
+  PostgresChartNoteRepository,
+  PostgresUserRepository,
+  PostgresVaultChartRepository
 } from './persistence/postgres/index.js';
