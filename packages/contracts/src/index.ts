@@ -105,4 +105,5 @@ export type ChartResult =
     });
 
 export * from './auth.js';
+export * from './api/index.js';
 export * from './vault.js';
