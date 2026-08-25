@@ -1,8 +1,11 @@
 # ADR: Email Magic Link Delivery Architecture
 
-- Status: ACCEPTED — provider-independent architecture frozen; provider selection deferred
+- Status: ACCEPTED — Resend selected for P0; provider-neutral replacement boundary preserved
 - Task: `WEB-AUTH-002A`
 - Date: 2026-08-25
+- Provider review: COMPLETE
+- Review date: 2026-08-25
+- P0 provider: RESEND
 
 ## Context
 
@@ -37,8 +40,10 @@ no token-bearing GET callback exists.
    receive a final URL rather than a raw authentication token.
 6. Keep email content and authentication purpose provider-neutral.
 7. Disable provider click tracking for authentication links.
-8. Defer selection of Resend, Postmark, or Amazon SES until an external,
-   current-market review is completed.
+8. Freeze Resend as the P0 concrete transactional email provider.
+9. Prefer the official Resend Node.js SDK for the future P0 transport adapter.
+10. Use `auth.natalnode.com` as the preferred P0 authentication sending domain.
+11. Disable both click tracking and open tracking for authentication email.
 
 ## Security invariants
 
@@ -80,6 +85,10 @@ The completion page and BFF API must be exposed under the same public web
 origin for the P0 flow. Local development may use an explicit origin such as
 `http://localhost:<port>` with the local BFF route available under that same
 origin. Local HTTP is not a production security policy.
+
+Resend does not own or modify this routing policy. The provider receives the
+final application-generated link and does not choose the callback route or
+browser navigation behavior.
 
 The current Astro configuration already supports Astro pages, React islands,
 and client-side code, so this handoff fits the repository. The `/auth/complete`
@@ -172,7 +181,7 @@ issue challenge
 This prevents a concrete provider from receiving or interpreting raw token
 semantics and keeps routing/security policy outside the transport adapter.
 
-## Email content and click tracking
+## Email content and tracking
 
 Authentication/application code or a small provider-neutral template function
 will own the purpose and message content: subject, minimal plain text, and
@@ -185,18 +194,21 @@ minimal HTML. The future message will contain only:
 
 There will be no marketing content, tracking pixels, analytics links,
 advertising, or unnecessary remote images. Provider click tracking will be
-disabled so the opaque authentication credential is not rewritten through a
-tracking redirect.
+disabled, and provider open tracking will also be disabled. The opaque
+authentication credential must not be rewritten through a tracking redirect or
+exposed through a tracking pixel.
 
-The provider adapter will own only provider request conversion and transport.
-If delivery definitively fails, the existing request remains an infrastructure
-failure: the persisted challenge is not rolled back and the endpoint must not
-return a false success. Automatic retries are not added to the authentication
-request path because provider timeouts can have ambiguous delivery outcomes.
+The concrete provider adapter will own only provider request conversion and
+transport. The future Resend adapter will send once and return success or throw
+an infrastructure failure. If delivery definitively fails, the persisted
+challenge is not rolled back and the endpoint must not return a false success.
+Automatic retries are not added to the authentication request path because
+provider timeouts can have ambiguous delivery outcomes and retries may produce
+duplicate sign-in emails.
 
 ## Provider selection criteria
 
-The first P0 provider will be evaluated against these criteria, in order:
+The P0 provider review used these criteria, in order:
 
 1. Transactional email reliability.
 2. Straightforward API integration.
@@ -211,26 +223,122 @@ The first P0 provider will be evaluated against these criteria, in order:
 The architecture remains compatible with Resend, Postmark, and Amazon SES. No
 multi-provider framework will be introduced.
 
-## Provider decision required
+## P0 provider selection
 
-PROVIDER DECISION REQUIRES EXTERNAL CURRENT-MARKET REVIEW
+`P0 PROVIDER: RESEND`
 
-Repository inspection cannot responsibly select among Resend, Postmark, and
-Amazon SES without current pricing, deliverability, sending-domain, and
-operational information. No current vendor facts are fabricated in this ADR.
+`PROVIDER REVIEW: COMPLETE`
 
-For the eventual first adapter, prefer direct HTTP with built-in `fetch` and a
-small typed provider adapter to avoid an unnecessary dependency and keep the
-boundary easy to replace. An official SDK may be reconsidered only after the
-selected provider and its current API requirements are reviewed. No provider
-SDK is installed by this task.
+`REVIEW DATE: 2026-08-25`
+
+Resend is selected for P0 transactional authentication email. This is not a
+permanent vendor lock-in decision; the existing `EmailMagicLinkDelivery`
+boundary must continue to allow replacement later.
+
+The reviewed Resend facts are:
+
+- Free transactional tier: 3,000 emails per month.
+- Free-tier daily sending limit: 100 emails per day.
+- Free tier includes 3 verified domains as of 2026-08-25.
+- Pro plan: $20 per month for 50,000 emails per month.
+- REST API and official Node.js SDK.
+- Verified custom sending domains with SPF/DKIM support.
+- Domain-level open and click tracking controls.
+- Suitability for transactional application email and straightforward
+  small-team integration.
+
+NatalNode P0 currently needs low-volume, transactional, authentication-only
+email rather than marketing automation, mass campaigns, or multi-provider
+routing. Resend provides the best current balance for this scope across low
+operational burden, low initial cost, simple Node integration, custom-domain
+support, and replaceability behind the existing abstraction. This decision does
+not claim objectively superior inbox placement versus all competitors.
+
+## Reviewed alternatives
+
+### Postmark
+
+Postmark remains a valid future alternative. It is strongly transactional-email
+oriented and provides a REST API, custom sending domains, and link tracking
+whose default and explicit `None` setting disable tracking. Its reviewed free
+Developer tier provides 100 emails per month, and its Basic paid tier starts at
+$15 per month.
+
+Postmark is architecturally strong and is not considered inferior or
+unreliable. It was not selected for P0 because NatalNode's initial low-volume
+requirements benefit more from Resend's larger free allowance with similarly
+straightforward API integration.
+
+### Amazon SES
+
+Amazon SES remains a future scale/cost alternative. Its reviewed outbound
+sending cost is approximately $0.10 per 1,000 emails, with highly scalable,
+regional AWS infrastructure. New or sandbox accounts require additional
+operational setup; sandbox limits include 200 messages per 24-hour period and 1
+message per second until production access is granted.
+
+SES was not selected for P0 because its operational and configuration burden is
+unnecessary for the current authentication-email volume. It may be
+reconsidered if future scale or cost requirements justify it. No AWS
+integration plan is created by this ADR.
+
+## P0 integration implementation choice
+
+The preferred P0 transport implementation is the official Resend Node.js SDK.
+The future dependency is `resend`; it is not installed in this documentation
+patch.
+
+The official maintained Node client provides a typed API surface and handles
+Resend API authentication and request details, reducing integration code while
+keeping the provider isolated behind `EmailMagicLinkDelivery`.
+
+## Resend boundary and inward dependency rule
+
+The future concrete adapter will be:
+
+```text
+ResendEmailMagicLinkDelivery
+        implements
+EmailMagicLinkDelivery
+```
+
+Resend-specific types must not leak into `@natalnode/contracts`, application
+authentication contracts, `EmailMagicLinkDelivery`, `ServerDependencies`,
+routes, or frontend code. Only the concrete deployment/bootstrap edge may know
+the Resend client, API key, and sender configuration.
+
+## P0 sending domain
+
+The preferred P0 authentication sending domain is:
+
+```text
+auth.natalnode.com
+```
+
+This isolates authentication-email sending reputation from unrelated future
+mail categories. The preferred sender identity is conceptually:
+
+```text
+NatalNode <signin@auth.natalnode.com>
+```
+
+This is a deployment and DNS configuration decision. The sender must not be
+hardcoded in application contracts; the future concrete adapter/configuration
+will receive it explicitly. No DNS changes are performed by this ADR.
+
+Before production sending, the Resend sending domain must be verified with the
+required DNS authentication, including SPF and DKIM. DMARC should also be
+configured appropriately as part of production domain-email hygiene. DNS
+automation is deferred.
 
 ## Provider credentials and bootstrap ownership
 
 Provider API credentials, sender identity, and any provider-specific endpoint or
 region belong at the executable/deployment composition edge. They must not be
 added to `ServerRuntimeConfig` or the public non-secret policy objects in
-`ServerEnvironmentConfig`.
+`ServerEnvironmentConfig`. Future deployment composition owns `RESEND_API_KEY`
+and the sender identity/configuration; neither is added to environment parsing
+or repository configuration by this ADR.
 
 The future composition direction is:
 
@@ -245,22 +353,28 @@ explicit secret/provider configuration
 `createApp(...)` and the core runtime continue to depend only on the
 provider-neutral delivery abstraction.
 
+Replacing Resend later must not require rewriting magic-link token issuance,
+the browser handoff, `/api/auth/email/complete`, session-cookie logic, auth
+repositories, or frontend session semantics. Only the concrete
+`EmailMagicLinkDelivery` adapter and deployment configuration should change.
+
 ## Deferred items
 
-- Current-market provider review and P0 provider selection.
 - Explicit public-origin configuration and validation.
 - `MagicLinkUrlBuilder` implementation.
 - The future URL-based `EmailMagicLinkDeliveryRequest` contract.
 - The Astro `/auth/complete` page and client handoff behavior.
-- Provider adapter implementation, credentials, sender identity, and email
-  template implementation.
+- Resend adapter implementation, the future `resend` dependency, credentials,
+  sender identity, DNS verification, and email template implementation.
 - Provider API failure typing and deployment composition.
 - User-facing auth UI and Google OAuth.
 - Production EngineClient and astronomy-provider decisions.
 
-## Next patch
+## Next implementation sequence
 
-`WEB-AUTH-002A-R1 — Current email provider market review`
+1. `WEB-AUTH-002B — Magic-link browser handoff contract implementation`
+2. `WEB-AUTH-002C — EmailMagicLinkDelivery URL-contract refactor`
+3. `WEB-AUTH-002D — Resend EmailMagicLinkDelivery adapter`
 
-After provider selection is complete, implement the frozen browser handoff and
-URL-based delivery boundary in a focused follow-up patch.
+These remain separate implementation patches. This ADR update does not
+implement any of them.
