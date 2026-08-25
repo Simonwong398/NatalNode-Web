@@ -3,13 +3,20 @@ import type {
   DeleteVaultChartApiResponse,
   GetVaultChartApiResponse,
   ListVaultChartsApiResponse,
+  ChartResult,
+  SaveVaultChartApiRequest,
+  SaveVaultChartApiResponse,
   UpdateVaultChartMetadataApiRequest,
   UpdateVaultChartMetadataApiResponse,
   VaultApiErrorResponse,
-  VaultChartCategory
+  VaultChartRecord
 } from '@natalnode/contracts';
 import { requireAuthentication } from '../auth/index.js';
 import type { ServerDependencies } from '../dependencies.js';
+import {
+  isMetadataUpdate,
+  isSaveVaultChartApiRequest
+} from '../validation/index.js';
 
 const INVALID_REQUEST_RESPONSE: VaultApiErrorResponse = {
   error: {
@@ -24,47 +31,6 @@ const NOT_FOUND_RESPONSE: VaultApiErrorResponse = {
     message: 'Vault chart not found.'
   }
 };
-
-const VAULT_CHART_CATEGORIES: readonly VaultChartCategory[] = [
-  'SELF',
-  'PARTNER',
-  'FAMILY',
-  'FRIEND',
-  'CLIENT'
-];
-
-const METADATA_UPDATE_KEYS = ['displayName', 'category', 'tags', 'favorite'] as const;
-
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === 'object' && value !== null && !Array.isArray(value);
-}
-
-function isVaultChartCategory(value: unknown): value is VaultChartCategory {
-  return VAULT_CHART_CATEGORIES.some((category) => category === value);
-}
-
-function isStringArray(value: unknown): value is readonly string[] {
-  return Array.isArray(value) && value.every((item) => typeof item === 'string');
-}
-
-function hasOnlyMetadataUpdateKeys(value: Record<string, unknown>): boolean {
-  return Object.keys(value).every((key) =>
-    METADATA_UPDATE_KEYS.some((allowedKey) => allowedKey === key)
-  );
-}
-
-function isMetadataUpdate(value: unknown): value is UpdateVaultChartMetadataApiRequest {
-  if (!isRecord(value) || !hasOnlyMetadataUpdateKeys(value)) {
-    return false;
-  }
-
-  return (
-    (!('displayName' in value) || typeof value.displayName === 'string') &&
-    (!('category' in value) || isVaultChartCategory(value.category)) &&
-    (!('tags' in value) || isStringArray(value.tags)) &&
-    (!('favorite' in value) || typeof value.favorite === 'boolean')
-  );
-}
 
 async function parseMetadataUpdate(context: Context): Promise<
   UpdateVaultChartMetadataApiRequest | Response
@@ -82,7 +48,76 @@ async function parseMetadataUpdate(context: Context): Promise<
     : context.json(INVALID_REQUEST_RESPONSE, 400);
 }
 
+async function parseSaveVaultChartRequest(
+  context: Context
+): Promise<SaveVaultChartApiRequest | Response> {
+  let payload: unknown;
+
+  try {
+    payload = await context.req.json();
+  } catch (_error) {
+    return context.json(INVALID_REQUEST_RESPONSE, 400);
+  }
+
+  return isSaveVaultChartApiRequest(payload)
+    ? payload
+    : context.json(INVALID_REQUEST_RESPONSE, 400);
+}
+
 export function registerVaultChartRoutes(app: Hono, dependencies: ServerDependencies): void {
+  app.post(
+    '/api/vault/charts',
+    requireAuthentication(dependencies.authenticator),
+    async (context) => {
+      const request = await parseSaveVaultChartRequest(context);
+
+      if (request instanceof Response) {
+        return request;
+      }
+
+      const principal = context.get('authenticatedPrincipal');
+      const userId = principal.userId;
+      let canonicalChartResult: ChartResult;
+
+      try {
+        canonicalChartResult = await dependencies.engineClient.calculateChart(request.chart);
+      } catch (_error) {
+        return context.json(
+          {
+            error: {
+              code: 'CALCULATION_UNAVAILABLE',
+              message: 'Chart calculation is currently unavailable.'
+            }
+          } satisfies VaultApiErrorResponse,
+          503
+        );
+      }
+
+      const timestamp = dependencies.clock.now();
+      const chart: VaultChartRecord = {
+        chartId: dependencies.idGenerator.generate(),
+        userId,
+        displayName: request.displayName,
+        category: request.category,
+        tags: request.tags,
+        favorite: request.favorite,
+        normalizedChartRequest: request.chart,
+        canonicalChartResult,
+        engineVersion: canonicalChartResult.engineVersion,
+        chartSchemaVersion: canonicalChartResult.schemaVersion,
+        astronomyConfigurationId: canonicalChartResult.metadata.astronomyConfigurationId,
+        provenanceEnvelopeId: canonicalChartResult.metadata.provenanceEnvelopeId,
+        createdAt: timestamp,
+        updatedAt: timestamp
+      };
+
+      await dependencies.persistence.vaultCharts.create(chart);
+
+      const response: SaveVaultChartApiResponse = { chart };
+      return context.json(response, 201);
+    }
+  );
+
   app.get(
     '/api/vault/charts',
     requireAuthentication(dependencies.authenticator),

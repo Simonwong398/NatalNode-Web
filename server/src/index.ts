@@ -7,7 +7,7 @@ export type {
 } from './app/auth/index.js';
 
 export { createApp } from './app/index.js';
-export type { ServerDependencies } from './app/index.js';
+export type { Clock, IdGenerator, ServerDependencies } from './app/index.js';
 
 export type {
   AuthIdentityRepository,
