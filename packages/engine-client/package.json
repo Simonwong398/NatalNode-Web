@@ -8,6 +8,11 @@
       "types": "./src/index.ts",
       "node": "./dist/index.js",
       "default": "./src/index.ts"
+    },
+    "./http": {
+      "types": "./src/http-engine-client.ts",
+      "node": "./dist/http-engine-client.js",
+      "default": "./src/http-engine-client.ts"
     }
   },
   "scripts": {
