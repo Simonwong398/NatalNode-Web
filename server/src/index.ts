@@ -3,8 +3,10 @@ export type {
   AuthenticatedContextVariables,
   AuthenticatedPrincipal,
   AuthenticatedRequestEnv,
-  RequestAuthenticator
+  RequestAuthenticator,
+  SessionRequestAuthenticatorDependencies
 } from './app/auth/index.js';
+export { SessionRequestAuthenticator } from './app/auth/index.js';
 
 export type {
   AuthSessionRecord,
@@ -16,6 +18,7 @@ export type {
   IssuedEmailMagicLinkChallenge,
   IssueEmailMagicLinkChallengeInput,
   IssueAuthSessionInput,
+  SessionCookiePolicy,
   SecureTokenGenerator,
   TokenHasher
 } from './auth-runtime/index.js';
@@ -26,7 +29,10 @@ export {
   issueEmailMagicLinkChallenge,
   normalizeEmailAddress,
   NodeSecureTokenGenerator,
-  Sha256TokenHasher
+  serializeClearedSessionCookie,
+  serializeSessionCookie,
+  Sha256TokenHasher,
+  extractSessionCookie
 } from './auth-runtime/index.js';
 
 export { createApp } from './app/index.js';

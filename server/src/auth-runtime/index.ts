@@ -31,3 +31,10 @@ export type {
   CompleteEmailMagicLinkAuthenticationInput,
   CompletedEmailMagicLinkAuthentication
 } from './email-magic-link-authentication.js';
+
+export {
+  extractSessionCookie,
+  serializeClearedSessionCookie,
+  serializeSessionCookie
+} from './session-cookie.js';
+export type { SessionCookiePolicy } from './session-cookie.js';

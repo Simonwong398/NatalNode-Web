@@ -51,8 +51,14 @@ propagate, and a consumed challenge is never rolled back or reused. The
 orchestration returns transient session material only after its hash-bearing
 record is persisted.
 
-Secure-cookie policy, cookies, auth routes, `RequestAuthenticator`, email
-delivery, Google OAuth, and OAuth state/PKCE remain deferred.
+Session tokens are intended for a configured host-only HttpOnly cookie with
+`SameSite=Lax` and an explicit deployment `Secure` policy. The server-side
+session expiration remains authoritative. `SessionRequestAuthenticator` reads
+only that opaque cookie, fails closed on duplicate cookies, hashes it before
+lookup, and returns only `userId`.
+
+Login, callback, logout, and other HTTP routes, email delivery, Google OAuth,
+and OAuth state/PKCE remain deferred.
 
 Expired sessions and challenges are eligible for periodic deletion later; no
 cleanup job is defined here. Session repositories, magic-link repositories,
