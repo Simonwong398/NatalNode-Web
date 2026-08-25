@@ -9,7 +9,8 @@ const seo: SeoMetadata = {
   canonical: '/tools/'
 };
 
-const plannedToolCount = SEO_TOOL_TAXONOMY.length;
+const availableTools = SEO_TOOL_TAXONOMY.filter((tool) => tool.status === 'AVAILABLE');
+const plannedToolCount = SEO_TOOL_TAXONOMY.filter((tool) => tool.status === 'PLANNED').length;
 ---
 
 <SiteLayout seo={seo}>
@@ -24,17 +25,34 @@ const plannedToolCount = SEO_TOOL_TAXONOMY.length;
       </p>
     </header>
 
-    <section class="mt-14 max-w-3xl rounded-2xl border border-natal-border bg-natal-surface/75 p-6 sm:p-8" aria-labelledby="tools-principles-title">
+    <section class="mt-14" aria-labelledby="available-tools-title">
+      <p class="text-xs font-bold uppercase tracking-[0.16em] text-natal-accent">Available now</p>
+      <h2 class="mt-2 text-2xl font-semibold tracking-[-0.03em] text-white" id="available-tools-title">
+        Start with a focused question
+      </h2>
+      <ul class="mt-6 grid gap-4 sm:max-w-3xl">
+        {availableTools.map((tool) => (
+          <li class="rounded-2xl border border-natal-border bg-natal-surface/75 p-6">
+            <h3 class="text-xl font-semibold text-white">
+              <a class="hover:text-natal-accent" href={tool.intendedPath}>{tool.label}</a>
+            </h3>
+            <p class="mt-2 text-sm leading-7 text-natal-muted">{tool.purpose}</p>
+          </li>
+        ))}
+      </ul>
+    </section>
+
+    <section class="mt-12 max-w-3xl rounded-2xl border border-natal-border bg-natal-surface/75 p-6 sm:p-8" aria-labelledby="tools-principles-title">
       <p class="text-xs font-bold uppercase tracking-[0.16em] text-natal-accent">Foundation</p>
       <h2 class="mt-2 text-2xl font-semibold tracking-[-0.03em] text-white" id="tools-principles-title">
-        Start with useful, provider-neutral work
+        Keep the directory useful
       </h2>
       <div class="mt-4 space-y-4 text-sm leading-7 text-natal-muted">
         <p>
-          The first {plannedToolCount} planned utilities are reserved for stable educational lookup and transformations that do not need a browser astronomy engine.
+          {plannedToolCount} additional utility concepts are reserved for stable educational lookup and transformations that do not need a browser astronomy engine.
         </p>
         <p>
-          No tool pages are linked from this foundation until their functionality exists. That keeps the directory useful instead of filling it with placeholder inventory.
+          They will not receive public links until their functionality exists. That keeps the directory useful instead of filling it with placeholder inventory.
         </p>
       </div>
       <a class="mt-6 inline-flex text-sm font-semibold text-natal-accent hover:text-white" href="/">

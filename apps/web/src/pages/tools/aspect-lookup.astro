@@ -1,0 +1,150 @@
+---
+import SiteLayout from '@/layouts/SiteLayout.astro';
+import {
+  ASPECT_OPTIONS,
+  SUPPORTED_PLANETS
+} from '@/lib/aspect-lookup';
+import type { SeoMetadata } from '@/lib/seo';
+
+const seo: SeoMetadata = {
+  title: 'Aspect Lookup: Understand Planetary Aspects | NatalNode',
+  description: 'Choose two planets and a major aspect to explore a clear, deterministic educational interpretation.',
+  canonical: '/tools/aspect-lookup'
+};
+---
+
+<SiteLayout seo={seo}>
+  <main class="mx-auto w-[calc(100%-2rem)] max-w-5xl pb-16 pt-14 sm:pt-20">
+    <header class="max-w-3xl">
+      <p class="text-xs font-bold uppercase tracking-[0.16em] text-natal-accent">Tools / Aspect Lookup</p>
+      <h1 class="mt-4 text-4xl font-semibold leading-tight tracking-[-0.04em] text-white sm:text-6xl">
+        Explore a planetary aspect
+      </h1>
+      <p class="mt-5 max-w-2xl text-lg leading-8 text-natal-muted">
+        Choose two planets and one major aspect to explore how astrology describes the relationship between those themes.
+      </p>
+    </header>
+
+    <section class="mt-12 max-w-4xl rounded-2xl border border-natal-border bg-natal-surface/75 p-5 sm:p-8" aria-labelledby="aspect-selection-title">
+      <div>
+        <p class="text-xs font-bold uppercase tracking-[0.16em] text-natal-accent">Make a selection</p>
+        <h2 class="mt-2 text-2xl font-semibold tracking-[-0.03em] text-white" id="aspect-selection-title">
+          Planet A + aspect + Planet B
+        </h2>
+      </div>
+
+      <form class="mt-6" data-aspect-lookup-form aria-describedby="aspect-lookup-boundary">
+        <div class="grid gap-5 lg:grid-cols-[1fr_auto_1fr] lg:items-end">
+          <div>
+            <label class="text-sm font-medium text-slate-100" for="planet-a">Planet A</label>
+            <select
+              class="mt-2 block min-h-11 w-full rounded-lg border border-natal-border bg-slate-950/40 px-3 py-2.5 text-sm text-white outline-none focus-visible:border-natal-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-natal-accent"
+              id="planet-a"
+              name="planetA"
+              data-planet-a
+              required
+            >
+              <option value="">Choose a planet</option>
+              {SUPPORTED_PLANETS.map((planet) => <option value={planet}>{planet}</option>)}
+            </select>
+          </div>
+
+          <div>
+            <label class="text-sm font-medium text-slate-100" for="aspect-type">Major aspect</label>
+            <select
+              class="mt-2 block min-h-11 w-full rounded-lg border border-natal-border bg-slate-950/40 px-3 py-2.5 text-sm text-white outline-none focus-visible:border-natal-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-natal-accent lg:min-w-48"
+              id="aspect-type"
+              name="aspect"
+              data-aspect
+              required
+            >
+              <option value="">Choose an aspect</option>
+              {ASPECT_OPTIONS.map((aspect) => <option value={aspect.value}>{aspect.label}</option>)}
+            </select>
+          </div>
+
+          <div>
+            <label class="text-sm font-medium text-slate-100" for="planet-b">Planet B</label>
+            <select
+              class="mt-2 block min-h-11 w-full rounded-lg border border-natal-border bg-slate-950/40 px-3 py-2.5 text-sm text-white outline-none focus-visible:border-natal-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-natal-accent"
+              id="planet-b"
+              name="planetB"
+              data-planet-b
+              required
+            >
+              <option value="">Choose a planet</option>
+              {SUPPORTED_PLANETS.map((planet) => <option value={planet}>{planet}</option>)}
+            </select>
+          </div>
+        </div>
+
+        <p class="mt-5 rounded-xl border border-amber-200/20 bg-amber-200/5 p-4 text-sm leading-6 text-slate-300" id="aspect-lookup-boundary">
+          Select an aspect you already want to understand. The same two planets represent one symmetric combination whichever order you choose.
+        </p>
+
+        <button
+          class="mt-5 inline-flex min-h-10 items-center justify-center rounded-lg border border-natal-border px-4 py-2 text-sm font-semibold text-slate-200 hover:border-natal-accent hover:text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-natal-accent"
+          type="reset"
+        >
+          Clear selections
+        </button>
+      </form>
+    </section>
+
+    <section
+      class="mt-6 max-w-4xl rounded-2xl border border-natal-border bg-natal-surface/75 p-5 sm:p-8"
+      data-aspect-result
+      aria-live="polite"
+      aria-labelledby="aspect-result-title"
+      hidden
+    >
+      <div data-aspect-result-content></div>
+    </section>
+    <p class="mt-6 max-w-3xl text-sm leading-7 text-natal-muted" data-aspect-empty role="status">
+      Choose Planet A, a major aspect, and Planet B to see a focused interpretation. No combination is preselected.
+    </p>
+    <noscript>
+      <p class="mt-4 max-w-3xl text-sm leading-7 text-amber-100">
+        JavaScript is required to generate the selected interpretation in this browser.
+      </p>
+    </noscript>
+
+    <div class="mt-14 grid gap-10 border-t border-natal-border/70 pt-10 lg:grid-cols-2">
+      <section aria-labelledby="what-this-tool-does-title">
+        <p class="text-xs font-bold uppercase tracking-[0.16em] text-natal-accent">What this tool does</p>
+        <h2 class="mt-2 text-2xl font-semibold tracking-[-0.03em] text-white" id="what-this-tool-does-title">
+          Start with a known combination
+        </h2>
+        <p class="mt-4 text-sm leading-7 text-natal-muted">
+          A planetary aspect is an interpretive way of describing a relationship between two chart bodies. This tool lets you name the two bodies and the major aspect first, then gives you a compact explanation of the themes and dynamic involved.
+        </p>
+      </section>
+
+      <section aria-labelledby="how-to-use-title">
+        <p class="text-xs font-bold uppercase tracking-[0.16em] text-natal-accent">How to use the result</p>
+        <h2 class="mt-2 text-2xl font-semibold tracking-[-0.03em] text-white" id="how-to-use-title">
+          Read it as a starting point
+        </h2>
+        <p class="mt-4 text-sm leading-7 text-natal-muted">
+          Notice the two planetary themes, then consider how the aspect dynamic might bring them into conversation. The wording is educational and symbolic; it does not make a prediction about a person or a chart.
+        </p>
+      </section>
+
+      <section class="lg:col-span-2" aria-labelledby="calculation-disclosure-title">
+        <p class="text-xs font-bold uppercase tracking-[0.16em] text-natal-accent">Calculation vs interpretation</p>
+        <h2 class="mt-2 text-2xl font-semibold tracking-[-0.03em] text-white" id="calculation-disclosure-title">
+          An explanation, not an aspect detector
+        </h2>
+        <p class="mt-4 max-w-3xl text-sm leading-7 text-natal-muted">
+          This tool explains an aspect you select. It does not calculate planetary positions, measure angles or orbs, or determine whether the aspect exists in a birth chart. For an introduction to chart inputs and calculation transparency, read <a class="text-natal-accent underline decoration-natal-accent/50 underline-offset-4 hover:text-white" href="/learn/what-is-a-natal-chart">What Is a Natal Chart?</a> or return to the <a class="text-natal-accent underline decoration-natal-accent/50 underline-offset-4 hover:text-white" href="/tools/">Tools hub</a>.
+        </p>
+      </section>
+    </div>
+  </main>
+</SiteLayout>
+
+<script>
+  import { initializeAspectLookup } from '@/lib/aspect-lookup';
+
+  initializeAspectLookup();
+</script>

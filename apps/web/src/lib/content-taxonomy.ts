@@ -55,18 +55,21 @@ export const SEO_TOOL_TAXONOMY = [
     intendedPath: '/tools/sign-lookup',
     label: 'Sign Lookup',
     purpose: 'A focused educational reference for the twelve zodiac signs.',
-    requiresEngine: false
+    requiresEngine: false,
+    status: 'PLANNED'
   },
   {
     intendedPath: '/tools/house-lookup',
     label: 'House Lookup',
     purpose: 'A focused educational reference for the twelve chart houses.',
-    requiresEngine: false
+    requiresEngine: false,
+    status: 'PLANNED'
   },
   {
     intendedPath: '/tools/aspect-lookup',
     label: 'Aspect Lookup',
-    purpose: 'A focused educational reference for common chart relationships.',
-    requiresEngine: false
+    purpose: 'Choose two planets and a major aspect to explore a deterministic educational interpretation.',
+    requiresEngine: false,
+    status: 'AVAILABLE'
   }
 ] as const;

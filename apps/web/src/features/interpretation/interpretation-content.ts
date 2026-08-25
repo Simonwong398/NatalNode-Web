@@ -38,6 +38,7 @@ export type SupportedAspectType =
 export type AspectDynamic = {
   quality: string;
   expression: string;
+  guidance: string;
 };
 
 export const PLANET_MEANINGS: Record<SupportedPlanet, PlanetMeaning> = {
@@ -188,22 +189,27 @@ export const HOUSE_DOMAINS: Record<number, HouseDomain> = {
 export const ASPECT_DYNAMICS: Record<SupportedAspectType, AspectDynamic> = {
   conjunction: {
     quality: 'concentrated and merging',
-    expression: 'bringing the two planetary themes into close dialogue'
+    expression: 'bringing the two planetary themes into close dialogue',
+    guidance: 'letting both themes inform one another without allowing either one to disappear'
   },
   opposition: {
     quality: 'polarizing and balancing',
-    expression: 'highlighting a relationship between two complementary pulls'
+    expression: 'highlighting a relationship between two complementary pulls',
+    guidance: 'holding both perspectives long enough to find a workable balance'
   },
   trine: {
     quality: 'flowing and reinforcing',
-    expression: 'making it easier for the two themes to support one another'
+    expression: 'making it easier for the two themes to support one another',
+    guidance: 'using the natural ease intentionally rather than taking it for granted'
   },
   square: {
     quality: 'friction-producing and developmental',
-    expression: 'bringing a challenge that can sharpen conscious choice'
+    expression: 'bringing a challenge that can sharpen conscious choice',
+    guidance: 'turning friction into feedback and giving the pressure a place for deliberate practice'
   },
   sextile: {
     quality: 'cooperative and opportunity-oriented',
-    expression: 'opening a constructive channel when both themes are engaged'
+    expression: 'opening a constructive channel when both themes are engaged',
+    guidance: 'making a small, conscious choice to activate the available connection'
   }
 };
