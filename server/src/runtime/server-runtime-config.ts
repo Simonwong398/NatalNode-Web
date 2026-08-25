@@ -1,4 +1,5 @@
 export interface ServerRuntimeConfig {
+  readonly publicWebOrigin: string;
   readonly authentication: {
     readonly magicLinkTtlSeconds: number;
     readonly sessionTtlSeconds: number;

@@ -9,6 +9,9 @@ export type {
   EmailMagicLinkDeliveryRequest
 } from './email-magic-link-delivery.js';
 
+export { PublicWebOriginMagicLinkUrlBuilder } from './magic-link-url-builder.js';
+export type { MagicLinkUrlBuilder } from './magic-link-url-builder.js';
+
 export { NodeSecureTokenGenerator } from './secure-token.js';
 export type { SecureTokenGenerator } from './secure-token.js';
 

@@ -2,6 +2,7 @@ import type { EngineClient } from '@natalnode/engine-client';
 import type {
   AuthenticationExpirationPolicy,
   EmailMagicLinkDelivery,
+  MagicLinkUrlBuilder,
   SecureTokenGenerator,
   SessionCookiePolicy,
   TokenHasher
@@ -20,5 +21,6 @@ export interface ServerDependencies {
   readonly tokenHasher: TokenHasher;
   readonly authenticationExpirationPolicy: AuthenticationExpirationPolicy;
   readonly emailMagicLinkDelivery: EmailMagicLinkDelivery;
+  readonly magicLinkUrlBuilder: MagicLinkUrlBuilder;
   readonly sessionCookiePolicy: SessionCookiePolicy;
 }

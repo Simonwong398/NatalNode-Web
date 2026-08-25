@@ -5,9 +5,10 @@ The runtime composition root is `createServerRuntimeDependencies(...)`.
 `ServerDependencies` object.
 
 The composition root constructs internal clock, ID, token, expiration-policy,
-cookie-policy, persistence, and session-authenticator dependencies. It receives
-`SqlExecutor`, `EngineClient`, and `EmailMagicLinkDelivery` as explicit external
-bindings; it does not select providers or read environment configuration.
+cookie-policy, persistence, session-authenticator, and provider-neutral
+magic-link URL-builder dependencies. It receives `SqlExecutor`, `EngineClient`,
+and `EmailMagicLinkDelivery` as explicit external bindings; it does not select
+providers or read environment configuration.
 
 The concrete PostgreSQL runtime adapter is `PostgresSqlExecutor`. It adapts an
 externally constructed `pg` `Pool` to the `SqlExecutor` boundary. Pool
@@ -38,11 +39,14 @@ Runtime configuration has one environment boundary. Supported variables are:
 - `AUTH_SESSION_TTL_SECONDS`
 - `AUTH_SESSION_COOKIE_NAME`
 - `AUTH_SESSION_COOKIE_SECURE`
+- `PUBLIC_WEB_ORIGIN` — the explicit public origin used for browser magic-link
+  URLs; production uses HTTPS and local HTTP is limited to loopback origins.
 
 `parseServerEnvironment(...)` is deterministic and constructs no infrastructure;
 only `loadServerEnvironment()` reads `process.env`. Booleans are strict, no
-defaults are invented, and secrets are never logged. Engine, email, provider,
-and process bootstrap configuration remain deferred.
+defaults are invented, and secrets are never logged. `PUBLIC_WEB_ORIGIN` is
+provider-neutral and is never inferred from `HOST` or `PORT`. Concrete email
+provider configuration remains deferred.
 
 The complete bootstrap composition chain is:
 

@@ -120,6 +120,58 @@ function parseOptionalInteger(
   return parseCanonicalInteger(value, variableName, minimum, description);
 }
 
+function isExplicitLocalHttpHost(hostname: string): boolean {
+  const normalizedHostname = hostname.toLowerCase();
+
+  return (
+    normalizedHostname === 'localhost' ||
+    normalizedHostname === '127.0.0.1' ||
+    normalizedHostname === '::1' ||
+    normalizedHostname === '[::1]'
+  );
+}
+
+function parsePublicWebOrigin(env: EnvironmentSource): string {
+  const value = readRequired(env, 'PUBLIC_WEB_ORIGIN');
+
+  if (
+    /\s/u.test(value) ||
+    value.includes('?') ||
+    value.includes('#') ||
+    value.includes('@')
+  ) {
+    return invalidVariable('PUBLIC_WEB_ORIGIN', 'public web origin');
+  }
+
+  let url: URL;
+
+  try {
+    url = new URL(value);
+  } catch (_error) {
+    return invalidVariable('PUBLIC_WEB_ORIGIN', 'public web origin');
+  }
+
+  if (url.protocol !== 'http:' && url.protocol !== 'https:') {
+    return invalidVariable('PUBLIC_WEB_ORIGIN', 'public web origin');
+  }
+
+  if (
+    url.username.length > 0 ||
+    url.password.length > 0 ||
+    url.search.length > 0 ||
+    url.hash.length > 0 ||
+    url.pathname !== '/'
+  ) {
+    return invalidVariable('PUBLIC_WEB_ORIGIN', 'public web origin');
+  }
+
+  if (url.protocol === 'http:' && !isExplicitLocalHttpHost(url.hostname)) {
+    return invalidVariable('PUBLIC_WEB_ORIGIN', 'public web origin');
+  }
+
+  return url.origin;
+}
+
 export function parseServerEnvironment(
   env: EnvironmentSource
 ): ServerEnvironmentConfig {
@@ -156,6 +208,7 @@ export function parseServerEnvironment(
     env,
     'AUTH_SESSION_COOKIE_SECURE'
   );
+  const publicWebOrigin = parsePublicWebOrigin(env);
   const hostname = readRequired(env, 'HOST');
 
   if (hostname !== hostname.trim()) {
@@ -166,6 +219,7 @@ export function parseServerEnvironment(
 
   return {
     serverRuntimeConfig: {
+      publicWebOrigin,
       authentication: {
         magicLinkTtlSeconds,
         sessionTtlSeconds,

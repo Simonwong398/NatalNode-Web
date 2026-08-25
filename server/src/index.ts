@@ -21,6 +21,7 @@ export type {
   IssuedEmailMagicLinkChallenge,
   IssueEmailMagicLinkChallengeInput,
   IssueAuthSessionInput,
+  MagicLinkUrlBuilder,
   SessionCookiePolicy,
   SecureTokenGenerator,
   TokenHasher
@@ -32,6 +33,7 @@ export {
   issueEmailMagicLinkChallenge,
   normalizeEmailAddress,
   NodeSecureTokenGenerator,
+  PublicWebOriginMagicLinkUrlBuilder,
   serializeClearedSessionCookie,
   serializeSessionCookie,
   Sha256TokenHasher,

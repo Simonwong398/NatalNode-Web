@@ -57,11 +57,14 @@ session expiration remains authoritative. `SessionRequestAuthenticator` reads
 only that opaque cookie, fails closed on duplicate cookies, hashes it before
 lookup, and returns only `userId`.
 
-The Email Magic Link HTTP boundary now supports:
+The provider-neutral magic-link URL builder now constructs the configured
+fragment-based completion URL before the delivery boundary receives it. The
+Email Magic Link HTTP boundary supports:
 
 ```text
 request challenge
-→ provider-neutral delivery boundary
+→ build /auth/complete#token=... from the configured public origin
+→ provider-neutral delivery boundary receives the final URL
 
 present token by POST
 → complete authentication
@@ -69,8 +72,8 @@ present token by POST
 ```
 
 Those authentication responses are `no-store`, and request initiation does
-not disclose whether an account exists. A concrete email provider and
-user-facing magic-link URL remain deferred. The public logout boundary revokes
+not disclose whether an account exists. The concrete email provider and its
+transport remain deferred. The public logout boundary revokes
 the current unambiguous session token when present and always clears the
 configured browser cookie. Google OAuth and OAuth state/PKCE remain deferred.
 

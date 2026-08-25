@@ -25,19 +25,19 @@ layer. `completeEmailMagicLinkAuthentication(...)` consumes the token through
 the repository's one-time operation before issuing the session. The completion
 route returns a generic `401` for unknown, expired, or already-consumed links.
 
-The current `EmailMagicLinkDeliveryRequest` contains `emailNormalized`, `token`,
-and `expiresAt`. The current Astro application has no `/auth/complete` page and
-no browser callback route. The Hono server has only the POST completion route;
-no token-bearing GET callback exists.
+The current `EmailMagicLinkDeliveryRequest` contains `emailNormalized`,
+`magicLinkUrl`, and `expiresAt`. The Astro application has a minimal
+`/auth/complete` browser completion page. The Hono server has only the POST
+completion route; no token-bearing GET callback exists.
 
 ## Decisions
 
 1. Freeze a fragment-based browser handoff for P0.
 2. Keep the completion endpoint POST-only and authoritative.
-3. Make public web origin an explicit future configuration boundary.
+3. Make `PUBLIC_WEB_ORIGIN` an explicit provider-neutral runtime configuration
+   boundary.
 4. Keep magic-link URL construction outside concrete email providers.
-5. Refine the delivery contract in a later implementation patch so providers
-   receive a final URL rather than a raw authentication token.
+5. Make providers receive a final URL rather than a raw authentication token.
 6. Keep email content and authentication purpose provider-neutral.
 7. Disable provider click tracking for authentication links.
 8. Freeze Resend as the P0 concrete transactional email provider.
@@ -69,8 +69,7 @@ The email link will use this shape:
 https://<public-web-origin>/auth/complete#token=<opaque-token>
 ```
 
-The completion page will be an Astro route with a small client-side island or
-script. It will:
+The completion page is an Astro route with a small client-side script. It:
 
 1. Read the opaque token from `location.hash`.
 2. Immediately remove the fragment from the visible URL and history with
@@ -90,10 +89,9 @@ Resend does not own or modify this routing policy. The provider receives the
 final application-generated link and does not choose the callback route or
 browser navigation behavior.
 
-The current Astro configuration already supports Astro pages, React islands,
-and client-side code, so this handoff fits the repository. The `/auth/complete`
-page and client behavior are intentionally deferred to the next implementation
-patch.
+The current Astro configuration supports Astro pages, React islands, and
+client-side code, and the `/auth/complete` consumer uses a standalone
+first-party shell with no third-party runtime code.
 
 ## Token, referrer, and history security
 
@@ -125,41 +123,46 @@ The following alternatives are rejected for P0:
 
 ## Public web origin decision
 
-Future configuration will provide an explicit provider-neutral value such as
-`PUBLIC_WEB_ORIGIN`, preferably through a typed `PublicWebOrigin` boundary. It
-is not added to the environment parser in this decision-only task.
+The server now reads the required `PUBLIC_WEB_ORIGIN` through the existing
+single environment boundary and stores its canonical `URL.origin` value in
+`ServerRuntimeConfig.publicWebOrigin`. It is provider-neutral runtime policy,
+not a Resend setting.
 
-The future value must:
+The configured value must:
 
 - be an absolute URL;
 - use `https` for production deployments;
-- allow explicitly configured `http://localhost:<port>` for local development;
+- allow plain HTTP only for explicit loopback development origins such as
+  `http://localhost:<port>`, `http://127.0.0.1:<port>`, or
+  `http://[::1]:<port>`;
 - contain no path, query, fragment, or credentials; and
 - have no provider-specific meaning.
 
-The origin must never be inferred from an incoming `Host` header. Production
-versus local transport policy must be explicit in the future deployment
-configuration and must not be derived implicitly from `NODE_ENV`.
+Ordinary remote HTTP origins are rejected. The parser never uses `NODE_ENV`,
+`HOST`, `PORT`, forwarded host headers, request `Origin`, or `Referer` to
+construct or weaken this policy. Listener binding and public browser origin
+remain independent configuration concepts.
 
 ## Magic-link URL builder decision
 
-Concrete providers must not build authentication URLs. A future
-provider-neutral boundary such as `MagicLinkUrlBuilder` or
-`createEmailMagicLinkUrl(...)` will own URL construction using:
+Concrete providers must not build authentication URLs. The server now exposes a
+provider-neutral `MagicLinkUrlBuilder` boundary with a concrete
+`PublicWebOriginMagicLinkUrlBuilder` implementation. It owns URL construction
+using:
 
 ```text
 opaque token + explicit PublicWebOrigin
   → <origin>/auth/complete#token=<encoded-token>
 ```
 
-The builder belongs at the application/runtime configuration edge. Resend,
-Postmark, SES, or another adapter will receive the final URL and will not
-choose the callback route, query/fragment format, or navigation policy.
+The builder is constructed once at the runtime composition edge from the
+validated public origin. An empty token is rejected without being included in
+an error. Resend, Postmark, SES, or another adapter receives the final URL and
+does not choose the callback route, query/fragment format, or navigation policy.
 
-## EmailMagicLinkDelivery future contract
+## EmailMagicLinkDelivery contract
 
-The current contract remains unchanged in this ADR and no code is modified.
-The next implementation boundary should refine it to:
+The delivery contract now is:
 
 ```ts
 interface EmailMagicLinkDeliveryRequest {
@@ -169,7 +172,7 @@ interface EmailMagicLinkDeliveryRequest {
 }
 ```
 
-The future flow will be:
+The flow is:
 
 ```text
 issue challenge
@@ -178,8 +181,11 @@ issue challenge
   → provider adapter sends the message
 ```
 
-This prevents a concrete provider from receiving or interpreting raw token
-semantics and keeps routing/security policy outside the transport adapter.
+The issuance/orchestration path builds the final URL after the challenge is
+persisted and before delivery is attempted. The raw token does not cross the
+`EmailMagicLinkDelivery` boundary, so a concrete provider does not receive or
+interpret token semantics. Routing and public-origin policy remain outside the
+transport adapter.
 
 ## Email content and tracking
 
@@ -360,10 +366,6 @@ repositories, or frontend session semantics. Only the concrete
 
 ## Deferred items
 
-- Explicit public-origin configuration and validation.
-- `MagicLinkUrlBuilder` implementation.
-- The future URL-based `EmailMagicLinkDeliveryRequest` contract.
-- The Astro `/auth/complete` page and client handoff behavior.
 - Resend adapter implementation, the future `resend` dependency, credentials,
   sender identity, DNS verification, and email template implementation.
 - Provider API failure typing and deployment composition.
@@ -372,9 +374,8 @@ repositories, or frontend session semantics. Only the concrete
 
 ## Next implementation sequence
 
-1. `WEB-AUTH-002B — Magic-link browser handoff contract implementation`
-2. `WEB-AUTH-002C — EmailMagicLinkDelivery URL-contract refactor`
-3. `WEB-AUTH-002D — Resend EmailMagicLinkDelivery adapter`
+`WEB-AUTH-002D — Resend EmailMagicLinkDelivery adapter`
 
-These remain separate implementation patches. This ADR update does not
-implement any of them.
+The browser handoff and URL-based delivery contract are now implemented. The
+Resend adapter remains a separate patch and is not implemented by this ADR
+update.

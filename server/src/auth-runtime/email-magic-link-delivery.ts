@@ -1,6 +1,6 @@
 export interface EmailMagicLinkDeliveryRequest {
   readonly emailNormalized: string;
-  readonly token: string;
+  readonly magicLinkUrl: string;
   readonly expiresAt: string;
 }
 

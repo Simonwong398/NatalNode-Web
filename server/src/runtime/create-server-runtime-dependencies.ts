@@ -4,6 +4,7 @@ import {
   assertValidSessionCookiePolicy,
   type SessionCookiePolicy
 } from '../auth-runtime/session-cookie.js';
+import { PublicWebOriginMagicLinkUrlBuilder } from '../auth-runtime/magic-link-url-builder.js';
 import { NodeSecureTokenGenerator } from '../auth-runtime/secure-token.js';
 import { Sha256TokenHasher } from '../auth-runtime/token-hasher.js';
 import { createPostgresPersistence } from '../persistence/postgres/create-postgres-persistence.js';
@@ -45,6 +46,9 @@ export function createServerRuntimeDependencies(
     name: config.authentication.sessionCookieName,
     secure: config.authentication.sessionCookieSecure
   };
+  const magicLinkUrlBuilder = new PublicWebOriginMagicLinkUrlBuilder(
+    config.publicWebOrigin
+  );
 
   assertValidSessionCookiePolicy(sessionCookiePolicy);
 
@@ -66,6 +70,7 @@ export function createServerRuntimeDependencies(
     tokenHasher,
     authenticationExpirationPolicy,
     emailMagicLinkDelivery: bindings.emailMagicLinkDelivery,
+    magicLinkUrlBuilder,
     sessionCookiePolicy
   };
 }

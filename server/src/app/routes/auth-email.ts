@@ -93,7 +93,7 @@ async function requestEmailMagicLink(
 
   await dependencies.emailMagicLinkDelivery.sendMagicLink({
     emailNormalized: issued.record.emailNormalized,
-    token: issued.token,
+    magicLinkUrl: dependencies.magicLinkUrlBuilder.build(issued.token),
     expiresAt: issued.record.expiresAt
   });
 
