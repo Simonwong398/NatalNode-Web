@@ -15,9 +15,11 @@ export { createApp } from './app/index.js';
 export type { Clock, IdGenerator, ServerDependencies } from './app/index.js';
 
 export type {
+  AuthSessionRepository,
   AuthIdentityRepository,
   ChartNoteContentUpdate,
   ChartNoteRepository,
+  EmailMagicLinkChallengeRepository,
   PersistenceRepositories,
   UserRepository,
   VaultChartMetadataUpdate,
@@ -27,8 +29,10 @@ export type {
 export type { SqlExecutor, SqlQueryResult } from './db/index.js';
 export {
   createPostgresPersistence,
+  PostgresAuthSessionRepository,
   PostgresAuthIdentityRepository,
   PostgresChartNoteRepository,
+  PostgresEmailMagicLinkChallengeRepository,
   PostgresUserRepository,
   PostgresVaultChartRepository
 } from './persistence/postgres/index.js';
