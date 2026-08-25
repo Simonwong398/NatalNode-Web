@@ -9,6 +9,11 @@ cookie-policy, persistence, and session-authenticator dependencies. It receives
 `SqlExecutor`, `EngineClient`, and `EmailMagicLinkDelivery` as explicit external
 bindings; it does not select providers or read environment configuration.
 
-Environment parsing, a concrete database adapter, email delivery, provider
-selection, and process/listener startup remain deferred. Future bootstrap code
-should make this the single place where runtime dependencies are wired.
+The concrete PostgreSQL runtime adapter is `PostgresSqlExecutor`. It adapts an
+externally constructed `pg` `Pool` to the `SqlExecutor` boundary. Pool
+construction, configuration, and lifecycle remain bootstrap responsibilities;
+the composition root remains driver-neutral.
+
+Environment parsing, email delivery, provider selection, process/listener
+startup, and migrations remain deferred. Future bootstrap code should make this
+the single place where runtime dependencies are wired.

@@ -45,6 +45,7 @@ export {
   createServerRuntimeDependencies,
   DurationAuthenticationExpirationPolicy,
   NodeIdGenerator,
+  PostgresSqlExecutor,
   SystemClock
 } from './runtime/index.js';
 export type {
