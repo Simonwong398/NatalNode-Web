@@ -103,3 +103,6 @@ export type ChartResult =
       calculationStatus: 'INCOMPLETE_RESEARCH';
       metadata: IncompleteResearchScientificMetadata;
     });
+
+export * from './auth.js';
+export * from './vault.js';
