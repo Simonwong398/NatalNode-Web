@@ -1,5 +1,6 @@
 import { useId } from 'react';
 import type { ChartResult } from '@natalnode/contracts';
+import { CalculationDetails } from '@/features/calculation-details';
 import { ChartRenderer } from '@/features/chart-renderer';
 
 export type ChartWorkspaceProps = {
@@ -80,33 +81,7 @@ export default function ChartWorkspace({ chart }: ChartWorkspaceProps) {
         </section>
       </div>
 
-      <details className="border-t border-natal-border/70">
-        <summary className="cursor-pointer px-5 py-4 text-sm font-semibold text-white outline-none focus-visible:bg-natal-night/40 focus-visible:text-natal-accent sm:px-7">
-          Calculation Details
-        </summary>
-        <div className="grid gap-5 border-t border-natal-border/50 px-5 pb-6 pt-5 sm:px-7 sm:grid-cols-2">
-          <dl className="grid gap-3 text-sm">
-            <div className="flex items-baseline justify-between gap-4">
-              <dt className="text-slate-400">Engine Version</dt>
-              <dd className="text-right font-medium text-white">{chart.engineVersion}</dd>
-            </div>
-            <div className="flex items-baseline justify-between gap-4">
-              <dt className="text-slate-400">Chart Schema</dt>
-              <dd className="text-right font-medium text-white">{chart.schemaVersion}</dd>
-            </div>
-            <div className="flex items-baseline justify-between gap-4">
-              <dt className="text-slate-400">Calculation Status</dt>
-              <dd className="text-right font-medium text-white">{chart.calculationStatus}</dd>
-            </div>
-          </dl>
-          {isResearchConfiguration ? (
-            <div className="rounded-lg border border-amber-200/30 bg-amber-200/10 p-4 text-sm leading-6 text-amber-50/90">
-              <p className="font-semibold text-amber-100">Research configuration</p>
-              <p className="mt-1">UI development data; scientific and provenance identities are not available for this result.</p>
-            </div>
-          ) : null}
-        </div>
-      </details>
+      <CalculationDetails chart={chart} />
     </section>
   );
 }
