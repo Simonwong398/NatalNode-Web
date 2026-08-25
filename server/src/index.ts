@@ -1,3 +1,6 @@
+export { createApp } from './app/index.js';
+export type { ServerDependencies } from './app/index.js';
+
 export type {
   AuthIdentityRepository,
   ChartNoteContentUpdate,
