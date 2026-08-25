@@ -1,4 +1,5 @@
 ---
+import AuthSessionControl from '@/components/AuthSessionControl.astro';
 import SeoHead from '@/components/SeoHead.astro';
 import type { SeoMetadata } from '@/lib/seo';
 import '@/styles/global.css';
@@ -55,6 +56,9 @@ const isToolsPage = currentPath.startsWith('/tools');
             <a class="transition-colors hover:text-white" href="/">
               Chart
             </a>
+          </li>
+          <li>
+            <AuthSessionControl />
           </li>
         </ul>
       </nav>

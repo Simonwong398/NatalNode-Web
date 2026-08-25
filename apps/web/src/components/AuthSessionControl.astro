@@ -1,0 +1,48 @@
+<span
+  class="flex items-center gap-3"
+  data-auth-session-control
+  aria-busy="true"
+  hidden
+>
+  <a
+    class="text-sm font-semibold text-natal-accent transition-colors hover:text-white"
+    data-auth-signed-out
+    href="/auth/sign-in"
+    hidden
+  >
+    Sign in
+  </a>
+  <button
+    class="text-sm font-semibold text-natal-accent transition-colors hover:text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-natal-accent disabled:cursor-not-allowed disabled:opacity-60"
+    data-auth-signed-in
+    type="button"
+    hidden
+  >
+    Sign out
+  </button>
+  <span
+    class="text-xs text-rose-200"
+    data-auth-status
+    role="status"
+    aria-live="polite"
+    hidden
+  ></span>
+</span>
+
+<script>
+  import { initializeAuthSessionControl } from '@/features/auth/auth-session-control';
+
+  const root = document.querySelector<HTMLElement>('[data-auth-session-control]');
+  const signedOutLink = root?.querySelector<HTMLAnchorElement>('[data-auth-signed-out]');
+  const signedInButton = root?.querySelector<HTMLButtonElement>('[data-auth-signed-in]');
+  const statusElement = root?.querySelector<HTMLElement>('[data-auth-status]');
+
+  if (root && signedOutLink && signedInButton && statusElement) {
+    initializeAuthSessionControl({
+      root,
+      signedOutLink,
+      signedInButton,
+      statusElement
+    });
+  }
+</script>

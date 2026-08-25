@@ -18,6 +18,10 @@ export interface LogoutApiResponse {
   readonly signedOut: true;
 }
 
+export interface CurrentSessionApiResponse {
+  readonly authenticated: boolean;
+}
+
 export type AuthApiErrorCode = 'INVALID_REQUEST' | 'UNAUTHORIZED' | 'INTERNAL_ERROR';
 
 export interface AuthApiErrorResponse {

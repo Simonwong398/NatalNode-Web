@@ -1,5 +1,8 @@
 import type { Context, Hono } from 'hono';
-import type { LogoutApiResponse } from '@natalnode/contracts';
+import type {
+  CurrentSessionApiResponse,
+  LogoutApiResponse
+} from '@natalnode/contracts';
 import {
   extractSessionCookie,
   serializeClearedSessionCookie
@@ -47,9 +50,26 @@ async function logout(
   return context.json(response);
 }
 
+async function getCurrentSession(
+  context: Context,
+  dependencies: ServerDependencies
+): Promise<Response> {
+  markAuthenticationResponse(context);
+
+  const principal = await dependencies.authenticator.authenticate(context.req.raw);
+  const response: CurrentSessionApiResponse = {
+    authenticated: principal !== null
+  };
+
+  return context.json(response);
+}
+
 export function registerSessionAuthenticationRoutes(
   app: Hono,
   dependencies: ServerDependencies
 ): void {
+  app.get('/api/auth/session', (context) =>
+    getCurrentSession(context, dependencies)
+  );
   app.post('/api/auth/logout', (context) => logout(context, dependencies));
 }
