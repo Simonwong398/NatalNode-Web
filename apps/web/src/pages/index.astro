@@ -1,7 +1,6 @@
 ---
 import SeoHead from '@/components/SeoHead.astro';
-import ScaffoldStatus from '@/components/ScaffoldStatus';
-import { BirthInputForm } from '@/features/chart-input';
+import { ChartExperience } from '@/features/chart-experience';
 import '@/styles/global.css';
 
 const seo = {
@@ -27,8 +26,7 @@ const seo = {
       <p class="mt-5 max-w-xl text-lg leading-7 text-natal-muted">
         NatalNode keeps location and time resolution explicit before a chart is calculated.
       </p>
-      <BirthInputForm client:load />
-      <ScaffoldStatus client:load />
+      <ChartExperience client:load />
     </main>
   </body>
 </html>

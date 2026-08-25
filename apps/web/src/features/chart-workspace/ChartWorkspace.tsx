@@ -1,14 +1,16 @@
 import { useId } from 'react';
 import type { ChartResult } from '@natalnode/contracts';
 import { CalculationDetails } from '@/features/calculation-details';
+import type { CalculatedChartSnapshot } from '@/features/chart-experience/types';
 import { ChartRenderer } from '@/features/chart-renderer';
 import { InterpretationPanel } from '@/features/interpretation';
 
 export type ChartWorkspaceProps = {
-  chart: ChartResult;
+  snapshot: CalculatedChartSnapshot;
 };
 
-export default function ChartWorkspace({ chart }: ChartWorkspaceProps) {
+export default function ChartWorkspace({ snapshot }: ChartWorkspaceProps) {
+  const chart: ChartResult = snapshot.result;
   const workspaceId = useId();
   const titleId = `${workspaceId}-title`;
   const wheelTitleId = `${workspaceId}-wheel-title`;

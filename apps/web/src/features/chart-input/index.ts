@@ -1,4 +1,8 @@
 export { default as BirthInputForm } from './BirthInputForm';
+export type {
+  BirthInputFormProps,
+  ResolvedBirthInputSelection
+} from './BirthInputForm';
 export {
   DEVELOPMENT_RESOLVER_NOTICE,
   DevelopmentBirthInputResolver
@@ -12,6 +16,7 @@ export type {
   BirthInputDraft,
   BirthInputResolution,
   BirthInputState,
+  CalculationReadyBirthInputResolution,
   ExactBirthInputResolution,
   HouseSystem,
   HouseSystemSelection,

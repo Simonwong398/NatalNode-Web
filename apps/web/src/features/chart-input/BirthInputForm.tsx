@@ -10,6 +10,7 @@ import {
   type AmbiguousTimeCandidate,
   type BirthInputDraft,
   type BirthInputResolution,
+  type CalculationReadyBirthInputResolution,
   type HouseSystem
 } from './types';
 
@@ -32,7 +33,14 @@ const inputClassName =
 const defaultResolver: BirthInputResolver = new DevelopmentBirthInputResolver();
 
 export interface BirthInputFormProps {
+  isCalculationPending?: boolean;
+  onResolvedInput: (selection: ResolvedBirthInputSelection) => void;
   resolver?: BirthInputResolver;
+}
+
+export interface ResolvedBirthInputSelection {
+  resolution: CalculationReadyBirthInputResolution;
+  houseSystem: HouseSystem;
 }
 
 function FieldError({ id, message }: { id: string; message?: string }) {
@@ -149,9 +157,11 @@ function ExactResolutionPanel({ resolution }: { resolution: ExactResolution }) {
 }
 
 function AmbiguousResolutionPanel({
+  isDisabled,
   resolution,
   onSelectCandidate
 }: {
+  isDisabled: boolean;
   resolution: AmbiguousResolution;
   onSelectCandidate: (candidate: AmbiguousTimeCandidate) => void;
 }) {
@@ -180,6 +190,7 @@ function AmbiguousResolutionPanel({
             >
               <input
                 className="mt-1 size-4 accent-natal-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-natal-accent"
+                disabled={isDisabled}
                 name="ambiguous-occurrence"
                 onChange={() => onSelectCandidate(candidate)}
                 required
@@ -204,7 +215,13 @@ function AmbiguousResolutionPanel({
   );
 }
 
-function NonexistentResolutionPanel({ onEditBirthTime }: { onEditBirthTime: () => void }) {
+function NonexistentResolutionPanel({
+  isDisabled,
+  onEditBirthTime
+}: {
+  isDisabled: boolean;
+  onEditBirthTime: () => void;
+}) {
   return (
     <section
       aria-labelledby="nonexistent-time-title"
@@ -220,6 +237,7 @@ function NonexistentResolutionPanel({ onEditBirthTime }: { onEditBirthTime: () =
       </p>
       <button
         className="mt-4 inline-flex min-h-10 items-center justify-center rounded-lg border border-rose-200/40 px-4 py-2 text-sm font-semibold text-white hover:bg-rose-200/10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-natal-accent"
+        disabled={isDisabled}
         onClick={onEditBirthTime}
         type="button"
       >
@@ -249,10 +267,12 @@ function UnknownTimeResolutionPanel() {
 }
 
 function ResolutionPanel({
+  isInteractionDisabled,
   resolution,
   onSelectCandidate,
   onEditBirthTime
 }: {
+  isInteractionDisabled: boolean;
   resolution: BirthInputResolution | null;
   onSelectCandidate: (candidate: AmbiguousTimeCandidate) => void;
   onEditBirthTime: () => void;
@@ -265,15 +285,30 @@ function ResolutionPanel({
     case 'EXACT':
       return <ExactResolutionPanel resolution={resolution} />;
     case 'AMBIGUOUS':
-      return <AmbiguousResolutionPanel onSelectCandidate={onSelectCandidate} resolution={resolution} />;
+      return (
+        <AmbiguousResolutionPanel
+          isDisabled={isInteractionDisabled}
+          onSelectCandidate={onSelectCandidate}
+          resolution={resolution}
+        />
+      );
     case 'NONEXISTENT':
-      return <NonexistentResolutionPanel onEditBirthTime={onEditBirthTime} />;
+      return (
+        <NonexistentResolutionPanel
+          isDisabled={isInteractionDisabled}
+          onEditBirthTime={onEditBirthTime}
+        />
+      );
     case 'UNKNOWN_TIME':
       return <UnknownTimeResolutionPanel />;
   }
 }
 
-export default function BirthInputForm({ resolver = defaultResolver }: BirthInputFormProps) {
+export default function BirthInputForm({
+  isCalculationPending = false,
+  onResolvedInput,
+  resolver = defaultResolver
+}: BirthInputFormProps) {
   const [draft, setDraft] = useState<BirthInputDraft>(INITIAL_BIRTH_INPUT_STATE);
   const [errors, setErrors] = useState<ValidationErrors>({});
   const [resolution, setResolution] = useState<BirthInputResolution | null>(null);
@@ -282,6 +317,7 @@ export default function BirthInputForm({ resolver = defaultResolver }: BirthInpu
   const timeInputRef = useRef<HTMLInputElement>(null);
   const latestRequestRef = useRef(0);
   const unknownTime = draft.ambiguityStatus === 'UNKNOWN_TIME';
+  const isInteractionDisabled = isResolving || isCalculationPending;
 
   const invalidateResolution = () => {
     latestRequestRef.current += 1;
@@ -332,7 +368,11 @@ export default function BirthInputForm({ resolver = defaultResolver }: BirthInpu
   };
 
   const handleCandidateSelection = (candidate: AmbiguousTimeCandidate) => {
-    if (resolution?.ambiguityStatus !== 'AMBIGUOUS') {
+    if (
+      resolution?.ambiguityStatus !== 'AMBIGUOUS' ||
+      isCalculationPending ||
+      !draft.houseSystem
+    ) {
       return;
     }
 
@@ -342,19 +382,26 @@ export default function BirthInputForm({ resolver = defaultResolver }: BirthInpu
     setResolutionError(null);
     setIsResolving(false);
     latestRequestRef.current += 1;
+    onResolvedInput({ resolution: exactResolution, houseSystem: draft.houseSystem });
   };
 
   const handleSubmit = async (event: { preventDefault: () => void }) => {
     event.preventDefault();
 
+    if (isCalculationPending) {
+      return;
+    }
+
     const nextErrors = validateDraft(draft, unknownTime);
     setErrors(nextErrors);
     setResolutionError(null);
 
-    if (Object.keys(nextErrors).length > 0) {
+    if (Object.keys(nextErrors).length > 0 || !draft.houseSystem) {
       invalidateResolution();
       return;
     }
+
+    const selectedHouseSystem = draft.houseSystem;
 
     const requestId = latestRequestRef.current + 1;
     latestRequestRef.current = requestId;
@@ -369,6 +416,13 @@ export default function BirthInputForm({ resolver = defaultResolver }: BirthInpu
 
       setResolution(nextResolution);
       setDraft((current) => applyResolutionToDraft(current, nextResolution));
+
+      if (
+        nextResolution.ambiguityStatus === 'EXACT' ||
+        nextResolution.ambiguityStatus === 'UNKNOWN_TIME'
+      ) {
+        onResolvedInput({ resolution: nextResolution, houseSystem: selectedHouseSystem });
+      }
     } catch {
       if (latestRequestRef.current !== requestId) {
         return;
@@ -412,6 +466,7 @@ export default function BirthInputForm({ resolver = defaultResolver }: BirthInpu
               aria-describedby={errors.localDate ? 'birth-date-error' : undefined}
               aria-invalid={Boolean(errors.localDate)}
               className={inputClassName}
+              disabled={isInteractionDisabled}
               id="birth-date"
               name="localDate"
               onChange={(event) => updateEditableDraft({ localDate: event.target.value })}
@@ -430,7 +485,7 @@ export default function BirthInputForm({ resolver = defaultResolver }: BirthInpu
               aria-describedby={errors.localTime ? 'birth-time-error' : 'birth-time-help'}
               aria-invalid={Boolean(errors.localTime)}
               className={inputClassName}
-              disabled={unknownTime}
+              disabled={unknownTime || isInteractionDisabled}
               id="birth-time"
               name="localTime"
               onChange={(event) => updateEditableDraft({ localTime: event.target.value })}
@@ -454,6 +509,7 @@ export default function BirthInputForm({ resolver = defaultResolver }: BirthInpu
               aria-describedby={errors.locationLabel ? 'birth-place-error' : undefined}
               aria-invalid={Boolean(errors.locationLabel)}
               className={inputClassName}
+              disabled={isInteractionDisabled}
               id="birth-place"
               name="locationLabel"
               onChange={(event) => updateEditableDraft({ locationLabel: event.target.value })}
@@ -471,6 +527,7 @@ export default function BirthInputForm({ resolver = defaultResolver }: BirthInpu
             <input
               checked={unknownTime}
               className="mt-0.5 size-4 accent-natal-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-natal-accent"
+              disabled={isInteractionDisabled}
               id="unknown-time"
               name="unknownTime"
               onChange={(event) => handleUnknownTimeChange(event.target.checked)}
@@ -493,6 +550,7 @@ export default function BirthInputForm({ resolver = defaultResolver }: BirthInpu
             aria-describedby={errors.houseSystem ? 'house-system-error' : undefined}
             aria-invalid={Boolean(errors.houseSystem)}
             className={cn(inputClassName, 'appearance-auto')}
+            disabled={isInteractionDisabled}
             id="house-system"
             name="houseSystem"
             onChange={(event) =>
@@ -514,10 +572,14 @@ export default function BirthInputForm({ resolver = defaultResolver }: BirthInpu
         <div className="flex flex-col gap-3 border-t border-natal-border/70 pt-5 sm:flex-row sm:items-center sm:justify-between">
           <button
             className="inline-flex min-h-11 items-center justify-center rounded-lg bg-natal-primary px-5 py-2.5 text-sm font-semibold text-white shadow-lg shadow-natal-primary/20 hover:bg-natal-primary-hover focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-natal-accent disabled:cursor-wait disabled:opacity-60"
-            disabled={isResolving}
+            disabled={isInteractionDisabled}
             type="submit"
           >
-            {isResolving ? 'Resolving birth time…' : 'Resolve birth input'}
+            {isCalculationPending
+              ? 'Calculating chart…'
+              : isResolving
+                ? 'Resolving birth time…'
+                : 'Resolve birth input'}
           </button>
           {isResolving ? (
             <p className="text-sm leading-6 text-natal-muted" role="status" aria-live="polite">
@@ -533,6 +595,7 @@ export default function BirthInputForm({ resolver = defaultResolver }: BirthInpu
         </p>
       ) : null}
       <ResolutionPanel
+        isInteractionDisabled={isInteractionDisabled}
         onEditBirthTime={() => timeInputRef.current?.focus()}
         onSelectCandidate={handleCandidateSelection}
         resolution={resolution}

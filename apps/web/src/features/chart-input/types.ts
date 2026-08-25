@@ -68,21 +68,24 @@ export interface UnknownTimeBirthInputResolution {
   localDate: string;
   localTime: null;
   locationLabel: string;
-  latitude: number | null;
-  longitude: number | null;
-  ianaTimeZone: string | null;
+  latitude: number;
+  longitude: number;
+  ianaTimeZone: string;
   resolvedUtcInstant: null;
   utcOffsetSeconds: null;
-  timezoneDatabaseVersion: null;
-  timezoneResolutionMethod: null;
+  timezoneDatabaseVersion: string;
+  timezoneResolutionMethod: string;
   ambiguityStatus: 'UNKNOWN_TIME';
 }
 
-export type BirthInputResolution =
+export type CalculationReadyBirthInputResolution =
   | ExactBirthInputResolution
-  | AmbiguousBirthInputResolution
-  | NonexistentBirthInputResolution
   | UnknownTimeBirthInputResolution;
+
+export type BirthInputResolution =
+  | CalculationReadyBirthInputResolution
+  | AmbiguousBirthInputResolution
+  | NonexistentBirthInputResolution;
 
 export const INITIAL_BIRTH_INPUT_STATE: BirthInputState = {
   localDate: '',

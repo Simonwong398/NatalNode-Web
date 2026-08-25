@@ -41,13 +41,9 @@ function createUnknownTimeResolution(input: BirthInputDraft): UnknownTimeBirthIn
     localDate: input.localDate,
     localTime: null,
     locationLabel: input.locationLabel,
-    latitude: null,
-    longitude: null,
-    ianaTimeZone: null,
+    ...developmentLocation,
     resolvedUtcInstant: null,
     utcOffsetSeconds: null,
-    timezoneDatabaseVersion: null,
-    timezoneResolutionMethod: null,
     ambiguityStatus: 'UNKNOWN_TIME'
   };
 }
