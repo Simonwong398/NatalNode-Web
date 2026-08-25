@@ -27,6 +27,8 @@ runtime dependencies are wired.
 
 Runtime configuration has one environment boundary. Supported variables are:
 
+- `HOST`
+- `PORT`
 - `DATABASE_URL`
 - `DATABASE_SSL_ENABLED`
 - `DATABASE_POOL_MAX`
@@ -40,7 +42,7 @@ Runtime configuration has one environment boundary. Supported variables are:
 `parseServerEnvironment(...)` is deterministic and constructs no infrastructure;
 only `loadServerEnvironment()` reads `process.env`. Booleans are strict, no
 defaults are invented, and secrets are never logged. Engine, email, provider,
-listener, and process bootstrap configuration remain deferred.
+and process bootstrap configuration remain deferred.
 
 The complete bootstrap composition chain is:
 
@@ -52,3 +54,16 @@ The complete bootstrap composition chain is:
 and borrowed; they have no bootstrap lifecycle here. Migrations, readiness
 checks, HTTP listener and `HOST`/`PORT` configuration, signal handling, and
 concrete Engine/email providers remain deferred.
+
+The process runtime extends the chain:
+
+`loadServerEnvironment` → `ServerBootstrap` → official Hono Node HTTP listener
+→ `ServerProcessRuntime`.
+
+`HOST` and `PORT` are explicit configuration with no defaults. The process
+runtime closes the listener first and then the bootstrap, which closes
+PostgreSQL. `SIGINT` and `SIGTERM` handlers are installed only by the opt-in
+`runServerProcess()` function; it never calls `process.exit()`.
+
+An executable entrypoint, concrete EngineClient and email provider, migrations,
+readiness policy, and startup/fatal logging remain deferred.

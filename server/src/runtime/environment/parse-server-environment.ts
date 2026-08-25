@@ -86,6 +86,21 @@ function parseRequiredPositiveInteger(
   );
 }
 
+function parseRequiredPort(env: EnvironmentSource): number {
+  const port = parseCanonicalInteger(
+    readRequired(env, 'PORT'),
+    'PORT',
+    1,
+    'port'
+  );
+
+  if (port > 65_535) {
+    return invalidVariable('PORT', 'port');
+  }
+
+  return port;
+}
+
 function parseOptionalInteger(
   env: EnvironmentSource,
   variableName: string,
@@ -141,6 +156,13 @@ export function parseServerEnvironment(
     env,
     'AUTH_SESSION_COOKIE_SECURE'
   );
+  const hostname = readRequired(env, 'HOST');
+
+  if (hostname !== hostname.trim()) {
+    return invalidVariable('HOST', 'host');
+  }
+
+  const port = parseRequiredPort(env);
 
   return {
     serverRuntimeConfig: {
@@ -159,6 +181,10 @@ export function parseServerEnvironment(
       ...(connectionTimeoutMillis === undefined
         ? {}
         : { connectionTimeoutMillis })
+    },
+    nodeHttpListenerConfig: {
+      hostname,
+      port
     }
   };
 }

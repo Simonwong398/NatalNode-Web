@@ -13,6 +13,7 @@
     "check": "tsc --noEmit"
   },
   "dependencies": {
+    "@hono/node-server": "^2.1.1",
     "@natalnode/contracts": "0.1.0",
     "@natalnode/engine-client": "0.1.0",
     "hono": "^4.13.4",

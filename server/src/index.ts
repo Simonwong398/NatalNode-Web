@@ -48,9 +48,12 @@ export {
   DurationAuthenticationExpirationPolicy,
   loadServerEnvironment,
   loadServerBootstrap,
+  createServerProcessRuntime,
+  loadServerProcessRuntime,
   NodeIdGenerator,
   parseServerEnvironment,
   PostgresSqlExecutor,
+  runServerProcess,
   ServerEnvironmentConfigurationError,
   SystemClock
 } from './runtime/index.js';
@@ -61,6 +64,9 @@ export type {
   ServerBootstrap,
   ServerBootstrapBindings,
   ServerEnvironmentConfig,
+  NodeHttpListenerConfig,
+  NodeHttpListenerRuntime,
+  ServerProcessRuntime,
   ServerRuntimeBindings,
   ServerRuntimeConfig
 } from './runtime/index.js';
