@@ -1,3 +1,11 @@
+export { requireAuthentication } from './app/auth/index.js';
+export type {
+  AuthenticatedContextVariables,
+  AuthenticatedPrincipal,
+  AuthenticatedRequestEnv,
+  RequestAuthenticator
+} from './app/auth/index.js';
+
 export { createApp } from './app/index.js';
 export type { ServerDependencies } from './app/index.js';
 
