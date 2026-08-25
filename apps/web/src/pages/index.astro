@@ -1,6 +1,6 @@
 ---
-import ScaffoldStatus from '../components/ScaffoldStatus';
-import '../styles/global.css';
+import ScaffoldStatus from '@/components/ScaffoldStatus';
+import '@/styles/global.css';
 ---
 
 <!doctype html>
@@ -15,10 +15,12 @@ import '../styles/global.css';
     <title>NatalNode — Web Scaffold</title>
   </head>
   <body>
-    <main class="shell">
-      <p class="eyebrow">NatalNode</p>
-      <h1>Professional natal charts, built for transparency.</h1>
-      <p class="intro">
+    <main class="mx-auto flex min-h-screen w-[calc(100%-2rem)] max-w-3xl flex-col pb-12 pt-16 sm:pt-28">
+      <p class="text-xs font-bold uppercase tracking-[0.16em] text-natal-accent">NatalNode</p>
+      <h1 class="mt-4 max-w-2xl text-4xl font-semibold leading-[0.98] tracking-[-0.055em] text-white sm:text-7xl">
+        Professional natal charts, built for transparency.
+      </h1>
+      <p class="mt-5 max-w-xl text-lg leading-7 text-natal-muted">
         A minimal website shell for the NatalNode Engine’s first-party web experience.
       </p>
       <ScaffoldStatus client:load />
