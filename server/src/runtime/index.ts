@@ -36,3 +36,9 @@ export type { ServerProcessRuntime } from './process/index.js';
 export type { ServerRuntimeBindings } from './server-runtime-bindings.js';
 export type { ServerRuntimeConfig } from './server-runtime-config.js';
 export { SystemClock } from './system-clock.js';
+export {
+  createResendEmailMagicLinkDelivery
+} from './email/index.js';
+export type {
+  ResendEmailMagicLinkDeliveryConfig
+} from './email/index.js';

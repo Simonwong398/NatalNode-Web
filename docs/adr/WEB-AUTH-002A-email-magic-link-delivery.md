@@ -41,7 +41,7 @@ completion route; no token-bearing GET callback exists.
 6. Keep email content and authentication purpose provider-neutral.
 7. Disable provider click tracking for authentication links.
 8. Freeze Resend as the P0 concrete transactional email provider.
-9. Prefer the official Resend Node.js SDK for the future P0 transport adapter.
+9. Use the official Resend Node.js SDK for the P0 transport adapter.
 10. Use `auth.natalnode.com` as the preferred P0 authentication sending domain.
 11. Disable both click tracking and open tracking for authentication email.
 
@@ -190,8 +190,8 @@ transport adapter.
 ## Email content and tracking
 
 Authentication/application code or a small provider-neutral template function
-will own the purpose and message content: subject, minimal plain text, and
-minimal HTML. The future message will contain only:
+owns the purpose and message content: subject, minimal plain text, and minimal
+HTML. The message contains only:
 
 - NatalNode sign-in intent;
 - the sign-in link or button;
@@ -204,9 +204,9 @@ disabled, and provider open tracking will also be disabled. The opaque
 authentication credential must not be rewritten through a tracking redirect or
 exposed through a tracking pixel.
 
-The concrete provider adapter will own only provider request conversion and
-transport. The future Resend adapter will send once and return success or throw
-an infrastructure failure. If delivery definitively fails, the persisted
+The concrete provider adapter owns only provider request conversion and
+transport. The Resend adapter sends once and returns success or throws an
+infrastructure failure. If delivery definitively fails, the persisted
 challenge is not rolled back and the endpoint must not return a false success.
 Automatic retries are not added to the authentication request path because
 provider timeouts can have ambiguous delivery outcomes and retries may produce
@@ -290,9 +290,8 @@ integration plan is created by this ADR.
 
 ## P0 integration implementation choice
 
-The preferred P0 transport implementation is the official Resend Node.js SDK.
-The future dependency is `resend`; it is not installed in this documentation
-patch.
+The P0 transport implementation is the official Resend Node.js SDK, installed
+as the direct `resend` runtime dependency of `@natalnode/server`.
 
 The official maintained Node client provides a typed API surface and handles
 Resend API authentication and request details, reducing integration code while
@@ -300,7 +299,7 @@ keeping the provider isolated behind `EmailMagicLinkDelivery`.
 
 ## Resend boundary and inward dependency rule
 
-The future concrete adapter will be:
+The concrete adapter is:
 
 ```text
 ResendEmailMagicLinkDelivery
@@ -329,8 +328,8 @@ NatalNode <signin@auth.natalnode.com>
 ```
 
 This is a deployment and DNS configuration decision. The sender must not be
-hardcoded in application contracts; the future concrete adapter/configuration
-will receive it explicitly. No DNS changes are performed by this ADR.
+hardcoded in application contracts; the concrete adapter configuration
+receives it explicitly. No DNS changes are performed by this ADR.
 
 Before production sending, the Resend sending domain must be verified with the
 required DNS authentication, including SPF and DKIM. DMARC should also be
@@ -342,11 +341,11 @@ automation is deferred.
 Provider API credentials, sender identity, and any provider-specific endpoint or
 region belong at the executable/deployment composition edge. They must not be
 added to `ServerRuntimeConfig` or the public non-secret policy objects in
-`ServerEnvironmentConfig`. Future deployment composition owns `RESEND_API_KEY`
-and the sender identity/configuration; neither is added to environment parsing
-or repository configuration by this ADR.
+`ServerEnvironmentConfig`. Deployment composition owns the Resend API key and
+sender identity/configuration; neither is added to environment parsing or
+repository configuration by this ADR.
 
-The future composition direction is:
+The deployment composition direction is:
 
 ```text
 explicit secret/provider configuration
@@ -366,16 +365,16 @@ repositories, or frontend session semantics. Only the concrete
 
 ## Deferred items
 
-- Resend adapter implementation, the future `resend` dependency, credentials,
-  sender identity, DNS verification, and email template implementation.
-- Provider API failure typing and deployment composition.
+- Deployment composition, credentials, sender identity, DNS verification, and
+  Resend domain configuration.
+- Provider API failure typing and operational error policy.
 - User-facing auth UI and Google OAuth.
 - Production EngineClient and astronomy-provider decisions.
 
 ## Next implementation sequence
 
-`WEB-AUTH-002D — Resend EmailMagicLinkDelivery adapter`
+`WEB-AUTH-002E — Email sign-in request browser UX`
 
-The browser handoff and URL-based delivery contract are now implemented. The
-Resend adapter remains a separate patch and is not implemented by this ADR
-update.
+The browser handoff, URL-based delivery contract, provider-neutral template,
+and P0 Resend adapter are implemented. The browser request experience remains
+a separate patch.

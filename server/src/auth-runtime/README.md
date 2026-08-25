@@ -72,12 +72,15 @@ present token by POST
 ```
 
 Those authentication responses are `no-store`, and request initiation does
-not disclose whether an account exists. The concrete email provider and its
-transport remain deferred. The public logout boundary revokes
+not disclose whether an account exists. The P0 Resend adapter owns only email
+transport and receives the final URL, never the raw token. Its API key and
+sender identity are supplied explicitly at the deployment composition edge;
+they are not part of this provider-neutral authentication runtime. The public
+logout boundary revokes
 the current unambiguous session token when present and always clears the
 configured browser cookie. Google OAuth and OAuth state/PKCE remain deferred.
 
 Expired sessions and challenges are eligible for periodic deletion later; no
 cleanup job is defined here. Session repositories, magic-link repositories,
-consumption logic, cookies, and provider integrations are also deferred to
+consumption logic, and cookies remain separate runtime boundaries for
 subsequent patches.

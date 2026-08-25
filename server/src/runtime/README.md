@@ -45,8 +45,34 @@ Runtime configuration has one environment boundary. Supported variables are:
 `parseServerEnvironment(...)` is deterministic and constructs no infrastructure;
 only `loadServerEnvironment()` reads `process.env`. Booleans are strict, no
 defaults are invented, and secrets are never logged. `PUBLIC_WEB_ORIGIN` is
-provider-neutral and is never inferred from `HOST` or `PORT`. Concrete email
-provider configuration remains deferred.
+provider-neutral and is never inferred from `HOST` or `PORT`. Resend credentials
+and sender identity are supplied explicitly by deployment composition rather
+than added to this environment boundary.
+
+## P0 Resend email delivery
+
+P0 email delivery uses the official `resend@6.22.1` Node.js SDK. The deployment
+composition edge supplies explicit `apiKey` and `from` values through this
+chain:
+
+```text
+apiKey + from
+  → createResendEmailMagicLinkDelivery(...)
+  → EmailMagicLinkDelivery
+  → ServerBootstrapBindings
+```
+
+The adapter receives the final application-generated magic-link URL, never a
+raw token. It sends one provider request, adds no retry or application logging,
+and reports provider or malformed-result failures as a generic infrastructure
+error. Credentials and sender identity remain at the deployment edge; they are
+not read from `process.env` here.
+
+The installed SDK message options do not expose per-message open/click tracking
+controls. Resend deployment configuration for `auth.natalnode.com` must
+disable both tracking modes for authentication email. Domain verification,
+DNS records, and tracking configuration are operational deployment work and
+are not automated by this repository.
 
 The complete bootstrap composition chain is:
 
@@ -70,8 +96,9 @@ runtime closes the listener first and then the bootstrap, which closes
 PostgreSQL. `SIGINT` and `SIGTERM` handlers are installed only by the opt-in
 `runServerProcess()` function; it never calls `process.exit()`.
 
-An executable migration entrypoint or CLI, concrete EngineClient and email
-provider, readiness policy, and startup/fatal logging remain deferred.
+An executable migration entrypoint or CLI, concrete EngineClient, provider
+deployment composition, readiness policy, and startup/fatal logging remain
+separate runtime work.
 
 ## Explicit PostgreSQL migration runtime
 

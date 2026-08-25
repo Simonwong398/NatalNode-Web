@@ -59,7 +59,8 @@ export {
   runPostgresMigrations,
   runServerProcess,
   ServerEnvironmentConfigurationError,
-  SystemClock
+  SystemClock,
+  createResendEmailMagicLinkDelivery
 } from './runtime/index.js';
 export type {
   EnvironmentSource,
@@ -73,7 +74,8 @@ export type {
   NodeHttpListenerRuntime,
   ServerProcessRuntime,
   ServerRuntimeBindings,
-  ServerRuntimeConfig
+  ServerRuntimeConfig,
+  ResendEmailMagicLinkDeliveryConfig
 } from './runtime/index.js';
 
 export type {
