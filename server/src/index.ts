@@ -32,6 +32,8 @@ export type { Clock, IdGenerator, ServerDependencies } from './app/index.js';
 export type {
   AuthSessionRepository,
   AuthIdentityRepository,
+  AuthIdentityProvisioningInput,
+  AuthIdentityProvisioningRepository,
   ChartNoteContentUpdate,
   ChartNoteRepository,
   EmailMagicLinkChallengeRepository,
@@ -46,6 +48,7 @@ export {
   createPostgresPersistence,
   PostgresAuthSessionRepository,
   PostgresAuthIdentityRepository,
+  PostgresAuthIdentityProvisioningRepository,
   PostgresChartNoteRepository,
   PostgresEmailMagicLinkChallengeRepository,
   PostgresUserRepository,
