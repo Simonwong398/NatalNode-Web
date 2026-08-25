@@ -10,3 +10,4 @@ export {
   isStringArray,
   isVaultChartCategory
 } from './vault-chart.js';
+export { isChartNoteContentRequest } from './vault-note.js';

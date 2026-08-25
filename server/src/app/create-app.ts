@@ -2,6 +2,7 @@ import { Hono } from 'hono';
 import type { ServerDependencies } from './dependencies.js';
 import { createChartRoute } from './routes/chart.js';
 import { registerVaultChartRoutes } from './routes/vault-charts.js';
+import { registerVaultNoteRoutes } from './routes/vault-notes.js';
 
 const HEALTH_RESPONSE = {
   service: 'natalnode-web-bff',
@@ -28,6 +29,7 @@ export function createApp(dependencies: ServerDependencies): Hono {
   app.get('/api/health', (context) => context.json(HEALTH_RESPONSE));
   app.post('/api/chart', createChartRoute(dependencies));
   registerVaultChartRoutes(app, dependencies);
+  registerVaultNoteRoutes(app, dependencies);
 
   app.notFound((context) => context.json(NOT_FOUND_RESPONSE, 404));
 
