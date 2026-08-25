@@ -6,6 +6,11 @@ export type {
   RequestAuthenticator
 } from './app/auth/index.js';
 
+export type {
+  AuthSessionRecord,
+  EmailMagicLinkChallengeRecord
+} from './auth-runtime/index.js';
+
 export { createApp } from './app/index.js';
 export type { Clock, IdGenerator, ServerDependencies } from './app/index.js';
 
