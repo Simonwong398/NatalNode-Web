@@ -15,12 +15,7 @@ interface AuthIdentityRow {
 }
 
 const RESOLVE_OR_CREATE_AUTH_IDENTITY_SQL = `
-  WITH proposed_user AS (
-    INSERT INTO users (user_id, created_at, updated_at)
-    VALUES ($3, $5, $5)
-    RETURNING user_id
-  ),
-  resolved_identity AS (
+  WITH resolved_identity AS (
     INSERT INTO auth_identities (
       identity_id,
       user_id,
@@ -29,14 +24,7 @@ const RESOLVE_OR_CREATE_AUTH_IDENTITY_SQL = `
       created_at,
       updated_at
     )
-    SELECT
-      $4,
-      proposed_user.user_id,
-      $1,
-      $2,
-      $5,
-      $5
-    FROM proposed_user
+    VALUES ($4, $3, $1, $2, $5, $5)
     ON CONFLICT (provider, provider_subject)
     DO UPDATE SET updated_at = auth_identities.updated_at
     RETURNING
@@ -47,15 +35,12 @@ const RESOLVE_OR_CREATE_AUTH_IDENTITY_SQL = `
       created_at,
       updated_at
   ),
-  cleanup AS (
-    DELETE FROM users AS candidate_user
-    WHERE candidate_user.user_id = $3
-      AND EXISTS (
-        SELECT 1
-        FROM resolved_identity
-        WHERE resolved_identity.user_id <> $3
-      )
-    RETURNING candidate_user.user_id
+  created_user AS (
+    INSERT INTO users (user_id, created_at, updated_at)
+    SELECT resolved_identity.user_id, $5, $5
+    FROM resolved_identity
+    WHERE resolved_identity.user_id = $3
+    RETURNING user_id
   )
   SELECT
     resolved_identity.identity_id,
@@ -65,7 +50,8 @@ const RESOLVE_OR_CREATE_AUTH_IDENTITY_SQL = `
     resolved_identity.created_at,
     resolved_identity.updated_at
   FROM resolved_identity
-  CROSS JOIN (SELECT count(*) FROM cleanup) AS cleanup_result
+  LEFT JOIN created_user
+    ON created_user.user_id = resolved_identity.user_id
 `;
 
 function toTimestampString(value: Date | string): string {
