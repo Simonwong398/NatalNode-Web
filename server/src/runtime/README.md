@@ -14,6 +14,13 @@ externally constructed `pg` `Pool` to the `SqlExecutor` boundary. Pool
 construction, configuration, and lifecycle remain bootstrap responsibilities;
 the composition root remains driver-neutral.
 
-Environment parsing, email delivery, provider selection, process/listener
-startup, and migrations remain deferred. Future bootstrap code should make this
-the single place where runtime dependencies are wired.
+The PostgreSQL lifecycle chain is:
+
+`PostgresPoolRuntimeConfig` → `createPostgresPoolRuntime` → owned `pg.Pool` →
+`PostgresSqlExecutor` → `SqlExecutor` → server runtime composition.
+
+`PostgresPoolRuntime` owns pool creation and shutdown while exposing only
+`SqlExecutor` upward. Environment parsing, migrations, readiness checks, email
+delivery, provider selection, process/listener startup, and signal handling
+remain deferred. Future bootstrap code should make this the single place where
+runtime dependencies are wired.

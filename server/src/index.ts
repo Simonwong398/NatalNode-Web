@@ -43,12 +43,15 @@ export type { Clock, IdGenerator, ServerDependencies } from './app/index.js';
 
 export {
   createServerRuntimeDependencies,
+  createPostgresPoolRuntime,
   DurationAuthenticationExpirationPolicy,
   NodeIdGenerator,
   PostgresSqlExecutor,
   SystemClock
 } from './runtime/index.js';
 export type {
+  PostgresPoolRuntime,
+  PostgresPoolRuntimeConfig,
   ServerRuntimeBindings,
   ServerRuntimeConfig
 } from './runtime/index.js';
