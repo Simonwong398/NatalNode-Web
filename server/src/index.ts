@@ -8,7 +8,9 @@ export type {
 
 export type {
   AuthSessionRecord,
+  CompleteEmailMagicLinkAuthenticationInput,
   ConsumeEmailMagicLinkTokenInput,
+  CompletedEmailMagicLinkAuthentication,
   EmailMagicLinkChallengeRecord,
   IssuedAuthSession,
   IssuedEmailMagicLinkChallenge,
@@ -18,6 +20,7 @@ export type {
   TokenHasher
 } from './auth-runtime/index.js';
 export {
+  completeEmailMagicLinkAuthentication,
   consumeEmailMagicLinkToken,
   issueAuthSession,
   issueEmailMagicLinkChallenge,

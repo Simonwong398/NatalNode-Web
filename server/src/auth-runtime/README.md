@@ -34,8 +34,22 @@ implementation.
 Magic-link issuance normalizes email identity with trim plus lowercase only,
 persists the challenge hash before returning transient plaintext, and consumes
 presented tokens through the repository's atomic single-use operation. Challenge
-lifetime remains caller policy. Identity resolution and session issuance are
-separate deferred orchestration steps.
+lifetime remains caller policy.
+
+Email Magic Link authentication now composes:
+
+```text
+magic-link challenge
+→ atomic consume
+→ atomic identity provisioning
+→ secure session issuance
+→ auth_sessions persistence
+```
+
+Invalid or unusable links resolve to `null`. Downstream infrastructure errors
+propagate, and a consumed challenge is never rolled back or reused. The
+orchestration returns transient session material only after its hash-bearing
+record is persisted.
 
 Secure-cookie policy, cookies, auth routes, `RequestAuthenticator`, email
 delivery, Google OAuth, and OAuth state/PKCE remain deferred.

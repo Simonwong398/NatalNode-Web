@@ -25,3 +25,9 @@ export type {
   IssueEmailMagicLinkChallengeInput,
   IssuedEmailMagicLinkChallenge
 } from './email-magic-link.js';
+
+export { completeEmailMagicLinkAuthentication } from './email-magic-link-authentication.js';
+export type {
+  CompleteEmailMagicLinkAuthenticationInput,
+  CompletedEmailMagicLinkAuthentication
+} from './email-magic-link-authentication.js';
