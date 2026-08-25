@@ -1,5 +1,6 @@
 import { Hono } from 'hono';
 import type { ServerDependencies } from './dependencies.js';
+import { createChartRoute } from './routes/chart.js';
 
 const HEALTH_RESPONSE = {
   service: 'natalnode-web-bff',
@@ -21,11 +22,10 @@ const INTERNAL_ERROR_RESPONSE = {
 } as const;
 
 export function createApp(dependencies: ServerDependencies): Hono {
-  void dependencies;
-
   const app = new Hono();
 
   app.get('/api/health', (context) => context.json(HEALTH_RESPONSE));
+  app.post('/api/chart', createChartRoute(dependencies));
 
   app.notFound((context) => context.json(NOT_FOUND_RESPONSE, 404));
 
