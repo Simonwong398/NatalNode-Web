@@ -23,6 +23,23 @@ export type SignStyle = {
   expression: string;
 };
 
+export type HouseDomain = {
+  focus: string;
+  expression: string;
+};
+
+export type SupportedAspectType =
+  | 'conjunction'
+  | 'opposition'
+  | 'trine'
+  | 'square'
+  | 'sextile';
+
+export type AspectDynamic = {
+  quality: string;
+  expression: string;
+};
+
 export const PLANET_MEANINGS: Record<SupportedPlanet, PlanetMeaning> = {
   Sun: {
     focus: 'Identity and vitality',
@@ -114,5 +131,79 @@ export const SIGN_STYLES: Record<string, SignStyle> = {
   Pisces: {
     style: 'imaginative and empathic',
     expression: 'allowing intuition and compassion to guide perception'
+  }
+};
+
+export const HOUSE_DOMAINS: Record<number, HouseDomain> = {
+  1: {
+    focus: 'identity, initiative, and self-direction',
+    expression: 'taking action from a personal starting point'
+  },
+  2: {
+    focus: 'resources, values, and self-worth',
+    expression: 'building stability around what feels genuinely worthwhile'
+  },
+  3: {
+    focus: 'learning, communication, and the immediate environment',
+    expression: 'making meaning through questions, conversation, and practice'
+  },
+  4: {
+    focus: 'home, roots, and emotional foundations',
+    expression: 'shaping a private base that supports inner steadiness'
+  },
+  5: {
+    focus: 'creativity, play, romance, and self-expression',
+    expression: 'making room for joy and wholehearted participation'
+  },
+  6: {
+    focus: 'daily routines, service, and skill-building',
+    expression: 'refining expression through useful habits and craft'
+  },
+  7: {
+    focus: 'partnership, collaboration, and one-to-one encounter',
+    expression: 'learning through reciprocity and clear agreements'
+  },
+  8: {
+    focus: 'shared resources, trust, and emotional depth',
+    expression: 'engaging meaningful change with care and honesty'
+  },
+  9: {
+    focus: 'study, belief, travel, and wider meaning',
+    expression: 'expanding perspective through exploration and reflection'
+  },
+  10: {
+    focus: 'vocation, responsibility, and public contribution',
+    expression: 'shaping a visible role through sustained effort'
+  },
+  11: {
+    focus: 'friendship, community, and future aims',
+    expression: 'contributing ideas and energy to a wider network'
+  },
+  12: {
+    focus: 'inner life, retreat, and unseen experience',
+    expression: 'making space for reflection, imagination, and release'
+  }
+};
+
+export const ASPECT_DYNAMICS: Record<SupportedAspectType, AspectDynamic> = {
+  conjunction: {
+    quality: 'concentrated and merging',
+    expression: 'bringing the two planetary themes into close dialogue'
+  },
+  opposition: {
+    quality: 'polarizing and balancing',
+    expression: 'highlighting a relationship between two complementary pulls'
+  },
+  trine: {
+    quality: 'flowing and reinforcing',
+    expression: 'making it easier for the two themes to support one another'
+  },
+  square: {
+    quality: 'friction-producing and developmental',
+    expression: 'bringing a challenge that can sharpen conscious choice'
+  },
+  sextile: {
+    quality: 'cooperative and opportunity-oriented',
+    expression: 'opening a constructive channel when both themes are engaged'
   }
 };

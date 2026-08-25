@@ -10,42 +10,40 @@ export type InterpretationPanelProps = {
 };
 
 type InterpretationSectionProps = {
-  emptyMessage: string;
   items: InterpretationItem[];
   title: string;
   titleId: string;
 };
 
 function InterpretationSection({
-  emptyMessage,
   items,
   title,
   titleId
 }: InterpretationSectionProps) {
+  if (items.length === 0) {
+    return null;
+  }
+
   return (
     <section aria-labelledby={titleId} className="mt-6 first:mt-5">
       <h4 className="text-sm font-semibold uppercase tracking-[0.12em] text-slate-200" id={titleId}>
         {title}
       </h4>
-      {items.length > 0 ? (
-        <div className="mt-3 grid min-w-0 gap-3">
-          {items.map((item) => (
-            <article
-              className="min-w-0 rounded-lg border border-natal-border/70 bg-natal-night/30 p-4"
-              key={item.id}
-            >
-              <h5 className="text-base font-semibold text-white">{item.title}</h5>
-              <p className="mt-2 text-sm leading-6 text-slate-300">{item.text}</p>
-              <p className="mt-3 break-words text-xs leading-5 text-slate-400">
-                <span className="font-semibold text-slate-300">Source fact</span>{' '}
-                <span className="font-mono">{item.sourceFacts.join(' · ')}</span>
-              </p>
-            </article>
-          ))}
-        </div>
-      ) : (
-        <p className="mt-3 text-sm leading-6 text-slate-400">{emptyMessage}</p>
-      )}
+      <div className="mt-3 grid min-w-0 gap-3">
+        {items.map((item) => (
+          <article
+            className="min-w-0 rounded-lg border border-natal-border/70 bg-natal-night/30 p-4"
+            key={item.id}
+          >
+            <h5 className="text-base font-semibold text-white">{item.title}</h5>
+            <p className="mt-2 text-sm leading-6 text-slate-300">{item.text}</p>
+            <p className="mt-3 break-words text-xs leading-5 text-slate-400">
+              <span className="font-semibold text-slate-300">Source fact</span>{' '}
+              <span className="font-mono">{item.sourceContext ?? item.sourceFacts.join(' · ')}</span>
+            </p>
+          </article>
+        ))}
+      </div>
     </section>
   );
 }
@@ -76,17 +74,21 @@ export default function InterpretationPanel({ chart }: InterpretationPanelProps)
         </p>
       ) : null}
 
+      <InterpretationSection items={interpretation.bigThree} title="Big Three" titleId={bigThreeTitleId} />
       <InterpretationSection
-        emptyMessage="No supported Big Three facts are available."
-        items={interpretation.bigThree}
-        title="Big Three"
-        titleId={bigThreeTitleId}
-      />
-      <InterpretationSection
-        emptyMessage="No supported planet-in-sign facts are available."
         items={interpretation.planetsInSigns}
         title="Planets in Signs"
         titleId={planetsInSignsTitleId}
+      />
+      <InterpretationSection
+        items={interpretation.planetsInHouses}
+        title="Planets in Houses"
+        titleId={`${panelId}-planets-in-houses-title`}
+      />
+      <InterpretationSection
+        items={interpretation.majorAspects}
+        title="Major Aspects"
+        titleId={`${panelId}-major-aspects-title`}
       />
     </section>
   );
