@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import type { EngineClient } from '@natalnode/engine-client';
+import { ChartRenderer } from '@/features/chart-renderer';
 import { cn } from '@/lib/utils';
 import { engineClient } from '@/lib/engine-client';
 
@@ -70,6 +71,11 @@ export default function ScaffoldStatus() {
       <p className="col-span-full text-xs leading-5 text-slate-400">
         UI development proof only; values are displayed from the EngineClient result.
       </p>
+      {result ? (
+        <div className="col-span-full mt-2 rounded-lg border border-natal-border/70 bg-natal-night/50 p-2 sm:p-4">
+          <ChartRenderer chart={result} />
+        </div>
+      ) : null}
     </section>
   );
 }
