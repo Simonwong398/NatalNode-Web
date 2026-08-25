@@ -1,6 +1,10 @@
 export { createServerBootstrap, loadServerBootstrap } from './bootstrap/index.js';
 export { createServerRuntimeDependencies } from './create-server-runtime-dependencies.js';
-export { createPostgresPoolRuntime } from './postgres/index.js';
+export {
+  createPostgresPoolRuntime,
+  PostgresMigrationError,
+  runPostgresMigrations
+} from './postgres/index.js';
 export { DurationAuthenticationExpirationPolicy } from './duration-authentication-expiration-policy.js';
 export { loadServerEnvironment, parseServerEnvironment } from './environment/index.js';
 export {
@@ -14,6 +18,7 @@ export type {
   PostgresPoolRuntime,
   PostgresPoolRuntimeConfig
 } from './postgres/index.js';
+export type { PostgresMigrationRunResult } from './postgres/index.js';
 export { ServerEnvironmentConfigurationError } from './environment/index.js';
 export type {
   EnvironmentSource,

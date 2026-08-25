@@ -20,10 +20,10 @@ The PostgreSQL lifecycle chain is:
 `PostgresSqlExecutor` → `SqlExecutor` → server runtime composition.
 
 `PostgresPoolRuntime` owns pool creation and shutdown while exposing only
-`SqlExecutor` upward. Environment parsing, migrations, readiness checks, email
-delivery, provider selection, process/listener startup, and signal handling
-remain deferred. Future bootstrap code should make this the single place where
-runtime dependencies are wired.
+`SqlExecutor` upward. Environment parsing, automatic migrations, readiness
+checks, email delivery, provider selection, process/listener startup, and
+signal handling remain separate boundaries. Future bootstrap code should make
+this the single place where runtime dependencies are wired.
 
 Runtime configuration has one environment boundary. Supported variables are:
 
@@ -51,9 +51,10 @@ The complete bootstrap composition chain is:
 
 `ServerBootstrap` owns the PostgreSQL runtime and exposes only `app` and
 `close()`. `EngineClient` and `EmailMagicLinkDelivery` are externally supplied
-and borrowed; they have no bootstrap lifecycle here. Migrations, readiness
-checks, HTTP listener and `HOST`/`PORT` configuration, signal handling, and
-concrete Engine/email providers remain deferred.
+and borrowed; they have no bootstrap lifecycle here. Migration execution is
+explicit and separate from bootstrap. Readiness checks, HTTP listener and
+`HOST`/`PORT` configuration, signal handling, and concrete Engine/email
+providers remain separate runtime boundaries.
 
 The process runtime extends the chain:
 
@@ -65,5 +66,21 @@ runtime closes the listener first and then the bootstrap, which closes
 PostgreSQL. `SIGINT` and `SIGTERM` handlers are installed only by the opt-in
 `runServerProcess()` function; it never calls `process.exit()`.
 
-An executable entrypoint, concrete EngineClient and email provider, migrations,
-readiness policy, and startup/fatal logging remain deferred.
+An executable migration entrypoint or CLI, concrete EngineClient and email
+provider, readiness policy, and startup/fatal logging remain deferred.
+
+## Explicit PostgreSQL migration runtime
+
+Deployments may call `runPostgresMigrations(postgresConfig, migrationsDirectory)`
+explicitly, wait for its dedicated migration pool to close, and then start the
+web process separately. Web startup never runs migrations automatically.
+
+The runner uses one PostgreSQL session-level advisory lock to serialize
+concurrent migration runners. Applied migrations are immutable by version,
+filename, and full-artifact SHA-256 checksum; BOM and line-ending differences
+are normalized before hashing. The current `0001`–`0003` files remain legacy
+transaction-wrapped artifacts: the complete canonical artifact is checksummed,
+and only a recognized outer `BEGIN;` / `COMMIT;` boundary is removed for
+execution. The runner owns the per-migration transaction so schema effects and
+tracking metadata commit atomically. Future migrations should omit transaction
+wrappers. The runtime is forward-only and does not include a migration CLI.

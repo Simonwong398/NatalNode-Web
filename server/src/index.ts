@@ -52,13 +52,16 @@ export {
   loadServerProcessRuntime,
   NodeIdGenerator,
   parseServerEnvironment,
+  PostgresMigrationError,
   PostgresSqlExecutor,
+  runPostgresMigrations,
   runServerProcess,
   ServerEnvironmentConfigurationError,
   SystemClock
 } from './runtime/index.js';
 export type {
   EnvironmentSource,
+  PostgresMigrationRunResult,
   PostgresPoolRuntime,
   PostgresPoolRuntimeConfig,
   ServerBootstrap,
