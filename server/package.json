@@ -10,6 +10,10 @@
     }
   },
   "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "start": "node dist/executable/server-main.js",
+    "migrate": "node dist/executable/migration-main.js",
+    "local": "node dist/executable/local-main.js",
     "check": "tsc --noEmit"
   },
   "dependencies": {

@@ -9,7 +9,14 @@
   ],
   "scripts": {
     "dev": "npm --workspace=apps/web run dev",
-    "build": "npm --workspace=apps/web run build",
-    "check": "npm run check --workspaces --if-present"
+    "build": "npm run build --workspace=packages/test-fixtures --workspace=packages/engine-client --workspace=apps/web --workspace=server",
+    "build:server": "npm run build --workspace=packages/test-fixtures --workspace=packages/engine-client --workspace=server",
+    "check": "npm run check --workspaces --if-present",
+    "preserver:start": "npm run build:server",
+    "server:start": "npm run start --workspace=server",
+    "predb:migrate": "npm run build:server",
+    "db:migrate": "npm run migrate --workspace=server",
+    "predev:local": "npm run build",
+    "dev:local": "npm run local --workspace=server"
   }
 }

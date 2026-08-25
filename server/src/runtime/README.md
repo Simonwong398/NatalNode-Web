@@ -46,8 +46,8 @@ Runtime configuration has one environment boundary. Supported variables are:
 only `loadServerEnvironment()` reads `process.env`. Booleans are strict, no
 defaults are invented, and secrets are never logged. `PUBLIC_WEB_ORIGIN` is
 provider-neutral and is never inferred from `HOST` or `PORT`. Resend credentials
-and sender identity are supplied explicitly by deployment composition rather
-than added to this environment boundary.
+and sender identity are supplied explicitly by the executable deployment
+composition rather than added to this environment boundary.
 
 ## P0 Resend email delivery
 
@@ -93,12 +93,41 @@ The process runtime extends the chain:
 
 `HOST` and `PORT` are explicit configuration with no defaults. The process
 runtime closes the listener first and then the bootstrap, which closes
-PostgreSQL. `SIGINT` and `SIGTERM` handlers are installed only by the opt-in
-`runServerProcess()` function; it never calls `process.exit()`.
+PostgreSQL. `runServerProcess()` and local composition share one opt-in signal
+shutdown helper for `SIGINT` and `SIGTERM`; neither calls `process.exit()`.
 
-An executable migration entrypoint or CLI, concrete EngineClient, provider
-deployment composition, readiness policy, and startup/fatal logging remain
-separate runtime work.
+Readiness policy and production astronomy-provider composition remain separate
+runtime work.
+
+## Executable commands
+
+The repository compiles executable Node.js ESM with the existing TypeScript
+compiler. The supported root commands are:
+
+- `npm run server:start` — compile the server runtime and start the internal
+  Hono listener through `runServerProcess(...)`.
+- `npm run db:migrate` — compile the server runtime and run the existing
+  PostgreSQL migration runner as a separate operation.
+- `npm run dev:local` — build the static Astro artifact and server runtime, then
+  start one local public edge plus the internal Hono listener.
+
+All three commands use the existing required server environment variables
+listed above. API and local execution additionally require:
+
+- `RESEND_API_KEY`
+- `AUTH_EMAIL_FROM`
+- `ENGINE_CLIENT_MODE=development-mock`
+
+The only accepted Engine mode is deliberately development-only and constructs
+the existing `MockEngineClient`. It is not a production astronomy selection.
+`PROVIDER DECISION DEFERRED` remains in force.
+
+Local composition additionally requires `LOCAL_PUBLIC_PORT` and requires
+`PUBLIC_WEB_ORIGIN` to equal `http://localhost:<LOCAL_PUBLIC_PORT>`. `HOST` and
+`PORT` continue to identify only the internal Hono listener and `PORT` must
+differ from `LOCAL_PUBLIC_PORT`. The local edge serves `apps/web/dist` for
+normal routes and assets and proxies every `/api` and `/api/*` request without
+adding CORS. Build and startup are separate from database migration execution.
 
 ## Explicit PostgreSQL migration runtime
 
@@ -114,4 +143,5 @@ transaction-wrapped artifacts: the complete canonical artifact is checksummed,
 and only a recognized outer `BEGIN;` / `COMMIT;` boundary is removed for
 execution. The runner owns the per-migration transaction so schema effects and
 tracking metadata commit atomically. Future migrations should omit transaction
-wrappers. The runtime is forward-only and does not include a migration CLI.
+wrappers. The runtime is forward-only; `npm run db:migrate` is the thin
+executable edge over this existing migration behavior.
