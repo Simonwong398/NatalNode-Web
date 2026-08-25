@@ -42,10 +42,12 @@ export { createApp } from './app/index.js';
 export type { Clock, IdGenerator, ServerDependencies } from './app/index.js';
 
 export {
+  createServerBootstrap,
   createServerRuntimeDependencies,
   createPostgresPoolRuntime,
   DurationAuthenticationExpirationPolicy,
   loadServerEnvironment,
+  loadServerBootstrap,
   NodeIdGenerator,
   parseServerEnvironment,
   PostgresSqlExecutor,
@@ -56,6 +58,8 @@ export type {
   EnvironmentSource,
   PostgresPoolRuntime,
   PostgresPoolRuntimeConfig,
+  ServerBootstrap,
+  ServerBootstrapBindings,
   ServerEnvironmentConfig,
   ServerRuntimeBindings,
   ServerRuntimeConfig

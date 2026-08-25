@@ -41,3 +41,14 @@ Runtime configuration has one environment boundary. Supported variables are:
 only `loadServerEnvironment()` reads `process.env`. Booleans are strict, no
 defaults are invented, and secrets are never logged. Engine, email, provider,
 listener, and process bootstrap configuration remain deferred.
+
+The complete bootstrap composition chain is:
+
+`loadServerEnvironment` → `createPostgresPoolRuntime` →
+`createServerRuntimeDependencies` → `createApp` → `ServerBootstrap`.
+
+`ServerBootstrap` owns the PostgreSQL runtime and exposes only `app` and
+`close()`. `EngineClient` and `EmailMagicLinkDelivery` are externally supplied
+and borrowed; they have no bootstrap lifecycle here. Migrations, readiness
+checks, HTTP listener and `HOST`/`PORT` configuration, signal handling, and
+concrete Engine/email providers remain deferred.
