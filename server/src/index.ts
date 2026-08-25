@@ -2,6 +2,7 @@ export type {
   AuthIdentityRepository,
   ChartNoteContentUpdate,
   ChartNoteRepository,
+  PersistenceRepositories,
   UserRepository,
   VaultChartMetadataUpdate,
   VaultChartRepository
@@ -9,6 +10,7 @@ export type {
 
 export type { SqlExecutor, SqlQueryResult } from './db/index.js';
 export {
+  createPostgresPersistence,
   PostgresAuthIdentityRepository,
   PostgresChartNoteRepository,
   PostgresUserRepository,
