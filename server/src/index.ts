@@ -41,6 +41,17 @@ export {
 export { createApp } from './app/index.js';
 export type { Clock, IdGenerator, ServerDependencies } from './app/index.js';
 
+export {
+  createServerRuntimeDependencies,
+  DurationAuthenticationExpirationPolicy,
+  NodeIdGenerator,
+  SystemClock
+} from './runtime/index.js';
+export type {
+  ServerRuntimeBindings,
+  ServerRuntimeConfig
+} from './runtime/index.js';
+
 export type {
   AuthSessionRepository,
   AuthIdentityRepository,
