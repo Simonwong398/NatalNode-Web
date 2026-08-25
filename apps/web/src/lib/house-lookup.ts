@@ -1,0 +1,131 @@
+import { HOUSE_DOMAINS } from '@/features/interpretation/interpretation-content';
+
+type HouseOption = {
+  id: string;
+  number: number;
+  label: string;
+};
+
+export const HOUSE_OPTIONS = [
+  { id: '1', number: 1, label: '1st House' },
+  { id: '2', number: 2, label: '2nd House' },
+  { id: '3', number: 3, label: '3rd House' },
+  { id: '4', number: 4, label: '4th House' },
+  { id: '5', number: 5, label: '5th House' },
+  { id: '6', number: 6, label: '6th House' },
+  { id: '7', number: 7, label: '7th House' },
+  { id: '8', number: 8, label: '8th House' },
+  { id: '9', number: 9, label: '9th House' },
+  { id: '10', number: 10, label: '10th House' },
+  { id: '11', number: 11, label: '11th House' },
+  { id: '12', number: 12, label: '12th House' }
+] as const satisfies readonly HouseOption[];
+
+export type HouseId = (typeof HOUSE_OPTIONS)[number]['id'];
+
+export type HouseLookupInterpretation = {
+  houseNumber: number;
+  houseLabel: string;
+  coreDomain: string;
+  keyThemes: readonly string[];
+  constructiveExpression: string;
+  potentialTension: string;
+};
+
+export function composeHouseLookupInterpretation(houseId: string): HouseLookupInterpretation | null {
+  const house = HOUSE_OPTIONS.find((option) => option.id === houseId);
+
+  if (!house) {
+    return null;
+  }
+
+  const domain = HOUSE_DOMAINS[house.number];
+
+  if (!domain) {
+    return null;
+  }
+
+  return {
+    houseNumber: house.number,
+    houseLabel: house.label,
+    coreDomain: domain.focus,
+    keyThemes: domain.themes,
+    constructiveExpression: domain.expression,
+    potentialTension: domain.tension
+  };
+}
+
+export function initializeHouseLookup(): void {
+  const form = document.querySelector<HTMLFormElement>('[data-house-lookup-form]');
+  const select = document.querySelector<HTMLSelectElement>('[data-house-select]');
+  const result = document.querySelector<HTMLElement>('[data-house-result]');
+  const resultContent = document.querySelector<HTMLElement>('[data-house-result-content]');
+  const emptyState = document.querySelector<HTMLElement>('[data-house-empty]');
+
+  if (!form || !select || !result || !resultContent || !emptyState) {
+    return;
+  }
+
+  const render = (): void => {
+    const interpretation = composeHouseLookupInterpretation(select.value);
+
+    if (!interpretation) {
+      resultContent.replaceChildren();
+      result.hidden = true;
+      emptyState.hidden = false;
+      return;
+    }
+
+    const heading = document.createElement('h2');
+    heading.className = 'text-2xl font-semibold tracking-[-0.03em] text-white';
+    heading.id = 'house-result-title';
+    heading.textContent = `${interpretation.houseLabel}: an interpretive snapshot`;
+
+    const summary = document.createElement('p');
+    summary.className = 'mt-4 text-sm leading-7 text-slate-300';
+    summary.textContent = `In astrological interpretation, the ${interpretation.houseLabel} is commonly associated with ${interpretation.coreDomain}.`;
+
+    const details = document.createElement('dl');
+    details.className = 'mt-6 grid gap-4 lg:grid-cols-3';
+
+    const fields: Array<[string, string]> = [
+      ['Core domain', interpretation.coreDomain],
+      ['Key themes', interpretation.keyThemes.join(' · ')],
+      ['Constructive expression', interpretation.constructiveExpression]
+    ];
+
+    for (const [label, value] of fields) {
+      const item = document.createElement('div');
+      item.className = 'rounded-xl border border-natal-border/70 bg-slate-950/20 p-4';
+
+      const term = document.createElement('dt');
+      term.className = 'text-xs font-bold uppercase tracking-[0.14em] text-natal-accent';
+      term.textContent = label;
+
+      const description = document.createElement('dd');
+      description.className = 'mt-2 text-sm leading-6 text-slate-200';
+      description.textContent = value;
+
+      item.append(term, description);
+      details.append(item);
+    }
+
+    const tension = document.createElement('p');
+    tension.className = 'mt-6 text-sm leading-7 text-slate-300';
+    tension.textContent = `Potential tension / balancing consideration: ${interpretation.potentialTension}`;
+
+    resultContent.replaceChildren(heading, summary, details, tension);
+    result.hidden = false;
+    emptyState.hidden = true;
+  };
+
+  select.addEventListener('change', render);
+  form.addEventListener('reset', () => {
+    window.setTimeout(render, 0);
+  });
+  form.addEventListener('submit', (event) => {
+    event.preventDefault();
+  });
+
+  render();
+}

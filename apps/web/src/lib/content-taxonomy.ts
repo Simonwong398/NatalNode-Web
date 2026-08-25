@@ -61,9 +61,9 @@ export const SEO_TOOL_TAXONOMY = [
   {
     intendedPath: '/tools/house-lookup',
     label: 'House Lookup',
-    purpose: 'A focused educational reference for the twelve chart houses.',
+    purpose: 'Select one of the twelve houses to explore its core domain and interpretive themes.',
     requiresEngine: false,
-    status: 'PLANNED'
+    status: 'AVAILABLE'
   },
   {
     intendedPath: '/tools/aspect-lookup',

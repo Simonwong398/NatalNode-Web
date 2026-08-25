@@ -10,7 +10,6 @@ const seo: SeoMetadata = {
 };
 
 const availableTools = SEO_TOOL_TAXONOMY.filter((tool) => tool.status === 'AVAILABLE');
-const plannedToolCount = SEO_TOOL_TAXONOMY.filter((tool) => tool.status === 'PLANNED').length;
 ---
 
 <SiteLayout seo={seo}>
@@ -49,10 +48,10 @@ const plannedToolCount = SEO_TOOL_TAXONOMY.filter((tool) => tool.status === 'PLA
       </h2>
       <div class="mt-4 space-y-4 text-sm leading-7 text-natal-muted">
         <p>
-          {plannedToolCount} additional utility concepts are reserved for stable educational lookup and transformations that do not need a browser astronomy engine.
+          {availableTools.length} focused utilities are currently available for stable educational lookup and transformations that do not need a browser astronomy engine.
         </p>
         <p>
-          They will not receive public links until their functionality exists. That keeps the directory useful instead of filling it with placeholder inventory.
+          Additional utility concepts will be linked only when their functionality exists, keeping the directory useful instead of filling it with placeholder inventory.
         </p>
       </div>
       <a class="mt-6 inline-flex text-sm font-semibold text-natal-accent hover:text-white" href="/">

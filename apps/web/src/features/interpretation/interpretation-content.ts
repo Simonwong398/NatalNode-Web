@@ -25,7 +25,9 @@ export type SignStyle = {
 
 export type HouseDomain = {
   focus: string;
+  themes: readonly string[];
   expression: string;
+  tension: string;
 };
 
 export type SupportedAspectType =
@@ -138,51 +140,75 @@ export const SIGN_STYLES: Record<string, SignStyle> = {
 export const HOUSE_DOMAINS: Record<number, HouseDomain> = {
   1: {
     focus: 'identity, initiative, and self-direction',
-    expression: 'taking action from a personal starting point'
+    themes: ['approach and self-presentation', 'personal agency', 'first impressions'],
+    expression: 'taking action from a personal starting point',
+    tension: 'A strong focus on self-direction can become overidentification with presentation or reacting before considering context.'
   },
   2: {
     focus: 'resources, values, and self-worth',
-    expression: 'building stability around what feels genuinely worthwhile'
+    themes: ['material resources', 'personal values', 'stability and self-worth'],
+    expression: 'building stability around what feels genuinely worthwhile',
+    tension: 'A wish for stability can become attachment to familiar comfort or treating worth as something that must be proven materially.'
   },
   3: {
     focus: 'learning, communication, and the immediate environment',
-    expression: 'making meaning through questions, conversation, and practice'
+    themes: ['conversation and language', 'learning and skills', 'nearby connections'],
+    expression: 'making meaning through questions, conversation, and practice',
+    tension: 'Curiosity can become scattered attention or an urge to respond before listening closely.'
   },
   4: {
     focus: 'home, roots, and emotional foundations',
-    expression: 'shaping a private base that supports inner steadiness'
+    themes: ['home and belonging', 'roots and memory', 'private foundations'],
+    expression: 'shaping a private base that supports inner steadiness',
+    tension: 'Protecting a private base can become holding too tightly to old patterns or avoiding needed change.'
   },
   5: {
     focus: 'creativity, play, romance, and self-expression',
-    expression: 'making room for joy and wholehearted participation'
+    themes: ['creativity and play', 'romance and pleasure', 'wholehearted self-expression'],
+    expression: 'making room for joy and wholehearted participation',
+    tension: 'A desire for meaningful expression can become dependence on recognition or difficulty sharing the stage.'
   },
   6: {
     focus: 'daily routines, service, and skill-building',
-    expression: 'refining expression through useful habits and craft'
+    themes: ['daily routines', 'service and practical work', 'maintenance and skill-building'],
+    expression: 'refining expression through useful habits and craft',
+    tension: 'Attention to improvement can become overwork or treating everyday worth as a checklist.'
   },
   7: {
     focus: 'partnership, collaboration, and one-to-one encounter',
-    expression: 'learning through reciprocity and clear agreements'
+    themes: ['partnership', 'one-to-one encounter', 'reciprocity and agreements'],
+    expression: 'learning through reciprocity and clear agreements',
+    tension: 'A strong focus on partnership can become over-accommodation or expecting others to create balance alone.'
   },
   8: {
     focus: 'shared resources, trust, and emotional depth',
-    expression: 'engaging meaningful change with care and honesty'
+    themes: ['shared resources', 'trust and intimacy', 'transition and psychological depth'],
+    expression: 'engaging meaningful change with care and honesty',
+    tension: 'Depth can become pressure to control an uncertain process or assume meanings that need conversation.'
   },
   9: {
     focus: 'study, belief, travel, and wider meaning',
-    expression: 'expanding perspective through exploration and reflection'
+    themes: ['study and worldview', 'exploration and travel', 'belief and wider meaning'],
+    expression: 'expanding perspective through exploration and reflection',
+    tension: 'A search for wider meaning can become overconfidence or overlooking the details of immediate life.'
   },
   10: {
     focus: 'vocation, responsibility, and public contribution',
-    expression: 'shaping a visible role through sustained effort'
+    themes: ['vocation and public role', 'responsibility and direction', 'visible contribution'],
+    expression: 'shaping a visible role through sustained effort',
+    tension: 'Ambition can become overidentification with status or measuring contribution only by recognition.'
   },
   11: {
     focus: 'friendship, community, and future aims',
-    expression: 'contributing ideas and energy to a wider network'
+    themes: ['friendship and networks', 'community and collaboration', 'future aims'],
+    expression: 'contributing ideas and energy to a wider network',
+    tension: 'Group ideals can become distance from individual needs or staying loyal to a future plan after it has changed.'
   },
   12: {
     focus: 'inner life, retreat, and unseen experience',
-    expression: 'making space for reflection, imagination, and release'
+    themes: ['retreat and reflection', 'privacy and release', 'less-visible processes'],
+    expression: 'making space for reflection, imagination, and release',
+    tension: 'A need for retreat can become avoidance or make personal boundaries difficult to name.'
   }
 };
 
