@@ -4,6 +4,7 @@ import { CalculationDetails } from '@/features/calculation-details';
 import type { CalculatedChartSnapshot } from '@/features/chart-experience/types';
 import { ChartRenderer } from '@/features/chart-renderer';
 import { InterpretationPanel } from '@/features/interpretation';
+import SaveChartPanel from '@/features/vault/SaveChartPanel';
 
 export type ChartWorkspaceProps = {
   snapshot: CalculatedChartSnapshot;
@@ -42,6 +43,8 @@ export default function ChartWorkspace({ snapshot }: ChartWorkspaceProps) {
           ) : null}
         </div>
       </header>
+
+      <SaveChartPanel chartRequest={snapshot.request} />
 
       <div className="grid min-w-0 lg:grid-cols-[minmax(0,1.15fr)_minmax(18rem,0.85fr)]">
         <section
