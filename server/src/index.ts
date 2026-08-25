@@ -8,7 +8,16 @@ export type {
 
 export type {
   AuthSessionRecord,
-  EmailMagicLinkChallengeRecord
+  EmailMagicLinkChallengeRecord,
+  IssuedAuthSession,
+  IssueAuthSessionInput,
+  SecureTokenGenerator,
+  TokenHasher
+} from './auth-runtime/index.js';
+export {
+  issueAuthSession,
+  NodeSecureTokenGenerator,
+  Sha256TokenHasher
 } from './auth-runtime/index.js';
 
 export { createApp } from './app/index.js';

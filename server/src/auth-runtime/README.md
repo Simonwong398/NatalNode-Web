@@ -20,15 +20,20 @@ provider
 → AuthenticatedPrincipal.userId
 ```
 
-The plaintext session secret and plaintext magic-link secret are never stored.
-The database stores only one-way token hashes. Magic-link challenges are
-single-use and short-lived through `createdAt`, `expiresAt`, and `consumedAt`.
+`NodeSecureTokenGenerator` uses Node's built-in `node:crypto` CSPRNG to create
+32 random bytes (256 bits), encoded as base64url. `Sha256TokenHasher` stores the
+full SHA-256 digest as a stable hexadecimal value. Plaintext bearer secrets are
+transient runtime material only; persistence receives only the hash.
 
-Server runtime code will later own ID and timestamp generation through its
-`IdGenerator` and `Clock` boundaries. Session lifetime, email normalization
-(currently limited to trim plus case normalization), cryptographic hashing,
-secure-cookie policy, email delivery, Google OAuth, and OAuth state/PKCE remain
-deferred.
+`IdGenerator` remains for record identity and is not used for bearer secrets.
+`issueAuthSession` receives trusted timestamps from orchestration and does not
+choose a session lifetime or persist the record. The same token generator and
+hasher can later support magic-link secrets without a second crypto
+implementation.
+
+Session lifetime, email normalization, secure-cookie policy, cookies, auth
+routes, `RequestAuthenticator`, email delivery, Google OAuth, and OAuth
+state/PKCE remain deferred.
 
 Expired sessions and challenges are eligible for periodic deletion later; no
 cleanup job is defined here. Session repositories, magic-link repositories,
