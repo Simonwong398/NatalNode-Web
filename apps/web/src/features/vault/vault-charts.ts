@@ -16,7 +16,10 @@ const VAULT_CHART_CATEGORIES: readonly VaultChartCategory[] = [
 ];
 const LOAD_FAILURE_MESSAGE = "We couldn't load your Vault. Please try again.";
 
-type VaultChartListItem = Pick<VaultChartRecord, 'displayName' | 'category' | 'createdAt'>;
+type VaultChartListItem = Pick<
+  VaultChartRecord,
+  'chartId' | 'displayName' | 'category' | 'createdAt'
+>;
 
 interface VaultChartCollectionResponse {
   readonly charts: readonly VaultChartListItem[];
@@ -52,6 +55,8 @@ function isVaultChartCategory(value: unknown): value is VaultChartCategory {
 function isVaultChartListItem(value: unknown): value is VaultChartListItem {
   return (
     isRecord(value) &&
+    typeof value.chartId === 'string' &&
+    value.chartId.length > 0 &&
     typeof value.displayName === 'string' &&
     isVaultChartCategory(value.category) &&
     typeof value.createdAt === 'string'
@@ -104,7 +109,13 @@ function renderChartList(
       savedAt.textContent = 'Saved date unavailable';
     }
 
-    item.append(title, category, savedAt);
+    const openLink = document.createElement('a');
+    openLink.className =
+      'mt-5 inline-flex text-sm font-semibold text-natal-accent transition-colors hover:text-white';
+    openLink.href = `/vault/chart?chartId=${encodeURIComponent(chart.chartId)}`;
+    openLink.textContent = 'Open';
+
+    item.append(title, category, savedAt, openLink);
     list.append(item);
   }
 }
