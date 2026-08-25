@@ -70,8 +70,9 @@ present token by POST
 
 Those authentication responses are `no-store`, and request initiation does
 not disclose whether an account exists. A concrete email provider and
-user-facing magic-link URL remain deferred, as do logout, Google OAuth, and
-OAuth state/PKCE.
+user-facing magic-link URL remain deferred. The public logout boundary revokes
+the current unambiguous session token when present and always clears the
+configured browser cookie. Google OAuth and OAuth state/PKCE remain deferred.
 
 Expired sessions and challenges are eligible for periodic deletion later; no
 cleanup job is defined here. Session repositories, magic-link repositories,

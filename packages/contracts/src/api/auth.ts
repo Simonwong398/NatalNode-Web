@@ -14,6 +14,10 @@ export interface CompleteEmailMagicLinkApiResponse {
   readonly authenticated: true;
 }
 
+export interface LogoutApiResponse {
+  readonly signedOut: true;
+}
+
 export type AuthApiErrorCode = 'INVALID_REQUEST' | 'UNAUTHORIZED' | 'INTERNAL_ERROR';
 
 export interface AuthApiErrorResponse {
