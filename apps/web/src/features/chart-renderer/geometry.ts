@@ -11,6 +11,7 @@ export const HOUSE_INNER_RADIUS = 62;
 export const HOUSE_LABEL_RADIUS = 214;
 export const BODY_MARKER_RADIUS = 150;
 export const BODY_LABEL_RADIUS = 182;
+export const ASPECT_ENDPOINT_RADIUS = 138;
 export const ANGLE_OUTER_RADIUS = 248;
 
 /**

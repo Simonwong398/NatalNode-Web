@@ -1,7 +1,8 @@
 import { useId } from 'react';
-import type { BodyFact, ChartResult, HouseCusp } from '@natalnode/contracts';
+import type { AspectFact, BodyFact, ChartResult, HouseCusp } from '@natalnode/contracts';
 import {
   ANGLE_OUTER_RADIUS,
+  ASPECT_ENDPOINT_RADIUS,
   BODY_LABEL_RADIUS,
   BODY_MARKER_RADIUS,
   CHART_CENTER,
@@ -17,6 +18,20 @@ import {
 
 export type ChartRendererProps = {
   chart: ChartResult;
+};
+
+type AspectStyle = {
+  stroke: string;
+  strokeDasharray?: string;
+  opacity: number;
+  strokeWidth: number;
+};
+
+type ResolvedAspect = {
+  aspect: AspectFact;
+  firstBody: BodyFact;
+  secondBody: BodyFact;
+  style: AspectStyle;
 };
 
 const ZODIAC_SIGNS = [
@@ -47,12 +62,76 @@ const BODY_ABBREVIATIONS: Record<string, string> = {
   Pluto: 'Pl'
 };
 
+const ASPECT_STYLES: Record<string, AspectStyle> = {
+  conjunction: {
+    stroke: '#f8fafc',
+    opacity: 0.58,
+    strokeWidth: 1.5
+  },
+  opposition: {
+    stroke: '#fda4af',
+    strokeDasharray: '8 4',
+    opacity: 0.72,
+    strokeWidth: 1.25
+  },
+  trine: {
+    stroke: '#93c5fd',
+    strokeDasharray: '2 4',
+    opacity: 0.72,
+    strokeWidth: 1.25
+  },
+  square: {
+    stroke: '#fbbf24',
+    strokeDasharray: '6 3 1 3',
+    opacity: 0.72,
+    strokeWidth: 1.25
+  },
+  sextile: {
+    stroke: '#86efac',
+    strokeDasharray: '1 5',
+    opacity: 0.78,
+    strokeWidth: 1.25
+  }
+};
+
 const SECTOR_FILLS = ['#1b2438', '#202b45'];
 const SVG_TEXT = 'ui-sans-serif, system-ui, sans-serif';
 
+function formatNumericValue(value: number): string {
+  return Number.isInteger(value) ? String(value) : value.toFixed(2).replace(/\.?0+$/, '');
+}
+
 function formatLongitude(longitude: number): string {
   const normalizedLongitude = ((longitude % 360) + 360) % 360;
-  return `${normalizedLongitude.toFixed(normalizedLongitude % 1 === 0 ? 0 : 1)}°`;
+  return `${formatNumericValue(normalizedLongitude)}°`;
+}
+
+function describeAspect(aspect: AspectFact): string {
+  const phaseState = aspect.phaseState === null ? '' : `, ${aspect.phaseState}`;
+  return `${aspect.firstBodyId} ${aspect.type} ${aspect.secondBodyId}, orb ${formatNumericValue(aspect.orb)}°${phaseState}`;
+}
+
+function resolveUniqueBody(bodyId: string, bodies: BodyFact[]): BodyFact | null {
+  const matches = bodies.filter((body) => body.bodyId === bodyId);
+  return matches.length === 1 ? matches[0] : null;
+}
+
+function getRenderableAspects(chart: ChartResult): ResolvedAspect[] {
+  const renderableAspects: ResolvedAspect[] = [];
+
+  for (const aspect of chart.aspects) {
+    const style = ASPECT_STYLES[aspect.type];
+    const firstBody = resolveUniqueBody(aspect.firstBodyId, chart.bodies);
+    const secondBody = resolveUniqueBody(aspect.secondBodyId, chart.bodies);
+
+    if (!style || !firstBody || !secondBody) {
+      continue;
+    }
+
+    renderableAspects.push({ aspect, firstBody, secondBody, style });
+  }
+
+  return renderableAspects;
 }
 
 function getBodyLabel(bodyId: string): string {
@@ -101,10 +180,11 @@ function renderBody(body: BodyFact, index: number) {
   const label = longitudeToPoint(body.longitude, labelRadius);
   const bodyLabel = getBodyLabel(body.bodyId);
   const degreeLabel = formatLongitude(body.longitude);
+  const bodyDescription = `${body.bodyId} at ${degreeLabel}${body.retrograde === true ? ', retrograde' : ''}`;
 
   return (
     <g
-      aria-label={`${body.bodyId} at ${degreeLabel}`}
+      aria-label={bodyDescription}
       key={`${body.bodyId}-${index}`}
       role="group"
     >
@@ -130,6 +210,20 @@ function renderBody(body: BodyFact, index: number) {
       >
         {bodyLabel}
       </text>
+      {body.retrograde === true ? (
+        <text
+          dominantBaseline="middle"
+          fill="#f8fafc"
+          fontFamily={SVG_TEXT}
+          fontSize="9"
+          fontWeight="700"
+          textAnchor="middle"
+          x={label.x}
+          y={label.y - 18}
+        >
+          R
+        </text>
+      ) : null}
       <text
         dominantBaseline="middle"
         fill="#94a3b8"
@@ -141,6 +235,31 @@ function renderBody(body: BodyFact, index: number) {
       >
         {degreeLabel}
       </text>
+    </g>
+  );
+}
+
+function renderAspect(resolvedAspect: ResolvedAspect, index: number) {
+  const firstPoint = longitudeToPoint(resolvedAspect.firstBody.longitude, ASPECT_ENDPOINT_RADIUS);
+  const secondPoint = longitudeToPoint(resolvedAspect.secondBody.longitude, ASPECT_ENDPOINT_RADIUS);
+  const description = describeAspect(resolvedAspect.aspect);
+
+  return (
+    <g aria-label={description} key={`${resolvedAspect.aspect.type}-${index}`} role="group">
+      <title>{description}</title>
+      <line
+        fill="none"
+        opacity={resolvedAspect.style.opacity}
+        stroke={resolvedAspect.style.stroke}
+        strokeDasharray={resolvedAspect.style.strokeDasharray}
+        strokeLinecap="round"
+        strokeWidth={resolvedAspect.style.strokeWidth}
+        vectorEffect="non-scaling-stroke"
+        x1={firstPoint.x}
+        x2={secondPoint.x}
+        y1={firstPoint.y}
+        y2={secondPoint.y}
+      />
     </g>
   );
 }
@@ -195,6 +314,7 @@ export default function ChartRenderer({ chart }: ChartRendererProps) {
   const houseCusps = [...(chart.houses?.cusps ?? [])].sort((first, second) => first.house - second.house);
   const ascendant = chart.angles.find((angle) => angle.angleId === 'ASC');
   const midheaven = chart.angles.find((angle) => angle.angleId === 'MC');
+  const renderableAspects = getRenderableAspects(chart);
 
   return (
     <svg
@@ -280,6 +400,10 @@ export default function ChartRenderer({ chart }: ChartRendererProps) {
 
       <g aria-label="House cusps" role="group">
         {houseCusps.map(renderHouseCusp)}
+      </g>
+
+      <g aria-label="Major aspects" role="group">
+        {renderableAspects.map(renderAspect)}
       </g>
 
       <g aria-label="Chart bodies" role="group">
