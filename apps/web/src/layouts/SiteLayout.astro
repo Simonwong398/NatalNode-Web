@@ -12,6 +12,7 @@ const { seo } = Astro.props;
 const currentPath = Astro.url.pathname;
 const isLearnPage = currentPath.startsWith('/learn');
 const isToolsPage = currentPath.startsWith('/tools');
+const isVaultPage = currentPath === '/vault' || currentPath === '/vault/';
 ---
 
 <!doctype html>
@@ -50,6 +51,18 @@ const isToolsPage = currentPath.startsWith('/tools');
               aria-current={isToolsPage ? 'page' : undefined}
             >
               Tools
+            </a>
+          </li>
+          <li>
+            <a
+              class:list={[
+                'transition-colors hover:text-white',
+                isVaultPage ? 'text-white' : undefined
+              ]}
+              href="/vault"
+              aria-current={isVaultPage ? 'page' : undefined}
+            >
+              Vault
             </a>
           </li>
           <li>

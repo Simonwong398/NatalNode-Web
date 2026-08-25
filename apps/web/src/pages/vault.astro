@@ -1,0 +1,65 @@
+---
+import SiteLayout from '@/layouts/SiteLayout.astro';
+import type { SeoMetadata } from '@/lib/seo';
+
+const seo: SeoMetadata = {
+  title: 'Vault | NatalNode',
+  description: 'Your saved NatalNode charts.',
+  canonical: '/vault',
+  robots: 'noindex,nofollow'
+};
+---
+
+<SiteLayout seo={seo}>
+  <main class="mx-auto w-[calc(100%-2rem)] max-w-5xl pb-16 pt-14 sm:pt-20">
+    <header class="max-w-3xl">
+      <p class="text-xs font-bold uppercase tracking-[0.16em] text-natal-accent">Vault</p>
+      <h1 class="mt-4 text-4xl font-semibold leading-tight tracking-[-0.04em] text-white sm:text-6xl">
+        Your saved charts.
+      </h1>
+      <p class="mt-5 max-w-2xl text-lg leading-8 text-natal-muted">
+        Your saved chart collection is available here when you are signed in.
+      </p>
+    </header>
+
+    <section
+      class="mt-12"
+      data-vault-page
+      aria-busy="true"
+      aria-labelledby="vault-list-title"
+    >
+      <h2 class="sr-only" id="vault-list-title">Saved charts</h2>
+      <p class="text-sm text-natal-muted" data-vault-loading role="status" aria-live="polite">
+        Loading your Vault…
+      </p>
+      <p class="rounded-2xl border border-rose-300/30 bg-rose-300/10 p-5 text-sm text-rose-100" data-vault-error role="alert" hidden>
+        We couldn't load your Vault. Please try again.
+      </p>
+      <div class="rounded-2xl border border-dashed border-natal-border p-8" data-vault-empty hidden>
+        <h3 class="text-xl font-semibold text-white">Your Vault is empty.</h3>
+        <p class="mt-2 text-sm leading-6 text-natal-muted">Saved charts will appear here.</p>
+      </div>
+      <ul class="grid gap-4 sm:grid-cols-2" data-vault-list hidden></ul>
+    </section>
+  </main>
+</SiteLayout>
+
+<script>
+  import { initializeVaultPage } from '@/features/vault/vault-charts';
+
+  const root = document.querySelector<HTMLElement>('[data-vault-page]');
+  const loading = root?.querySelector<HTMLElement>('[data-vault-loading]');
+  const error = root?.querySelector<HTMLElement>('[data-vault-error]');
+  const empty = root?.querySelector<HTMLElement>('[data-vault-empty]');
+  const list = root?.querySelector<HTMLUListElement>('[data-vault-list]');
+
+  if (root && loading && error && empty && list) {
+    initializeVaultPage({
+      root,
+      loading,
+      error,
+      empty,
+      list
+    });
+  }
+</script>
