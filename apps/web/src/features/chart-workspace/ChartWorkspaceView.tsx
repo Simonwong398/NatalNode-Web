@@ -3,15 +3,20 @@ import type { ChartResult } from '@natalnode/contracts';
 import { CalculationDetails } from '@/features/calculation-details';
 import { ChartRenderer } from '@/features/chart-renderer';
 import { InterpretationPanel } from '@/features/interpretation';
+import type { ChartPresentationPolicy } from './chart-presentation-policy';
 
 export type ChartWorkspaceViewProps = {
   chart: ChartResult;
+  presentationPolicy: ChartPresentationPolicy;
+  requestedHouseSystem: string;
   children?: ReactNode;
 };
 
 /** Displays a trusted chart result without adding any calculation or persistence behavior. */
 export default function ChartWorkspaceView({
   chart,
+  presentationPolicy,
+  requestedHouseSystem,
   children
 }: ChartWorkspaceViewProps) {
   const workspaceId = useId();
@@ -46,6 +51,15 @@ export default function ChartWorkspaceView({
         </div>
       </header>
 
+      {!presentationPolicy.showAngles ? (
+        <p
+          className="mx-5 mb-5 rounded-lg border border-slate-400/30 bg-slate-400/10 p-4 text-sm leading-6 text-slate-200 sm:mx-7"
+          role="note"
+        >
+          Birth time is unknown. Ascendant, Midheaven, houses, and house-based interpretation are unavailable.
+        </p>
+      ) : null}
+
       {children}
 
       <div className="grid min-w-0 lg:grid-cols-[minmax(0,1.15fr)_minmax(18rem,0.85fr)]">
@@ -60,14 +74,18 @@ export default function ChartWorkspaceView({
             </h3>
           </div>
           <div className="mt-5 min-w-0">
-            <ChartRenderer chart={chart} />
+            <ChartRenderer chart={chart} presentationPolicy={presentationPolicy} />
           </div>
         </section>
 
-        <InterpretationPanel chart={chart} />
+        <InterpretationPanel chart={chart} presentationPolicy={presentationPolicy} />
       </div>
 
-      <CalculationDetails chart={chart} />
+      <CalculationDetails
+        chart={chart}
+        presentationPolicy={presentationPolicy}
+        requestedHouseSystem={requestedHouseSystem}
+      />
     </section>
   );
 }

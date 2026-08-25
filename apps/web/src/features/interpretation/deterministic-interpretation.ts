@@ -8,6 +8,7 @@ import {
   type SupportedAspectType,
   type SupportedPlanet
 } from './interpretation-content';
+import type { ChartPresentationPolicy } from '@/features/chart-workspace/chart-presentation-policy';
 
 export type InterpretationItem = {
   id: string;
@@ -174,7 +175,10 @@ function createAscendantItem(angle: AngleFact): InterpretationItem | null {
   };
 }
 
-export function createDeterministicInterpretation(chart: ChartResult): InterpretationResult {
+export function createDeterministicInterpretation(
+  chart: ChartResult,
+  presentationPolicy: ChartPresentationPolicy
+): InterpretationResult {
   const bigThree = BIG_THREE_PLANETS.flatMap((planet) => {
     const body = findBody(chart, planet);
     const item = body ? createPlanetItem(body, planet, 'big-three') : null;
@@ -182,7 +186,7 @@ export function createDeterministicInterpretation(chart: ChartResult): Interpret
     return item ? [item] : [];
   });
 
-  const ascendant = findAngle(chart, 'ASC');
+  const ascendant = presentationPolicy.showAngles ? findAngle(chart, 'ASC') : undefined;
   const ascendantItem = ascendant ? createAscendantItem(ascendant) : null;
 
   if (ascendantItem) {
@@ -196,12 +200,14 @@ export function createDeterministicInterpretation(chart: ChartResult): Interpret
     return item ? [item] : [];
   });
 
-  const planetsInHouses = SUPPORTED_PLANETS.flatMap((planet) => {
-    const body = findBody(chart, planet);
-    const item = body ? createPlanetInHouseItem(body, planet) : null;
+  const planetsInHouses = presentationPolicy.showHouseInterpretation
+    ? SUPPORTED_PLANETS.flatMap((planet) => {
+        const body = findBody(chart, planet);
+        const item = body ? createPlanetInHouseItem(body, planet) : null;
 
-    return item ? [item] : [];
-  });
+        return item ? [item] : [];
+      })
+    : [];
 
   const majorAspects = chart.aspects.flatMap((aspect) => {
     const item = createAspectItem(chart, aspect);

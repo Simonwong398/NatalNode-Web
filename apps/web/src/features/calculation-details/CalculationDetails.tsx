@@ -1,8 +1,11 @@
 import { useId } from 'react';
 import type { ChartResult } from '@natalnode/contracts';
+import type { ChartPresentationPolicy } from '@/features/chart-workspace/chart-presentation-policy';
 
 export type CalculationDetailsProps = {
   chart: ChartResult;
+  presentationPolicy: ChartPresentationPolicy;
+  requestedHouseSystem: string;
 };
 
 type DetailRowProps = {
@@ -26,14 +29,23 @@ function DetailRow({ label, value, identifier = false }: DetailRowProps) {
   );
 }
 
-export default function CalculationDetails({ chart }: CalculationDetailsProps) {
+export default function CalculationDetails({
+  chart,
+  presentationPolicy,
+  requestedHouseSystem
+}: CalculationDetailsProps) {
   const detailsId = useId();
   const researchTitleId = `${detailsId}-research-title`;
   const warningsTitleId = `${detailsId}-warnings-title`;
   const isResearchConfiguration = chart.calculationStatus === 'INCOMPLETE_RESEARCH';
   const astronomyConfiguration = chart.metadata.astronomyConfigurationId ?? 'Unavailable';
   const provenanceEnvelope = chart.metadata.provenanceEnvelopeId ?? 'Unavailable';
-  const houseSystem = chart.houses?.system ?? 'Unavailable';
+  const houseSystem = presentationPolicy.showHouses
+    ? chart.houses?.system ?? 'Unavailable'
+    : requestedHouseSystem;
+  const houseSystemLabel = presentationPolicy.showHouses
+    ? 'House System'
+    : 'Requested House System';
 
   return (
     <details className="border-t border-natal-border/70">
@@ -60,7 +72,7 @@ export default function CalculationDetails({ chart }: CalculationDetailsProps) {
             value={provenanceEnvelope}
             identifier={provenanceEnvelope !== 'Unavailable'}
           />
-          <DetailRow label="House System" value={houseSystem} />
+          <DetailRow label={houseSystemLabel} value={houseSystem} />
         </dl>
 
         {isResearchConfiguration ? (

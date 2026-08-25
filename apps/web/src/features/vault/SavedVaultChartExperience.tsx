@@ -1,10 +1,14 @@
 import { useEffect, useState } from 'react';
 import type {
+  BirthRequest,
+  BirthTimeAmbiguityStatus,
+  ChartRequest,
   ChartResult,
   GetVaultChartApiResponse,
   VaultChartCategory
 } from '@natalnode/contracts';
 import ChartWorkspaceView from '@/features/chart-workspace/ChartWorkspaceView';
+import { createChartPresentationPolicy } from '@/features/chart-workspace/chart-presentation-policy';
 
 const VAULT_CHART_ENDPOINT = '/api/vault/charts';
 const SIGN_IN_PATH = '/auth/sign-in';
@@ -35,6 +39,38 @@ function isNullableString(value: unknown): value is string | null {
 
 function isFiniteNumber(value: unknown): value is number {
   return typeof value === 'number' && Number.isFinite(value);
+}
+
+const BIRTH_TIME_AMBIGUITY_STATUSES: readonly BirthTimeAmbiguityStatus[] = [
+  'EXACT',
+  'AMBIGUOUS',
+  'NONEXISTENT',
+  'UNKNOWN_TIME'
+];
+
+function isBirthTimeAmbiguityStatus(value: unknown): value is BirthTimeAmbiguityStatus {
+  return BIRTH_TIME_AMBIGUITY_STATUSES.some((status) => status === value);
+}
+
+function isBirthRequest(value: unknown): value is BirthRequest {
+  return (
+    isRecord(value) &&
+    typeof value.localDate === 'string' &&
+    isNullableString(value.localTime) &&
+    typeof value.locationLabel === 'string' &&
+    isFiniteNumber(value.latitude) &&
+    isFiniteNumber(value.longitude) &&
+    typeof value.ianaTimeZone === 'string' &&
+    isNullableString(value.resolvedUtcInstant) &&
+    (isFiniteNumber(value.utcOffsetSeconds) || value.utcOffsetSeconds === null) &&
+    typeof value.timezoneDatabaseVersion === 'string' &&
+    typeof value.timezoneResolutionMethod === 'string' &&
+    isBirthTimeAmbiguityStatus(value.ambiguityStatus)
+  );
+}
+
+function isChartRequest(value: unknown): value is ChartRequest {
+  return isRecord(value) && isBirthRequest(value.birth) && typeof value.houseSystem === 'string';
 }
 
 function isVaultChartCategory(value: unknown): value is VaultChartCategory {
@@ -154,6 +190,7 @@ function isGetVaultChartApiResponse(
     typeof value.chart.displayName === 'string' &&
     isVaultChartCategory(value.chart.category) &&
     typeof value.chart.createdAt === 'string' &&
+    isChartRequest(value.chart.normalizedChartRequest) &&
     isChartResult(value.chart.canonicalChartResult)
   );
 }
@@ -274,6 +311,8 @@ export default function SavedVaultChartExperience() {
     return <SavedChartStatus state={state} />;
   }
 
+  const presentationPolicy = createChartPresentationPolicy(state.chart.normalizedChartRequest);
+
   return (
     <div>
       <header className="mb-6 rounded-2xl border border-natal-border bg-natal-surface/75 p-5 sm:p-6">
@@ -288,7 +327,11 @@ export default function SavedVaultChartExperience() {
         </time>
       </header>
 
-      <ChartWorkspaceView chart={state.chart.canonicalChartResult} />
+      <ChartWorkspaceView
+        chart={state.chart.canonicalChartResult}
+        presentationPolicy={presentationPolicy}
+        requestedHouseSystem={state.chart.normalizedChartRequest.houseSystem}
+      />
     </div>
   );
 }

@@ -4,9 +4,11 @@ import {
   createDeterministicInterpretation,
   type InterpretationItem
 } from './deterministic-interpretation';
+import type { ChartPresentationPolicy } from '@/features/chart-workspace/chart-presentation-policy';
 
 export type InterpretationPanelProps = {
   chart: ChartResult;
+  presentationPolicy: ChartPresentationPolicy;
 };
 
 type InterpretationSectionProps = {
@@ -48,13 +50,14 @@ function InterpretationSection({
   );
 }
 
-export default function InterpretationPanel({ chart }: InterpretationPanelProps) {
+export default function InterpretationPanel({ chart, presentationPolicy }: InterpretationPanelProps) {
   const panelId = useId();
   const titleId = `${panelId}-title`;
   const bigThreeTitleId = `${panelId}-big-three-title`;
   const planetsInSignsTitleId = `${panelId}-planets-in-signs-title`;
-  const interpretation = createDeterministicInterpretation(chart);
+  const interpretation = createDeterministicInterpretation(chart, presentationPolicy);
   const isResearchConfiguration = chart.calculationStatus === 'INCOMPLETE_RESEARCH';
+  const bigThreeTitle = presentationPolicy.showAngles ? 'Big Three' : 'Core placements';
 
   return (
     <section
@@ -74,7 +77,11 @@ export default function InterpretationPanel({ chart }: InterpretationPanelProps)
         </p>
       ) : null}
 
-      <InterpretationSection items={interpretation.bigThree} title="Big Three" titleId={bigThreeTitleId} />
+      <InterpretationSection
+        items={interpretation.bigThree}
+        title={bigThreeTitle}
+        titleId={bigThreeTitleId}
+      />
       <InterpretationSection
         items={interpretation.planetsInSigns}
         title="Planets in Signs"

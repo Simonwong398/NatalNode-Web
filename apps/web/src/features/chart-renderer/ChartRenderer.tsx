@@ -15,9 +15,11 @@ import {
   longitudeToPoint,
   radialLine
 } from './geometry';
+import type { ChartPresentationPolicy } from '@/features/chart-workspace/chart-presentation-policy';
 
 export type ChartRendererProps = {
   chart: ChartResult;
+  presentationPolicy: ChartPresentationPolicy;
 };
 
 type AspectStyle = {
@@ -307,14 +309,24 @@ function renderAngle(angle: { angleId: string; longitude: number }) {
   );
 }
 
-export default function ChartRenderer({ chart }: ChartRendererProps) {
+export default function ChartRenderer({ chart, presentationPolicy }: ChartRendererProps) {
   const rendererId = useId();
   const titleId = `${rendererId}-title`;
   const descriptionId = `${rendererId}-description`;
-  const houseCusps = [...(chart.houses?.cusps ?? [])].sort((first, second) => first.house - second.house);
-  const ascendant = chart.angles.find((angle) => angle.angleId === 'ASC');
-  const midheaven = chart.angles.find((angle) => angle.angleId === 'MC');
+  const houseCusps = presentationPolicy.showHouses
+    ? [...(chart.houses?.cusps ?? [])].sort((first, second) => first.house - second.house)
+    : [];
+  const ascendant = presentationPolicy.showAngles
+    ? chart.angles.find((angle) => angle.angleId === 'ASC')
+    : undefined;
+  const midheaven = presentationPolicy.showAngles
+    ? chart.angles.find((angle) => angle.angleId === 'MC')
+    : undefined;
   const renderableAspects = getRenderableAspects(chart);
+  const description =
+    presentationPolicy.showHouses && presentationPolicy.showAngles
+      ? 'SVG chart wheel showing twelve zodiac sectors, provided house cusps, chart bodies, and ASC and MC angles.'
+      : 'SVG chart wheel showing twelve zodiac sectors, chart bodies, and major aspects. Exact-time-dependent angle and house geometry is not shown.';
 
   return (
     <svg
@@ -325,9 +337,7 @@ export default function ChartRenderer({ chart }: ChartRendererProps) {
       viewBox={`0 0 ${CHART_VIEWBOX_SIZE} ${CHART_VIEWBOX_SIZE}`}
     >
       <title id={titleId}>Natal chart wheel</title>
-      <desc id={descriptionId}>
-        SVG chart wheel showing twelve zodiac sectors, provided house cusps, chart bodies, and ASC and MC angles.
-      </desc>
+      <desc id={descriptionId}>{description}</desc>
 
       <rect
         fill="#10131a"
@@ -389,18 +399,22 @@ export default function ChartRenderer({ chart }: ChartRendererProps) {
         stroke="#35405c"
         strokeWidth="1.5"
       />
-      <circle
-        cx={CHART_CENTER}
-        cy={CHART_CENTER}
-        fill="none"
-        r={HOUSE_INNER_RADIUS}
-        stroke="#35405c"
-        strokeWidth="1"
-      />
+      {presentationPolicy.showHouses ? (
+        <>
+          <circle
+            cx={CHART_CENTER}
+            cy={CHART_CENTER}
+            fill="none"
+            r={HOUSE_INNER_RADIUS}
+            stroke="#35405c"
+            strokeWidth="1"
+          />
 
-      <g aria-label="House cusps" role="group">
-        {houseCusps.map(renderHouseCusp)}
-      </g>
+          <g aria-label="House cusps" role="group">
+            {houseCusps.map(renderHouseCusp)}
+          </g>
+        </>
+      ) : null}
 
       <g aria-label="Major aspects" role="group">
         {renderableAspects.map(renderAspect)}
@@ -410,10 +424,12 @@ export default function ChartRenderer({ chart }: ChartRendererProps) {
         {chart.bodies.map(renderBody)}
       </g>
 
-      <g aria-label="Chart angles" role="group">
-        {ascendant ? renderAngle(ascendant) : null}
-        {midheaven ? renderAngle(midheaven) : null}
-      </g>
+      {presentationPolicy.showAngles ? (
+        <g aria-label="Chart angles" role="group">
+          {ascendant ? renderAngle(ascendant) : null}
+          {midheaven ? renderAngle(midheaven) : null}
+        </g>
+      ) : null}
 
       <circle cx={CHART_CENTER} cy={CHART_CENTER} fill="#a7b6e8" r="3" />
     </svg>
