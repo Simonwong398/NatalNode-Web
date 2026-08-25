@@ -2,6 +2,7 @@ import { useId } from 'react';
 import type { ChartResult } from '@natalnode/contracts';
 import { CalculationDetails } from '@/features/calculation-details';
 import { ChartRenderer } from '@/features/chart-renderer';
+import { InterpretationPanel } from '@/features/interpretation';
 
 export type ChartWorkspaceProps = {
   chart: ChartResult;
@@ -11,7 +12,6 @@ export default function ChartWorkspace({ chart }: ChartWorkspaceProps) {
   const workspaceId = useId();
   const titleId = `${workspaceId}-title`;
   const wheelTitleId = `${workspaceId}-wheel-title`;
-  const interpretationTitleId = `${workspaceId}-interpretation-title`;
   const isResearchConfiguration = chart.calculationStatus === 'INCOMPLETE_RESEARCH';
 
   return (
@@ -57,28 +57,7 @@ export default function ChartWorkspace({ chart }: ChartWorkspaceProps) {
           </div>
         </section>
 
-        <section
-          aria-labelledby={interpretationTitleId}
-          className="min-w-0 border-t border-natal-border/70 p-5 sm:p-7"
-        >
-          <p className="text-xs font-bold uppercase tracking-[0.16em] text-natal-accent">Next layer</p>
-          <h3 className="mt-2 text-lg font-semibold text-white" id={interpretationTitleId}>
-            Interpretation
-          </h3>
-          <p className="mt-3 text-sm leading-6 text-natal-muted">
-            Structured interpretation will appear here from confirmed chart facts.
-          </p>
-          <dl className="mt-6 grid grid-cols-2 gap-3 text-sm">
-            <div className="rounded-lg border border-natal-border/70 bg-natal-night/30 p-3">
-              <dt className="text-slate-400">Bodies</dt>
-              <dd className="mt-1 text-lg font-semibold text-white">{chart.bodies.length}</dd>
-            </div>
-            <div className="rounded-lg border border-natal-border/70 bg-natal-night/30 p-3">
-              <dt className="text-slate-400">Aspects</dt>
-              <dd className="mt-1 text-lg font-semibold text-white">{chart.aspects.length}</dd>
-            </div>
-          </dl>
-        </section>
+        <InterpretationPanel chart={chart} />
       </div>
 
       <CalculationDetails chart={chart} />
