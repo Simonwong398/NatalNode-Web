@@ -13,7 +13,8 @@
     "check": "tsc --noEmit"
   },
   "dependencies": {
-    "@natalnode/contracts": "0.1.0"
+    "@natalnode/contracts": "0.1.0",
+    "@natalnode/test-fixtures": "0.1.0"
   },
   "devDependencies": {
     "typescript": "^6.0.3"
