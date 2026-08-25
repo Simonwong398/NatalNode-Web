@@ -9,6 +9,14 @@ export type HouseSystem = 'Placidus' | 'Whole Sign' | 'Equal';
 
 export type HouseSystemSelection = HouseSystem | '';
 
+export type AmbiguousTimeOccurrence = 'EARLIER' | 'LATER';
+
+export interface AmbiguousTimeCandidate {
+  occurrence: AmbiguousTimeOccurrence;
+  resolvedUtcInstant: string;
+  utcOffsetSeconds: number;
+}
+
 export interface BirthInputState {
   localDate: string;
   localTime: string | null;
@@ -26,7 +34,55 @@ export interface BirthInputState {
 
 export type BirthInputDraft = BirthInputState;
 
-export type BirthInputResolution = Omit<BirthInputState, 'houseSystem'>;
+export interface ResolvedBirthInputBase {
+  localDate: string;
+  localTime: string;
+  locationLabel: string;
+  latitude: number;
+  longitude: number;
+  ianaTimeZone: string;
+  timezoneDatabaseVersion: string;
+  timezoneResolutionMethod: string;
+}
+
+export interface ExactBirthInputResolution extends ResolvedBirthInputBase {
+  ambiguityStatus: 'EXACT';
+  resolvedUtcInstant: string;
+  utcOffsetSeconds: number;
+}
+
+export interface AmbiguousBirthInputResolution extends ResolvedBirthInputBase {
+  ambiguityStatus: 'AMBIGUOUS';
+  resolvedUtcInstant: null;
+  utcOffsetSeconds: null;
+  candidates: readonly [AmbiguousTimeCandidate, AmbiguousTimeCandidate];
+}
+
+export interface NonexistentBirthInputResolution extends ResolvedBirthInputBase {
+  ambiguityStatus: 'NONEXISTENT';
+  resolvedUtcInstant: null;
+  utcOffsetSeconds: null;
+}
+
+export interface UnknownTimeBirthInputResolution {
+  localDate: string;
+  localTime: null;
+  locationLabel: string;
+  latitude: number | null;
+  longitude: number | null;
+  ianaTimeZone: string | null;
+  resolvedUtcInstant: null;
+  utcOffsetSeconds: null;
+  timezoneDatabaseVersion: null;
+  timezoneResolutionMethod: null;
+  ambiguityStatus: 'UNKNOWN_TIME';
+}
+
+export type BirthInputResolution =
+  | ExactBirthInputResolution
+  | AmbiguousBirthInputResolution
+  | NonexistentBirthInputResolution
+  | UnknownTimeBirthInputResolution;
 
 export const INITIAL_BIRTH_INPUT_STATE: BirthInputState = {
   localDate: '',
