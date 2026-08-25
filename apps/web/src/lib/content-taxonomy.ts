@@ -54,9 +54,9 @@ export const SEO_TOOL_TAXONOMY = [
   {
     intendedPath: '/tools/sign-lookup',
     label: 'Sign Lookup',
-    purpose: 'A focused educational reference for the twelve zodiac signs.',
+    purpose: 'Select a zodiac sign to explore its element, modality, and interpretive themes.',
     requiresEngine: false,
-    status: 'PLANNED'
+    status: 'AVAILABLE'
   },
   {
     intendedPath: '/tools/house-lookup',
