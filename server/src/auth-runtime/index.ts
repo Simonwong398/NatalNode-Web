@@ -14,3 +14,14 @@ export type {
   IssuedAuthSession,
   IssueAuthSessionInput
 } from './issue-auth-session.js';
+
+export { normalizeEmailAddress } from './email-normalization.js';
+export {
+  consumeEmailMagicLinkToken,
+  issueEmailMagicLinkChallenge
+} from './email-magic-link.js';
+export type {
+  ConsumeEmailMagicLinkTokenInput,
+  IssueEmailMagicLinkChallengeInput,
+  IssuedEmailMagicLinkChallenge
+} from './email-magic-link.js';

@@ -8,14 +8,20 @@ export type {
 
 export type {
   AuthSessionRecord,
+  ConsumeEmailMagicLinkTokenInput,
   EmailMagicLinkChallengeRecord,
   IssuedAuthSession,
+  IssuedEmailMagicLinkChallenge,
+  IssueEmailMagicLinkChallengeInput,
   IssueAuthSessionInput,
   SecureTokenGenerator,
   TokenHasher
 } from './auth-runtime/index.js';
 export {
+  consumeEmailMagicLinkToken,
   issueAuthSession,
+  issueEmailMagicLinkChallenge,
+  normalizeEmailAddress,
   NodeSecureTokenGenerator,
   Sha256TokenHasher
 } from './auth-runtime/index.js';

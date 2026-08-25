@@ -31,9 +31,14 @@ choose a session lifetime or persist the record. The same token generator and
 hasher can later support magic-link secrets without a second crypto
 implementation.
 
-Session lifetime, email normalization, secure-cookie policy, cookies, auth
-routes, `RequestAuthenticator`, email delivery, Google OAuth, and OAuth
-state/PKCE remain deferred.
+Magic-link issuance normalizes email identity with trim plus lowercase only,
+persists the challenge hash before returning transient plaintext, and consumes
+presented tokens through the repository's atomic single-use operation. Challenge
+lifetime remains caller policy. Identity resolution and session issuance are
+separate deferred orchestration steps.
+
+Secure-cookie policy, cookies, auth routes, `RequestAuthenticator`, email
+delivery, Google OAuth, and OAuth state/PKCE remain deferred.
 
 Expired sessions and challenges are eligible for periodic deletion later; no
 cleanup job is defined here. Session repositories, magic-link repositories,
