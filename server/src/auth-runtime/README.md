@@ -57,10 +57,23 @@ session expiration remains authoritative. `SessionRequestAuthenticator` reads
 only that opaque cookie, fails closed on duplicate cookies, hashes it before
 lookup, and returns only `userId`.
 
-Login, callback, logout, and other HTTP routes, email delivery, Google OAuth,
-and OAuth state/PKCE remain deferred.
+The Email Magic Link HTTP boundary now supports:
+
+```text
+request challenge
+→ provider-neutral delivery boundary
+
+present token by POST
+→ complete authentication
+→ HttpOnly session cookie
+```
+
+Those authentication responses are `no-store`, and request initiation does
+not disclose whether an account exists. A concrete email provider and
+user-facing magic-link URL remain deferred, as do logout, Google OAuth, and
+OAuth state/PKCE.
 
 Expired sessions and challenges are eligible for periodic deletion later; no
 cleanup job is defined here. Session repositories, magic-link repositories,
-consumption logic, cookies, login routes, and provider integrations are also
-deferred to subsequent patches.
+consumption logic, cookies, and provider integrations are also deferred to
+subsequent patches.

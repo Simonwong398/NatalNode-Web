@@ -3,6 +3,12 @@ export type {
   EmailMagicLinkChallengeRecord
 } from './types.js';
 
+export type { AuthenticationExpirationPolicy } from './authentication-expiration-policy.js';
+export type {
+  EmailMagicLinkDelivery,
+  EmailMagicLinkDeliveryRequest
+} from './email-magic-link-delivery.js';
+
 export { NodeSecureTokenGenerator } from './secure-token.js';
 export type { SecureTokenGenerator } from './secure-token.js';
 

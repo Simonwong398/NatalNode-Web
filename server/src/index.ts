@@ -9,10 +9,13 @@ export type {
 export { SessionRequestAuthenticator } from './app/auth/index.js';
 
 export type {
+  AuthenticationExpirationPolicy,
   AuthSessionRecord,
   CompleteEmailMagicLinkAuthenticationInput,
   ConsumeEmailMagicLinkTokenInput,
   CompletedEmailMagicLinkAuthentication,
+  EmailMagicLinkDelivery,
+  EmailMagicLinkDeliveryRequest,
   EmailMagicLinkChallengeRecord,
   IssuedAuthSession,
   IssuedEmailMagicLinkChallenge,
