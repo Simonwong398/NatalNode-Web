@@ -45,13 +45,18 @@ export {
   createServerRuntimeDependencies,
   createPostgresPoolRuntime,
   DurationAuthenticationExpirationPolicy,
+  loadServerEnvironment,
   NodeIdGenerator,
+  parseServerEnvironment,
   PostgresSqlExecutor,
+  ServerEnvironmentConfigurationError,
   SystemClock
 } from './runtime/index.js';
 export type {
+  EnvironmentSource,
   PostgresPoolRuntime,
   PostgresPoolRuntimeConfig,
+  ServerEnvironmentConfig,
   ServerRuntimeBindings,
   ServerRuntimeConfig
 } from './runtime/index.js';
