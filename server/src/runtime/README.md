@@ -4,6 +4,14 @@ The runtime composition root is `createServerRuntimeDependencies(...)`.
 `createApp(...)` remains application/framework assembly over an already-complete
 `ServerDependencies` object.
 
+`ServerDependencies.publicWebOrigin` is copied from the validated runtime
+configuration. `createApp(...)` registers one outer middleware boundary for
+unsafe `POST`, `PATCH`, and `DELETE` requests under `/api/*`; each must carry
+the exact canonical public origin before route authentication or business
+behavior runs. The boundary does not parse request bodies, trust host or
+forwarded headers, add CORS, or implement CSRF tokens. `GET` and `HEAD` remain
+unaffected.
+
 The composition root constructs internal clock, ID, token, expiration-policy,
 cookie-policy, persistence, session-authenticator, and provider-neutral
 magic-link URL-builder dependencies. It receives `SqlExecutor`, `EngineClient`,

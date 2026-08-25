@@ -1,5 +1,6 @@
 import { Hono } from 'hono';
 import type { ServerDependencies } from './dependencies.js';
+import { enforceSameOriginUnsafeApiRequests } from './security/enforce-same-origin-unsafe-api-requests.js';
 import { createChartRoute } from './routes/chart.js';
 import { registerEmailAuthenticationRoutes } from './routes/auth-email.js';
 import { registerSessionAuthenticationRoutes } from './routes/auth-session.js';
@@ -28,6 +29,10 @@ const INTERNAL_ERROR_RESPONSE = {
 export function createApp(dependencies: ServerDependencies): Hono {
   const app = new Hono();
 
+  app.use(
+    '/api/*',
+    enforceSameOriginUnsafeApiRequests(dependencies.publicWebOrigin)
+  );
   app.get('/api/health', (context) => context.json(HEALTH_RESPONSE));
   app.post('/api/chart', createChartRoute(dependencies));
   registerEmailAuthenticationRoutes(app, dependencies);

@@ -12,6 +12,7 @@ import type { RequestAuthenticator } from './auth/index.js';
 import type { Clock, IdGenerator } from './creation-boundaries.js';
 
 export interface ServerDependencies {
+  readonly publicWebOrigin: string;
   readonly authenticator: RequestAuthenticator;
   readonly idGenerator: IdGenerator;
   readonly persistence: PersistenceRepositories;

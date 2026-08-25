@@ -61,6 +61,7 @@ export function createServerRuntimeDependencies(
   });
 
   return {
+    publicWebOrigin: config.publicWebOrigin,
     authenticator,
     idGenerator,
     persistence,
