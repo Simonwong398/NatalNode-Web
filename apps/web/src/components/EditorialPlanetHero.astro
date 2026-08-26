@@ -18,14 +18,7 @@ const {
 ---
 
 <section class="nn-editorial-hero" aria-labelledby={titleId}>
-  <div class="nn-editorial-hero__content">
-    <p class="nn-eyebrow">{eyebrow}</p>
-    <h1 class="nn-type-page-title mt-3" id={titleId}>{title}</h1>
-    <p class="nn-type-body mt-4 max-w-2xl">{description}</p>
-  </div>
-
-  <!-- Decorative brand art only. Keep the image slot replaceable with an approved asset later. -->
-  <div class="nn-editorial-hero__art" aria-hidden="true">
+  <div class="nn-editorial-hero__media" aria-hidden="true">
     <Image
       class="nn-editorial-hero__image"
       src={heroPlanetImage}
@@ -34,5 +27,11 @@ const {
       decoding="async"
       fetchpriority="high"
     />
+  </div>
+
+  <div class="nn-editorial-hero__content">
+    <p class="nn-eyebrow">{eyebrow}</p>
+    <h1 class="nn-type-page-title mt-3" id={titleId}>{title}</h1>
+    <p class="nn-type-body mt-4 max-w-2xl">{description}</p>
   </div>
 </section>
