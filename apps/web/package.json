@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "astro dev",
     "build": "astro build",
-    "check": "astro check"
+    "check": "astro check",
+    "test:vault-management": "tsc --ignoreConfig --noCheck --target ES2022 --module NodeNext --moduleResolution NodeNext --outDir dist/vault-management-characterization src/features/vault/vault-management.ts && node --test test/vault-management.test.mjs"
   },
   "dependencies": {
     "@astrojs/react": "^6.0.4",
