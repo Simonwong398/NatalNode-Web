@@ -48,14 +48,14 @@ export default function ChartExperience() {
 
       <section
         aria-labelledby="chart-calculation-title"
-        className="mt-12 rounded-xl border border-natal-border bg-natal-surface/80 p-4"
+        className="nn-surface nn-surface--elevated mt-12 p-4"
       >
         <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
           <div>
-            <p className="text-xs font-bold uppercase tracking-[0.16em] text-natal-accent">
+            <p className="nn-eyebrow">
               Engine Client
             </p>
-            <h2 className="mt-1 text-sm font-medium text-white" id="chart-calculation-title">
+            <h2 className="nn-type-card-title mt-1" id="chart-calculation-title">
               {isCalculating
                 ? 'Calculating the development chart…'
                 : snapshot
@@ -63,22 +63,22 @@ export default function ChartExperience() {
                   : 'Ready for resolved birth input'}
             </h2>
             {!snapshot && !isCalculating ? (
-              <p className="mt-2 text-xs leading-5 text-slate-400">
+              <p className="nn-type-body-small mt-2">
                 Resolve valid birth details to start a chart calculation.
               </p>
             ) : null}
           </div>
           <div
             aria-label="Development provenance"
-            className="flex max-w-sm flex-wrap gap-2 text-[0.6875rem] font-bold uppercase tracking-[0.08em] text-slate-300"
+            className="flex max-w-sm flex-wrap gap-2"
           >
-            <span className="rounded-full border border-natal-border px-2.5 py-1">
+            <span className="nn-badge">
               UI DEVELOPMENT ONLY
             </span>
-            <span className="rounded-full border border-natal-border px-2.5 py-1">
+            <span className="nn-badge">
               NOT SCIENTIFIC EVIDENCE
             </span>
-            <span className="rounded-full border border-natal-border px-2.5 py-1">
+            <span className="nn-badge">
               NOT PRODUCTION ASTRONOMY
             </span>
           </div>
@@ -86,7 +86,7 @@ export default function ChartExperience() {
 
         {calculationError ? (
           <p
-            className="mt-4 rounded-lg border border-rose-300/40 bg-rose-300/10 p-3 text-sm leading-6 text-rose-100"
+            className="nn-notice nn-notice--error mt-4"
             role="alert"
           >
             {calculationError}

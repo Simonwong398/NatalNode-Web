@@ -123,6 +123,13 @@ const shellMode: ShellMode = mode ?? (isLearnPage || isToolsPage || isAuthPage ?
       setMenuOpen(menuButton.getAttribute('aria-expanded') !== 'true');
     });
 
+    menuButton.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape' && menuButton.getAttribute('aria-expanded') === 'true') {
+        event.preventDefault();
+        setMenuOpen(false, true);
+      }
+    });
+
     mobileNav.querySelectorAll('a').forEach((link) => {
       link.addEventListener('click', () => setMenuOpen(false));
     });
