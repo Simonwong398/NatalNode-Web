@@ -20,6 +20,7 @@ deployment decisions remain in `docs/adr/`.
 | `CURRENT / ACTIVE` | The current product or strategic track being actively advanced. |
 | `APPROVED FUTURE` | Accepted product direction that may be designed later. |
 | `DEFERRED` | Intentionally sequenced later or waiting for a later policy, design, or readiness decision. |
+| `NEXT WEB PRODUCT TASK` | The next separately scoped Web Product task; it must remain within the Web/Engine boundary and does not authorize unrelated implementation. |
 | `BLOCKED-BY-EXTERNAL-GATE` | Cannot proceed until an external rights, provider, or equivalent gate is resolved. |
 
 ## 1. Current and active priorities
@@ -157,8 +158,11 @@ This must not become a traditional open forum. Avoid general chat boards,
 off-topic boards, anonymous posting, private messaging, and gamified forum
 ranks.
 
-Community implementation must not begin before `WEB-VIS-007A` is complete and
-the later roadmap gates authorize product architecture work.
+Community and Questions work remains gated by its own account, profile,
+moderation, and privacy prerequisites. Scientific Core completion is not a
+blanket prerequisite for non-scientific Community architecture, but production
+scientific integration and production scientific claims remain externally
+blocked.
 
 ### Community positioning
 
@@ -244,6 +248,12 @@ Actual verification criteria remain:
 
 No application flow or verification implementation is authorized now.
 
+Practitioner and Contributor work remains gated by Questions, profile,
+moderation, and verification prerequisites. Scientific Core completion is not
+a blanket prerequisite for non-scientific product architecture, but production
+scientific integration and production scientific claims remain externally
+blocked.
+
 ### Founding Practitioner
 
 `APPROVED FUTURE`  
@@ -259,7 +269,7 @@ rank. The badge or status must not be implemented yet.
 ## 5. Private Feedback
 
 `APPROVED FUTURE`  
-`DEFERRED`
+`NEXT WEB PRODUCT TASK`
 
 Feedback must remain separate from public Community and should be private,
 non-indexed, and product-support oriented.
@@ -272,7 +282,8 @@ Potential categories are:
 - Other.
 
 Personal birth-data support posts must not be mixed into public Questions. No
-feedback system is part of this roadmap patch.
+feedback system is part of this roadmap patch. The next task is to freeze the
+Private Feedback MVP architecture before implementation.
 
 ## 6. NatalNode Knowledge Network
 
@@ -436,7 +447,7 @@ The accepted post-V1 sequence is:
 | Phase A | Product UX Calibration V1.1 | `CURRENT / ACTIVE` |
 | Phase B | Scientific Core Completion / Engine gates | `CURRENT / ACTIVE` in the separate Engine track |
 | Phase C | Community & Practitioner Product Architecture | `APPROVED FUTURE` / `DEFERRED` |
-| Phase D | Questions + Private Feedback MVP | `APPROVED FUTURE` / `DEFERRED` |
+| Phase D | Questions + Private Feedback MVP | `APPROVED FUTURE` / `NEXT WEB PRODUCT TASK` |
 | Phase E | Practitioner Profiles / Application / Founding cohort | `APPROVED FUTURE` / `DEFERRED` |
 | Phase F | Knowledge-network growth: Learn + Questions + Practitioners | `APPROVED FUTURE` / `DEFERRED` |
 | Phase G | Staging / deployment when scientifically meaningful | `DEFERRED` |
@@ -446,12 +457,31 @@ This strategic sequence may evolve through later explicit decisions. It does
 not override the PRD release gates, the visual-system reconstruction sequence,
 or the accepted ADRs.
 
-## 12. Immediate next Web implementation task
+This table expresses product dependency sequencing, not a blanket freeze on
+all NatalNode-Web work. Scientific Core gates apply to scientific-dependent
+work; non-scientific Web Product work may proceed in parallel when its own
+prerequisites are satisfied.
+
+## 12. Immediate next Web product task
 
 ```text
-NEXT MAJOR ROADMAP WORK:
-SCIENTIFIC CORE / ENGINE COMPLETION
+NEXT WEB PRODUCT TASK: Private Feedback MVP
 ```
+
+The Web Product track is authorized to continue independently on non-scientific
+work. The immediate next Web Product task is `Private Feedback MVP`: an
+authenticated, private-by-default, non-indexed, product-support surface that
+remains separate from public Community. Its categories remain exactly:
+
+- Bug;
+- Suggestion;
+- Incorrect result / calculation concern; and
+- Other.
+
+The Private Feedback MVP does not require production astronomy, provider
+selection, or Railway deployment. A live persistence implementation will
+still require operational PostgreSQL; this roadmap clarification does not
+change deployment status or authorize implementation by itself.
 
 The visual V1.1 functional baseline is frozen. No additional decorative
 visual reconstruction is the immediate next roadmap task. Scientific Core /
@@ -465,11 +495,15 @@ The completed calibration scope was:
 - visual luminosity and scientific-technology calibration; and
 - preservation of all scientific and trust semantics.
 
-Community and Practitioner implementation must not begin before this task.
+Community/Questions may proceed only after its own account, profile,
+moderation, and privacy prerequisites are satisfied. Practitioner/Contributor
+work may proceed only after Questions, profile, moderation, and verification
+prerequisites are satisfied. Neither sequence is a blanket freeze caused by
+the Scientific Core track.
 
 ## 13. Roadmap guardrails
 
-This document does not authorize:
+This document does not authorize unscoped:
 
 - application, package, server, or deployment changes;
 - changes to `ChartRequest`, `ChartResult`, `EngineClient`, or BFF boundaries;
@@ -481,3 +515,66 @@ This document does not authorize:
 - speculative schemas, scoring, verification, or privacy architecture.
 
 `C:\NatalNode` remains outside the scope of NatalNode-Web work.
+
+## 14. Two-track development clarification
+
+NatalNode development is explicitly divided into two tracks. The tracks are
+related by the public API boundary, but Scientific Core completion does not
+freeze unrelated Web Product work.
+
+### TRACK A — NatalNode Scientific Core
+
+`EXTERNAL / PARALLEL TRACK`
+
+`COMMERCIAL AUTHORIZATION / SCIENTIFIC CORE COMPLETION PENDING`
+
+Track A is separate from NatalNode-Web and is responsible for:
+
+- scientific astronomy and production chart calculation;
+- scientific configuration and provenance readiness;
+- final production resolver and scientific integration; and
+- the production Engine Public API contract needed by the Web Product.
+
+NatalNode-Web must not implement astronomy algorithms, provider bindings,
+scientific configuration generation, scientific provenance identities, or
+production scientific claims.
+
+### TRACK B — NatalNode.com Web Product
+
+`AUTHORIZED TO PROCEED INDEPENDENTLY ON NON-SCIENTIFIC WORK`
+
+Track B may continue through separately scoped Web Product tasks, including:
+
+- Auth completion;
+- Vault management;
+- Private Feedback;
+- technical SEO infrastructure;
+- Learn and content architecture;
+- legal and trust work after policy content is available;
+- account and profile work;
+- Community/Questions after its account, profile, moderation, and privacy
+  prerequisites are satisfied; and
+- Practitioner/Contributor work after Questions, profile, moderation, and
+  verification prerequisites are satisfied.
+
+Other non-scientific website functionality may proceed when its own
+prerequisites are met. The preserved boundary is:
+
+```text
+NatalNode.com
+→ Website API / BFF
+→ NatalNode Engine Public API
+→ scientific core
+```
+
+The following remain blocked by Track A:
+
+- production Engine integration;
+- production astronomy;
+- production natal-chart facts;
+- final scientific configuration and provenance identities;
+- production birth-location/timezone resolution where it depends on the
+  final approved scientific data source; and
+- production scientific claims.
+
+`PROVIDER DECISION DEFERRED` remains authoritative.
