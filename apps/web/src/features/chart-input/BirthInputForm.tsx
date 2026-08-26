@@ -41,6 +41,8 @@ type AmbiguousResolution = Extract<BirthInputResolution, { ambiguityStatus: 'AMB
 const inputClassName = 'nn-field';
 
 const defaultResolver: BirthInputResolver = new DevelopmentBirthInputResolver();
+const DEVELOPMENT_FIXTURE_EXPLANATION =
+  'This development resolver preserves your entered place label but uses fixed New York coordinate/timezone fixture data for UI testing; the fixture data is not derived from that place, is not historical timezone evidence, and is not production resolution.';
 
 export interface BirthInputFormProps {
   isCalculationPending?: boolean;
@@ -151,13 +153,18 @@ interface ResolutionTelemetryData {
 
 function ResolvedLocationTelemetry({
   heading,
+  isDevelopmentFixture = false,
   resolution
 }: {
   heading: string;
+  isDevelopmentFixture?: boolean;
   resolution: ResolutionTelemetryData;
 }) {
   const latitude = formatCoordinate(resolution.latitude, 'latitude');
   const longitude = formatCoordinate(resolution.longitude, 'longitude');
+  const fixtureCoordinates = [latitude, longitude]
+    .filter((coordinate): coordinate is string => coordinate !== null)
+    .join(' · ');
 
   if (!resolution.locationLabel && !latitude && !longitude && !resolution.ianaTimeZone) {
     return null;
@@ -166,34 +173,54 @@ function ResolvedLocationTelemetry({
   return (
     <div className="mt-4 min-w-0">
       <p className="nn-eyebrow">{heading}</p>
+      {isDevelopmentFixture ? (
+        <p className="nn-type-body-small mt-2">{DEVELOPMENT_FIXTURE_EXPLANATION}</p>
+      ) : null}
       <dl className="mt-3 grid min-w-0 gap-3 sm:grid-cols-3">
         {resolution.locationLabel ? (
           <div className="min-w-0">
-            <dt className="nn-type-metadata">Location</dt>
+            <dt className="nn-type-metadata">
+              {isDevelopmentFixture ? 'Location input' : 'Location'}
+            </dt>
             <dd className="nn-type-body-small mt-1 break-words">{resolution.locationLabel}</dd>
           </div>
         ) : null}
-        {latitude ? (
-          <div className="min-w-0">
-            <dt className="nn-type-metadata">Latitude</dt>
-            <dd className="nn-type-numeric mt-1">{latitude}</dd>
-          </div>
-        ) : null}
-        {longitude ? (
-          <div className="min-w-0">
-            <dt className="nn-type-metadata">Longitude</dt>
-            <dd className="nn-type-numeric mt-1">{longitude}</dd>
-          </div>
-        ) : null}
+        {isDevelopmentFixture ? (
+          fixtureCoordinates ? (
+            <div className="min-w-0">
+              <dt className="nn-type-metadata">Fixture coordinates</dt>
+              <dd className="nn-type-numeric mt-1">{fixtureCoordinates}</dd>
+            </div>
+          ) : null
+        ) : (
+          <>
+            {latitude ? (
+              <div className="min-w-0">
+                <dt className="nn-type-metadata">Latitude</dt>
+                <dd className="nn-type-numeric mt-1">{latitude}</dd>
+              </div>
+            ) : null}
+            {longitude ? (
+              <div className="min-w-0">
+                <dt className="nn-type-metadata">Longitude</dt>
+                <dd className="nn-type-numeric mt-1">{longitude}</dd>
+              </div>
+            ) : null}
+          </>
+        )}
         {resolution.ianaTimeZone ? (
           <div className="min-w-0">
-            <dt className="nn-type-metadata">IANA timezone</dt>
+            <dt className="nn-type-metadata">
+              {isDevelopmentFixture ? 'Fixture timezone' : 'IANA timezone'}
+            </dt>
             <dd className="nn-type-numeric mt-1 break-words">{resolution.ianaTimeZone}</dd>
           </div>
         ) : null}
         {resolution.utcOffsetSeconds !== null ? (
           <div className="min-w-0">
-            <dt className="nn-type-metadata">UTC offset</dt>
+            <dt className="nn-type-metadata">
+              {isDevelopmentFixture ? 'Fixture UTC offset' : 'UTC offset'}
+            </dt>
             <dd className="nn-type-numeric mt-1">{formatUtcOffset(resolution.utcOffsetSeconds)}</dd>
           </div>
         ) : null}
@@ -202,29 +229,51 @@ function ResolvedLocationTelemetry({
   );
 }
 
-function ExactResolutionPanel({ resolution }: { resolution: ExactResolution }) {
+function ExactResolutionPanel({
+  isDevelopmentFixture,
+  resolution
+}: {
+  isDevelopmentFixture: boolean;
+  resolution: ExactResolution;
+}) {
   return (
     <section
       aria-labelledby="timezone-resolved-title"
       aria-live="polite"
-      className="nn-notice nn-notice--info mt-5 min-w-0 flex-col"
+      className={cn(
+        'nn-notice mt-5 min-w-0 flex-col',
+        isDevelopmentFixture ? 'nn-notice--research' : 'nn-notice--info'
+      )}
       role="status"
     >
-      <p className="nn-eyebrow nn-status--success">Resolution confirmed</p>
+      <p
+        className={cn(
+          'nn-eyebrow',
+          isDevelopmentFixture ? 'nn-status--research' : 'nn-status--success'
+        )}
+      >
+        {isDevelopmentFixture ? 'Development fixture' : 'Resolution confirmed'}
+      </p>
       <h3 className="nn-type-card-title" id="timezone-resolved-title">
-        Timezone resolved
+        {isDevelopmentFixture ? 'Development fixture data' : 'Timezone resolved'}
       </h3>
-      <ResolvedLocationTelemetry heading="Location resolved" resolution={resolution} />
+      <ResolvedLocationTelemetry
+        heading={isDevelopmentFixture ? 'Fixture details' : 'Location resolved'}
+        isDevelopmentFixture={isDevelopmentFixture}
+        resolution={resolution}
+      />
     </section>
   );
 }
 
 function AmbiguousResolutionPanel({
   isDisabled,
+  isDevelopmentFixture,
   resolution,
   onSelectCandidate
 }: {
   isDisabled: boolean;
+  isDevelopmentFixture: boolean;
   resolution: AmbiguousResolution;
   onSelectCandidate: (candidate: AmbiguousTimeCandidate) => void;
 }) {
@@ -234,16 +283,31 @@ function AmbiguousResolutionPanel({
       className="nn-notice nn-notice--trust mt-5 min-w-0 flex-col"
       role="alert"
     >
-      <p className="nn-eyebrow nn-status--warning">Resolution needed</p>
+      <p
+        className={cn(
+          'nn-eyebrow',
+          isDevelopmentFixture ? 'nn-status--research' : 'nn-status--warning'
+        )}
+      >
+        {isDevelopmentFixture ? 'Development fixture' : 'Resolution needed'}
+      </p>
       <h3 className="nn-type-card-title" id="ambiguous-time-title">
-        This local time occurred twice
+        {isDevelopmentFixture ? 'Ambiguous fixture state' : 'This local time occurred twice'}
       </h3>
       <p className="nn-type-body-small mt-2">
-        Choose which occurrence matches the birth record. NatalNode will not silently choose one.
+        {isDevelopmentFixture
+          ? 'This development fixture simulates two candidate occurrences for UI testing. Choose one; NatalNode will not silently choose one.'
+          : 'Choose which occurrence matches the birth record. NatalNode will not silently choose one.'}
       </p>
-      <ResolvedLocationTelemetry heading="Location context" resolution={resolution} />
+      <ResolvedLocationTelemetry
+        heading={isDevelopmentFixture ? 'Fixture context' : 'Location context'}
+        isDevelopmentFixture={isDevelopmentFixture}
+        resolution={resolution}
+      />
       <fieldset className="mt-4 grid gap-3">
-        <legend className="nn-type-label">Select an occurrence</legend>
+        <legend className="nn-type-label">
+          {isDevelopmentFixture ? 'Select a fixture candidate' : 'Select an occurrence'}
+        </legend>
         {resolution.candidates.map((candidate) => {
           const isEarlier = candidate.occurrence === 'EARLIER';
 
@@ -281,10 +345,12 @@ function AmbiguousResolutionPanel({
 
 function NonexistentResolutionPanel({
   isDisabled,
+  isDevelopmentFixture,
   onEditBirthTime,
   resolution
 }: {
   isDisabled: boolean;
+  isDevelopmentFixture: boolean;
   onEditBirthTime: () => void;
   resolution: Extract<BirthInputResolution, { ambiguityStatus: 'NONEXISTENT' }>;
 }) {
@@ -294,14 +360,22 @@ function NonexistentResolutionPanel({
       className="nn-notice nn-notice--error mt-5 min-w-0 flex-col"
       role="alert"
     >
-      <p className="nn-eyebrow nn-status--error">Birth time needs editing</p>
+      <p className="nn-eyebrow nn-status--error">
+        {isDevelopmentFixture ? 'Development fixture' : 'Birth time needs editing'}
+      </p>
       <h3 className="nn-type-card-title" id="nonexistent-time-title">
-        This local time did not exist
+        {isDevelopmentFixture ? 'Nonexistent fixture state' : 'This local time did not exist'}
       </h3>
       <p className="nn-type-body-small mt-2">
-        The entered local time did not exist at this location and date. It was not shifted or replaced.
+        {isDevelopmentFixture
+          ? 'This development fixture simulates a nonexistent local time for UI testing. It does not establish a real historical DST gap for the entered place and date. The fixture was not shifted or replaced.'
+          : 'The entered local time did not exist at this location and date. It was not shifted or replaced.'}
       </p>
-      <ResolvedLocationTelemetry heading="Location context" resolution={resolution} />
+      <ResolvedLocationTelemetry
+        heading={isDevelopmentFixture ? 'Fixture context' : 'Location context'}
+        isDevelopmentFixture={isDevelopmentFixture}
+        resolution={resolution}
+      />
       <button
         className="nn-button nn-button--secondary mt-4 self-start"
         disabled={isDisabled}
@@ -314,7 +388,13 @@ function NonexistentResolutionPanel({
   );
 }
 
-function UnknownTimeResolutionPanel({ resolution }: { resolution: UnknownTimeBirthInputResolution }) {
+function UnknownTimeResolutionPanel({
+  isDevelopmentFixture,
+  resolution
+}: {
+  isDevelopmentFixture: boolean;
+  resolution: UnknownTimeBirthInputResolution;
+}) {
   return (
     <section
       aria-labelledby="unknown-time-title"
@@ -329,17 +409,23 @@ function UnknownTimeResolutionPanel({ resolution }: { resolution: UnknownTimeBir
       <p className="nn-type-body-small mt-2">
         Without an exact birth time, Ascendant, Midheaven, houses, and house-based interpretation will be unavailable.
       </p>
-      <ResolvedLocationTelemetry heading="Location resolved" resolution={resolution} />
+      <ResolvedLocationTelemetry
+        heading={isDevelopmentFixture ? 'Fixture context' : 'Location resolved'}
+        isDevelopmentFixture={isDevelopmentFixture}
+        resolution={resolution}
+      />
     </section>
   );
 }
 
 function ResolutionPanel({
+  isDevelopmentFixture,
   isInteractionDisabled,
   resolution,
   onSelectCandidate,
   onEditBirthTime
 }: {
+  isDevelopmentFixture: boolean;
   isInteractionDisabled: boolean;
   resolution: BirthInputResolution | null;
   onSelectCandidate: (candidate: AmbiguousTimeCandidate) => void;
@@ -351,11 +437,17 @@ function ResolutionPanel({
 
   switch (resolution.ambiguityStatus) {
     case 'EXACT':
-      return <ExactResolutionPanel resolution={resolution} />;
+      return (
+        <ExactResolutionPanel
+          isDevelopmentFixture={isDevelopmentFixture}
+          resolution={resolution}
+        />
+      );
     case 'AMBIGUOUS':
       return (
         <AmbiguousResolutionPanel
           isDisabled={isInteractionDisabled}
+          isDevelopmentFixture={isDevelopmentFixture}
           onSelectCandidate={onSelectCandidate}
           resolution={resolution}
         />
@@ -364,12 +456,18 @@ function ResolutionPanel({
       return (
         <NonexistentResolutionPanel
           isDisabled={isInteractionDisabled}
+          isDevelopmentFixture={isDevelopmentFixture}
           onEditBirthTime={onEditBirthTime}
           resolution={resolution}
         />
       );
     case 'UNKNOWN_TIME':
-      return <UnknownTimeResolutionPanel resolution={resolution} />;
+      return (
+        <UnknownTimeResolutionPanel
+          isDevelopmentFixture={isDevelopmentFixture}
+          resolution={resolution}
+        />
+      );
   }
 }
 
@@ -420,6 +518,7 @@ export default function BirthInputForm({
   const latestRequestRef = useRef(0);
   const unknownTime = draft.ambiguityStatus === 'UNKNOWN_TIME';
   const isInteractionDisabled = isResolving || isCalculationPending;
+  const isDevelopmentFixtureResolver = resolver instanceof DevelopmentBirthInputResolver;
 
   const invalidateResolution = () => {
     latestRequestRef.current += 1;
@@ -754,6 +853,7 @@ export default function BirthInputForm({
             </p>
           ) : null}
           <ResolutionPanel
+            isDevelopmentFixture={isDevelopmentFixtureResolver}
             isInteractionDisabled={isInteractionDisabled}
             onEditBirthTime={() => timeInputRef.current?.focus()}
             onSelectCandidate={handleCandidateSelection}
