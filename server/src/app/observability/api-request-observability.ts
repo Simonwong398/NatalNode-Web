@@ -11,6 +11,7 @@ type EndpointFamily =
   | 'auth.email.complete'
   | 'auth.session'
   | 'auth.logout'
+  | 'feedback'
   | 'vault.charts'
   | 'vault.chart'
   | 'vault.notes'
@@ -56,6 +57,7 @@ export function classifyApiEndpointFamily(pathname: string): EndpointFamily {
   if (pathname === '/api/auth/email/complete') return 'auth.email.complete';
   if (pathname === '/api/auth/session') return 'auth.session';
   if (pathname === '/api/auth/logout') return 'auth.logout';
+  if (pathname === '/api/feedback') return 'feedback';
   if (pathname === '/api/vault/charts') return 'vault.charts';
   if (/^\/api\/vault\/charts\/[^/]+$/u.test(pathname)) return 'vault.chart';
   if (/^\/api\/vault\/charts\/[^/]+\/notes(?:\/[^/]+)?$/u.test(pathname)) {

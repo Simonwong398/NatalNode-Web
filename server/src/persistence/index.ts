@@ -6,6 +6,10 @@ export type {
 } from './auth-identity-provisioning-repository.js';
 export type { ChartNoteRepository } from './chart-note-repository.js';
 export type { EmailMagicLinkChallengeRepository } from './email-magic-link-challenge-repository.js';
+export type {
+  FeedbackSubmissionRecord,
+  FeedbackSubmissionRepository
+} from './feedback-submission-repository.js';
 export type { PersistenceRepositories } from './persistence-repositories.js';
 export type { VaultChartRepository } from './vault-chart-repository.js';
 export type { UserRepository } from './user-repository.js';

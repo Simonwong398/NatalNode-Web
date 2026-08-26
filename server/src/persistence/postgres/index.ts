@@ -4,5 +4,6 @@ export { PostgresAuthIdentityRepository } from './postgres-auth-identity-reposit
 export { PostgresAuthIdentityProvisioningRepository } from './postgres-auth-identity-provisioning-repository.js';
 export { PostgresChartNoteRepository } from './postgres-chart-note-repository.js';
 export { PostgresEmailMagicLinkChallengeRepository } from './postgres-email-magic-link-challenge-repository.js';
+export { PostgresFeedbackSubmissionRepository } from './postgres-feedback-submission-repository.js';
 export { PostgresUserRepository } from './postgres-user-repository.js';
 export { PostgresVaultChartRepository } from './postgres-vault-chart-repository.js';

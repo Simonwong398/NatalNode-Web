@@ -86,6 +86,8 @@ export type {
   ChartNoteContentUpdate,
   ChartNoteRepository,
   EmailMagicLinkChallengeRepository,
+  FeedbackSubmissionRecord,
+  FeedbackSubmissionRepository,
   PersistenceRepositories,
   UserRepository,
   VaultChartMetadataUpdate,
@@ -100,6 +102,7 @@ export {
   PostgresAuthIdentityProvisioningRepository,
   PostgresChartNoteRepository,
   PostgresEmailMagicLinkChallengeRepository,
+  PostgresFeedbackSubmissionRepository,
   PostgresUserRepository,
   PostgresVaultChartRepository
 } from './persistence/postgres/index.js';

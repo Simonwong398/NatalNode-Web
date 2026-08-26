@@ -13,6 +13,7 @@ import { enforceSameOriginUnsafeApiRequests } from './security/enforce-same-orig
 import { createChartRoute } from './routes/chart.js';
 import { registerEmailAuthenticationRoutes } from './routes/auth-email.js';
 import { registerSessionAuthenticationRoutes } from './routes/auth-session.js';
+import { registerFeedbackRoutes } from './routes/feedback.js';
 import { registerVaultChartRoutes } from './routes/vault-charts.js';
 import { registerVaultNoteRoutes } from './routes/vault-notes.js';
 
@@ -50,6 +51,7 @@ export function createApp(dependencies: ServerDependencies): Hono {
   app.post('/api/chart', createChartRoute(dependencies));
   registerEmailAuthenticationRoutes(app, dependencies);
   registerSessionAuthenticationRoutes(app, dependencies);
+  registerFeedbackRoutes(app, dependencies, rateLimiter);
   registerVaultChartRoutes(app, dependencies);
   registerVaultNoteRoutes(app, dependencies);
 

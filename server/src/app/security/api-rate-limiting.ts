@@ -1,5 +1,6 @@
 import { createHmac, randomBytes } from 'node:crypto';
 import type { MiddlewareHandler } from 'hono';
+import type { AuthenticatedRequestEnv } from '../auth/authenticated-context.js';
 import { resolveRateLimitClientIdentity } from './trusted-edge-client-identity.js';
 
 export interface RateLimitPolicy {
@@ -24,6 +25,16 @@ export const P0_STAGING_RATE_LIMIT_POLICIES = {
     identifier: 'CHART_CALCULATION',
     limit: 20,
     windowMs: 10 * 60 * 1_000
+  },
+  feedbackSubmissionEdge: {
+    identifier: 'FEEDBACK_SUBMISSION_EDGE',
+    limit: 20,
+    windowMs: 10 * 60 * 1_000
+  },
+  feedbackSubmissionAccount: {
+    identifier: 'FEEDBACK_SUBMISSION_ACCOUNT',
+    limit: 5,
+    windowMs: 60 * 60 * 1_000
   },
   vaultMutation: {
     identifier: 'VAULT_MUTATION',
@@ -208,6 +219,10 @@ export function selectP0StagingRateLimitPolicy(
     return P0_STAGING_RATE_LIMIT_POLICIES.chartCalculation;
   }
 
+  if (method === 'POST' && pathname === '/api/feedback') {
+    return P0_STAGING_RATE_LIMIT_POLICIES.feedbackSubmissionEdge;
+  }
+
   return isVaultMutation(method, pathname)
     ? P0_STAGING_RATE_LIMIT_POLICIES.vaultMutation
     : null;
@@ -231,6 +246,25 @@ export function enforceP0StagingRateLimits(
       context.req.raw.headers
     );
     const decision = limiter.attempt(policy, clientIdentity);
+
+    if (!decision.allowed) {
+      context.header('Retry-After', decision.retryAfterSeconds.toString());
+      return context.json(RATE_LIMITED_RESPONSE, 429);
+    }
+
+    await next();
+  };
+}
+
+export function enforceFeedbackAccountRateLimit(
+  limiter: InMemoryP0StagingRateLimiter
+): MiddlewareHandler<AuthenticatedRequestEnv> {
+  return async (context, next) => {
+    const principal = context.get('authenticatedPrincipal');
+    const decision = limiter.attempt(
+      P0_STAGING_RATE_LIMIT_POLICIES.feedbackSubmissionAccount,
+      principal.userId
+    );
 
     if (!decision.allowed) {
       context.header('Retry-After', decision.retryAfterSeconds.toString());

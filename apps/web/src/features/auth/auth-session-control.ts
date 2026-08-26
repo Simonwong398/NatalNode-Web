@@ -23,6 +23,7 @@ type AuthSessionState =
 export interface AuthSessionControlElements {
   readonly root: HTMLElement;
   readonly signedOutLink: HTMLAnchorElement;
+  readonly feedbackLink: HTMLAnchorElement;
   readonly signedInButton: HTMLButtonElement;
   readonly statusElement: HTMLElement;
 }
@@ -60,6 +61,7 @@ function render(
   elements.root.hidden = state === 'loading';
   elements.root.setAttribute('aria-busy', state === 'loading' ? 'true' : 'false');
   elements.signedOutLink.hidden = !isSignedOut;
+  elements.feedbackLink.hidden = !isSignedIn;
   elements.signedInButton.hidden = !isSignedIn;
   elements.signedInButton.disabled = isLogoutPending;
   elements.signedInButton.textContent = isLogoutPending

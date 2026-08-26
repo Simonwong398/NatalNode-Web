@@ -1,3 +1,7 @@
+---
+const isFeedbackPage = Astro.url.pathname === '/feedback';
+---
+
 <span
   class="nn-session-control"
   data-auth-session-control
@@ -11,6 +15,15 @@
     hidden
   >
     Sign in
+  </a>
+  <a
+    class="nn-session-control__link nn-button nn-button--quiet"
+    data-auth-feedback
+    href="/feedback"
+    aria-current={isFeedbackPage ? 'page' : undefined}
+    hidden
+  >
+    Feedback
   </a>
   <button
     class="nn-session-control__link nn-button nn-button--quiet"
@@ -34,13 +47,15 @@
 
   const root = document.querySelector<HTMLElement>('[data-auth-session-control]');
   const signedOutLink = root?.querySelector<HTMLAnchorElement>('[data-auth-signed-out]');
+  const feedbackLink = root?.querySelector<HTMLAnchorElement>('[data-auth-feedback]');
   const signedInButton = root?.querySelector<HTMLButtonElement>('[data-auth-signed-in]');
   const statusElement = root?.querySelector<HTMLElement>('[data-auth-status]');
 
-  if (root && signedOutLink && signedInButton && statusElement) {
+  if (root && signedOutLink && feedbackLink && signedInButton && statusElement) {
     initializeAuthSessionControl({
       root,
       signedOutLink,
+      feedbackLink,
       signedInButton,
       statusElement
     });

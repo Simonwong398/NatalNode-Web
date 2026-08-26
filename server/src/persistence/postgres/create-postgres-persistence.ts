@@ -5,6 +5,7 @@ import { PostgresAuthIdentityRepository } from './postgres-auth-identity-reposit
 import { PostgresAuthIdentityProvisioningRepository } from './postgres-auth-identity-provisioning-repository.js';
 import { PostgresChartNoteRepository } from './postgres-chart-note-repository.js';
 import { PostgresEmailMagicLinkChallengeRepository } from './postgres-email-magic-link-challenge-repository.js';
+import { PostgresFeedbackSubmissionRepository } from './postgres-feedback-submission-repository.js';
 import { PostgresUserRepository } from './postgres-user-repository.js';
 import { PostgresVaultChartRepository } from './postgres-vault-chart-repository.js';
 
@@ -15,6 +16,7 @@ export function createPostgresPersistence(executor: SqlExecutor): PersistenceRep
     authIdentityProvisioning: new PostgresAuthIdentityProvisioningRepository(executor),
     authSessions: new PostgresAuthSessionRepository(executor),
     emailMagicLinkChallenges: new PostgresEmailMagicLinkChallengeRepository(executor),
+    feedbackSubmissions: new PostgresFeedbackSubmissionRepository(executor),
     vaultCharts: new PostgresVaultChartRepository(executor),
     chartNotes: new PostgresChartNoteRepository(executor)
   };

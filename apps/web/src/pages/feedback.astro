@@ -1,0 +1,187 @@
+---
+import Surface from '@/components/ui/Surface.astro';
+import SiteLayout from '@/layouts/SiteLayout.astro';
+import type { SeoMetadata } from '@/lib/seo';
+
+const seo: SeoMetadata = {
+  title: 'Feedback | NatalNode',
+  description: 'Send private product feedback to NatalNode.',
+  canonical: '/feedback',
+  robots: 'noindex,nofollow'
+};
+---
+
+<SiteLayout seo={seo} mode="editorial">
+  <main class="nn-container nn-container--form py-12 sm:py-16">
+    <header class="max-w-2xl">
+      <p class="nn-eyebrow">Private support</p>
+      <h1 class="nn-type-page-title mt-3" id="feedback-page-title">Feedback</h1>
+      <p class="nn-type-body mt-4">
+        Tell us about a problem, suggestion, or calculation concern. Your feedback is
+        private and associated with your signed-in account.
+      </p>
+    </header>
+
+    <section
+      class="mt-10"
+      data-feedback-page
+      aria-labelledby="feedback-page-title"
+      aria-busy="true"
+    >
+      <p class="nn-async-state" data-feedback-loading role="status" aria-live="polite">
+        Confirming your session…
+      </p>
+
+      <p
+        class="nn-async-state nn-async-state--error"
+        data-feedback-session-error
+        role="alert"
+        tabindex="-1"
+        hidden
+      ></p>
+
+      <div data-feedback-form-container hidden>
+        <Surface variant="elevated" class="w-full">
+          <form class="p-6 sm:p-8" data-feedback-form novalidate aria-busy="false">
+            <div>
+              <label class="nn-type-label" for="feedback-category">Category</label>
+              <select
+                class="nn-field mt-2"
+                id="feedback-category"
+                name="category"
+                required
+                aria-describedby="feedback-category-error"
+              >
+                <option value="">Choose a category</option>
+                <option value="BUG">Bug</option>
+                <option value="SUGGESTION">Suggestion</option>
+                <option value="CALCULATION_CONCERN">
+                  Incorrect result / calculation concern
+                </option>
+                <option value="OTHER">Other</option>
+              </select>
+              <p
+                class="nn-status nn-status--error mt-2"
+                id="feedback-category-error"
+                data-feedback-category-error
+                hidden
+              ></p>
+            </div>
+
+            <div class="mt-6">
+              <label class="nn-type-label" for="feedback-message">Message</label>
+              <textarea
+                class="nn-field mt-2 min-h-56 resize-y"
+                id="feedback-message"
+                name="message"
+                rows="9"
+                required
+                aria-describedby="feedback-message-help feedback-message-count feedback-message-error"
+              ></textarea>
+              <div class="mt-2 flex flex-wrap justify-between gap-2">
+                <p class="nn-type-body-small" id="feedback-message-help">
+                  Enter 10–5,000 characters. Please do not include passwords or secrets.
+                </p>
+                <p
+                  class="nn-type-metadata"
+                  id="feedback-message-count"
+                  data-feedback-message-count
+                >
+                  0 / 5,000 characters
+                </p>
+              </div>
+              <p
+                class="nn-status nn-status--error mt-2"
+                id="feedback-message-error"
+                data-feedback-message-error
+                hidden
+              ></p>
+            </div>
+
+            <button
+              class="nn-button nn-button--primary mt-6 w-full sm:w-auto"
+              data-feedback-submit
+              type="submit"
+            >
+              Send feedback
+            </button>
+
+            <p
+              class="nn-notice nn-notice--error mt-5"
+              data-feedback-submission-error
+              role="alert"
+              tabindex="-1"
+              hidden
+            ></p>
+          </form>
+        </Surface>
+      </div>
+
+      <section
+        class="nn-notice nn-notice--info flex-col"
+        data-feedback-success
+        role="status"
+        aria-live="polite"
+        aria-labelledby="feedback-success-title"
+        tabindex="-1"
+        hidden
+      >
+        <h2 class="nn-type-section-title" id="feedback-success-title">
+          Feedback sent
+        </h2>
+        <p class="nn-type-body-small">
+          Thank you. Your private feedback has been submitted to NatalNode.
+        </p>
+        <button
+          class="nn-button nn-button--secondary mt-3 self-start"
+          data-feedback-submit-another
+          type="button"
+        >
+          Send another feedback
+        </button>
+      </section>
+    </section>
+  </main>
+</SiteLayout>
+
+<script>
+  import { initializePrivateFeedback } from '@/features/feedback/private-feedback';
+
+  const root = document.querySelector<HTMLElement>('[data-feedback-page]');
+  const loading = root?.querySelector<HTMLElement>('[data-feedback-loading]');
+  const sessionError = root?.querySelector<HTMLElement>('[data-feedback-session-error]');
+  const formContainer = root?.querySelector<HTMLElement>('[data-feedback-form-container]');
+  const form = root?.querySelector<HTMLFormElement>('[data-feedback-form]');
+  const category = root?.querySelector<HTMLSelectElement>('#feedback-category');
+  const categoryError = root?.querySelector<HTMLElement>('[data-feedback-category-error]');
+  const message = root?.querySelector<HTMLTextAreaElement>('#feedback-message');
+  const messageCount = root?.querySelector<HTMLElement>('[data-feedback-message-count]');
+  const messageError = root?.querySelector<HTMLElement>('[data-feedback-message-error]');
+  const submit = root?.querySelector<HTMLButtonElement>('[data-feedback-submit]');
+  const submissionError = root?.querySelector<HTMLElement>('[data-feedback-submission-error]');
+  const success = root?.querySelector<HTMLElement>('[data-feedback-success]');
+  const submitAnother = root?.querySelector<HTMLButtonElement>('[data-feedback-submit-another]');
+
+  if (
+    root && loading && sessionError && formContainer && form && category &&
+    categoryError && message && messageCount && messageError && submit &&
+    submissionError && success && submitAnother
+  ) {
+    initializePrivateFeedback({
+      root,
+      loading,
+      sessionError,
+      formContainer,
+      form,
+      category,
+      categoryError,
+      message,
+      messageCount,
+      messageError,
+      submit,
+      submissionError,
+      success,
+      submitAnother
+    });
+  }
+</script>
