@@ -1,0 +1,120 @@
+---
+interface Props {
+  eyebrow: string;
+  title: string;
+  description: string;
+  titleId?: string;
+}
+
+const {
+  eyebrow,
+  title,
+  description,
+  titleId = 'editorial-hero-title'
+} = Astro.props;
+---
+
+<section class="nn-editorial-hero" aria-labelledby={titleId}>
+  <div class="nn-editorial-hero__content">
+    <p class="nn-eyebrow">{eyebrow}</p>
+    <h1 class="nn-type-page-title mt-3" id={titleId}>{title}</h1>
+    <p class="nn-type-body mt-4 max-w-2xl">{description}</p>
+  </div>
+
+  <!-- Decorative brand art only. Keep this slot replaceable with an approved raster asset later. -->
+  <div class="nn-editorial-hero__art" aria-hidden="true">
+    <svg
+      class="nn-editorial-hero__svg"
+      viewBox="0 0 760 620"
+      role="presentation"
+      focusable="false"
+    >
+      <defs>
+        <radialGradient id="nn-editorial-planet-sphere" cx="27%" cy="23%" r="78%">
+          <stop class="nn-editorial-planet__stop nn-editorial-planet__stop--lit" offset="0%" />
+          <stop class="nn-editorial-planet__stop nn-editorial-planet__stop--mid" offset="42%" />
+          <stop class="nn-editorial-planet__stop nn-editorial-planet__stop--deep" offset="100%" />
+        </radialGradient>
+        <linearGradient id="nn-editorial-planet-band" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop class="nn-editorial-planet__stop nn-editorial-planet__stop--band-start" offset="0%" />
+          <stop class="nn-editorial-planet__stop nn-editorial-planet__stop--band-end" offset="100%" />
+        </linearGradient>
+        <clipPath id="nn-editorial-planet-clip">
+          <circle cx="514" cy="466" r="356" />
+        </clipPath>
+      </defs>
+
+      <g class="nn-editorial-planet__stars">
+        <circle cx="112" cy="112" r="2" />
+        <circle cx="228" cy="72" r="1.5" />
+        <circle cx="666" cy="86" r="2" />
+        <circle cx="708" cy="266" r="1.5" />
+        <circle cx="90" cy="378" r="1.5" />
+        <circle class="nn-editorial-planet__star--accent" cx="654" cy="470" r="2" />
+      </g>
+
+      <path
+        class="nn-editorial-planet__orbit"
+        d="M 150 520 C 236 205, 548 75, 748 215"
+      />
+      <circle class="nn-editorial-planet__halo" cx="514" cy="466" r="365" />
+      <circle
+        class="nn-editorial-planet__sphere"
+        cx="514"
+        cy="466"
+        r="356"
+        fill="url(#nn-editorial-planet-sphere)"
+      />
+
+      <g clip-path="url(#nn-editorial-planet-clip)">
+        <path
+          class="nn-editorial-planet__surface-band nn-editorial-planet__surface-band--primary"
+          d="M 112 284 C 300 218, 564 248, 888 158 L 888 250 C 586 332, 308 316, 98 372 Z"
+          fill="url(#nn-editorial-planet-band)"
+        />
+        <path
+          class="nn-editorial-planet__surface-band nn-editorial-planet__surface-band--secondary"
+          d="M 68 390 C 272 320, 570 396, 896 310 L 896 374 C 572 472, 274 414, 54 470 Z"
+        />
+        <path
+          class="nn-editorial-planet__surface-band nn-editorial-planet__surface-band--tertiary"
+          d="M 82 508 C 278 450, 566 520, 878 438 L 878 486 C 572 578, 302 520, 86 574 Z"
+        />
+        <path
+          class="nn-editorial-planet__surface-contour"
+          d="M 160 218 C 326 280, 542 218, 760 282"
+        />
+        <path
+          class="nn-editorial-planet__surface-contour"
+          d="M 120 560 C 316 494, 574 584, 824 500"
+        />
+        <path
+          class="nn-editorial-planet__cloud"
+          d="M 366 318 C 414 286, 474 298, 508 334 C 476 358, 416 360, 366 318 Z"
+        />
+        <path
+          class="nn-editorial-planet__cloud nn-editorial-planet__cloud--secondary"
+          d="M 570 510 C 618 478, 674 488, 704 520 C 666 544, 616 544, 570 510 Z"
+        />
+        <ellipse
+          class="nn-editorial-planet__terminator"
+          cx="414"
+          cy="442"
+          rx="146"
+          ry="338"
+          transform="rotate(-14 414 442)"
+        />
+      </g>
+
+      <circle class="nn-editorial-planet__atmosphere" cx="514" cy="466" r="356" />
+      <path
+        class="nn-editorial-planet__rim"
+        d="M 224 354 A 356 356 0 0 1 722 244"
+      />
+      <path
+        class="nn-editorial-planet__rim nn-editorial-planet__rim--quiet"
+        d="M 256 596 A 356 356 0 0 0 724 534"
+      />
+    </svg>
+  </div>
+</section>

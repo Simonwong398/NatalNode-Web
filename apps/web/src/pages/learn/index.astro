@@ -1,5 +1,6 @@
 ---
 import { getCollection } from 'astro:content';
+import EditorialPlanetHero from '@/components/EditorialPlanetHero.astro';
 import SiteLayout from '@/layouts/SiteLayout.astro';
 import { LEARN_CATEGORIES } from '@/lib/content-taxonomy';
 import type { SeoMetadata } from '@/lib/seo';
@@ -24,17 +25,14 @@ function formatDate(date: Date): string {
 
 <SiteLayout seo={seo}>
   <main class="nn-container nn-container--editorial pb-20 pt-12 sm:pb-24 sm:pt-16">
-    <header class="max-w-3xl">
-      <p class="nn-eyebrow">Learn</p>
-      <h1 class="nn-type-page-title mt-3">
-        Astrology explained with clarity.
-      </h1>
-      <p class="nn-type-body mt-4 max-w-2xl">
-        Start with the structure of a natal chart, understand the language it uses, and keep calculated facts distinct from interpretation.
-      </p>
-    </header>
+    <EditorialPlanetHero
+      eyebrow="Learn"
+      title="Astrology explained with clarity."
+      description="Start with the structure of a natal chart, understand the language it uses, and keep calculated facts distinct from interpretation."
+      titleId="learn-hero-title"
+    />
 
-    <section class="mt-12 max-w-5xl" aria-labelledby="learn-categories-title">
+    <section class="mt-12 max-w-5xl" id="learn-categories" aria-labelledby="learn-categories-title">
       <div class="nn-section-header max-w-2xl">
         <p class="nn-eyebrow">Explore the structure</p>
         <h2 class="nn-type-section-title" id="learn-categories-title">
