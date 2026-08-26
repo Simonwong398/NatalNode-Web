@@ -89,18 +89,18 @@ function renderChartList(
 
   for (const chart of charts) {
     const item = document.createElement('li');
-    item.className = 'rounded-2xl border border-natal-border bg-natal-surface/75 p-5 sm:p-6';
+    item.className = 'nn-surface nn-surface--elevated flex min-w-0 flex-col p-5 sm:p-6';
 
     const title = document.createElement('h3');
-    title.className = 'text-xl font-semibold text-white';
+    title.className = 'nn-type-card-title break-words';
     title.textContent = chart.displayName;
 
     const category = document.createElement('p');
-    category.className = 'mt-2 text-xs font-bold uppercase tracking-[0.14em] text-natal-accent';
+    category.className = 'nn-badge mt-4 self-start';
     category.textContent = chart.category;
 
     const savedAt = document.createElement('time');
-    savedAt.className = 'mt-4 block text-sm text-natal-muted';
+    savedAt.className = 'nn-type-metadata mt-5 block';
 
     if (isValidTimestamp(chart.createdAt)) {
       savedAt.dateTime = chart.createdAt;
@@ -111,7 +111,7 @@ function renderChartList(
 
     const openLink = document.createElement('a');
     openLink.className =
-      'mt-5 inline-flex text-sm font-semibold text-natal-accent transition-colors hover:text-white';
+      'nn-button nn-button--secondary mt-6 self-start';
     openLink.href = `/vault/chart?chartId=${encodeURIComponent(chart.chartId)}`;
     openLink.textContent = 'Open';
 

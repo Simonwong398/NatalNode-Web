@@ -204,7 +204,7 @@ function readRequestedChartId(): string | null {
 function SavedChartStatus({ state }: { state: Exclude<SavedChartState, { status: 'loaded' }> }) {
   if (state.status === 'loading') {
     return (
-      <p className="text-sm text-natal-muted" role="status" aria-live="polite">
+      <p className="nn-async-state" role="status" aria-live="polite">
         Loading saved chart…
       </p>
     );
@@ -214,12 +214,12 @@ function SavedChartStatus({ state }: { state: Exclude<SavedChartState, { status:
     return (
       <section
         aria-labelledby="saved-chart-unavailable-title"
-        className="rounded-2xl border border-natal-border bg-natal-surface/75 p-6 sm:p-8"
+        className="nn-async-state nn-async-state--empty max-w-2xl"
       >
-        <h2 className="text-xl font-semibold text-white" id="saved-chart-unavailable-title">
+        <h2 className="nn-type-section-title" id="saved-chart-unavailable-title">
           Saved chart unavailable
         </h2>
-        <p className="mt-2 text-sm leading-6 text-natal-muted">
+        <p className="nn-type-body-small mt-2">
           This saved chart is unavailable.
         </p>
       </section>
@@ -227,10 +227,7 @@ function SavedChartStatus({ state }: { state: Exclude<SavedChartState, { status:
   }
 
   return (
-    <p
-      className="rounded-2xl border border-rose-300/30 bg-rose-300/10 p-5 text-sm text-rose-100"
-      role="alert"
-    >
+    <p className="nn-async-state nn-async-state--error" role="alert">
       We couldn't load this saved chart. Please try again.
     </p>
   );
@@ -315,14 +312,14 @@ export default function SavedVaultChartExperience() {
 
   return (
     <div>
-      <header className="mb-6 rounded-2xl border border-natal-border bg-natal-surface/75 p-5 sm:p-6">
-        <p className="text-xs font-bold uppercase tracking-[0.14em] text-natal-accent">
+      <header className="nn-surface nn-surface--elevated mb-6 p-5 sm:p-6">
+        <p className="nn-badge">
           {state.chart.category}
         </p>
-        <h2 className="mt-2 break-words text-2xl font-semibold text-white">
+        <h2 className="nn-type-card-title mt-4 break-words">
           {state.chart.displayName}
         </h2>
-        <time className="mt-3 block text-sm text-natal-muted" dateTime={state.chart.createdAt}>
+        <time className="nn-type-metadata mt-4 block" dateTime={state.chart.createdAt}>
           Saved {state.chart.createdAt}
         </time>
       </header>

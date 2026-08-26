@@ -11,8 +11,8 @@ const seo = {
 ---
 
 <SiteLayout seo={seo} mode="editorial">
-  <main class="nn-container nn-container--form flex min-h-screen items-center justify-center py-12">
-    <Surface variant="elevated" class="w-full">
+  <main class="nn-container nn-container--form flex min-h-screen items-center justify-center py-16 sm:py-20">
+    <Surface variant="elevated" class="w-full max-w-xl">
       <section class="p-8 sm:p-10" aria-labelledby="sign-in-title">
         <header class="nn-section-header">
           <p class="nn-eyebrow">NatalNode</p>
@@ -24,7 +24,7 @@ const seo = {
           </p>
         </header>
 
-        <form class="mt-8" id="email-sign-in-form">
+        <form class="mt-10" id="email-sign-in-form">
           <label class="nn-type-label" for="sign-in-email">
             Email address
           </label>
@@ -49,14 +49,14 @@ const seo = {
             Send sign-in link
           </button>
           <p
-            class="nn-type-body-small mt-4 min-h-6"
+            class="nn-status nn-status--error mt-4 min-h-6"
             id="sign-in-status"
             aria-live="polite"
           ></p>
         </form>
 
         <section
-          class="nn-section-header mt-8"
+          class="nn-notice nn-notice--info mt-10 flex-col"
           id="sign-in-success"
           aria-labelledby="sign-in-success-title"
           tabindex="-1"

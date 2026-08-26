@@ -11,14 +11,14 @@ const seo = {
 ---
 
 <SiteLayout seo={seo} mode="editorial">
-  <main class="nn-container nn-container--form flex min-h-screen items-center justify-center py-12">
-    <Surface variant="elevated" class="w-full">
+  <main class="nn-container nn-container--form flex min-h-screen items-center justify-center py-16 sm:py-20">
+    <Surface variant="elevated" class="w-full max-w-xl">
       <section class="nn-section-header p-8 text-center sm:p-10" aria-labelledby="auth-completion-title">
         <p class="nn-eyebrow">NatalNode</p>
         <h1 class="nn-type-page-title" id="auth-completion-title">
           Sign in
         </h1>
-        <p class="nn-type-body-small" id="auth-completion-status" aria-live="polite">
+        <p class="nn-async-state mt-2" id="auth-completion-status" aria-live="polite">
           Signing you in…
         </p>
       </section>

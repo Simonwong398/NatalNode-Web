@@ -11,35 +11,35 @@ const seo: SeoMetadata = {
 ---
 
 <SiteLayout seo={seo}>
-  <main class="nn-container nn-container--workspace pb-16 pt-14 sm:pt-20">
+  <main class="nn-container nn-container--workspace pb-20 pt-12 sm:pt-16">
     <header class="max-w-3xl">
-      <p class="text-xs font-bold uppercase tracking-[0.16em] text-natal-accent">Vault</p>
-      <h1 class="mt-4 text-4xl font-semibold leading-tight tracking-[-0.04em] text-white sm:text-6xl">
+      <p class="nn-eyebrow">Vault</p>
+      <h1 class="nn-type-page-title mt-3">
         Your saved charts.
       </h1>
-      <p class="mt-5 max-w-2xl text-lg leading-8 text-natal-muted">
+      <p class="nn-type-body mt-4 max-w-2xl">
         Your saved chart collection is available here when you are signed in.
       </p>
     </header>
 
     <section
-      class="mt-12"
+      class="mt-10 max-w-5xl"
       data-vault-page
       aria-busy="true"
       aria-labelledby="vault-list-title"
     >
       <h2 class="sr-only" id="vault-list-title">Saved charts</h2>
-      <p class="text-sm text-natal-muted" data-vault-loading role="status" aria-live="polite">
+      <p class="nn-async-state" data-vault-loading role="status" aria-live="polite">
         Loading your Vault…
       </p>
-      <p class="rounded-2xl border border-rose-300/30 bg-rose-300/10 p-5 text-sm text-rose-100" data-vault-error role="alert" hidden>
+      <p class="nn-async-state nn-async-state--error" data-vault-error role="alert" hidden>
         We couldn't load your Vault. Please try again.
       </p>
-      <div class="rounded-2xl border border-dashed border-natal-border p-8" data-vault-empty hidden>
-        <h3 class="text-xl font-semibold text-white">Your Vault is empty.</h3>
-        <p class="mt-2 text-sm leading-6 text-natal-muted">Saved charts will appear here.</p>
+      <div class="nn-async-state nn-async-state--empty" data-vault-empty hidden>
+        <h3 class="nn-type-section-title">Your Vault is empty.</h3>
+        <p class="nn-type-body-small mt-2">Saved charts will appear here.</p>
       </div>
-      <ul class="grid gap-4 sm:grid-cols-2" data-vault-list hidden></ul>
+      <ul class="mt-6 grid gap-5 sm:grid-cols-2" data-vault-list hidden></ul>
     </section>
   </main>
 </SiteLayout>
