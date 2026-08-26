@@ -23,60 +23,63 @@ function formatDate(date: Date): string {
 ---
 
 <SiteLayout seo={seo}>
-  <main class="nn-container nn-container--editorial pb-16 pt-14 sm:pt-20">
+  <main class="nn-container nn-container--editorial pb-20 pt-12 sm:pb-24 sm:pt-16">
     <header class="max-w-3xl">
-      <p class="text-xs font-bold uppercase tracking-[0.16em] text-natal-accent">Learn</p>
-      <h1 class="mt-4 text-4xl font-semibold leading-tight tracking-[-0.04em] text-white sm:text-6xl">
+      <p class="nn-eyebrow">Learn</p>
+      <h1 class="nn-type-page-title mt-3">
         Astrology explained with clarity.
       </h1>
-      <p class="mt-5 max-w-2xl text-lg leading-8 text-natal-muted">
+      <p class="nn-type-body mt-4 max-w-2xl">
         Start with the structure of a natal chart, understand the language it uses, and keep calculated facts distinct from interpretation.
       </p>
     </header>
 
-    <section class="mt-14" aria-labelledby="learn-categories-title">
-      <div class="max-w-2xl">
-        <p class="text-xs font-bold uppercase tracking-[0.16em] text-natal-accent">Explore the structure</p>
-        <h2 class="mt-2 text-2xl font-semibold tracking-[-0.03em] text-white" id="learn-categories-title">
+    <section class="mt-12 max-w-5xl" aria-labelledby="learn-categories-title">
+      <div class="nn-section-header max-w-2xl">
+        <p class="nn-eyebrow">Explore the structure</p>
+        <h2 class="nn-type-section-title" id="learn-categories-title">
           Learn categories
         </h2>
       </div>
-      <ul class="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      <ul class="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
         {LEARN_CATEGORIES.map((category) => (
-          <li class="rounded-2xl border border-natal-border bg-natal-surface/75 p-5">
-            <h3 class="text-lg font-semibold text-white">{category.label}</h3>
-            <p class="mt-2 text-sm leading-6 text-natal-muted">{category.description}</p>
+          <li class="nn-surface flex min-w-0 flex-col p-5 sm:p-6">
+            <h3 class="nn-type-card-title">{category.label}</h3>
+            <p class="nn-type-body-small mt-3">{category.description}</p>
           </li>
         ))}
       </ul>
     </section>
 
-    <section class="mt-14" aria-labelledby="learn-articles-title">
+    <section class="mt-16 max-w-4xl" aria-labelledby="learn-articles-title">
       <div class="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
-        <div>
-          <p class="text-xs font-bold uppercase tracking-[0.16em] text-natal-accent">Editorial guide</p>
-          <h2 class="mt-2 text-2xl font-semibold tracking-[-0.03em] text-white" id="learn-articles-title">
+        <div class="nn-section-header">
+          <p class="nn-eyebrow">Editorial guide</p>
+          <h2 class="nn-type-section-title" id="learn-articles-title">
             Articles
           </h2>
         </div>
-        <p class="text-sm text-slate-400">{articles.length} published article{articles.length === 1 ? '' : 's'}</p>
+        <p class="nn-type-metadata">{articles.length} published article{articles.length === 1 ? '' : 's'}</p>
       </div>
 
       {articles.length > 0 ? (
-        <ul class="mt-6 grid gap-4">
+        <ul class="mt-8 grid gap-5">
           {articles.map((article) => (
-            <li class="rounded-2xl border border-natal-border bg-natal-surface/75 p-5 sm:p-6">
+            <li class="nn-surface p-5 sm:p-6">
               <article>
-                <p class="text-xs font-bold uppercase tracking-[0.14em] text-slate-400">{article.data.category.replace('_', ' ')}</p>
-                <h3 class="mt-2 text-xl font-semibold text-white">
-                  <a class="hover:text-natal-accent" href={`/learn/${article.data.slug}`}>
+                <p class="nn-badge">{article.data.category.replace('_', ' ')}</p>
+                <h3 class="nn-type-card-title mt-4">
+                  <a
+                    class="font-semibold underline decoration-natal-accent/50 underline-offset-4 transition-colors hover:text-natal-accent"
+                    href={`/learn/${article.data.slug}`}
+                  >
                     {article.data.title}
                   </a>
                 </h3>
-                <p class="mt-2 max-w-3xl text-sm leading-6 text-natal-muted">
+                <p class="nn-type-body-small mt-3 max-w-3xl">
                   {article.data.summary ?? article.data.description}
                 </p>
-                <time class="mt-4 block text-xs text-slate-400" datetime={article.data.publishedAt.toISOString()}>
+                <time class="nn-type-metadata mt-5 block" datetime={article.data.publishedAt.toISOString()}>
                   Published {formatDate(article.data.publishedAt)}
                 </time>
               </article>
@@ -84,7 +87,7 @@ function formatDate(date: Date): string {
           ))}
         </ul>
       ) : (
-        <p class="mt-6 rounded-2xl border border-dashed border-natal-border p-6 text-sm text-natal-muted">
+        <p class="nn-async-state nn-async-state--empty mt-8 max-w-3xl">
           Published articles will appear here once they are ready for readers.
         </p>
       )}

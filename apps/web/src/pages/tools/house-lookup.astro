@@ -11,29 +11,29 @@ const seo: SeoMetadata = {
 ---
 
 <SiteLayout seo={seo}>
-  <main class="nn-container nn-container--editorial pb-16 pt-14 sm:pt-20">
+  <main class="nn-container nn-container--editorial pb-20 pt-12 sm:pb-24 sm:pt-16">
     <header class="max-w-3xl">
-      <p class="text-xs font-bold uppercase tracking-[0.16em] text-natal-accent">Tools / House Lookup</p>
-      <h1 class="mt-4 text-4xl font-semibold leading-tight tracking-[-0.04em] text-white sm:text-6xl">
+      <p class="nn-eyebrow">Tools / House Lookup</p>
+      <h1 class="nn-type-page-title mt-3">
         Explore an astrological house
       </h1>
-      <p class="mt-5 max-w-2xl text-lg leading-8 text-natal-muted">
+      <p class="nn-type-body mt-4 max-w-2xl">
         Select one of the twelve numbered houses to explore its core domain, key themes, constructive expression, and balancing considerations.
       </p>
     </header>
 
-    <section class="mt-12 max-w-4xl rounded-2xl border border-natal-border bg-natal-surface/75 p-5 sm:p-8" aria-labelledby="house-selection-title">
-      <div>
-        <p class="text-xs font-bold uppercase tracking-[0.16em] text-natal-accent">Make a selection</p>
-        <h2 class="mt-2 text-2xl font-semibold tracking-[-0.03em] text-white" id="house-selection-title">
+    <section class="nn-surface nn-surface--elevated mt-12 max-w-4xl p-5 sm:p-8" aria-labelledby="house-selection-title">
+      <div class="nn-section-header">
+        <p class="nn-eyebrow">Make a selection</p>
+        <h2 class="nn-type-section-title" id="house-selection-title">
           Choose a numbered house
         </h2>
       </div>
 
-      <form class="mt-6" data-house-lookup-form aria-describedby="house-lookup-boundary">
-        <label class="text-sm font-medium text-slate-100" for="astrological-house">Astrological house</label>
+      <form class="mt-8" data-house-lookup-form aria-describedby="house-lookup-boundary">
+        <label class="nn-type-label" for="astrological-house">Astrological house</label>
         <select
-          class="mt-2 block min-h-11 w-full max-w-md rounded-lg border border-natal-border bg-slate-950/40 px-3 py-2.5 text-sm text-white outline-none focus-visible:border-natal-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-natal-accent"
+          class="nn-field mt-2 max-w-md"
           id="astrological-house"
           name="house"
           data-house-select
@@ -43,12 +43,12 @@ const seo: SeoMetadata = {
           {HOUSE_OPTIONS.map((house) => <option value={house.id}>{house.label}</option>)}
         </select>
 
-        <p class="mt-5 rounded-xl border border-amber-200/20 bg-amber-200/5 p-4 text-sm leading-6 text-slate-300" id="house-lookup-boundary">
+        <p class="nn-notice nn-notice--trust mt-6 max-w-3xl" id="house-lookup-boundary">
           This tool explains a house you select. It does not calculate house cusps or determine which house a planet occupies in a birth chart.
         </p>
 
         <button
-          class="mt-5 inline-flex min-h-10 items-center justify-center rounded-lg border border-natal-border px-4 py-2 text-sm font-semibold text-slate-200 hover:border-natal-accent hover:text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-natal-accent"
+          class="nn-button nn-button--quiet mt-5"
           type="reset"
         >
           Clear selection
@@ -57,7 +57,7 @@ const seo: SeoMetadata = {
     </section>
 
     <section
-      class="mt-6 max-w-4xl rounded-2xl border border-natal-border bg-natal-surface/75 p-5 sm:p-8"
+      class="nn-surface mt-8 max-w-4xl p-5 sm:p-8"
       data-house-result
       aria-live="polite"
       aria-labelledby="house-result-title"
@@ -65,63 +65,63 @@ const seo: SeoMetadata = {
     >
       <div data-house-result-content></div>
     </section>
-    <p class="mt-6 max-w-3xl text-sm leading-7 text-natal-muted" data-house-empty role="status">
+    <p class="nn-async-state nn-async-state--empty mt-6 max-w-3xl" data-house-empty role="status">
       Choose a numbered house to see a focused interpretation. No house is preselected.
     </p>
     <noscript>
-      <p class="mt-4 max-w-3xl text-sm leading-7 text-amber-100">
+      <p class="nn-notice nn-notice--info mt-4 max-w-3xl">
         JavaScript is required to generate the selected interpretation in this browser.
       </p>
     </noscript>
 
-    <div class="mt-14 grid gap-10 border-t border-natal-border/70 pt-10 lg:grid-cols-2">
+    <div class="mt-16 grid gap-12 border-t border-natal-border/70 pt-12 lg:grid-cols-2 lg:gap-x-10 lg:gap-y-14 lg:pt-16">
       <section aria-labelledby="what-houses-represent-title">
-        <p class="text-xs font-bold uppercase tracking-[0.16em] text-natal-accent">What houses represent</p>
-        <h2 class="mt-2 text-2xl font-semibold tracking-[-0.03em] text-white" id="what-houses-represent-title">
+        <p class="nn-eyebrow">What houses represent</p>
+        <h2 class="nn-type-section-title mt-2" id="what-houses-represent-title">
           Context for chart themes
         </h2>
-        <p class="mt-4 text-sm leading-7 text-natal-muted">
+        <p class="nn-type-body mt-4">
           Within astrology’s interpretive framework, houses describe areas of life or experience where a chart theme may be considered. They are not physical places and they do not determine a person’s choices. This lookup provides a compact vocabulary for reflection, separate from the calculation of any chart.
         </p>
       </section>
 
       <section aria-labelledby="house-sequence-title">
-        <p class="text-xs font-bold uppercase tracking-[0.16em] text-natal-accent">How the twelve houses differ</p>
-        <h2 class="mt-2 text-2xl font-semibold tracking-[-0.03em] text-white" id="house-sequence-title">
+        <p class="nn-eyebrow">How the twelve houses differ</p>
+        <h2 class="nn-type-section-title mt-2" id="house-sequence-title">
           A sequence of domains
         </h2>
-        <p class="mt-4 text-sm leading-7 text-natal-muted">
+        <p class="nn-type-body mt-4">
           The twelve houses form a sequence of related but distinct domains, from identity and self-direction through private reflection. In a full chart, a house supplies context for a planet or sign; the house itself is not a prediction. Choose a number above to focus on one domain at a time.
         </p>
       </section>
 
       <section aria-labelledby="birth-time-title">
-        <p class="text-xs font-bold uppercase tracking-[0.16em] text-natal-accent">Why birth time can matter</p>
-        <h2 class="mt-2 text-2xl font-semibold tracking-[-0.03em] text-white" id="birth-time-title">
+        <p class="nn-eyebrow">Why birth time can matter</p>
+        <h2 class="nn-type-section-title mt-2" id="birth-time-title">
           House calculation is a separate task
         </h2>
-        <p class="mt-4 text-sm leading-7 text-natal-muted">
+        <p class="nn-type-body mt-4">
           In an actual natal chart, house cusps and planet-house placements can depend on birth time, birth location, and the chosen house system. If the exact birth time is unknown, exact house-based claims should not be assumed. This page collects none of that information and does not calculate cusps, angles, or placements.
         </p>
       </section>
 
       <section aria-labelledby="how-to-use-title">
-        <p class="text-xs font-bold uppercase tracking-[0.16em] text-natal-accent">How to use the lookup</p>
-        <h2 class="mt-2 text-2xl font-semibold tracking-[-0.03em] text-white" id="how-to-use-title">
+        <p class="nn-eyebrow">How to use the lookup</p>
+        <h2 class="nn-type-section-title mt-2" id="how-to-use-title">
           Read the result as a starting point
         </h2>
-        <p class="mt-4 text-sm leading-7 text-natal-muted">
-          Choose a house, read its core domain and key themes, then consider the constructive expression and balancing consideration together. The language is educational and symbolic. You can continue with the <a class="text-natal-accent underline decoration-natal-accent/50 underline-offset-4 hover:text-white" href="/tools/sign-lookup">Sign Lookup</a> or <a class="text-natal-accent underline decoration-natal-accent/50 underline-offset-4 hover:text-white" href="/tools/aspect-lookup">Aspect Lookup</a> for related vocabulary.
+        <p class="nn-type-body mt-4">
+          Choose a house, read its core domain and key themes, then consider the constructive expression and balancing consideration together. The language is educational and symbolic. You can continue with the <a class="text-natal-accent underline decoration-natal-accent/50 underline-offset-4 transition-colors hover:text-white" href="/tools/sign-lookup">Sign Lookup</a> or <a class="text-natal-accent underline decoration-natal-accent/50 underline-offset-4 transition-colors hover:text-white" href="/tools/aspect-lookup">Aspect Lookup</a> for related vocabulary.
         </p>
       </section>
 
       <section class="lg:col-span-2" aria-labelledby="calculation-disclosure-title">
-        <p class="text-xs font-bold uppercase tracking-[0.16em] text-natal-accent">House meaning vs calculation</p>
-        <h2 class="mt-2 text-2xl font-semibold tracking-[-0.03em] text-white" id="calculation-disclosure-title">
+        <p class="nn-eyebrow">House meaning vs calculation</p>
+        <h2 class="nn-type-section-title mt-2" id="calculation-disclosure-title">
           An explanation, not a house calculator
         </h2>
-        <p class="mt-4 max-w-3xl text-sm leading-7 text-natal-muted">
-          Different house systems can place cusps or planets differently, but this lookup does not select, compare, or calculate a house system. Terms such as maintenance, shared resources, transition, privacy, and less-visible processes are interpretive prompts; they are not medical diagnoses, financial predictions, death predictions, or psychiatric labels. For more context on chart inputs, read <a class="text-natal-accent underline decoration-natal-accent/50 underline-offset-4 hover:text-white" href="/learn/what-is-a-natal-chart">What Is a Natal Chart?</a> or return to the <a class="text-natal-accent underline decoration-natal-accent/50 underline-offset-4 hover:text-white" href="/tools/">Tools hub</a>.
+        <p class="nn-type-body mt-4 max-w-3xl">
+          Different house systems can place cusps or planets differently, but this lookup does not select, compare, or calculate a house system. Terms such as maintenance, shared resources, transition, privacy, and less-visible processes are interpretive prompts; they are not medical diagnoses, financial predictions, death predictions, or psychiatric labels. For more context on chart inputs, read <a class="text-natal-accent underline decoration-natal-accent/50 underline-offset-4 transition-colors hover:text-white" href="/learn/what-is-a-natal-chart">What Is a Natal Chart?</a> or return to the <a class="text-natal-accent underline decoration-natal-accent/50 underline-offset-4 transition-colors hover:text-white" href="/tools/">Tools hub</a>.
         </p>
       </section>
     </div>

@@ -110,16 +110,16 @@ export function initializeSignLookup(): void {
     }
 
     const heading = document.createElement('h2');
-    heading.className = 'text-2xl font-semibold tracking-[-0.03em] text-white';
+    heading.className = 'nn-type-section-title';
     heading.id = 'sign-result-title';
     heading.textContent = `${interpretation.sign}: an interpretive snapshot`;
 
     const summary = document.createElement('p');
-    summary.className = 'mt-4 text-sm leading-7 text-slate-300';
+    summary.className = 'nn-type-body mt-4 max-w-3xl';
     summary.textContent = `${interpretation.sign} is described here as ${interpretation.coreStyle}.`;
 
     const details = document.createElement('dl');
-    details.className = 'mt-6 grid gap-4 sm:grid-cols-3';
+    details.className = 'mt-8 grid gap-6 sm:grid-cols-3';
 
     const fields: Array<[string, string]> = [
       ['Element', `${interpretation.element} — ${interpretation.elementLens}`],
@@ -129,14 +129,14 @@ export function initializeSignLookup(): void {
 
     for (const [label, value] of fields) {
       const item = document.createElement('div');
-      item.className = 'rounded-xl border border-natal-border/70 bg-slate-950/20 p-4';
+      item.className = 'border-t border-natal-border/70 pt-3';
 
       const term = document.createElement('dt');
-      term.className = 'text-xs font-bold uppercase tracking-[0.14em] text-natal-accent';
+      term.className = 'nn-type-metadata';
       term.textContent = label;
 
       const description = document.createElement('dd');
-      description.className = 'mt-2 text-sm leading-6 text-slate-200';
+      description.className = 'nn-type-body-small mt-2';
       description.textContent = value;
 
       item.append(term, description);
@@ -144,11 +144,11 @@ export function initializeSignLookup(): void {
     }
 
     const constructive = document.createElement('p');
-    constructive.className = 'mt-6 text-sm leading-7 text-slate-300';
+    constructive.className = 'nn-type-body mt-8 max-w-3xl';
     constructive.textContent = `Constructive expression: ${interpretation.constructiveExpression}.`;
 
     const tension = document.createElement('p');
-    tension.className = 'mt-3 text-sm leading-7 text-slate-300';
+    tension.className = 'nn-type-body mt-4 max-w-3xl';
     tension.textContent = `Potential tension: ${interpretation.potentialTension}`;
 
     resultContent.replaceChildren(heading, summary, details, constructive, tension);

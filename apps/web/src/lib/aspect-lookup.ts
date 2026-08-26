@@ -70,7 +70,7 @@ export function composeAspectLookupInterpretation(
 
 function createParagraph(text: string): HTMLParagraphElement {
   const paragraph = document.createElement('p');
-  paragraph.className = 'mt-4 text-sm leading-7 text-natal-muted';
+  paragraph.className = 'nn-type-body mt-4 max-w-3xl';
   paragraph.textContent = text;
   return paragraph;
 }
@@ -102,7 +102,7 @@ export function initializeAspectLookup(): void {
       planetB.value
     );
     const heading = document.createElement('h2');
-    heading.className = 'text-2xl font-semibold tracking-[-0.03em] text-white';
+    heading.className = 'nn-type-section-title';
     heading.id = 'aspect-result-title';
     heading.textContent = interpretation.title;
 

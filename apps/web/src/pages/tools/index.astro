@@ -13,40 +13,49 @@ const availableTools = SEO_TOOL_TAXONOMY.filter((tool) => tool.status === 'AVAIL
 ---
 
 <SiteLayout seo={seo}>
-  <main class="nn-container nn-container--editorial pb-16 pt-14 sm:pt-20">
+  <main class="nn-container nn-container--editorial pb-20 pt-12 sm:pb-24 sm:pt-16">
     <header class="max-w-3xl">
-      <p class="text-xs font-bold uppercase tracking-[0.16em] text-natal-accent">Tools</p>
-      <h1 class="mt-4 text-4xl font-semibold leading-tight tracking-[-0.04em] text-white sm:text-6xl">
+      <p class="nn-eyebrow">Tools</p>
+      <h1 class="nn-type-page-title mt-3">
         Useful astrology utilities, kept focused.
       </h1>
-      <p class="mt-5 max-w-2xl text-lg leading-8 text-natal-muted">
+      <p class="nn-type-body mt-4 max-w-2xl">
         This public surface is reserved for standalone tools that answer a focused question or make a chart concept easier to understand.
       </p>
     </header>
 
-    <section class="mt-14" aria-labelledby="available-tools-title">
-      <p class="text-xs font-bold uppercase tracking-[0.16em] text-natal-accent">Available now</p>
-      <h2 class="mt-2 text-2xl font-semibold tracking-[-0.03em] text-white" id="available-tools-title">
+    <section class="mt-12 max-w-5xl" aria-labelledby="available-tools-title">
+      <div class="nn-section-header max-w-2xl">
+        <p class="nn-eyebrow">Available now</p>
+        <h2 class="nn-type-section-title" id="available-tools-title">
         Start with a focused question
-      </h2>
-      <ul class="mt-6 grid gap-4 sm:max-w-3xl">
+        </h2>
+      </div>
+      <ul class="mt-8 grid gap-5 md:grid-cols-3">
         {availableTools.map((tool) => (
-          <li class="rounded-2xl border border-natal-border bg-natal-surface/75 p-6">
-            <h3 class="text-xl font-semibold text-white">
-              <a class="hover:text-natal-accent" href={tool.intendedPath}>{tool.label}</a>
+          <li class="nn-surface flex min-w-0 flex-col p-5 sm:p-6">
+            <h3 class="nn-type-card-title">
+              <a
+                class="font-semibold underline decoration-natal-accent/50 underline-offset-4 transition-colors hover:text-natal-accent"
+                href={tool.intendedPath}
+              >
+                {tool.label}
+              </a>
             </h3>
-            <p class="mt-2 text-sm leading-7 text-natal-muted">{tool.purpose}</p>
+            <p class="nn-type-body-small mt-3">{tool.purpose}</p>
           </li>
         ))}
       </ul>
     </section>
 
-    <section class="mt-12 max-w-3xl rounded-2xl border border-natal-border bg-natal-surface/75 p-6 sm:p-8" aria-labelledby="tools-principles-title">
-      <p class="text-xs font-bold uppercase tracking-[0.16em] text-natal-accent">Foundation</p>
-      <h2 class="mt-2 text-2xl font-semibold tracking-[-0.03em] text-white" id="tools-principles-title">
+    <section class="mt-16 max-w-3xl border-t border-natal-border/70 pt-12" aria-labelledby="tools-principles-title">
+      <div class="nn-section-header">
+        <p class="nn-eyebrow">Foundation</p>
+        <h2 class="nn-type-section-title" id="tools-principles-title">
         Keep the directory useful
-      </h2>
-      <div class="mt-4 space-y-4 text-sm leading-7 text-natal-muted">
+        </h2>
+      </div>
+      <div class="mt-5 space-y-4 nn-type-body">
         <p>
           {availableTools.length} focused utilities are currently available for stable educational lookup and transformations that do not need a browser astronomy engine.
         </p>
@@ -54,7 +63,7 @@ const availableTools = SEO_TOOL_TAXONOMY.filter((tool) => tool.status === 'AVAIL
           Additional utility concepts will be linked only when their functionality exists, keeping the directory useful instead of filling it with placeholder inventory.
         </p>
       </div>
-      <a class="mt-6 inline-flex text-sm font-semibold text-natal-accent hover:text-white" href="/">
+      <a class="nn-button nn-button--quiet mt-6" href="/">
         Open the chart workspace →
       </a>
     </section>
