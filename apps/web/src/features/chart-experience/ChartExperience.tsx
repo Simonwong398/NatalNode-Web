@@ -48,7 +48,7 @@ export default function ChartExperience() {
 
       <section
         aria-labelledby="chart-calculation-title"
-        className="nn-surface nn-surface--elevated mt-12 p-4"
+        className="nn-surface mt-8 p-4"
       >
         <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
           <div>

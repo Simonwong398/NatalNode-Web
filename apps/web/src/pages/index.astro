@@ -10,15 +10,11 @@ const seo = {
 ---
 
 <SiteLayout seo={seo} mode="observatory">
-  <main class="nn-container nn-container--form flex min-h-screen flex-col pb-12 pt-12 sm:pt-20">
+  <main class="nn-container nn-container--calculate nn-calculate-page flex min-h-screen flex-col pb-12 pt-10 sm:pt-14">
     <header class="nn-section-header">
-      <p class="nn-eyebrow">NatalNode</p>
-      <h1 class="nn-type-display max-w-2xl">
-        Start with the birth details you know.
-      </h1>
-      <p class="nn-type-body max-w-xl">
-        NatalNode keeps location and time resolution explicit before a chart is calculated.
-      </p>
+      <p class="nn-eyebrow">Calculate</p>
+      <h1 class="nn-type-page-title max-w-2xl">Create your birth chart</h1>
+      <p class="nn-type-body max-w-xl">Enter the birth details you know.</p>
     </header>
     <ChartExperience client:load />
   </main>

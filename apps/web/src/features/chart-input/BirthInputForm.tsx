@@ -13,6 +13,15 @@ import {
   type CalculationReadyBirthInputResolution,
   type HouseSystem
 } from './types';
+import {
+  EMPTY_BIRTH_DATE_PARTS,
+  composeBirthDate,
+  getBirthDateValidationError,
+  sanitizeBirthDatePart,
+  toBirthDateParts,
+  type BirthDatePart,
+  type BirthDateParts
+} from './birth-date-input';
 
 type ValidationField = 'localDate' | 'localTime' | 'locationLabel' | 'houseSystem';
 
@@ -20,7 +29,7 @@ type ValidationErrors = Partial<Record<ValidationField, string>>;
 
 type EditableDraft = Pick<
   BirthInputDraft,
-  'localDate' | 'localTime' | 'locationLabel' | 'houseSystem'
+  'localTime' | 'locationLabel' | 'houseSystem'
 >;
 
 type ExactResolution = Extract<BirthInputResolution, { ambiguityStatus: 'EXACT' }>;
@@ -54,11 +63,16 @@ function FieldError({ id, message }: { id: string; message?: string }) {
   );
 }
 
-function validateDraft(draft: BirthInputDraft, unknownTime: boolean): ValidationErrors {
+function validateDraft(
+  draft: BirthInputDraft,
+  unknownTime: boolean,
+  birthDateParts: BirthDateParts
+): ValidationErrors {
   const nextErrors: ValidationErrors = {};
+  const birthDateError = getBirthDateValidationError(birthDateParts);
 
-  if (!draft.localDate) {
-    nextErrors.localDate = 'Enter a birth date.';
+  if (birthDateError) {
+    nextErrors.localDate = birthDateError;
   }
 
   if (!unknownTime && !draft.localTime) {
@@ -128,14 +142,14 @@ function formatUtcOffset(utcOffsetSeconds: number): string {
 function ExactResolutionPanel({ resolution }: { resolution: ExactResolution }) {
   return (
     <section
-      aria-labelledby="birth-time-resolved-title"
+      aria-labelledby="timezone-resolved-title"
       aria-live="polite"
       className="nn-notice nn-notice--info mt-5 min-w-0 flex-col"
       role="status"
     >
       <p className="nn-eyebrow nn-status--success">Resolution confirmed</p>
-      <h3 className="nn-type-card-title" id="birth-time-resolved-title">
-        Birth time resolved
+      <h3 className="nn-type-card-title" id="timezone-resolved-title">
+        Timezone resolved
       </h3>
       <dl className="mt-4 grid min-w-0 gap-3 sm:grid-cols-3">
         <div>
@@ -309,10 +323,12 @@ export default function BirthInputForm({
   resolver = defaultResolver
 }: BirthInputFormProps) {
   const [draft, setDraft] = useState<BirthInputDraft>(INITIAL_BIRTH_INPUT_STATE);
+  const [birthDateParts, setBirthDateParts] = useState<BirthDateParts>(EMPTY_BIRTH_DATE_PARTS);
   const [errors, setErrors] = useState<ValidationErrors>({});
   const [resolution, setResolution] = useState<BirthInputResolution | null>(null);
   const [resolutionError, setResolutionError] = useState<string | null>(null);
   const [isResolving, setIsResolving] = useState(false);
+  const [isAdvancedSettingsOpen, setIsAdvancedSettingsOpen] = useState(false);
   const timeInputRef = useRef<HTMLInputElement>(null);
   const latestRequestRef = useRef(0);
   const unknownTime = draft.ambiguityStatus === 'UNKNOWN_TIME';
@@ -338,6 +354,38 @@ export default function BirthInputForm({
       timezoneResolutionMethod: null,
       ambiguityStatus: current.ambiguityStatus === 'UNKNOWN_TIME' ? 'UNKNOWN_TIME' : 'UNRESOLVED'
     }));
+    invalidateResolution();
+  };
+
+  const handleBirthDatePartChange = (part: BirthDatePart, value: string) => {
+    const nextParts = {
+      ...birthDateParts,
+      [part]: sanitizeBirthDatePart(value, part === 'year' ? 4 : 2)
+    };
+    const nextLocalDate = composeBirthDate(nextParts);
+
+    setBirthDateParts(nextParts);
+    setDraft((current) => ({
+      ...current,
+      localDate: nextLocalDate ?? '',
+      latitude: null,
+      longitude: null,
+      ianaTimeZone: null,
+      resolvedUtcInstant: null,
+      utcOffsetSeconds: null,
+      timezoneDatabaseVersion: null,
+      timezoneResolutionMethod: null,
+      ambiguityStatus: current.ambiguityStatus === 'UNKNOWN_TIME' ? 'UNKNOWN_TIME' : 'UNRESOLVED'
+    }));
+    setErrors((current) => {
+      if (!current.localDate) {
+        return current;
+      }
+
+      const nextErrors = { ...current };
+      delete nextErrors.localDate;
+      return nextErrors;
+    });
     invalidateResolution();
   };
 
@@ -376,12 +424,16 @@ export default function BirthInputForm({
     }
 
     const exactResolution = toExactResolution(resolution, candidate);
+    const nextBirthDateParts = toBirthDateParts(exactResolution.localDate);
+
     setResolution(exactResolution);
+    if (nextBirthDateParts) {
+      setBirthDateParts(nextBirthDateParts);
+    }
     setDraft((current) => applyResolutionToDraft(current, exactResolution));
     setResolutionError(null);
     setIsResolving(false);
     latestRequestRef.current += 1;
-    onResolvedInput({ resolution: exactResolution, houseSystem: draft.houseSystem });
   };
 
   const handleSubmit = async (event: { preventDefault: () => void }) => {
@@ -391,9 +443,13 @@ export default function BirthInputForm({
       return;
     }
 
-    const nextErrors = validateDraft(draft, unknownTime);
+    const nextErrors = validateDraft(draft, unknownTime, birthDateParts);
     setErrors(nextErrors);
     setResolutionError(null);
+
+    if (nextErrors.houseSystem) {
+      setIsAdvancedSettingsOpen(true);
+    }
 
     if (Object.keys(nextErrors).length > 0 || !draft.houseSystem) {
       invalidateResolution();
@@ -401,6 +457,11 @@ export default function BirthInputForm({
     }
 
     const selectedHouseSystem = draft.houseSystem;
+
+    if (resolution?.ambiguityStatus === 'EXACT') {
+      onResolvedInput({ resolution, houseSystem: selectedHouseSystem });
+      return;
+    }
 
     const requestId = latestRequestRef.current + 1;
     latestRequestRef.current = requestId;
@@ -414,6 +475,11 @@ export default function BirthInputForm({
       }
 
       setResolution(nextResolution);
+      const nextBirthDateParts = toBirthDateParts(nextResolution.localDate);
+
+      if (nextBirthDateParts) {
+        setBirthDateParts(nextBirthDateParts);
+      }
       setDraft((current) => applyResolutionToDraft(current, nextResolution));
 
       if (
@@ -438,169 +504,191 @@ export default function BirthInputForm({
 
   return (
     <section
-      aria-labelledby="birth-input-title"
-      className="nn-surface nn-surface--elevated mt-10 min-w-0 p-5 sm:p-7"
+      aria-label="Birth chart details"
+      className="nn-surface nn-surface--elevated mt-8 min-w-0 p-5 sm:p-7"
     >
-      <header className="nn-section-header max-w-3xl">
-        <p className="nn-eyebrow">Birth Input</p>
-        <h2 className="nn-type-section-title" id="birth-input-title">
-          Start with the details you know
-        </h2>
-        <p className="nn-type-body-small">
-          Timezone resolution stays explicit, so an uncertain birth time is never replaced with a guessed value.
-        </p>
-      </header>
-
-      <form className="mt-6 grid gap-5" noValidate onSubmit={handleSubmit}>
-        <section
-          aria-labelledby="birth-date-time-title"
-          className="nn-surface min-w-0 p-4 sm:p-5"
-        >
-          <div className="nn-section-header">
-            <p className="nn-eyebrow">Group 1</p>
-            <h3 className="nn-type-card-title" id="birth-date-time-title">
-              Birth Date &amp; Time
-            </h3>
-            <p className="nn-type-body-small">
-              Enter the local date and time recorded at the birth place.
+      <form className="grid gap-6" noValidate onSubmit={handleSubmit}>
+        <div className="grid min-w-0 gap-7 lg:grid-cols-[minmax(0,1.15fr)_minmax(0,1fr)]">
+          <fieldset
+            aria-describedby={errors.localDate ? 'birth-date-error' : 'birth-date-help'}
+            className="min-w-0 border-0 p-0"
+          >
+            <legend className="nn-type-label">Birth date</legend>
+            <p className="nn-type-metadata mt-2" id="birth-date-help">
+              Use the date recorded at the birth place.
             </p>
-          </div>
-
-          <div className="mt-5 grid min-w-0 gap-5 sm:grid-cols-2">
-            <div className="min-w-0">
-              <label className="nn-type-label" htmlFor="birth-date">
-                Birth date
-              </label>
-              <input
-                aria-describedby={errors.localDate ? 'birth-date-error' : undefined}
-                aria-invalid={Boolean(errors.localDate)}
-                className={inputClassName}
-                disabled={isInteractionDisabled}
-                id="birth-date"
-                name="localDate"
-                onChange={(event) => updateEditableDraft({ localDate: event.target.value })}
-                required
-                type="date"
-                value={draft.localDate}
-              />
-              <FieldError id="birth-date-error" message={errors.localDate} />
-            </div>
-
-            <div className="min-w-0">
-              <label className="nn-type-label" htmlFor="birth-time">
-                Birth time
-              </label>
-              <input
-                aria-describedby={errors.localTime ? 'birth-time-error' : 'birth-time-help'}
-                aria-invalid={Boolean(errors.localTime)}
-                className={inputClassName}
-                disabled={unknownTime || isInteractionDisabled}
-                id="birth-time"
-                name="localTime"
-                onChange={(event) => updateEditableDraft({ localTime: event.target.value })}
-                ref={timeInputRef}
-                required={!unknownTime}
-                step="60"
-                type="time"
-                value={draft.localTime ?? ''}
-              />
-              <p className="nn-type-metadata mt-2" id="birth-time-help">
-                Use the local time recorded at the birth place.
-              </p>
-              <label
-                className="nn-surface mt-4 flex min-h-11 cursor-pointer items-start gap-3 p-3 focus-within:border-[color:var(--nn-accent-supporting)]"
-                htmlFor="unknown-time"
-              >
+            <div className="mt-4 grid min-w-0 grid-cols-[minmax(4.5rem,0.65fr)_minmax(0,1.35fr)] gap-3 sm:grid-cols-[minmax(4.5rem,0.7fr)_minmax(9rem,1.35fr)_minmax(5.5rem,0.8fr)]">
+              <div className="min-w-0">
+                <label className="nn-type-label" htmlFor="birth-date-day">
+                  Day
+                </label>
                 <input
-                  checked={unknownTime}
-                  className="nn-checkbox mt-0.5 shrink-0"
+                  aria-describedby={errors.localDate ? 'birth-date-error' : 'birth-date-help'}
+                  aria-invalid={Boolean(errors.localDate)}
+                  autoComplete="bday-day"
+                  className={inputClassName}
                   disabled={isInteractionDisabled}
-                  id="unknown-time"
-                  name="unknownTime"
-                  onChange={(event) => handleUnknownTimeChange(event.target.checked)}
-                  type="checkbox"
+                  id="birth-date-day"
+                  inputMode="numeric"
+                  maxLength={2}
+                  onChange={(event) => handleBirthDatePartChange('day', event.target.value)}
+                  placeholder="DD"
+                  required
+                  type="text"
+                  value={birthDateParts.day}
                 />
-                <span>
-                  <span className="nn-type-label block">I don&apos;t know my exact birth time</span>
-                  <span className="nn-type-metadata mt-1 block">
-                    Keep time unknown; this is a trust limitation, not an input error.
-                  </span>
-                </span>
-              </label>
-              <FieldError id="birth-time-error" message={errors.localTime} />
+              </div>
+              <div className="min-w-0">
+                <label className="nn-type-label" htmlFor="birth-date-month">
+                  Month
+                </label>
+                <select
+                  aria-describedby={errors.localDate ? 'birth-date-error' : 'birth-date-help'}
+                  aria-invalid={Boolean(errors.localDate)}
+                  autoComplete="bday-month"
+                  className={cn(inputClassName, 'appearance-auto')}
+                  disabled={isInteractionDisabled}
+                  id="birth-date-month"
+                  onChange={(event) => handleBirthDatePartChange('month', event.target.value)}
+                  required
+                  value={birthDateParts.month}
+                >
+                  <option value="">Month</option>
+                  <option value="01">January</option>
+                  <option value="02">February</option>
+                  <option value="03">March</option>
+                  <option value="04">April</option>
+                  <option value="05">May</option>
+                  <option value="06">June</option>
+                  <option value="07">July</option>
+                  <option value="08">August</option>
+                  <option value="09">September</option>
+                  <option value="10">October</option>
+                  <option value="11">November</option>
+                  <option value="12">December</option>
+                </select>
+              </div>
+              <div className="col-span-2 min-w-0 sm:col-span-1">
+                <label className="nn-type-label" htmlFor="birth-date-year">
+                  Year
+                </label>
+                <input
+                  aria-describedby={errors.localDate ? 'birth-date-error' : 'birth-date-help'}
+                  aria-invalid={Boolean(errors.localDate)}
+                  autoComplete="bday-year"
+                  className={inputClassName}
+                  disabled={isInteractionDisabled}
+                  id="birth-date-year"
+                  inputMode="numeric"
+                  maxLength={4}
+                  onChange={(event) => handleBirthDatePartChange('year', event.target.value)}
+                  placeholder="YYYY"
+                  required
+                  type="text"
+                  value={birthDateParts.year}
+                />
+              </div>
             </div>
-          </div>
-        </section>
+            <FieldError id="birth-date-error" message={errors.localDate} />
+          </fieldset>
 
-        <section
-          aria-labelledby="place-timezone-title"
-          className="nn-surface min-w-0 p-4 sm:p-5"
-        >
-          <div className="nn-section-header">
-            <p className="nn-eyebrow">Group 2</p>
-            <h3 className="nn-type-card-title" id="place-timezone-title">
-              Place &amp; Timezone Resolution
-            </h3>
-            <p className="nn-type-body-small">
-              Birth place establishes the development resolver&apos;s timezone and historical-time context.
+          <fieldset
+            aria-describedby={errors.localTime ? 'birth-time-error' : 'birth-time-help'}
+            className="min-w-0 border-0 p-0"
+          >
+            <legend className="nn-type-label">Birth time</legend>
+            <p className="nn-type-metadata mt-2" id="birth-time-help">
+              Use the local time recorded at the birth place.
             </p>
-          </div>
-
-          <div className="mt-5 max-w-3xl">
-            <label className="nn-type-label" htmlFor="birth-place">
-              Birth place
-            </label>
             <input
-              aria-describedby={errors.locationLabel ? 'birth-place-error' : undefined}
-              aria-invalid={Boolean(errors.locationLabel)}
-              className={inputClassName}
-              disabled={isInteractionDisabled}
-              id="birth-place"
-              name="locationLabel"
-              onChange={(event) => updateEditableDraft({ locationLabel: event.target.value })}
-              placeholder="City, region, country"
-              required
-              type="text"
-              value={draft.locationLabel}
+              aria-describedby={errors.localTime ? 'birth-time-error' : 'birth-time-help'}
+              aria-invalid={Boolean(errors.localTime)}
+              className="nn-field mt-4"
+              disabled={unknownTime || isInteractionDisabled}
+              id="birth-time"
+              name="localTime"
+              onChange={(event) => updateEditableDraft({ localTime: event.target.value })}
+              ref={timeInputRef}
+              required={!unknownTime}
+              step="60"
+              type="time"
+              value={draft.localTime ?? ''}
             />
-            <FieldError id="birth-place-error" message={errors.locationLabel} />
-
-            {resolutionError ? (
-              <p className="nn-notice nn-notice--error mt-5" role="alert">
-                {resolutionError}
-              </p>
-            ) : null}
-            <ResolutionPanel
-              isInteractionDisabled={isInteractionDisabled}
-              onEditBirthTime={() => timeInputRef.current?.focus()}
-              onSelectCandidate={handleCandidateSelection}
-              resolution={resolution}
-            />
-          </div>
-        </section>
+            <label
+              className="nn-surface mt-4 flex min-h-11 min-w-0 cursor-pointer items-start gap-3 p-3 focus-within:border-[color:var(--nn-accent-supporting)]"
+              htmlFor="unknown-time"
+            >
+              <input
+                checked={unknownTime}
+                className="nn-checkbox mt-0.5 shrink-0"
+                disabled={isInteractionDisabled}
+                id="unknown-time"
+                name="unknownTime"
+                onChange={(event) => handleUnknownTimeChange(event.target.checked)}
+                type="checkbox"
+              />
+              <span className="min-w-0">
+                <span className="nn-type-label block">I don&apos;t know my exact birth time</span>
+                <span className="nn-type-metadata mt-1 block">
+                  Keep time unknown; this is a trust limitation, not an input error.
+                </span>
+              </span>
+            </label>
+            <FieldError id="birth-time-error" message={errors.localTime} />
+          </fieldset>
+        </div>
 
         <section
-          aria-labelledby="chart-settings-title"
-          className="nn-surface min-w-0 p-4 sm:p-5"
+          aria-label="Birth place and system feedback"
+          className="min-w-0 border-t border-[color:var(--nn-border-subtle)] pt-6"
         >
-          <div className="nn-section-header">
-            <p className="nn-eyebrow">Group 3</p>
-            <h3 className="nn-type-card-title" id="chart-settings-title">
-              Chart Settings
-            </h3>
-            <p className="nn-type-body-small">
-              Choose the house system for the resolved chart.
-            </p>
-          </div>
+          <label className="nn-type-label" htmlFor="birth-place">
+            Birth place
+          </label>
+          <input
+            aria-describedby={errors.locationLabel ? 'birth-place-error' : undefined}
+            aria-invalid={Boolean(errors.locationLabel)}
+            className={inputClassName + ' mt-2 max-w-3xl'}
+            disabled={isInteractionDisabled}
+            id="birth-place"
+            name="locationLabel"
+            onChange={(event) => updateEditableDraft({ locationLabel: event.target.value })}
+            placeholder="City, region, country"
+            required
+            type="text"
+            value={draft.locationLabel}
+          />
+          <FieldError id="birth-place-error" message={errors.locationLabel} />
 
-          <div className="mt-5 max-w-sm">
+          {resolutionError ? (
+            <p className="nn-notice nn-notice--error mt-5 max-w-3xl" role="alert">
+              {resolutionError}
+            </p>
+          ) : null}
+          <ResolutionPanel
+            isInteractionDisabled={isInteractionDisabled}
+            onEditBirthTime={() => timeInputRef.current?.focus()}
+            onSelectCandidate={handleCandidateSelection}
+            resolution={resolution}
+          />
+        </section>
+
+        <details
+          className="min-w-0 border-t border-[color:var(--nn-border-subtle)] pt-5"
+          onToggle={(event) => setIsAdvancedSettingsOpen(event.currentTarget.open)}
+          open={isAdvancedSettingsOpen}
+        >
+          <summary className="nn-type-label cursor-pointer">
+            Advanced chart settings
+          </summary>
+          <div className="mt-4 max-w-sm">
             <label className="nn-type-label" htmlFor="house-system">
               House system
             </label>
             <select
               aria-describedby={errors.houseSystem ? 'house-system-error' : undefined}
               aria-invalid={Boolean(errors.houseSystem)}
-              className={cn(inputClassName, 'appearance-auto')}
+              className={cn(inputClassName, 'mt-2 appearance-auto')}
               disabled={isInteractionDisabled}
               id="house-system"
               name="houseSystem"
@@ -619,7 +707,7 @@ export default function BirthInputForm({
             </select>
             <FieldError id="house-system-error" message={errors.houseSystem} />
           </div>
-        </section>
+        </details>
 
         <div className="flex flex-col gap-3 border-t border-[color:var(--nn-border-subtle)] pt-5 sm:flex-row sm:items-center sm:justify-between">
           <button
@@ -641,8 +729,8 @@ export default function BirthInputForm({
         </div>
       </form>
 
-      <div className="nn-notice nn-notice--research mt-5 max-w-3xl flex-col">
-        <p className="nn-eyebrow nn-status--research">Development resolver</p>
+      <div className="nn-notice nn-notice--research mt-6 max-w-3xl flex-col">
+        <p className="nn-eyebrow nn-status--research">Development information</p>
         <p className="nn-type-metadata">{DEVELOPMENT_RESOLVER_NOTICE}</p>
         <p className="nn-type-metadata">
           Fixture states: enter <code>UI FIXTURE: AMBIGUOUS</code> or{' '}

@@ -25,3 +25,11 @@ export type {
   UnknownTimeBirthInputResolution
 } from './types';
 export type { BirthInputResolver } from './resolver';
+export {
+  composeBirthDate,
+  EMPTY_BIRTH_DATE_PARTS,
+  getBirthDateValidationError,
+  sanitizeBirthDatePart,
+  toBirthDateParts
+} from './birth-date-input';
+export type { BirthDatePart, BirthDateParts } from './birth-date-input';

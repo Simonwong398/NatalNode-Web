@@ -135,6 +135,7 @@
   --nn-width-editorial-max: 70rem;
   --nn-width-workspace-max: 90rem;
   --nn-width-form-max: 48rem;
+  --nn-width-calculate-max: 60rem;
   --nn-width-reading-max: 45rem;
 
   --nn-gutter: 16px;
@@ -259,6 +260,22 @@
 
   .nn-container--form {
     max-width: var(--nn-width-form-max);
+  }
+
+  .nn-container--calculate {
+    max-width: var(--nn-width-calculate-max);
+  }
+
+  .nn-calculate-page {
+    background-image:
+      radial-gradient(circle at 50% 0%, color-mix(in srgb, var(--nn-accent-secondary) 17%, transparent), transparent 52%),
+      radial-gradient(circle at 88% 18%, color-mix(in srgb, var(--nn-accent-primary) 12%, transparent), transparent 42%),
+      radial-gradient(circle at 8% 42%, color-mix(in srgb, var(--nn-accent-supporting) 8%, transparent), transparent 38%);
+  }
+
+  .nn-calculate-page astro-island > .nn-surface--elevated {
+    border-color: color-mix(in srgb, var(--nn-border-strong) 62%, var(--nn-accent-secondary));
+    background: color-mix(in srgb, var(--nn-surface-elevated) 92%, var(--nn-accent-secondary) 8%);
   }
 
   .nn-container--reading {
