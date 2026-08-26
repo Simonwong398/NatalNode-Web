@@ -3,10 +3,14 @@ import {
   createServer,
   request as createProxyRequest,
   type IncomingMessage,
+  type IncomingHttpHeaders,
+  type OutgoingHttpHeaders,
   type Server,
   type ServerResponse
 } from 'node:http';
+import { isIP } from 'node:net';
 import { extname, resolve, sep } from 'node:path';
+import { TRUSTED_EDGE_CLIENT_IP_HEADER } from '../app/security/trusted-edge-client-identity.js';
 
 export interface LocalPublicEdgeConfig {
   readonly publicPort: number;
@@ -91,6 +95,29 @@ function formatHostHeader(hostname: string, port: number): string {
   return `${formattedHostname}:${port}`;
 }
 
+export function createLocalApiProxyHeaders(
+  incomingHeaders: IncomingHttpHeaders,
+  remoteAddress: string | undefined,
+  apiHostname: string,
+  apiPort: number
+): OutgoingHttpHeaders {
+  const headers: OutgoingHttpHeaders = {};
+
+  for (const [name, value] of Object.entries(incomingHeaders)) {
+    if (name.toLowerCase() !== TRUSTED_EDGE_CLIENT_IP_HEADER.toLowerCase()) {
+      headers[name] = value;
+    }
+  }
+
+  headers.host = formatHostHeader(apiHostname, apiPort);
+
+  if (remoteAddress !== undefined && isIP(remoteAddress) !== 0) {
+    headers[TRUSTED_EDGE_CLIENT_IP_HEADER] = remoteAddress;
+  }
+
+  return headers;
+}
+
 function proxyApiRequest(
   request: IncomingMessage,
   response: ServerResponse,
@@ -104,10 +131,12 @@ function proxyApiRequest(
       port: config.apiPort,
       method: request.method,
       path: targetPath,
-      headers: {
-        ...request.headers,
-        host: formatHostHeader(hostname, config.apiPort)
-      }
+      headers: createLocalApiProxyHeaders(
+        request.headers,
+        request.socket.remoteAddress,
+        hostname,
+        config.apiPort
+      )
     },
     (proxyResponse) => {
       response.writeHead(

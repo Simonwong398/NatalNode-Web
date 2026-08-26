@@ -299,23 +299,94 @@ X-Robots-Tag: noindex, nofollow
 for all staging responses, including Learn/SEO pages. This is a staging-only
 edge rule; frontend SEO behavior is not changed by this ADR.
 
+## STAGING EDGE SECURITY HEADERS
+
+`WEB-DEPLOY-002B` must apply this exact minimum header set to every static or
+document response served by Caddy:
+
+```text
+Content-Security-Policy: default-src 'self'; base-uri 'none'; connect-src 'self'; img-src 'self' data:; object-src 'none'; frame-ancestors 'none'; form-action 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'
+X-Content-Type-Options: nosniff
+Referrer-Policy: no-referrer
+X-Frame-Options: DENY
+Permissions-Policy: camera=(), geolocation=(), microphone=()
+X-Robots-Tag: noindex, nofollow
+```
+
+The current static Astro build uses only same-origin browser scripts,
+stylesheets, and relative `/api/*` connections, with no third-party browser
+script or subresource origin. It emits inline Astro/React bootstrapping scripts
+and inline chart styles. Consequently, the staging CSP deliberately permits
+inline script and style execution. This is the narrow artifact-compatible P0
+policy; it does not introduce a nonce/runtime HTML transformation system and is
+not declared the final production CSP. `resend.com` is absent because Resend is
+an API-side dependency, not a browser connection.
+
+The existing API application centrally emits `Cache-Control: no-store`,
+`Referrer-Policy: no-referrer`, `X-Content-Type-Options: nosniff`, and
+`X-Frame-Options: DENY` on `/api` and `/api/*`. Caddy must preserve those API
+headers and must not add a document CSP to JSON responses. The staging-wide
+`X-Robots-Tag` rule still applies to proxied API responses. Caddy must not add
+CORS headers.
+
+`Cross-Origin-Opener-Policy` and `Cross-Origin-Resource-Policy` are not frozen
+for P0. The current artifact does not require them, and adding cross-origin
+isolation or resource-loading behavior without a product requirement would
+expand this minimum contract.
+
+## TRUSTED EDGE CLIENT IDENTITY
+
+The private edge-to-API client identity header is exactly:
+
+```text
+X-NatalNode-Client-IP
+```
+
+For `/api` and `/api/*`, Caddy must remove every inbound browser-supplied value
+for this header, derive the public client's address from the direct remote
+address presented to Caddy, overwrite the header with that single address, and
+forward it only to the private API. Caddy must never copy a browser value,
+derive this identity from arbitrary `Forwarded`, `X-Forwarded-For`,
+`X-Real-IP`, `CF-Connecting-IP`, or similar headers, or return the internal
+header to the browser.
+
+`WEB-DEPLOY-002B` must verify that the Railway public path presents the actual
+public client as Caddy's direct remote address before broad staging exposure.
+If it does not, deployment is blocked pending a narrow trust-boundary review;
+the implementation must not compensate by blindly trusting a forwarded
+header.
+
+The Hono application reads only `X-NatalNode-Client-IP` for its P0 rate-limit
+identity because the API service remains private and the controlled Caddy edge
+is its only traffic source. Missing or malformed values share one bounded
+`direct-or-unknown` fallback bucket for direct local development. The header is
+never returned, logged, or persisted. If the Hono API receives public exposure
+in a future topology, this trust model must be reviewed before that exposure.
+
+The repository-local public edge enforces parity by stripping any inbound
+value and overwriting it from the Node connection's immediate remote address
+while preserving the existing method, path/query, body, `Origin`, cookie, and
+response proxy semantics.
+
 ## MINIMUM HARDENING GATE
 
-Railway resources may be provisioned after this ADR, but broad externally
-accessible staging validation must not be treated as ready until a minimum
-public-staging hardening task evaluates and implements the required controls.
-Current source does not comprehensively provide:
+`WEB-SEC-002A` implements the repository API hardening and local trusted-edge
+parity required before composition: bounded process-local P0 staging rate
+limits, server-owned request IDs, privacy-safe structured completion/error
+records, centralized API response headers, and the trusted client-identity
+boundary above. It adds no observability vendor or distributed rate-limit
+service.
 
-- rate limiting, particularly for `POST /api/auth/email/request`,
-  `POST /api/auth/email/complete`, `POST /api/chart`,
-  `POST /api/vault/charts`, and other mutations as appropriate;
-- baseline security response headers and CSP;
-- safe request correlation IDs; or
-- minimal privacy-safe structured request/error logging that cannot leak birth,
-  authentication, token, or chart payloads.
+The limiter remains deliberately process-local and non-persistent. Multiple API
+replicas would multiply each effective limit, so P0 staging must remain one API
+replica unless a later distributed/edge rate-limit policy review explicitly
+changes that assumption. These controls are minimum P0 staging abuse and
+operational hardening, not a production WAF, DDoS architecture, SIEM,
+production observability platform, final CSP, or production-grade distributed
+rate limiter.
 
-Exact limits require the hardening task; this ADR does not invent them or
-select an observability vendor.
+Broad externally accessible staging remains gated on `WEB-DEPLOY-002B`, which
+must implement the Railway/Caddy composition and exact edge contracts above.
 
 ## HEALTH
 
@@ -383,9 +454,10 @@ DevelopmentBirthInputResolver: STAGING-ONLY DEVELOPMENT BEHAVIOR
 
 ## NEXT IMPLEMENTATION SEQUENCE
 
-1. `WEB-DEPLOY-002A` topology/environment decision (this ADR).
-2. Minimum public-staging security/operational hardening.
-3. Railway staging composition implementation.
+1. `WEB-DEPLOY-002A` topology/environment decision (this ADR; complete).
+2. `WEB-SEC-002A` minimum public-staging security/operational hardening
+   (complete).
+3. `WEB-DEPLOY-002B` Railway staging composition implementation.
 4. Railway resource provisioning.
 5. DNS, Resend, and PostgreSQL configuration.
 6. Explicit migrations.
@@ -397,7 +469,8 @@ DevelopmentBirthInputResolver: STAGING-ONLY DEVELOPMENT BEHAVIOR
 
 The immediate next task is:
 
-`WEB-SEC-002A — P0 public staging security hardening`
+`WEB-DEPLOY-002B — Implement Railway staging composition`
 
-Only after that gate is satisfied should `WEB-DEPLOY-002B` implement Railway
-staging composition. Neither follow-up is implemented here.
+That task must implement the frozen edge headers and trusted-client-IP contract
+without reopening the accepted topology. Railway composition is not implemented
+here.

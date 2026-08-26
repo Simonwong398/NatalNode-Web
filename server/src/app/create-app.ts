@@ -1,5 +1,14 @@
 import { Hono } from 'hono';
 import type { ServerDependencies } from './dependencies.js';
+import {
+  logUnhandledApiError,
+  observeApiRequests
+} from './observability/api-request-observability.js';
+import { applyApiSecurityHeaders } from './security/api-security-headers.js';
+import {
+  enforceP0StagingRateLimits,
+  InMemoryP0StagingRateLimiter
+} from './security/api-rate-limiting.js';
 import { enforceSameOriginUnsafeApiRequests } from './security/enforce-same-origin-unsafe-api-requests.js';
 import { createChartRoute } from './routes/chart.js';
 import { registerEmailAuthenticationRoutes } from './routes/auth-email.js';
@@ -28,11 +37,15 @@ const INTERNAL_ERROR_RESPONSE = {
 
 export function createApp(dependencies: ServerDependencies): Hono {
   const app = new Hono();
+  const rateLimiter = new InMemoryP0StagingRateLimiter();
 
+  app.use('/api/*', observeApiRequests());
+  app.use('/api/*', applyApiSecurityHeaders());
   app.use(
     '/api/*',
     enforceSameOriginUnsafeApiRequests(dependencies.publicWebOrigin)
   );
+  app.use('/api/*', enforceP0StagingRateLimits(rateLimiter));
   app.get('/api/health', (context) => context.json(HEALTH_RESPONSE));
   app.post('/api/chart', createChartRoute(dependencies));
   registerEmailAuthenticationRoutes(app, dependencies);
@@ -42,7 +55,10 @@ export function createApp(dependencies: ServerDependencies): Hono {
 
   app.notFound((context) => context.json(NOT_FOUND_RESPONSE, 404));
 
-  app.onError((_error, context) => context.json(INTERNAL_ERROR_RESPONSE, 500));
+  app.onError((_error, context) => {
+    logUnhandledApiError(context);
+    return context.json(INTERNAL_ERROR_RESPONSE, 500);
+  });
 
   return app;
 }

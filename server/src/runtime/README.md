@@ -12,6 +12,34 @@ behavior runs. The boundary does not parse request bodies, trust host or
 forwarded headers, add CORS, or implement CSRF tokens. `GET` and `HEAD` remain
 unaffected.
 
+The complete API middleware order is server-owned request ID and privacy-safe
+completion logging, centralized API response headers, exact unsafe-request
+Origin enforcement, process-local P0 staging rate limiting, then existing
+route authentication and business behavior. Every `/api` and `/api/*` response
+receives a newly generated `X-Request-Id` plus `Cache-Control: no-store`,
+`Referrer-Policy: no-referrer`, `X-Content-Type-Options: nosniff`, and
+`X-Frame-Options: DENY`. Incoming request IDs are ignored, and no CORS or JSON
+CSP is added.
+
+The P0 limiter reads only the edge-overwritten `X-NatalNode-Client-IP` header.
+It does not trust generic forwarding headers. Valid client addresses are used
+transiently to derive per-process HMAC keys; raw addresses are neither logged
+nor persisted. Missing or malformed values share `direct-or-unknown`. Fixed
+staging defaults are 5 requests per 10 minutes for email-link request, 10 per
+10 minutes for email-link completion, 20 per 10 minutes for chart calculation,
+and 60 per 10 minutes for all existing Vault mutations. State expires lazily,
+is capped at 10,000 client-policy keys, and rejects new identities when active
+capacity is full. It is non-persistent and deliberately single-process:
+multiple API replicas multiply effective limits and require a later
+distributed/edge policy review.
+
+Operational completion records contain only timestamp, level, bounded event,
+server request ID, bounded method, bounded endpoint family, status, and
+duration. Unhandled-error records omit the error object, message, stack, and
+cause. Bodies, response payloads, query strings, dynamic resource IDs, headers,
+cookies, tokens, email/birth/chart/Vault data, and client addresses are outside
+the logging schema. Logging output failures do not change request behavior.
+
 The composition root constructs internal clock, ID, token, expiration-policy,
 cookie-policy, persistence, session-authenticator, and provider-neutral
 magic-link URL-builder dependencies. It receives `SqlExecutor`, `EngineClient`,
