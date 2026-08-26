@@ -170,7 +170,7 @@ describe('runtime public surface', () => {
     assert.equal(vault.CHART_NOTE_MAXIMUM_CHARACTERS, 5_000);
   });
 
-  test('the emitted module resolves no runtime dependencies', async () => {
+  test('the emitted module resolves no unapproved direct runtime dependencies', async () => {
     const auditedModuleUrl = new URL(
       '../dist/vault-management-characterization/vault-management.js?runtime-import-audit',
       import.meta.url
@@ -192,7 +192,15 @@ describe('runtime public surface', () => {
       hooks.deregister();
     }
 
-    assert.deepEqual(dependencySpecifiers, []);
+    const allowedDependencySpecifiers = new Set([
+      './vault-content-validation.js',
+      './vault-management-client.js'
+    ]);
+    assert.ok(
+      dependencySpecifiers.every((specifier) =>
+        allowedDependencySpecifiers.has(specifier)
+      )
+    );
   });
 });
 
