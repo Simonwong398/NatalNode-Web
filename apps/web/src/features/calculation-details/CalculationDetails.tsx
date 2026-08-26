@@ -17,9 +17,9 @@ type DetailRowProps = {
 function DetailRow({ label, value, identifier = false }: DetailRowProps) {
   return (
     <div className="grid min-w-0 gap-1 sm:grid-cols-[minmax(9rem,0.8fr)_minmax(0,1.2fr)] sm:items-baseline sm:gap-4">
-      <dt className="text-slate-400">{label}</dt>
+      <dt className="nn-type-metadata">{label}</dt>
       <dd
-        className={`min-w-0 text-left font-medium text-white sm:text-right ${
+        className={`nn-type-numeric min-w-0 text-left sm:text-right ${
           identifier ? 'break-all font-mono text-xs leading-5' : 'break-words'
         }`}
       >
@@ -48,8 +48,8 @@ export default function CalculationDetails({
     : 'Requested House System';
 
   return (
-    <details className="border-t border-natal-border/70">
-      <summary className="cursor-pointer px-5 py-4 text-sm font-semibold text-white outline-none focus-visible:bg-natal-night/40 focus-visible:text-natal-accent sm:px-7">
+    <details className="nn-surface nn-surface--elevated overflow-hidden">
+      <summary className="nn-type-label cursor-pointer px-5 py-4 outline-none sm:px-7">
         Calculation Details
       </summary>
 
@@ -78,9 +78,9 @@ export default function CalculationDetails({
         {isResearchConfiguration ? (
           <section
             aria-labelledby={researchTitleId}
-            className="min-w-0 rounded-lg border border-amber-200/30 bg-amber-200/10 p-4 text-sm leading-6 text-amber-50/90"
+            className="nn-notice nn-notice--research min-w-0 flex-col"
           >
-            <h3 className="font-semibold text-amber-100" id={researchTitleId}>
+            <h3 className="nn-type-label" id={researchTitleId}>
               Research configuration
             </h3>
             <dl className="mt-3 grid min-w-0 gap-2">
@@ -95,25 +95,25 @@ export default function CalculationDetails({
         ) : null}
 
         <section aria-labelledby={warningsTitleId} className="min-w-0 sm:col-span-2">
-          <h3 className="text-sm font-semibold text-white" id={warningsTitleId}>
+          <h3 className="nn-type-label" id={warningsTitleId}>
             Warnings
           </h3>
           {chart.warnings.length === 0 ? (
-            <p className="mt-2 text-sm text-slate-300">None</p>
+            <p className="nn-type-body-small mt-2">None</p>
           ) : (
             <ul className="mt-3 grid min-w-0 gap-3">
               {chart.warnings.map((warning, index) => (
                 <li
-                  className="min-w-0 rounded-lg border border-natal-border/70 bg-natal-night/30 p-3 text-sm"
+                  className="nn-surface min-w-0 p-3"
                   key={`${warning.code}-${index}`}
                 >
                   <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
-                    <span className="break-all font-mono text-xs font-semibold text-white">{warning.code}</span>
-                    <span className="text-xs font-semibold uppercase tracking-[0.12em] text-slate-300">
+                    <span className="nn-type-metadata break-all font-mono font-semibold">{warning.code}</span>
+                    <span className="nn-type-metadata font-semibold uppercase tracking-[0.12em]">
                       {warning.severity}
                     </span>
                   </div>
-                  <p className="mt-2 break-words leading-6 text-slate-300">{warning.message}</p>
+                  <p className="nn-type-body-small mt-2 break-words">{warning.message}</p>
                 </li>
               ))}
             </ul>

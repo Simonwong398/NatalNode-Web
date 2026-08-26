@@ -1,9 +1,23 @@
-import { useId, type ReactNode } from 'react';
+import { useId, useRef, useState, type KeyboardEvent, type ReactNode } from 'react';
 import type { ChartResult } from '@natalnode/contracts';
 import { CalculationDetails } from '@/features/calculation-details';
 import { ChartRenderer } from '@/features/chart-renderer';
 import { InterpretationPanel } from '@/features/interpretation';
 import type { ChartPresentationPolicy } from './chart-presentation-policy';
+
+type WorkspaceSection = 'chart' | 'interpretation' | 'details';
+
+const WORKSPACE_SECTIONS: readonly WorkspaceSection[] = [
+  'chart',
+  'interpretation',
+  'details'
+];
+
+const WORKSPACE_SECTION_LABELS: Record<WorkspaceSection, string> = {
+  chart: 'Chart',
+  interpretation: 'Interpretation',
+  details: 'Details'
+};
 
 export type ChartWorkspaceViewProps = {
   chart: ChartResult;
@@ -22,29 +36,77 @@ export default function ChartWorkspaceView({
   const workspaceId = useId();
   const titleId = `${workspaceId}-title`;
   const wheelTitleId = `${workspaceId}-wheel-title`;
+  const tabRefs = useRef<Record<WorkspaceSection, HTMLButtonElement | null>>({
+    chart: null,
+    interpretation: null,
+    details: null
+  });
+  const [activeSection, setActiveSection] = useState<WorkspaceSection>('chart');
   const isResearchConfiguration = chart.calculationStatus === 'INCOMPLETE_RESEARCH';
+
+  const sectionIds = {
+    chart: `${workspaceId}-chart-panel`,
+    interpretation: `${workspaceId}-interpretation-panel`,
+    details: `${workspaceId}-details-panel`
+  } as const;
+
+  const tabIds = {
+    chart: `${workspaceId}-chart-tab`,
+    interpretation: `${workspaceId}-interpretation-tab`,
+    details: `${workspaceId}-details-tab`
+  } as const;
+
+  const handleSectionKeyDown = (
+    event: KeyboardEvent<HTMLButtonElement>,
+    section: WorkspaceSection
+  ) => {
+    const currentIndex = WORKSPACE_SECTIONS.indexOf(section);
+    let nextIndex: number | null = null;
+
+    if (event.key === 'ArrowRight' || event.key === 'ArrowDown') {
+      nextIndex = (currentIndex + 1) % WORKSPACE_SECTIONS.length;
+    } else if (event.key === 'ArrowLeft' || event.key === 'ArrowUp') {
+      nextIndex = (currentIndex - 1 + WORKSPACE_SECTIONS.length) % WORKSPACE_SECTIONS.length;
+    } else if (event.key === 'Home') {
+      nextIndex = 0;
+    } else if (event.key === 'End') {
+      nextIndex = WORKSPACE_SECTIONS.length - 1;
+    }
+
+    if (nextIndex === null) {
+      return;
+    }
+
+    event.preventDefault();
+    const nextSection = WORKSPACE_SECTIONS[nextIndex];
+    setActiveSection(nextSection);
+    tabRefs.current[nextSection]?.focus();
+  };
+
+  const panelVisibility = (section: WorkspaceSection) =>
+    activeSection === section ? 'block' : 'hidden lg:block';
 
   return (
     <section
       aria-labelledby={titleId}
-      className="mt-2 min-w-0 overflow-hidden rounded-2xl border border-natal-border bg-natal-surface/90 shadow-2xl shadow-black/10"
+      className="nn-surface nn-surface--elevated mt-2 min-w-0 overflow-hidden"
     >
-      <header className="flex flex-col gap-4 p-5 sm:p-7 lg:flex-row lg:items-end lg:justify-between">
-        <div>
-          <p className="text-xs font-bold uppercase tracking-[0.16em] text-natal-accent">Chart Workspace</p>
-          <h2 className="mt-2 text-2xl font-semibold tracking-[-0.03em] text-white" id={titleId}>
+      <header className="nn-section-header border-b border-natal-border/70 p-5 sm:p-7 lg:flex lg:flex-row lg:items-end lg:justify-between">
+        <div className="nn-section-header">
+          <p className="nn-eyebrow">Chart Workspace</p>
+          <h2 className="nn-type-section-title" id={titleId}>
             Natal Chart
           </h2>
         </div>
-        <div className="flex flex-wrap gap-2 text-xs text-slate-200" aria-label="Chart status">
-          <span className="rounded-full border border-natal-border px-3 py-1.5">
+        <div className="flex flex-wrap gap-2" aria-label="Chart status">
+          <span className="nn-badge">
             Schema {chart.schemaVersion}
           </span>
-          <span className="rounded-full border border-natal-border px-3 py-1.5">
+          <span className="nn-badge">
             {chart.calculationStatus}
           </span>
           {isResearchConfiguration ? (
-            <span className="rounded-full border border-amber-200/40 bg-amber-200/10 px-3 py-1.5 text-amber-100">
+            <span className="nn-badge nn-status--research">
               Research configuration
             </span>
           ) : null}
@@ -53,39 +115,103 @@ export default function ChartWorkspaceView({
 
       {!presentationPolicy.showAngles ? (
         <p
-          className="mx-5 mb-5 rounded-lg border border-slate-400/30 bg-slate-400/10 p-4 text-sm leading-6 text-slate-200 sm:mx-7"
+          className="nn-notice nn-notice--trust mx-5 mt-5 sm:mx-7"
           role="note"
         >
-          Birth time is unknown. Ascendant, Midheaven, houses, and house-based interpretation are unavailable.
+          <span>
+            <strong className="nn-status nn-status--trust">Trust limitation</strong>{' '}
+            Birth time is unknown. Ascendant, Midheaven, houses, and house-based interpretation are unavailable.
+          </span>
         </p>
       ) : null}
 
-      {children}
+      <nav
+        aria-label="Chart workspace sections"
+        className="nn-surface mx-5 mt-5 p-1 sm:mx-7 lg:hidden"
+      >
+        <div aria-label="Chart workspace sections" role="tablist" className="grid grid-cols-3 gap-1">
+          {WORKSPACE_SECTIONS.map((section) => {
+            const isActive = activeSection === section;
 
-      <div className="grid min-w-0 lg:grid-cols-[minmax(0,1.15fr)_minmax(18rem,0.85fr)]">
-        <section
-          aria-labelledby={wheelTitleId}
-          className="min-w-0 border-t border-natal-border/70 p-4 sm:p-6 lg:border-r lg:p-7"
+            return (
+              <button
+                aria-controls={sectionIds[section]}
+                aria-selected={isActive}
+                className={`nn-button min-h-11 px-3 text-center text-xs sm:text-sm ${
+                  isActive ? 'nn-button--secondary' : 'nn-button--quiet'
+                }`}
+                id={tabIds[section]}
+                key={section}
+                onClick={() => setActiveSection(section)}
+                onKeyDown={(event) => handleSectionKeyDown(event, section)}
+                ref={(element) => {
+                  tabRefs.current[section] = element;
+                }}
+                role="tab"
+                tabIndex={isActive ? 0 : -1}
+                type="button"
+              >
+                {WORKSPACE_SECTION_LABELS[section]}
+              </button>
+            );
+          })}
+        </div>
+      </nav>
+
+      <div className="grid min-w-0 gap-4 p-5 sm:p-7 lg:grid-cols-[minmax(0,1.6fr)_minmax(18rem,1fr)] lg:gap-6">
+        <div
+          aria-labelledby={tabIds.chart}
+          className={`min-w-0 lg:col-start-1 lg:row-start-1 ${panelVisibility('chart')}`}
+          id={sectionIds.chart}
+          role="tabpanel"
+          tabIndex={0}
         >
-          <div>
-            <p className="text-xs font-bold uppercase tracking-[0.16em] text-natal-accent">Chart Wheel</p>
-            <h3 className="mt-2 text-lg font-semibold text-white" id={wheelTitleId}>
-              Engine-provided chart facts
-            </h3>
-          </div>
-          <div className="mt-5 min-w-0">
-            <ChartRenderer chart={chart} presentationPolicy={presentationPolicy} />
-          </div>
-        </section>
+          <section
+            aria-labelledby={wheelTitleId}
+            className="nn-surface nn-surface--instrument min-w-0 p-4 sm:p-6 lg:p-7"
+          >
+            <div className="nn-section-header">
+              <p className="nn-eyebrow">Chart instrument</p>
+              <h3 className="nn-type-section-title" id={wheelTitleId}>
+                Engine-provided chart facts
+              </h3>
+            </div>
+            <div className="mt-5 min-w-0">
+              <ChartRenderer chart={chart} presentationPolicy={presentationPolicy} />
+            </div>
+          </section>
+        </div>
 
-        <InterpretationPanel chart={chart} presentationPolicy={presentationPolicy} />
+        {children ? (
+          <div className="min-w-0 lg:col-start-1 lg:row-start-2">
+            {children}
+          </div>
+        ) : null}
+
+        <div
+          aria-labelledby={tabIds.interpretation}
+          className={`min-w-0 lg:col-start-2 lg:row-start-1 ${panelVisibility('interpretation')}`}
+          id={sectionIds.interpretation}
+          role="tabpanel"
+          tabIndex={0}
+        >
+          <InterpretationPanel chart={chart} presentationPolicy={presentationPolicy} />
+        </div>
+
+        <div
+          aria-labelledby={tabIds.details}
+          className={`min-w-0 lg:col-span-2 lg:col-start-1 ${panelVisibility('details')}`}
+          id={sectionIds.details}
+          role="tabpanel"
+          tabIndex={0}
+        >
+          <CalculationDetails
+            chart={chart}
+            presentationPolicy={presentationPolicy}
+            requestedHouseSystem={requestedHouseSystem}
+          />
+        </div>
       </div>
-
-      <CalculationDetails
-        chart={chart}
-        presentationPolicy={presentationPolicy}
-        requestedHouseSystem={requestedHouseSystem}
-      />
     </section>
   );
 }

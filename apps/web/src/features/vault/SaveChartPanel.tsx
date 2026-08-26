@@ -110,16 +110,16 @@ export default function SaveChartPanel({ chartRequest }: SaveChartPanelProps) {
   return (
     <section
       aria-labelledby={titleId}
-      className="border-t border-natal-border/70 bg-slate-950/15 px-5 py-5 sm:px-7"
+      className="nn-surface nn-surface--elevated min-w-0 px-5 py-5 sm:px-7"
     >
       <div className="max-w-3xl">
-        <p className="text-xs font-bold uppercase tracking-[0.16em] text-natal-accent">
+        <p className="nn-eyebrow">
           Chart Vault
         </p>
-        <h3 className="mt-2 text-lg font-semibold text-white" id={titleId}>
+        <h3 className="nn-type-section-title mt-2" id={titleId}>
           Save this chart
         </h3>
-        <p className="mt-2 text-sm leading-6 text-natal-muted">
+        <p className="nn-type-body-small mt-2">
           Add a name and category. The server will verify and recalculate this chart before
           saving it.
         </p>
@@ -130,13 +130,13 @@ export default function SaveChartPanel({ chartRequest }: SaveChartPanelProps) {
           onSubmit={handleSubmit}
         >
           <div>
-            <label className="text-sm font-medium text-slate-100" htmlFor={displayNameId}>
+            <label className="nn-type-label" htmlFor={displayNameId}>
               Chart name
             </label>
             <input
               aria-describedby={nameError ? displayNameErrorId : undefined}
               aria-invalid={Boolean(nameError)}
-              className="mt-2 block w-full rounded-lg border border-natal-border bg-slate-950/40 px-3 py-2.5 text-sm text-white shadow-sm outline-none placeholder:text-slate-500 focus-visible:border-natal-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-natal-accent disabled:cursor-wait disabled:opacity-60"
+              className="nn-field mt-2"
               disabled={saveState === 'saving'}
               id={displayNameId}
               maxLength={DISPLAY_NAME_MAX_LENGTH}
@@ -150,18 +150,18 @@ export default function SaveChartPanel({ chartRequest }: SaveChartPanelProps) {
               value={displayName}
             />
             {nameError ? (
-              <p className="mt-2 text-sm text-rose-300" id={displayNameErrorId} role="alert">
+              <p className="nn-status nn-status--error mt-2" id={displayNameErrorId} role="alert">
                 {nameError}
               </p>
             ) : null}
           </div>
 
           <div>
-            <label className="text-sm font-medium text-slate-100" htmlFor={categoryId}>
+            <label className="nn-type-label" htmlFor={categoryId}>
               Category
             </label>
             <select
-              className="mt-2 block w-full appearance-auto rounded-lg border border-natal-border bg-slate-950/40 px-3 py-2.5 text-sm text-white shadow-sm outline-none focus-visible:border-natal-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-natal-accent disabled:cursor-wait disabled:opacity-60"
+              className="nn-field mt-2 appearance-auto"
               disabled={saveState === 'saving'}
               id={categoryId}
               name="category"
@@ -182,7 +182,7 @@ export default function SaveChartPanel({ chartRequest }: SaveChartPanelProps) {
           </div>
 
           <button
-            className="inline-flex min-h-11 items-center justify-center rounded-lg bg-natal-primary px-5 py-2.5 text-sm font-semibold text-white shadow-lg shadow-natal-primary/20 hover:bg-natal-primary-hover focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-natal-accent disabled:cursor-wait disabled:opacity-60"
+            className="nn-button nn-button--primary"
             disabled={saveState === 'saving'}
             type="submit"
           >
@@ -192,7 +192,7 @@ export default function SaveChartPanel({ chartRequest }: SaveChartPanelProps) {
 
         <div className="mt-3 min-h-6">
           {saveState === 'saved' ? (
-            <p className="text-sm text-emerald-200" role="status">
+            <p className="nn-status nn-status--success" role="status">
               Saved to Vault.{' '}
               <a className="font-medium underline underline-offset-4 hover:text-white" href="/vault">
                 View Vault
@@ -200,12 +200,12 @@ export default function SaveChartPanel({ chartRequest }: SaveChartPanelProps) {
             </p>
           ) : null}
           {saveState === 'invalid-request' ? (
-            <p className="text-sm text-rose-300" role="alert">
+            <p className="nn-status nn-status--error" role="alert">
               {INVALID_METADATA_MESSAGE}
             </p>
           ) : null}
           {saveState === 'failed' ? (
-            <p className="text-sm text-rose-300" role="alert">
+            <p className="nn-status nn-status--error" role="alert">
               {SAVE_FAILURE_MESSAGE}
             </p>
           ) : null}

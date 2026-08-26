@@ -28,19 +28,19 @@ function InterpretationSection({
 
   return (
     <section aria-labelledby={titleId} className="mt-6 first:mt-5">
-      <h4 className="text-sm font-semibold uppercase tracking-[0.12em] text-slate-200" id={titleId}>
+      <h4 className="nn-type-label uppercase tracking-[0.12em]" id={titleId}>
         {title}
       </h4>
       <div className="mt-3 grid min-w-0 gap-3">
         {items.map((item) => (
           <article
-            className="min-w-0 rounded-lg border border-natal-border/70 bg-natal-night/30 p-4"
+            className="nn-surface min-w-0 p-4"
             key={item.id}
           >
-            <h5 className="text-base font-semibold text-white">{item.title}</h5>
-            <p className="mt-2 text-sm leading-6 text-slate-300">{item.text}</p>
-            <p className="mt-3 break-words text-xs leading-5 text-slate-400">
-              <span className="font-semibold text-slate-300">Source fact</span>{' '}
+            <h5 className="nn-type-card-title">{item.title}</h5>
+            <p className="nn-type-body-small mt-2">{item.text}</p>
+            <p className="nn-type-metadata mt-3 break-words">
+              <span className="font-semibold">Source fact</span>{' '}
               <span className="font-mono">{item.sourceContext ?? item.sourceFacts.join(' · ')}</span>
             </p>
           </article>
@@ -62,15 +62,15 @@ export default function InterpretationPanel({ chart, presentationPolicy }: Inter
   return (
     <section
       aria-labelledby={titleId}
-      className="min-w-0 border-t border-natal-border/70 p-5 sm:p-7"
+      className="nn-surface nn-surface--elevated min-w-0 p-5 sm:p-7"
     >
-      <p className="text-xs font-bold uppercase tracking-[0.16em] text-natal-accent">Confirmed facts</p>
-      <h3 className="mt-2 text-lg font-semibold text-white" id={titleId}>
+      <p className="nn-eyebrow">Confirmed facts</p>
+      <h3 className="nn-type-section-title mt-2" id={titleId}>
         Interpretation
       </h3>
       {isResearchConfiguration ? (
         <p
-          className="mt-3 rounded-lg border border-amber-200/30 bg-amber-200/10 p-3 text-sm leading-6 text-amber-50/90"
+          className="nn-notice nn-notice--research mt-3"
           role="note"
         >
           Research configuration: deterministic UI-development copy based only on available Engine facts.
