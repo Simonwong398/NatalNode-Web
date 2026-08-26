@@ -11,7 +11,8 @@ import {
   type BirthInputDraft,
   type BirthInputResolution,
   type CalculationReadyBirthInputResolution,
-  type HouseSystem
+  type HouseSystem,
+  type UnknownTimeBirthInputResolution
 } from './types';
 import {
   EMPTY_BIRTH_DATE_PARTS,
@@ -22,6 +23,7 @@ import {
   type BirthDatePart,
   type BirthDateParts
 } from './birth-date-input';
+import { formatCoordinate } from './resolution-telemetry';
 
 type ValidationField = 'localDate' | 'localTime' | 'locationLabel' | 'houseSystem';
 
@@ -139,6 +141,67 @@ function formatUtcOffset(utcOffsetSeconds: number): string {
   return `UTC${sign}${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`;
 }
 
+interface ResolutionTelemetryData {
+  locationLabel: string;
+  latitude: number;
+  longitude: number;
+  ianaTimeZone: string;
+  utcOffsetSeconds: number | null;
+}
+
+function ResolvedLocationTelemetry({
+  heading,
+  resolution
+}: {
+  heading: string;
+  resolution: ResolutionTelemetryData;
+}) {
+  const latitude = formatCoordinate(resolution.latitude, 'latitude');
+  const longitude = formatCoordinate(resolution.longitude, 'longitude');
+
+  if (!resolution.locationLabel && !latitude && !longitude && !resolution.ianaTimeZone) {
+    return null;
+  }
+
+  return (
+    <div className="mt-4 min-w-0">
+      <p className="nn-eyebrow">{heading}</p>
+      <dl className="mt-3 grid min-w-0 gap-3 sm:grid-cols-3">
+        {resolution.locationLabel ? (
+          <div className="min-w-0">
+            <dt className="nn-type-metadata">Location</dt>
+            <dd className="nn-type-body-small mt-1 break-words">{resolution.locationLabel}</dd>
+          </div>
+        ) : null}
+        {latitude ? (
+          <div className="min-w-0">
+            <dt className="nn-type-metadata">Latitude</dt>
+            <dd className="nn-type-numeric mt-1">{latitude}</dd>
+          </div>
+        ) : null}
+        {longitude ? (
+          <div className="min-w-0">
+            <dt className="nn-type-metadata">Longitude</dt>
+            <dd className="nn-type-numeric mt-1">{longitude}</dd>
+          </div>
+        ) : null}
+        {resolution.ianaTimeZone ? (
+          <div className="min-w-0">
+            <dt className="nn-type-metadata">IANA timezone</dt>
+            <dd className="nn-type-numeric mt-1 break-words">{resolution.ianaTimeZone}</dd>
+          </div>
+        ) : null}
+        {resolution.utcOffsetSeconds !== null ? (
+          <div className="min-w-0">
+            <dt className="nn-type-metadata">UTC offset</dt>
+            <dd className="nn-type-numeric mt-1">{formatUtcOffset(resolution.utcOffsetSeconds)}</dd>
+          </div>
+        ) : null}
+      </dl>
+    </div>
+  );
+}
+
 function ExactResolutionPanel({ resolution }: { resolution: ExactResolution }) {
   return (
     <section
@@ -151,20 +214,7 @@ function ExactResolutionPanel({ resolution }: { resolution: ExactResolution }) {
       <h3 className="nn-type-card-title" id="timezone-resolved-title">
         Timezone resolved
       </h3>
-      <dl className="mt-4 grid min-w-0 gap-3 sm:grid-cols-3">
-        <div>
-          <dt className="nn-type-metadata">Location</dt>
-          <dd className="nn-type-body-small mt-1 break-words">{resolution.locationLabel}</dd>
-        </div>
-        <div>
-          <dt className="nn-type-metadata">Timezone</dt>
-          <dd className="nn-type-body-small mt-1 break-words">{resolution.ianaTimeZone}</dd>
-        </div>
-        <div>
-          <dt className="nn-type-metadata">UTC offset</dt>
-          <dd className="nn-type-numeric mt-1">{formatUtcOffset(resolution.utcOffsetSeconds)}</dd>
-        </div>
-      </dl>
+      <ResolvedLocationTelemetry heading="Location resolved" resolution={resolution} />
     </section>
   );
 }
@@ -191,6 +241,7 @@ function AmbiguousResolutionPanel({
       <p className="nn-type-body-small mt-2">
         Choose which occurrence matches the birth record. NatalNode will not silently choose one.
       </p>
+      <ResolvedLocationTelemetry heading="Location context" resolution={resolution} />
       <fieldset className="mt-4 grid gap-3">
         <legend className="nn-type-label">Select an occurrence</legend>
         {resolution.candidates.map((candidate) => {
@@ -230,10 +281,12 @@ function AmbiguousResolutionPanel({
 
 function NonexistentResolutionPanel({
   isDisabled,
-  onEditBirthTime
+  onEditBirthTime,
+  resolution
 }: {
   isDisabled: boolean;
   onEditBirthTime: () => void;
+  resolution: Extract<BirthInputResolution, { ambiguityStatus: 'NONEXISTENT' }>;
 }) {
   return (
     <section
@@ -248,6 +301,7 @@ function NonexistentResolutionPanel({
       <p className="nn-type-body-small mt-2">
         The entered local time did not exist at this location and date. It was not shifted or replaced.
       </p>
+      <ResolvedLocationTelemetry heading="Location context" resolution={resolution} />
       <button
         className="nn-button nn-button--secondary mt-4 self-start"
         disabled={isDisabled}
@@ -260,7 +314,7 @@ function NonexistentResolutionPanel({
   );
 }
 
-function UnknownTimeResolutionPanel() {
+function UnknownTimeResolutionPanel({ resolution }: { resolution: UnknownTimeBirthInputResolution }) {
   return (
     <section
       aria-labelledby="unknown-time-title"
@@ -275,6 +329,7 @@ function UnknownTimeResolutionPanel() {
       <p className="nn-type-body-small mt-2">
         Without an exact birth time, Ascendant, Midheaven, houses, and house-based interpretation will be unavailable.
       </p>
+      <ResolvedLocationTelemetry heading="Location resolved" resolution={resolution} />
     </section>
   );
 }
@@ -310,11 +365,43 @@ function ResolutionPanel({
         <NonexistentResolutionPanel
           isDisabled={isInteractionDisabled}
           onEditBirthTime={onEditBirthTime}
+          resolution={resolution}
         />
       );
     case 'UNKNOWN_TIME':
-      return <UnknownTimeResolutionPanel />;
+      return <UnknownTimeResolutionPanel resolution={resolution} />;
   }
+}
+
+function BirthDataTrustSection() {
+  return (
+    <section
+      aria-labelledby="birth-data-trust-title"
+      className="nn-calculate-trust mt-8 border-t border-[color:var(--nn-border-subtle)] pt-7"
+    >
+      <p className="nn-eyebrow">Trust and methodology</p>
+      <h2 className="nn-type-card-title mt-1" id="birth-data-trust-title">
+        How NatalNode handles your birth data
+      </h2>
+      <ul className="mt-4 grid gap-4 sm:grid-cols-3">
+        <li className="border-t border-[color:var(--nn-border-subtle)] pt-3">
+          <p className="nn-type-body-small">
+            Birth date, local time, birth place, timezone context, and a resolved UTC instant remain explicit chart inputs when available.
+          </p>
+        </li>
+        <li className="border-t border-[color:var(--nn-border-subtle)] pt-3">
+          <p className="nn-type-body-small">
+            NatalNode does not silently substitute noon when the exact birth time is unknown.
+          </p>
+        </li>
+        <li className="border-t border-[color:var(--nn-border-subtle)] pt-3">
+          <p className="nn-type-body-small">
+            Time-dependent chart facts remain unavailable when the required birth-time information is missing.
+          </p>
+        </li>
+      </ul>
+    </section>
+  );
 }
 
 export default function BirthInputForm({
@@ -503,11 +590,12 @@ export default function BirthInputForm({
   };
 
   return (
-    <section
-      aria-label="Birth chart details"
-      className="nn-surface nn-surface--elevated mt-8 min-w-0 p-5 sm:p-7"
-    >
-      <form className="grid gap-6" noValidate onSubmit={handleSubmit}>
+    <>
+      <section
+        aria-label="Birth chart details"
+        className="nn-surface nn-surface--elevated nn-calculate-principal-surface mt-8 min-w-0 p-5 sm:p-7"
+      >
+        <form className="grid gap-6" noValidate onSubmit={handleSubmit}>
         <div className="grid min-w-0 gap-7 lg:grid-cols-[minmax(0,1.15fr)_minmax(0,1fr)]">
           <fieldset
             aria-describedby={errors.localDate ? 'birth-date-error' : 'birth-date-help'}
@@ -727,7 +815,10 @@ export default function BirthInputForm({
             </p>
           ) : null}
         </div>
-      </form>
+        </form>
+      </section>
+
+      <BirthDataTrustSection />
 
       <div className="nn-notice nn-notice--research mt-6 max-w-3xl flex-col">
         <p className="nn-eyebrow nn-status--research">Development information</p>
@@ -737,6 +828,6 @@ export default function BirthInputForm({
           <code>UI FIXTURE: NONEXISTENT</code> in Birth place.
         </p>
       </div>
-    </section>
+    </>
   );
 }

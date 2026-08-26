@@ -117,6 +117,13 @@
   --nn-status-research-surface: color-mix(in srgb, var(--nn-status-research) 12%, transparent);
   --nn-status-info-surface: color-mix(in srgb, var(--nn-status-info) 12%, transparent);
 
+  --nn-calculate-illumination-violet: color-mix(in srgb, var(--nn-accent-primary) 18%, transparent);
+  --nn-calculate-illumination-blue: color-mix(in srgb, var(--nn-accent-secondary) 16%, transparent);
+  --nn-calculate-illumination-cyan: color-mix(in srgb, var(--nn-accent-supporting) 10%, transparent);
+  --nn-calculate-grid-color: color-mix(in srgb, var(--nn-accent-supporting) 24%, transparent);
+  --nn-calculate-surface-border: color-mix(in srgb, var(--nn-border-strong) 68%, var(--nn-accent-secondary) 32%);
+  --nn-calculate-surface-highlight: color-mix(in srgb, var(--nn-accent-supporting) 9%, transparent);
+
   --nn-space-inline: 8px;
   --nn-space-control: 8px;
   --nn-space-field: 20px;
@@ -267,15 +274,69 @@
   }
 
   .nn-calculate-page {
-    background-image:
-      radial-gradient(circle at 50% 0%, color-mix(in srgb, var(--nn-accent-secondary) 17%, transparent), transparent 52%),
-      radial-gradient(circle at 88% 18%, color-mix(in srgb, var(--nn-accent-primary) 12%, transparent), transparent 42%),
-      radial-gradient(circle at 8% 42%, color-mix(in srgb, var(--nn-accent-supporting) 8%, transparent), transparent 38%);
+    position: relative;
+    isolation: isolate;
+    background: transparent;
   }
 
-  .nn-calculate-page astro-island > .nn-surface--elevated {
-    border-color: color-mix(in srgb, var(--nn-border-strong) 62%, var(--nn-accent-secondary));
-    background: color-mix(in srgb, var(--nn-surface-elevated) 92%, var(--nn-accent-secondary) 8%);
+  .nn-calculate-page::before {
+    position: absolute;
+    z-index: 0;
+    inset-block: 0;
+    inset-inline-start: 50%;
+    width: 100vw;
+    content: '';
+    pointer-events: none;
+    transform: translateX(-50%);
+    background:
+      radial-gradient(circle at 50% 0%, var(--nn-calculate-illumination-violet), transparent 48%),
+      radial-gradient(circle at 86% 18%, var(--nn-calculate-illumination-blue), transparent 40%),
+      radial-gradient(circle at 10% 48%, var(--nn-calculate-illumination-cyan), transparent 36%);
+  }
+
+  .nn-calculate-page > :not(.nn-calculate-grid) {
+    position: relative;
+    z-index: 1;
+  }
+
+  .nn-calculate-grid {
+    position: absolute;
+    z-index: 0;
+    inset-block: 0;
+    inset-inline-start: 50%;
+    width: 100vw;
+    color: var(--nn-calculate-grid-color);
+    opacity: 0.72;
+    pointer-events: none;
+    transform: translateX(-50%);
+  }
+
+  .nn-calculate-grid__line {
+    stroke-width: 1;
+    vector-effect: non-scaling-stroke;
+    opacity: 0.68;
+  }
+
+  .nn-calculate-grid__marker {
+    opacity: 0.52;
+  }
+
+  .nn-calculate-principal-surface {
+    border-color: var(--nn-calculate-surface-border);
+    background:
+      linear-gradient(180deg, var(--nn-calculate-surface-highlight), transparent 34%),
+      var(--nn-surface-elevated);
+    box-shadow: var(--nn-shadow-low), inset 0 1px 0 var(--nn-calculate-surface-highlight);
+  }
+
+  @media (max-width: 639px) {
+    .nn-calculate-page::before {
+      opacity: 0.78;
+    }
+
+    .nn-calculate-grid {
+      opacity: 0.46;
+    }
   }
 
   .nn-container--reading {
