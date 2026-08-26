@@ -15,8 +15,8 @@ const seo: SeoMetadata = {
 ---
 
 <SiteLayout seo={seo}>
-  <main class="nn-container nn-container--editorial pb-20 pt-12 sm:pb-24 sm:pt-16">
-    <header class="max-w-3xl">
+  <main class="nn-container nn-container--editorial nn-tools-page nn-tools-detail pb-20 pt-12 sm:pb-24 sm:pt-16">
+    <header class="max-w-3xl nn-tools-detail__header">
       <p class="nn-eyebrow">Tools / Sign Lookup</p>
       <h1 class="nn-type-page-title mt-3">
         Explore a zodiac sign
@@ -26,7 +26,7 @@ const seo: SeoMetadata = {
       </p>
     </header>
 
-    <section class="nn-surface nn-surface--elevated mt-12 max-w-4xl p-5 sm:p-8" aria-labelledby="sign-selection-title">
+    <section class="nn-surface nn-surface--elevated nn-tools-task-surface mt-12 max-w-4xl p-5 sm:p-8" aria-labelledby="sign-selection-title">
       <div class="nn-section-header">
         <p class="nn-eyebrow">Make a selection</p>
         <h2 class="nn-type-section-title" id="sign-selection-title">
@@ -61,7 +61,7 @@ const seo: SeoMetadata = {
     </section>
 
     <section
-      class="nn-surface mt-8 max-w-4xl p-5 sm:p-8"
+      class="nn-surface nn-tools-result-surface mt-8 max-w-4xl p-5 sm:p-8"
       data-sign-result
       aria-live="polite"
       aria-labelledby="sign-result-title"
@@ -78,7 +78,7 @@ const seo: SeoMetadata = {
       </p>
     </noscript>
 
-    <div class="mt-16 grid gap-12 border-t border-natal-border/70 pt-12 lg:grid-cols-2 lg:gap-x-10 lg:gap-y-14 lg:pt-16">
+    <div class="nn-tools-explanation mt-16 grid gap-12 border-t border-natal-border/70 pt-12 lg:grid-cols-2 lg:gap-x-10 lg:gap-y-14 lg:pt-16">
       <section aria-labelledby="what-signs-represent-title">
         <p class="nn-eyebrow">What signs represent</p>
         <h2 class="nn-type-section-title mt-2" id="what-signs-represent-title">

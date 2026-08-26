@@ -13,8 +13,8 @@ const availableTools = SEO_TOOL_TAXONOMY.filter((tool) => tool.status === 'AVAIL
 ---
 
 <SiteLayout seo={seo}>
-  <main class="nn-container nn-container--editorial pb-20 pt-12 sm:pb-24 sm:pt-16">
-    <header class="max-w-3xl">
+  <main class="nn-container nn-container--editorial nn-tools-page nn-tools-hub pb-20 pt-12 sm:pb-24 sm:pt-16">
+    <header class="max-w-3xl nn-tools-hub__header">
       <p class="nn-eyebrow">Tools</p>
       <h1 class="nn-type-page-title mt-3">
         Useful astrology utilities, kept focused.
@@ -24,19 +24,19 @@ const availableTools = SEO_TOOL_TAXONOMY.filter((tool) => tool.status === 'AVAIL
       </p>
     </header>
 
-    <section class="mt-12 max-w-5xl" aria-labelledby="available-tools-title">
+    <section class="mt-12 max-w-5xl nn-tools-hub__directory" aria-labelledby="available-tools-title">
       <div class="nn-section-header max-w-2xl">
         <p class="nn-eyebrow">Available now</p>
         <h2 class="nn-type-section-title" id="available-tools-title">
         Start with a focused question
         </h2>
       </div>
-      <ul class="mt-8 grid gap-5 md:grid-cols-3">
+      <ul class="mt-8 grid gap-5 md:grid-cols-3 nn-tools-card-grid">
         {availableTools.map((tool) => (
-          <li class="nn-surface flex min-w-0 flex-col p-5 sm:p-6">
-            <h3 class="nn-type-card-title">
+          <li class="nn-surface nn-tools-card flex min-w-0 flex-col p-5 sm:p-6">
+            <h3 class="nn-type-card-title nn-tools-card__title">
               <a
-                class="font-semibold underline decoration-natal-accent/50 underline-offset-4 transition-colors hover:text-natal-accent"
+                class="nn-tools-card__link font-semibold underline decoration-natal-accent/50 underline-offset-4 transition-colors hover:text-natal-accent"
                 href={tool.intendedPath}
               >
                 {tool.label}
@@ -48,7 +48,7 @@ const availableTools = SEO_TOOL_TAXONOMY.filter((tool) => tool.status === 'AVAIL
       </ul>
     </section>
 
-    <section class="mt-16 max-w-3xl border-t border-natal-border/70 pt-12" aria-labelledby="tools-principles-title">
+    <section class="mt-16 max-w-3xl border-t border-natal-border/70 pt-12 nn-tools-hub__support" aria-labelledby="tools-principles-title">
       <div class="nn-section-header">
         <p class="nn-eyebrow">Foundation</p>
         <h2 class="nn-type-section-title" id="tools-principles-title">

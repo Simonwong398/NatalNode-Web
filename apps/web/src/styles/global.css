@@ -411,6 +411,55 @@
     }
   }
 
+  .nn-tools-card-grid {
+    gap: 20px;
+  }
+
+  .nn-tools-card {
+    border-color: color-mix(in srgb, var(--nn-border-default) 82%, var(--nn-accent-secondary) 18%);
+    background: var(--nn-surface-base);
+    transition: background-color var(--nn-motion-fast) var(--nn-motion-ease), border-color var(--nn-motion-fast) var(--nn-motion-ease), box-shadow var(--nn-motion-fast) var(--nn-motion-ease);
+  }
+
+  .nn-tools-card:hover {
+    border-color: var(--nn-border-strong);
+    background: var(--nn-surface-elevated);
+  }
+
+  .nn-tools-card:focus-within {
+    border-color: var(--nn-accent-supporting);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--nn-accent-supporting) 16%, transparent);
+  }
+
+  .nn-tools-card__link {
+    color: var(--nn-text-primary);
+    text-decoration-thickness: 1px;
+    text-underline-offset: 4px;
+  }
+
+  .nn-tools-card__link:hover {
+    color: var(--nn-accent-supporting);
+  }
+
+  .nn-tools-task-surface {
+    border-color: color-mix(in srgb, var(--nn-border-default) 68%, var(--nn-accent-secondary) 32%);
+    background: var(--nn-surface-elevated);
+    box-shadow: var(--nn-shadow-low), inset 0 1px 0 color-mix(in srgb, var(--nn-accent-secondary) 10%, transparent);
+  }
+
+  .nn-tools-task-surface .nn-field {
+    background: var(--nn-surface-base);
+  }
+
+  .nn-tools-result-surface {
+    border-color: var(--nn-border-subtle);
+    background: var(--nn-surface-base);
+  }
+
+  .nn-tools-explanation {
+    min-width: 0;
+  }
+
   .nn-container--reading {
     max-width: var(--nn-width-reading-max);
   }
