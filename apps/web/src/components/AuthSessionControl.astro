@@ -1,11 +1,11 @@
 <span
-  class="flex items-center gap-3"
+  class="nn-session-control"
   data-auth-session-control
   aria-busy="true"
   hidden
 >
   <a
-    class="text-sm font-semibold text-natal-accent transition-colors hover:text-white"
+    class="nn-session-control__link"
     data-auth-signed-out
     href="/auth/sign-in"
     hidden
@@ -13,7 +13,7 @@
     Sign in
   </a>
   <button
-    class="text-sm font-semibold text-natal-accent transition-colors hover:text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-natal-accent disabled:cursor-not-allowed disabled:opacity-60"
+    class="nn-session-control__link"
     data-auth-signed-in
     type="button"
     hidden
@@ -21,7 +21,7 @@
     Sign out
   </button>
   <span
-    class="text-xs text-rose-200"
+    class="nn-session-control__status"
     data-auth-status
     role="status"
     aria-live="polite"

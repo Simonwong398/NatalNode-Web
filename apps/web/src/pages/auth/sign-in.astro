@@ -1,6 +1,6 @@
 ---
-import SeoHead from '@/components/SeoHead.astro';
-import '@/styles/global.css';
+import Surface from '@/components/ui/Surface.astro';
+import SiteLayout from '@/layouts/SiteLayout.astro';
 
 const seo = {
   title: 'Sign in | NatalNode',
@@ -10,33 +10,26 @@ const seo = {
 } as const;
 ---
 
-<!doctype html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width" />
-    <SeoHead seo={seo} />
-  </head>
-  <body>
-    <main class="mx-auto flex min-h-screen w-[calc(100%-2rem)] max-w-xl items-center justify-center py-12">
-      <section
-        class="w-full rounded-2xl border border-natal-border bg-natal-surface/80 p-8 shadow-2xl shadow-black/10 sm:p-10"
-        aria-labelledby="sign-in-title"
-      >
-        <p class="text-xs font-bold uppercase tracking-[0.16em] text-natal-accent">NatalNode</p>
-        <h1 class="mt-4 text-3xl font-semibold tracking-[-0.04em] text-white" id="sign-in-title">
-          Sign in
-        </h1>
-        <p class="mt-4 text-base leading-7 text-natal-muted" id="sign-in-description">
-          Enter your email and we'll send you a secure sign-in link.
-        </p>
+<SiteLayout seo={seo} mode="editorial">
+  <main class="nn-container nn-container--form flex min-h-screen items-center justify-center py-12">
+    <Surface variant="elevated" class="w-full">
+      <section class="p-8 sm:p-10" aria-labelledby="sign-in-title">
+        <header class="nn-section-header">
+          <p class="nn-eyebrow">NatalNode</p>
+          <h1 class="nn-type-page-title" id="sign-in-title">
+            Sign in
+          </h1>
+          <p class="nn-type-body-small" id="sign-in-description">
+            Enter your email and we'll send you a secure sign-in link.
+          </p>
+        </header>
 
         <form class="mt-8" id="email-sign-in-form">
-          <label class="block text-sm font-medium text-slate-100" for="sign-in-email">
+          <label class="nn-type-label" for="sign-in-email">
             Email address
           </label>
           <input
-            class="mt-2 block w-full rounded-xl border border-natal-border bg-natal-night px-4 py-3 text-base text-white outline-none transition placeholder:text-slate-500 focus:border-natal-accent focus:ring-2 focus:ring-natal-accent/30"
+            class="nn-field mt-2"
             id="sign-in-email"
             name="email"
             type="email"
@@ -45,58 +38,58 @@ const seo = {
             required
             aria-describedby="sign-in-description sign-in-email-help sign-in-status"
           />
-          <p class="mt-2 text-sm leading-6 text-natal-muted" id="sign-in-email-help">
+          <p class="nn-type-body-small mt-2" id="sign-in-email-help">
             We'll use this address to start sign-in.
           </p>
           <button
-            class="mt-6 w-full rounded-xl bg-natal-primary px-4 py-3 text-sm font-semibold text-white transition hover:bg-natal-primary-hover focus:outline-none focus:ring-2 focus:ring-natal-accent/70 focus:ring-offset-2 focus:ring-offset-natal-surface disabled:cursor-not-allowed disabled:opacity-60"
+            class="nn-button nn-button--primary mt-6 w-full"
             id="sign-in-submit"
             type="submit"
           >
             Send sign-in link
           </button>
           <p
-            class="mt-4 min-h-6 text-sm leading-6 text-natal-muted"
+            class="nn-type-body-small mt-4 min-h-6"
             id="sign-in-status"
             aria-live="polite"
           ></p>
         </form>
 
         <section
-          class="mt-8"
+          class="nn-section-header mt-8"
           id="sign-in-success"
           aria-labelledby="sign-in-success-title"
           tabindex="-1"
           hidden
         >
-          <h2 class="text-2xl font-semibold tracking-[-0.03em] text-white" id="sign-in-success-title">
+          <h2 class="nn-type-section-title" id="sign-in-success-title">
             Check your email
           </h2>
-          <p class="mt-4 text-base leading-7 text-natal-muted">
+          <p class="nn-type-body-small">
             Use the sign-in link in the email to continue.
           </p>
         </section>
       </section>
-    </main>
+    </Surface>
+  </main>
 
-    <script>
-      import { setupEmailMagicLinkRequest } from '@/features/auth/request-email-magic-link';
+  <script>
+    import { setupEmailMagicLinkRequest } from '@/features/auth/request-email-magic-link';
 
-      const form = document.querySelector<HTMLFormElement>('#email-sign-in-form');
-      const emailInput = document.querySelector<HTMLInputElement>('#sign-in-email');
-      const submitButton = document.querySelector<HTMLButtonElement>('#sign-in-submit');
-      const statusElement = document.querySelector<HTMLElement>('#sign-in-status');
-      const successElement = document.querySelector<HTMLElement>('#sign-in-success');
+    const form = document.querySelector<HTMLFormElement>('#email-sign-in-form');
+    const emailInput = document.querySelector<HTMLInputElement>('#sign-in-email');
+    const submitButton = document.querySelector<HTMLButtonElement>('#sign-in-submit');
+    const statusElement = document.querySelector<HTMLElement>('#sign-in-status');
+    const successElement = document.querySelector<HTMLElement>('#sign-in-success');
 
-      if (form && emailInput && submitButton && statusElement && successElement) {
-        setupEmailMagicLinkRequest({
-          form,
-          emailInput,
-          submitButton,
-          statusElement,
-          successElement
-        });
-      }
-    </script>
-  </body>
-</html>
+    if (form && emailInput && submitButton && statusElement && successElement) {
+      setupEmailMagicLinkRequest({
+        form,
+        emailInput,
+        submitButton,
+        statusElement,
+        successElement
+      });
+    }
+  </script>
+</SiteLayout>

@@ -1,0 +1,14 @@
+---
+type ContainerMode = 'shell' | 'editorial' | 'workspace' | 'form' | 'reading';
+
+interface Props {
+  mode?: ContainerMode;
+  class?: string;
+}
+
+const { mode = 'shell', class: className } = Astro.props;
+---
+
+<div class:list={['nn-container', `nn-container--${mode}`, className]}>
+  <slot />
+</div>

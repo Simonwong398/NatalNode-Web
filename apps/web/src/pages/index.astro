@@ -1,7 +1,6 @@
 ---
-import SeoHead from '@/components/SeoHead.astro';
+import SiteLayout from '@/layouts/SiteLayout.astro';
 import { ChartExperience } from '@/features/chart-experience';
-import '@/styles/global.css';
 
 const seo = {
   title: 'NatalNode — Birth Input',
@@ -10,23 +9,17 @@ const seo = {
 } as const;
 ---
 
-<!doctype html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width" />
-    <SeoHead seo={seo} />
-  </head>
-  <body>
-    <main class="mx-auto flex min-h-screen w-[calc(100%-2rem)] max-w-3xl flex-col pb-12 pt-16 sm:pt-28">
-      <p class="text-xs font-bold uppercase tracking-[0.16em] text-natal-accent">NatalNode</p>
-      <h1 class="mt-4 max-w-2xl text-4xl font-semibold leading-[0.98] tracking-[-0.055em] text-white sm:text-7xl">
+<SiteLayout seo={seo} mode="observatory">
+  <main class="nn-container nn-container--form flex min-h-screen flex-col pb-12 pt-12 sm:pt-20">
+    <header class="nn-section-header">
+      <p class="nn-eyebrow">NatalNode</p>
+      <h1 class="nn-type-display max-w-2xl">
         Start with the birth details you know.
       </h1>
-      <p class="mt-5 max-w-xl text-lg leading-7 text-natal-muted">
+      <p class="nn-type-body max-w-xl">
         NatalNode keeps location and time resolution explicit before a chart is calculated.
       </p>
-      <ChartExperience client:load />
-    </main>
-  </body>
-</html>
+    </header>
+    <ChartExperience client:load />
+  </main>
+</SiteLayout>

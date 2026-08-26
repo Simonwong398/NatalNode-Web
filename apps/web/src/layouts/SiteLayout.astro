@@ -1,18 +1,25 @@
 ---
+import Container from '@/components/layout/Container.astro';
 import AuthSessionControl from '@/components/AuthSessionControl.astro';
 import SeoHead from '@/components/SeoHead.astro';
 import type { SeoMetadata } from '@/lib/seo';
 import '@/styles/global.css';
 
+type ShellMode = 'editorial' | 'observatory';
+
 interface Props {
   seo: SeoMetadata;
+  mode?: ShellMode;
 }
 
-const { seo } = Astro.props;
+const { seo, mode } = Astro.props;
 const currentPath = Astro.url.pathname;
 const isLearnPage = currentPath.startsWith('/learn');
 const isToolsPage = currentPath.startsWith('/tools');
-const isVaultPage = currentPath === '/vault' || currentPath === '/vault/';
+const isVaultPage = currentPath.startsWith('/vault');
+const isAuthPage = currentPath.startsWith('/auth');
+const isCalculatePage = currentPath === '/';
+const shellMode: ShellMode = mode ?? (isLearnPage || isToolsPage || isAuthPage ? 'editorial' : 'observatory');
 ---
 
 <!doctype html>
@@ -22,60 +29,115 @@ const isVaultPage = currentPath === '/vault' || currentPath === '/vault/';
     <meta name="viewport" content="width=device-width" />
     <SeoHead seo={seo} />
   </head>
-  <body>
-    <header class="mx-auto flex w-[calc(100%-2rem)] max-w-5xl items-center justify-between gap-6 border-b border-natal-border/70 py-5">
-      <a class="text-sm font-bold uppercase tracking-[0.16em] text-white" href="/" aria-label="NatalNode home">
-        NatalNode
-      </a>
-      <nav aria-label="Primary navigation">
-        <ul class="flex items-center gap-4 text-sm text-slate-300 sm:gap-6">
-          <li>
-            <a
-              class:list={[
-                'transition-colors hover:text-white',
-                isLearnPage ? 'text-white' : undefined
-              ]}
-              href="/learn/"
-              aria-current={isLearnPage ? 'page' : undefined}
-            >
-              Learn
-            </a>
-          </li>
-          <li>
-            <a
-              class:list={[
-                'transition-colors hover:text-white',
-                isToolsPage ? 'text-white' : undefined
-              ]}
-              href="/tools/"
-              aria-current={isToolsPage ? 'page' : undefined}
-            >
-              Tools
-            </a>
-          </li>
-          <li>
-            <a
-              class:list={[
-                'transition-colors hover:text-white',
-                isVaultPage ? 'text-white' : undefined
-              ]}
-              href="/vault"
-              aria-current={isVaultPage ? 'page' : undefined}
-            >
-              Vault
-            </a>
-          </li>
-          <li>
-            <a class="transition-colors hover:text-white" href="/">
-              Chart
-            </a>
-          </li>
-          <li>
-            <AuthSessionControl />
-          </li>
-        </ul>
-      </nav>
+  <body class:list={['nn-shell', `nn-mode-${shellMode}`]} data-shell-mode={shellMode}>
+    <header class="nn-site-header">
+      <Container mode="shell" class="nn-site-header__inner">
+        <a class="nn-brand" href="/" aria-label="NatalNode home">
+          NatalNode
+        </a>
+
+        <button
+          class="nn-menu-toggle"
+          type="button"
+          data-mobile-nav-toggle
+          aria-controls="primary-navigation"
+          aria-expanded="false"
+          aria-label="Open navigation"
+        >
+          <span class="sr-only">Toggle navigation</span>
+          <span class="nn-menu-toggle__icon" aria-hidden="true"></span>
+        </button>
+
+        <nav
+          class="nn-primary-nav"
+          id="primary-navigation"
+          aria-label="Primary navigation"
+          data-mobile-nav
+          data-open="false"
+        >
+          <ul class="nn-primary-nav__list">
+            <li class="nn-primary-nav__item">
+              <a
+                class="nn-nav-link"
+                href="/learn/"
+                aria-current={isLearnPage ? 'page' : undefined}
+              >
+                Learn
+              </a>
+            </li>
+            <li class="nn-primary-nav__item">
+              <a
+                class="nn-nav-link"
+                href="/tools/"
+                aria-current={isToolsPage ? 'page' : undefined}
+              >
+                Tools
+              </a>
+            </li>
+            <li class="nn-primary-nav__item">
+              <a
+                class="nn-nav-link"
+                href="/"
+                aria-current={isCalculatePage ? 'page' : undefined}
+              >
+                Calculate
+              </a>
+            </li>
+            <li class="nn-primary-nav__item">
+              <a
+                class="nn-nav-link"
+                href="/vault"
+                aria-current={isVaultPage ? 'page' : undefined}
+              >
+                Vault
+              </a>
+            </li>
+            <li class="nn-primary-nav__item">
+              <AuthSessionControl />
+            </li>
+          </ul>
+        </nav>
+      </Container>
     </header>
+
     <slot />
   </body>
 </html>
+
+<script>
+  const menuButton = document.querySelector<HTMLButtonElement>('[data-mobile-nav-toggle]');
+  const mobileNav = document.querySelector<HTMLElement>('[data-mobile-nav]');
+
+  if (menuButton && mobileNav) {
+    const setMenuOpen = (open: boolean, returnFocus = false): void => {
+      menuButton.setAttribute('aria-expanded', String(open));
+      menuButton.setAttribute('aria-label', open ? 'Close navigation' : 'Open navigation');
+      mobileNav.dataset.open = String(open);
+
+      if (!open && returnFocus) {
+        menuButton.focus();
+      }
+    };
+
+    menuButton.addEventListener('click', () => {
+      setMenuOpen(menuButton.getAttribute('aria-expanded') !== 'true');
+    });
+
+    mobileNav.querySelectorAll('a').forEach((link) => {
+      link.addEventListener('click', () => setMenuOpen(false));
+    });
+
+    mobileNav.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape') {
+        setMenuOpen(false, true);
+      }
+    });
+
+    const desktopQuery = window.matchMedia('(min-width: 768px)');
+    desktopQuery.addEventListener('change', () => {
+      if (desktopQuery.matches) {
+        setMenuOpen(false);
+      }
+    });
+  }
+</script>

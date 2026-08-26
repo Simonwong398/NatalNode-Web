@@ -1,6 +1,6 @@
 ---
-import SeoHead from '@/components/SeoHead.astro';
-import '@/styles/global.css';
+import Surface from '@/components/ui/Surface.astro';
+import SiteLayout from '@/layouts/SiteLayout.astro';
 
 const seo = {
   title: 'Completing sign-in | NatalNode',
@@ -10,34 +10,28 @@ const seo = {
 } as const;
 ---
 
-<!doctype html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width" />
-    <SeoHead seo={seo} />
-  </head>
-  <body>
-    <main class="mx-auto flex min-h-screen w-[calc(100%-2rem)] max-w-xl items-center justify-center py-12">
-      <section class="w-full rounded-2xl border border-natal-border bg-natal-surface/80 p-8 text-center shadow-2xl shadow-black/10 sm:p-10" aria-labelledby="auth-completion-title">
-        <p class="text-xs font-bold uppercase tracking-[0.16em] text-natal-accent">NatalNode</p>
-        <h1 class="mt-4 text-3xl font-semibold tracking-[-0.04em] text-white" id="auth-completion-title">
+<SiteLayout seo={seo} mode="editorial">
+  <main class="nn-container nn-container--form flex min-h-screen items-center justify-center py-12">
+    <Surface variant="elevated" class="w-full">
+      <section class="nn-section-header p-8 text-center sm:p-10" aria-labelledby="auth-completion-title">
+        <p class="nn-eyebrow">NatalNode</p>
+        <h1 class="nn-type-page-title" id="auth-completion-title">
           Sign in
         </h1>
-        <p class="mt-4 text-base leading-7 text-natal-muted" id="auth-completion-status" aria-live="polite">
+        <p class="nn-type-body-small" id="auth-completion-status" aria-live="polite">
           Signing you in…
         </p>
       </section>
-    </main>
+    </Surface>
+  </main>
 
-    <script>
-      import { completeEmailMagicLink } from '@/features/auth/complete-email-magic-link';
+  <script>
+    import { completeEmailMagicLink } from '@/features/auth/complete-email-magic-link';
 
-      const statusElement = document.querySelector<HTMLElement>('#auth-completion-status');
+    const statusElement = document.querySelector<HTMLElement>('#auth-completion-status');
 
-      if (statusElement) {
-        void completeEmailMagicLink(statusElement);
-      }
-    </script>
-  </body>
-</html>
+    if (statusElement) {
+      void completeEmailMagicLink(statusElement);
+    }
+  </script>
+</SiteLayout>

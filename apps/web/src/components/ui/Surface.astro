@@ -1,0 +1,14 @@
+---
+type SurfaceVariant = 'base' | 'elevated' | 'instrument';
+
+interface Props {
+  variant?: SurfaceVariant;
+  class?: string;
+}
+
+const { variant = 'base', class: className } = Astro.props;
+---
+
+<div class:list={['nn-surface', `nn-surface--${variant}`, className]}>
+  <slot />
+</div>
