@@ -15,6 +15,7 @@
     "migrate": "node dist/executable/migration-main.js",
     "local": "node dist/executable/local-main.js",
     "check": "tsc --noEmit",
+    "test:vault": "npm run build && node --test test/vault.test.mjs",
     "test:feedback": "npm run build && node --test test/feedback.test.mjs"
   },
   "dependencies": {

@@ -5,12 +5,20 @@ export {
   isRecord
 } from './chart-request.js';
 export {
+  VAULT_CHART_DISPLAY_NAME_MAXIMUM_CHARACTERS,
   isMetadataUpdate,
   isSaveVaultChartApiRequest,
   isStringArray,
-  isVaultChartCategory
+  isValidVaultChartDisplayName,
+  isVaultChartCategory,
+  normalizeVaultChartDisplayName
 } from './vault-chart.js';
-export { isChartNoteContentRequest } from './vault-note.js';
+export {
+  CHART_NOTE_MAXIMUM_CHARACTERS,
+  isChartNoteContentRequest,
+  isValidChartNoteContent,
+  normalizeChartNoteContent
+} from './vault-note.js';
 export {
   FEEDBACK_CATEGORIES,
   FEEDBACK_MESSAGE_MAXIMUM_CHARACTERS,

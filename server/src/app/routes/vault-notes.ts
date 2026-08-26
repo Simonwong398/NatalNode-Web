@@ -11,7 +11,10 @@ import type {
 } from '@natalnode/contracts';
 import { requireAuthentication } from '../auth/index.js';
 import type { ServerDependencies } from '../dependencies.js';
-import { isChartNoteContentRequest } from '../validation/index.js';
+import {
+  isChartNoteContentRequest,
+  normalizeChartNoteContent
+} from '../validation/index.js';
 
 const INVALID_REQUEST_RESPONSE: VaultApiErrorResponse = {
   error: {
@@ -96,7 +99,7 @@ export function registerVaultNoteRoutes(app: Hono, dependencies: ServerDependenc
         noteId: dependencies.idGenerator.generate(),
         chartId,
         userId,
-        content: request.content,
+        content: normalizeChartNoteContent(request.content),
         createdAt: timestamp,
         updatedAt: timestamp
       };
@@ -126,7 +129,9 @@ export function registerVaultNoteRoutes(app: Hono, dependencies: ServerDependenc
         return request;
       }
 
-      const update: UpdateChartNoteApiRequest = { content: request.content };
+      const update: UpdateChartNoteApiRequest = {
+        content: normalizeChartNoteContent(request.content)
+      };
       const note = await dependencies.persistence.chartNotes.updateContent(
         userId,
         chartId,

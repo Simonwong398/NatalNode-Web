@@ -5,10 +5,12 @@ import type {
   ChartRequest,
   ChartResult,
   GetVaultChartApiResponse,
-  VaultChartCategory
+  VaultChartCategory,
+  VaultChartRecord
 } from '@natalnode/contracts';
 import ChartWorkspaceView from '@/features/chart-workspace/ChartWorkspaceView';
 import { createChartPresentationPolicy } from '@/features/chart-workspace/chart-presentation-policy';
+import VaultChartManagement from './VaultChartManagement';
 
 const VAULT_CHART_ENDPOINT = '/api/vault/charts';
 const SIGN_IN_PATH = '/auth/sign-in';
@@ -310,25 +312,37 @@ export default function SavedVaultChartExperience() {
 
   const presentationPolicy = createChartPresentationPolicy(state.chart.normalizedChartRequest);
 
-  return (
-    <div>
-      <header className="nn-surface nn-surface--elevated mb-6 p-5 sm:p-6">
-        <p className="nn-badge">
-          {state.chart.category}
-        </p>
-        <h2 className="nn-type-card-title mt-4 break-words">
-          {state.chart.displayName}
-        </h2>
-        <time className="nn-type-metadata mt-4 block" dateTime={state.chart.createdAt}>
-          Saved {state.chart.createdAt}
-        </time>
-      </header>
+  const handleChartUpdated = (updatedChart: VaultChartRecord) => {
+    setState((currentState) => {
+      if (currentState.status !== 'loaded') {
+        return currentState;
+      }
 
+      return {
+        status: 'loaded',
+        chart: {
+          ...currentState.chart,
+          displayName: updatedChart.displayName,
+          category: updatedChart.category,
+          tags: updatedChart.tags,
+          favorite: updatedChart.favorite,
+          updatedAt: updatedChart.updatedAt
+        }
+      };
+    });
+  };
+
+  return (
+    <VaultChartManagement
+      chart={state.chart}
+      onChartUpdated={handleChartUpdated}
+      onDeleted={() => window.location.replace('/vault')}
+    >
       <ChartWorkspaceView
         chart={state.chart.canonicalChartResult}
         presentationPolicy={presentationPolicy}
         requestedHouseSystem={state.chart.normalizedChartRequest.houseSystem}
       />
-    </div>
+    </VaultChartManagement>
   );
 }

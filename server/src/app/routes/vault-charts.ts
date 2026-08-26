@@ -15,7 +15,8 @@ import { requireAuthentication } from '../auth/index.js';
 import type { ServerDependencies } from '../dependencies.js';
 import {
   isMetadataUpdate,
-  isSaveVaultChartApiRequest
+  isSaveVaultChartApiRequest,
+  normalizeVaultChartDisplayName
 } from '../validation/index.js';
 
 const INVALID_REQUEST_RESPONSE: VaultApiErrorResponse = {
@@ -162,10 +163,16 @@ export function registerVaultChartRoutes(app: Hono, dependencies: ServerDependen
       const principal = context.get('authenticatedPrincipal');
       const userId = principal.userId;
       const chartId = context.req.param('chartId');
+      const normalizedUpdate: UpdateVaultChartMetadataApiRequest = {
+        ...update,
+        ...(update.displayName === undefined
+          ? {}
+          : { displayName: normalizeVaultChartDisplayName(update.displayName) })
+      };
       const chart = await dependencies.persistence.vaultCharts.updateMetadata(
         userId,
         chartId,
-        update
+        normalizedUpdate
       );
 
       if (!chart) {

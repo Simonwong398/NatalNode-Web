@@ -14,6 +14,7 @@ const VAULT_CHART_CATEGORIES: readonly VaultChartCategory[] = [
 ];
 
 const METADATA_UPDATE_KEYS = ['displayName', 'category', 'tags', 'favorite'] as const;
+export const VAULT_CHART_DISPLAY_NAME_MAXIMUM_CHARACTERS = 120;
 const SAVE_VAULT_CHART_KEYS = [
   'chart',
   'displayName',
@@ -34,6 +35,24 @@ export function isVaultChartCategory(value: unknown): value is VaultChartCategor
   return VAULT_CHART_CATEGORIES.some((category) => category === value);
 }
 
+export function normalizeVaultChartDisplayName(displayName: string): string {
+  return displayName.trim();
+}
+
+export function isValidVaultChartDisplayName(value: unknown): value is string {
+  if (typeof value !== 'string') {
+    return false;
+  }
+
+  const normalizedDisplayName = normalizeVaultChartDisplayName(value);
+
+  return (
+    normalizedDisplayName.length > 0 &&
+    Array.from(normalizedDisplayName).length <=
+      VAULT_CHART_DISPLAY_NAME_MAXIMUM_CHARACTERS
+  );
+}
+
 export function isStringArray(value: unknown): value is readonly string[] {
   return Array.isArray(value) && value.every((item) => typeof item === 'string');
 }
@@ -44,7 +63,7 @@ export function isMetadataUpdate(value: unknown): value is UpdateVaultChartMetad
   }
 
   return (
-    (!hasOwn(value, 'displayName') || typeof value.displayName === 'string') &&
+    (!hasOwn(value, 'displayName') || isValidVaultChartDisplayName(value.displayName)) &&
     (!hasOwn(value, 'category') || isVaultChartCategory(value.category)) &&
     (!hasOwn(value, 'tags') || isStringArray(value.tags)) &&
     (!hasOwn(value, 'favorite') || typeof value.favorite === 'boolean')
