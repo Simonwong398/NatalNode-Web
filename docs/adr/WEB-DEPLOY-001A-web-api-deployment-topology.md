@@ -5,15 +5,18 @@
 - Date: 2026-08-25
 - Browser origin policy: SAME ORIGIN
 - Static frontend owner: DEPLOYMENT EDGE
-- Hosting provider: NOT SELECTED
+- Production hosting provider: NOT SELECTED
+- P0 staging provider: selected separately by `WEB-DEPLOY-002A`
 - Email provider: RESEND selected for P0
 - Astronomy provider: PROVIDER DECISION DEFERRED
 
 ## STATUS
 
-Accepted for P0. This ADR freezes the browser-visible topology and the ownership
-boundaries needed by the next executable/deployment-composition patch. It does
-not select a hosting provider or implement deployment.
+Accepted for P0. This ADR freezes the browser-visible topology and ownership
+boundaries, which remain authoritative. Subsequent work implemented the
+executable/local-composition foundation, and `WEB-DEPLOY-002A` separately
+selects the P0 staging provider. This ADR does not select production hosting or
+implement deployment.
 
 ## CONTEXT
 
@@ -22,10 +25,11 @@ calls relative `/api/...` endpoints with `credentials: 'same-origin'`. The Hono
 application owns `/api/health`, chart, authentication, Vault, and Vault-note
 routes. Authentication uses an HttpOnly, host-only, `SameSite=Lax` cookie.
 
-The server already provides environment parsing, PostgreSQL and migration
-runtimes, Resend delivery, bootstrap/process/listener primitives, and explicit
-`EngineClient` and `EmailMagicLinkDelivery` bindings. It does not provide an
-executable, start command, public route composition, or staging launch path.
+The server provides environment parsing, PostgreSQL and migration runtimes,
+Resend delivery, bootstrap/process/listener primitives, explicit `EngineClient`
+and `EmailMagicLinkDelivery` bindings, a concrete executable/start command, and
+a repository-local same-origin composition edge. Provider-specific staging
+composition remains separate deployment work.
 
 ## DECISION
 
@@ -62,9 +66,9 @@ Existing browser flows remain unchanged:
   endpoints.
 - `/vault` and `/vault/chart?chartId=...` continue to call the existing
   same-origin Vault endpoints for save, list, and open operations.
-- Browser chart calculation remains on `MockEngineClient` in the current
-  development mode. The same topology already reserves `/api/chart` for a
-  future provider-neutral browser/BFF path.
+- Browser chart calculation uses `HttpEngineClient` over the same-origin
+  `/api/chart` BFF path. The current executable's explicitly development-only
+  server binding uses `MockEngineClient` behind that API boundary.
 
 ## ROUTE OWNERSHIP
 
@@ -248,35 +252,27 @@ the PRD's Engine production gates are satisfied.
 
 ## DEFERRED ITEMS
 
-- Hosting-provider selection and provider-specific deployment configuration.
-- Concrete executable, package scripts, migration command, and local
-  same-origin composition.
-- Exact-origin middleware for unsafe `/api/*` methods, required before
-  externally accessible staging.
+- Production-hosting selection and provider-specific staging deployment
+  configuration.
+- Provider-specific staging composition and externally accessible staging
+  provisioning/validation.
 - A separate readiness policy or endpoint.
-- Browser Calculate migration from `MockEngineClient` to `/api/chart`.
 - Production EngineClient and astronomy-provider selection:
   `PROVIDER DECISION DEFERRED`.
-- Known P0 UI follow-up: `UNKNOWN_TIME` request context currently does not
-  sufficiently suppress exact-time-dependent UI when `MockEngineClient`
-  returns the full fixture. This does not block this deployment decision.
 
-## NEXT IMPLEMENTATION TASK
+Implemented follow-through now includes the concrete API executable and package
+scripts, explicit migration command, repository-local same-origin composition,
+exact-origin middleware for unsafe `/api/*` methods, browser
+`HttpEngineClient -> /api/chart`, and safe `UNKNOWN_TIME` presentation policy.
 
-`WEB-DEPLOY-001B — Concrete server executable and deployment composition`
+## FOLLOW-UP STATUS
 
-That task owns:
+The originally identified executable/composition foundation is implemented.
+`WEB-DEPLOY-002A` selects the provider-specific P0 staging topology and
+environment contract while preserving every architectural decision in this
+ADR.
 
-- a concrete API process entrypoint;
-- the executable environment/secrets boundary;
-- Resend `EmailMagicLinkDelivery` construction;
-- an explicitly development-only EngineClient binding for local/staging use;
-- invocation of `runServerProcess(...)`;
-- an explicit migration command/entrypoint;
-- repository package scripts for supported execution; and
-- a provider-neutral local same-origin composition edge that routes `/api/*`
-  to Hono and normal routes/assets to Astro without changing `createApp(...)`.
-
-It must not re-decide the same-origin policy, route ownership, cookie model,
-CORS policy, static ownership, or migration/start ordering. It must not select
-a hosting provider or production astronomy provider.
+Future staging work must not re-decide the same-origin policy, route ownership,
+cookie model, CORS policy, static ownership, or migration/start ordering. A
+staging-provider selection remains distinct from production hosting and
+production astronomy-provider decisions.
