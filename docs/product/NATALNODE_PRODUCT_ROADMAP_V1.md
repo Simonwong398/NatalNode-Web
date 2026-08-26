@@ -26,9 +26,21 @@ deployment decisions remain in `docs/adr/`.
 
 ### Product UX Calibration V1.1
 
-`CURRENT ACTIVE PRODUCT PRIORITY: Product UX Calibration V1.1`
+`SUBSTANTIALLY COMPLETE: Product UX Calibration V1.1`
 
-The next Web implementation task is:
+`NATALNODE VISUAL V1.1 FUNCTIONAL BASELINE = APPROVED`
+
+The current V1.1 visual direction is frozen as a functional baseline. Manual
+review has approved Calculate V1.1, Chart Workspace ambient propagation, Learn
+Editorial Hero, Tools Hub, and Individual Tool pages. This approval records
+those surfaces only; it does not approve unreviewed future pages.
+
+The next major roadmap work is not additional visual reconstruction. Further
+visual changes during active product development are limited to material
+usability, accessibility, responsive, trust/provenance, or new-functional-
+hierarchy needs. Decorative polish is deferred to a future dedicated phase.
+
+The original Web implementation task for this calibration track was:
 
 `WEB-VIS-007A — Calculate UX Calibration V1.1`
 
@@ -43,6 +55,10 @@ three material product issues:
 
 V1.1 is a focused calibration track, not a new product surface or a rewrite of
 the Visual System.
+
+The active dependency track remains Scientific Core / Engine completion in the
+separate Engine repository. NatalNode-Web remains provider-neutral and must
+not perform Engine work.
 
 ### V1.1 goals
 
@@ -433,11 +449,16 @@ or the accepted ADRs.
 ## 12. Immediate next Web implementation task
 
 ```text
-NEXT WEB IMPLEMENTATION TASK:
-WEB-VIS-007A — Calculate UX Calibration V1.1
+NEXT MAJOR ROADMAP WORK:
+SCIENTIFIC CORE / ENGINE COMPLETION
 ```
 
-Scope:
+The visual V1.1 functional baseline is frozen. No additional decorative
+visual reconstruction is the immediate next roadmap task. Scientific Core /
+Engine completion remains a separate active dependency track and is not
+implemented in NatalNode-Web.
+
+The completed calibration scope was:
 
 - locale-independent Birth Date UX;
 - task-first Calculate/Birth Input simplification;

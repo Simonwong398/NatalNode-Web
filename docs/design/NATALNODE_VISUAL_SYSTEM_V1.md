@@ -1,6 +1,6 @@
 # NATALNODE_VISUAL_SYSTEM_V1
 
-- Status: FROZEN — implementation specification
+- Status: FROZEN — implementation specification; V1.1 functional baseline approved
 - Task: `WEB-VIS-001B`
 - Date: 2026-08-25
 - Product baseline: `docs/PRD.md`
@@ -708,6 +708,136 @@ change belongs in this visual track.
 When deployment is explicitly resumed, `WEB-SEC-002A-R1` must complete before
 `WEB-DEPLOY-002B`.
 
-The immediate next task after this freeze is:
+The original next task after this V1 specification was:
 
 `WEB-VIS-002A — Establish shared visual foundation`
+
+The V1.1 functional-baseline freeze below supersedes that historical pointer
+for current product development. It does not authorize a new decorative
+reconstruction sequence.
+
+## 19. VISUAL V1.1 FUNCTIONAL BASELINE FREEZE
+
+```text
+NATALNODE VISUAL V1.1 FUNCTIONAL BASELINE = APPROVED
+MODE = FUNCTIONAL BASELINE; DECORATIVE POLISH DEFERRED
+```
+
+This is an approval of the current functional visual direction, not an
+authorization for continued page-by-page decorative refinement. Future product
+work may add or restructure modules, so visual changes during active product
+development are limited to material usability, accessibility, responsive,
+trust, or hierarchy needs caused by real functionality.
+
+### 19.1 Approved page-family direction
+
+| Page family | Approved V1.1 direction |
+| --- | --- |
+| Observatory | Task-first; scientific/instrument surfaces; Temporal Ambient; the real chart is the primary celestial visual; no decorative large planet or background art. |
+| Editorial | Content-first; open composition; restrained brand atmosphere; Learn may use the approved half-planet brand art; Tools use Editorial Utility treatment without copying the Learn hero. |
+
+### 19.2 Manual approvals recorded
+
+Manual visual review has approved these surfaces only:
+
+- Calculate V1.1;
+- Chart Workspace ambient propagation;
+- Vault visual foundation;
+- Learn Editorial Hero;
+- Tools Hub; and
+- Individual Tool pages.
+
+This approval does not extend to unreviewed future pages or future product
+modules.
+
+### 19.3 Frozen anti-patterns
+
+Do not propagate or reintroduce:
+
+- the Calculate micro-grid globally;
+- the Learn half-planet hero globally;
+- detached celestial orbit backgrounds;
+- HUD decoration across Editorial pages;
+- visual telemetry without real data;
+- decorative planets behind the real Chart Workspace; or
+- repeated page-by-page visual carving during active feature development.
+
+### 19.4 Active-development visual policy
+
+New functional modules should first reuse the existing V1.1 primitives and
+boundaries:
+
+- typography;
+- spacing;
+- surfaces;
+- buttons;
+- fields;
+- notices;
+- badges and status treatments;
+- Editorial and Observatory mode boundaries; and
+- responsive and accessibility primitives.
+
+Feature work must not create a new visual vocabulary for each module. Narrow
+visual changes are authorized only when required for usability,
+accessibility, responsive layout, trust/provenance clarity, new functional
+hierarchy, or a confirmed manual-review regression. Aesthetic polishing alone
+is not sufficient justification during active product development.
+
+## 20. DEFERRED FINAL VISUAL CARVING / BRAND POLISH
+
+`FINAL VISUAL CARVING / BRAND POLISH` is a future dedicated phase. It is not
+scheduled or implemented by this freeze. When explicitly authorized later, it
+may include:
+
+- spacing refinement;
+- micro-interactions;
+- final card and surface calibration;
+- icon consistency;
+- final image crops;
+- typography tuning;
+- final visual hierarchy review; and
+- final animation decisions, if justified.
+
+## 21. PERFORMANCE IMPLEMENTATION RULE
+
+Prefer CSS, static SVG, optimized raster assets, and Astro-rendered HTML.
+Avoid WebGL, Three.js, canvas visual effects, video backgrounds, particle
+systems, and heavy runtime animation by default. A future product requirement
+must materially justify any exception.
+
+## 22. BRAND ART, DATA, AND ATMOSPHERE DISTINCTION
+
+These categories remain separate and must not be substituted for one another:
+
+| Category | Example | Role |
+| --- | --- | --- |
+| Brand art | Learn half-planet hero | Approved editorial identity cue; route-scoped. |
+| Scientific data visualization | Canonical Natal Chart | Truthful representation of Engine-backed chart facts. |
+| Decorative atmosphere | Temporal Ambient and subtle gradients | Restrained depth behind content; never a substitute for data. |
+
+## 23. ADS AND MONETIZATION BOUNDARY
+
+The following surfaces remain ad-free:
+
+- Calculate;
+- Birth Input;
+- Chart Workspace;
+- Interpretation;
+- Calculation Details;
+- Vault; and
+- Auth.
+
+Learn and educational Tools remain future ad-eligible surfaces only under a
+separate authorization. No ads are implemented by this freeze, and advertising
+must never obscure core actions, trust information, or chart data.
+
+## 24. ROADMAP AND RELEASE GUARDRAILS
+
+Product UX Calibration V1.1 is substantially complete at this baseline. The
+next major roadmap work is not additional visual reconstruction. Scientific
+Core / Engine completion remains the separate active dependency track, while
+Community and Practitioner implementation remain governed by the accepted
+roadmap phase order.
+
+`WEB DEPLOYMENT TRACK = PAUSED` remains unchanged. Production astronomy
+remains externally gated and `PROVIDER DECISION DEFERRED` remains authoritative.
