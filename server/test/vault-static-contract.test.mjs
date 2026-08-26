@@ -10,7 +10,10 @@ test('Vault management frontend reuses existing endpoints and keeps deferred fea
     'utf8'
   );
   const api = await readFile(
-    new URL('apps/web/src/features/vault/vault-management.ts', REPOSITORY_ROOT),
+    new URL(
+      'apps/web/src/features/vault/vault-management-client.ts',
+      REPOSITORY_ROOT
+    ),
     'utf8'
   );
   const savedExperience = await readFile(
