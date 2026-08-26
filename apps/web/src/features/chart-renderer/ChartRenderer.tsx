@@ -36,6 +36,20 @@ type ResolvedAspect = {
   style: AspectStyle;
 };
 
+const CHART_COLORS = {
+  atmosphere: 'var(--nn-bg-observatory)',
+  angle: 'var(--nn-chart-angle)',
+  bodyPrimary: 'var(--nn-chart-body-primary)',
+  bodySecondary: 'var(--nn-chart-body-secondary)',
+  border: 'var(--nn-border-default)',
+  borderStrong: 'var(--nn-border-strong)',
+  focus: 'var(--nn-chart-focus)',
+  house: 'var(--nn-chart-house)',
+  surface: 'var(--nn-surface-base)',
+  textSecondary: 'var(--nn-text-secondary)',
+  zodiac: 'var(--nn-chart-zodiac)'
+} as const;
+
 const ZODIAC_SIGNS = [
   'Aries',
   'Taurus',
@@ -66,38 +80,38 @@ const BODY_ABBREVIATIONS: Record<string, string> = {
 
 const ASPECT_STYLES: Record<string, AspectStyle> = {
   conjunction: {
-    stroke: '#f8fafc',
+    stroke: 'var(--nn-chart-aspect-neutral)',
     opacity: 0.58,
-    strokeWidth: 1.5
+    strokeWidth: 1.4
   },
   opposition: {
-    stroke: '#fda4af',
+    stroke: 'var(--nn-chart-aspect-dynamic)',
     strokeDasharray: '8 4',
-    opacity: 0.72,
-    strokeWidth: 1.25
+    opacity: 0.68,
+    strokeWidth: 1.3
   },
   trine: {
-    stroke: '#93c5fd',
-    strokeDasharray: '2 4',
-    opacity: 0.72,
+    stroke: 'var(--nn-chart-aspect-harmonious)',
+    opacity: 0.62,
     strokeWidth: 1.25
   },
   square: {
-    stroke: '#fbbf24',
+    stroke: 'var(--nn-chart-aspect-dynamic)',
     strokeDasharray: '6 3 1 3',
-    opacity: 0.72,
+    opacity: 0.62,
     strokeWidth: 1.25
   },
   sextile: {
-    stroke: '#86efac',
-    strokeDasharray: '1 5',
-    opacity: 0.78,
-    strokeWidth: 1.25
+    stroke: 'var(--nn-chart-aspect-harmonious)',
+    strokeDasharray: '2 4',
+    opacity: 0.56,
+    strokeWidth: 1.1
   }
 };
 
-const SECTOR_FILLS = ['#1b2438', '#202b45'];
 const SVG_TEXT = 'ui-sans-serif, system-ui, sans-serif';
+const PRECISION_TICK_COUNT = 36;
+const SECTOR_OPACITIES = [0.08, 0.14] as const;
 
 function formatNumericValue(value: number): string {
   return Number.isInteger(value) ? String(value) : value.toFixed(2).replace(/\.?0+$/, '');
@@ -140,6 +154,37 @@ function getBodyLabel(bodyId: string): string {
   return BODY_ABBREVIATIONS[bodyId] ?? bodyId.slice(0, 3);
 }
 
+function renderPrecisionTicks() {
+  return (
+    <g aria-hidden="true">
+      {Array.from({ length: PRECISION_TICK_COUNT }, (_, index) => {
+        const longitude = (index * 360) / PRECISION_TICK_COUNT;
+        const isMajor = index % 3 === 0;
+        const tick = radialLine(
+          longitude,
+          ZODIAC_OUTER_RADIUS + 7,
+          ZODIAC_OUTER_RADIUS + (isMajor ? 16 : 12)
+        );
+
+        return (
+          <line
+            key={`precision-tick-${index}`}
+            opacity={isMajor ? 0.5 : 0.24}
+            stroke={CHART_COLORS.border}
+            strokeLinecap="round"
+            strokeWidth={isMajor ? 1.2 : 0.8}
+            vectorEffect="non-scaling-stroke"
+            x1={tick.start.x}
+            x2={tick.end.x}
+            y1={tick.start.y}
+            y2={tick.end.y}
+          />
+        );
+      })}
+    </g>
+  );
+}
+
 function renderHouseCusp(cusp: HouseCusp) {
   const line = radialLine(cusp.longitude, HOUSE_INNER_RADIUS, ZODIAC_INNER_RADIUS);
   const label = longitudeToPoint(cusp.longitude, HOUSE_LABEL_RADIUS);
@@ -151,7 +196,8 @@ function renderHouseCusp(cusp: HouseCusp) {
       role="group"
     >
       <line
-        stroke="#64748b"
+        opacity={cusp.house === 1 ? 0.82 : 0.58}
+        stroke={CHART_COLORS.house}
         strokeDasharray={cusp.house === 1 ? undefined : '3 4'}
         strokeWidth={cusp.house === 1 ? 1.8 : 1}
         x1={line.start.x}
@@ -161,7 +207,7 @@ function renderHouseCusp(cusp: HouseCusp) {
       />
       <text
         dominantBaseline="middle"
-        fill="#cbd5e1"
+        fill={CHART_COLORS.house}
         fontFamily={SVG_TEXT}
         fontSize="12"
         fontWeight="600"
@@ -191,7 +237,8 @@ function renderBody(body: BodyFact, index: number) {
       role="group"
     >
       <line
-        stroke="#64748b"
+        opacity={0.48}
+        stroke={CHART_COLORS.bodySecondary}
         strokeDasharray="2 3"
         strokeWidth="0.8"
         x1={marker.x}
@@ -199,10 +246,25 @@ function renderBody(body: BodyFact, index: number) {
         y1={marker.y}
         y2={label.y}
       />
-      <circle cx={marker.x} cy={marker.y} fill="#a7b6e8" r="4" stroke="#10131a" strokeWidth="1.5" />
+      <circle
+        aria-hidden="true"
+        cx={marker.x}
+        cy={marker.y}
+        fill={CHART_COLORS.bodySecondary}
+        fillOpacity="0.16"
+        r="7"
+      />
+      <circle
+        cx={marker.x}
+        cy={marker.y}
+        fill={CHART_COLORS.bodyPrimary}
+        r="4"
+        stroke={CHART_COLORS.surface}
+        strokeWidth="1.5"
+      />
       <text
         dominantBaseline="middle"
-        fill="#f8fafc"
+        fill={CHART_COLORS.bodyPrimary}
         fontFamily={SVG_TEXT}
         fontSize="12"
         fontWeight="700"
@@ -215,7 +277,7 @@ function renderBody(body: BodyFact, index: number) {
       {body.retrograde === true ? (
         <text
           dominantBaseline="middle"
-          fill="#f8fafc"
+          fill={CHART_COLORS.bodyPrimary}
           fontFamily={SVG_TEXT}
           fontSize="9"
           fontWeight="700"
@@ -228,7 +290,7 @@ function renderBody(body: BodyFact, index: number) {
       ) : null}
       <text
         dominantBaseline="middle"
-        fill="#94a3b8"
+        fill={CHART_COLORS.bodySecondary}
         fontFamily={SVG_TEXT}
         fontSize="9"
         textAnchor="middle"
@@ -274,9 +336,10 @@ function renderAngle(angle: { angleId: string; longitude: number }) {
   return (
     <g aria-label={`${angleLabel} at ${formatLongitude(angle.longitude)}`} key={angle.angleId} role="group">
       <line
-        stroke={angleLabel === 'ASC' ? '#f8fafc' : '#a7b6e8'}
-        strokeDasharray="8 4"
-        strokeWidth="2"
+        opacity="0.9"
+        stroke={CHART_COLORS.angle}
+        strokeDasharray={angleLabel === 'ASC' ? undefined : '8 4'}
+        strokeWidth="2.2"
         x1={line.start.x}
         x2={line.end.x}
         y1={line.start.y}
@@ -284,7 +347,7 @@ function renderAngle(angle: { angleId: string; longitude: number }) {
       />
       <text
         dominantBaseline="middle"
-        fill="#f8fafc"
+        fill={CHART_COLORS.angle}
         fontFamily={SVG_TEXT}
         fontSize="12"
         fontWeight="700"
@@ -296,7 +359,7 @@ function renderAngle(angle: { angleId: string; longitude: number }) {
       </text>
       <text
         dominantBaseline="middle"
-        fill="#cbd5e1"
+        fill={CHART_COLORS.textSecondary}
         fontFamily={SVG_TEXT}
         fontSize="9"
         textAnchor="middle"
@@ -323,6 +386,7 @@ export default function ChartRenderer({ chart, presentationPolicy }: ChartRender
     ? chart.angles.find((angle) => angle.angleId === 'MC')
     : undefined;
   const renderableAspects = getRenderableAspects(chart);
+  const atmosphereId = `${rendererId.replace(/:/g, '')}-atmosphere`;
   const description =
     presentationPolicy.showHouses && presentationPolicy.showAngles
       ? 'SVG chart wheel showing twelve zodiac sectors, provided house cusps, chart bodies, and ASC and MC angles.'
@@ -339,23 +403,55 @@ export default function ChartRenderer({ chart, presentationPolicy }: ChartRender
       <title id={titleId}>Natal chart wheel</title>
       <desc id={descriptionId}>{description}</desc>
 
-      <rect
-        fill="#10131a"
-        height={CHART_VIEWBOX_SIZE}
-        rx="24"
-        width={CHART_VIEWBOX_SIZE}
-        x="0"
-        y="0"
-      />
-      <circle
-        cx={CHART_CENTER}
-        cy={CHART_CENTER}
-        fill="#141925"
-        r={ZODIAC_OUTER_RADIUS}
-        stroke="#35405c"
-        strokeWidth="2"
-      />
+      <defs aria-hidden="true">
+        <radialGradient
+          cx={CHART_CENTER}
+          cy={CHART_CENTER}
+          id={atmosphereId}
+          r={ZODIAC_OUTER_RADIUS}
+          gradientUnits="userSpaceOnUse"
+        >
+          <stop offset="0%" stopColor={CHART_COLORS.focus} stopOpacity="0.11" />
+          <stop offset="66%" stopColor={CHART_COLORS.atmosphere} stopOpacity="0.08" />
+          <stop offset="100%" stopColor={CHART_COLORS.atmosphere} stopOpacity="0" />
+        </radialGradient>
+      </defs>
 
+      {/* Atmosphere: static depth remains behind every scientific layer. */}
+      <g aria-hidden="true">
+        <circle
+          cx={CHART_CENTER}
+          cy={CHART_CENTER}
+          fill={`url(#${atmosphereId})`}
+          r={ZODIAC_OUTER_RADIUS}
+        />
+      </g>
+
+      {/* Instrument frame: rings and calibration marks are orientation aids only. */}
+      <g aria-hidden="true">
+        <circle
+          cx={CHART_CENTER}
+          cy={CHART_CENTER}
+          fill={CHART_COLORS.surface}
+          fillOpacity="0.68"
+          r={ZODIAC_OUTER_RADIUS}
+          stroke={CHART_COLORS.borderStrong}
+          strokeOpacity="0.88"
+          strokeWidth="2"
+        />
+        <circle
+          cx={CHART_CENTER}
+          cy={CHART_CENTER}
+          fill="none"
+          r={ZODIAC_OUTER_RADIUS + 7}
+          stroke={CHART_COLORS.border}
+          strokeOpacity="0.62"
+          strokeWidth="1"
+        />
+        {renderPrecisionTicks()}
+      </g>
+
+      {/* Zodiac: the canonical twelve sectors remain the primary structural ring. */}
       <g aria-label="Zodiac sectors" role="group">
         {ZODIAC_SIGNS.map((sign, index) => {
           const startLongitude = index * 30;
@@ -370,13 +466,15 @@ export default function ChartRenderer({ chart, presentationPolicy }: ChartRender
                   ZODIAC_OUTER_RADIUS,
                   ZODIAC_INNER_RADIUS
                 )}
-                fill={SECTOR_FILLS[index % SECTOR_FILLS.length]}
-                stroke="#35405c"
-                strokeWidth="1"
+                fill={CHART_COLORS.zodiac}
+                fillOpacity={SECTOR_OPACITIES[index % SECTOR_OPACITIES.length]}
+                stroke={CHART_COLORS.zodiac}
+                strokeOpacity="0.58"
+                strokeWidth="0.9"
               />
               <text
                 dominantBaseline="middle"
-                fill="#e2e8f0"
+                fill={CHART_COLORS.textSecondary}
                 fontFamily={SVG_TEXT}
                 fontSize="11"
                 fontWeight="600"
@@ -394,11 +492,14 @@ export default function ChartRenderer({ chart, presentationPolicy }: ChartRender
       <circle
         cx={CHART_CENTER}
         cy={CHART_CENTER}
-        fill="#141925"
+        fill={CHART_COLORS.surface}
+        fillOpacity="0.86"
         r={ZODIAC_INNER_RADIUS}
-        stroke="#35405c"
+        stroke={CHART_COLORS.borderStrong}
+        strokeOpacity="0.72"
         strokeWidth="1.5"
       />
+      {/* Houses: distinct structural geometry is rendered only when policy permits it. */}
       {presentationPolicy.showHouses ? (
         <>
           <circle
@@ -406,8 +507,9 @@ export default function ChartRenderer({ chart, presentationPolicy }: ChartRender
             cy={CHART_CENTER}
             fill="none"
             r={HOUSE_INNER_RADIUS}
-            stroke="#35405c"
-            strokeWidth="1"
+            stroke={CHART_COLORS.house}
+            strokeOpacity="0.42"
+            strokeWidth="1.1"
           />
 
           <g aria-label="House cusps" role="group">
@@ -416,14 +518,17 @@ export default function ChartRenderer({ chart, presentationPolicy }: ChartRender
         </>
       ) : null}
 
+      {/* Aspects: valid Engine facts remain complete but subordinate to bodies. */}
       <g aria-label="Major aspects" role="group">
         {renderableAspects.map(renderAspect)}
       </g>
 
+      {/* Bodies: the existing canonical marker and label positions are unchanged. */}
       <g aria-label="Chart bodies" role="group">
         {chart.bodies.map(renderBody)}
       </g>
 
+      {/* Angles: ASC and MC remain policy-gated and distinct from ordinary bodies. */}
       {presentationPolicy.showAngles ? (
         <g aria-label="Chart angles" role="group">
           {ascendant ? renderAngle(ascendant) : null}
@@ -431,7 +536,25 @@ export default function ChartRenderer({ chart, presentationPolicy }: ChartRender
         </g>
       ) : null}
 
-      <circle cx={CHART_CENTER} cy={CHART_CENTER} fill="#a7b6e8" r="3" />
+      {/* Center reference: quiet, static, and excluded from scientific narration. */}
+      <g aria-hidden="true">
+        <circle
+          cx={CHART_CENTER}
+          cy={CHART_CENTER}
+          fill="none"
+          r="18"
+          stroke={CHART_COLORS.focus}
+          strokeOpacity="0.18"
+          strokeWidth="1"
+        />
+        <circle
+          cx={CHART_CENTER}
+          cy={CHART_CENTER}
+          fill={CHART_COLORS.focus}
+          fillOpacity="0.72"
+          r="3"
+        />
+      </g>
     </svg>
   );
 }
