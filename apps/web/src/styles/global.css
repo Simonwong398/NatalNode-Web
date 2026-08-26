@@ -579,6 +579,19 @@
     background: var(--nn-surface-elevated);
   }
 
+  /* Observatory surfaces inherit the existing daypart ambience without
+     spreading Calculate's page-specific grid or radial composition. */
+  body.nn-mode-observatory .nn-chart-workspace,
+  body.nn-mode-observatory .nn-chart-workspace .nn-surface--elevated,
+  body.nn-mode-observatory .nn-chart-workspace .nn-surface--instrument,
+  body.nn-mode-observatory .nn-container--workspace .nn-surface--elevated,
+  body.nn-mode-observatory .nn-container--workspace .nn-surface--instrument {
+    background:
+      linear-gradient(180deg, var(--nn-ambient-secondary), transparent 36%),
+      var(--nn-ambient-surface-lift);
+    box-shadow: var(--nn-shadow-low), inset 0 1px 0 var(--nn-ambient-secondary);
+  }
+
   .nn-button {
     display: inline-flex;
     min-height: 44px;

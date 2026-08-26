@@ -89,7 +89,7 @@ export default function ChartWorkspaceView({
   return (
     <section
       aria-labelledby={titleId}
-      className="nn-surface nn-surface--elevated mt-2 min-w-0 overflow-hidden"
+      className="nn-chart-workspace nn-surface nn-surface--elevated mt-2 min-w-0 overflow-hidden"
     >
       <header className="nn-section-header border-b border-natal-border/70 p-5 sm:p-7 lg:flex lg:flex-row lg:items-end lg:justify-between">
         <div className="nn-section-header">
