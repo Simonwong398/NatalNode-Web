@@ -345,7 +345,11 @@ describe('known and unknown birth-time behavior', () => {
       assert.match(scope.container.textContent, /Exact birth time unknown/);
       assert.match(
         scope.container.textContent,
-        /Ascendant, Midheaven, houses, and house-based interpretation will be unavailable/
+        /We'll calculate what can be determined reliably\. Time-dependent factors such as the Ascendant, Midheaven, and houses will remain unavailable\./
+      );
+      assert.ok(
+        scope.button('Calculate Chart').compareDocumentPosition(scope.role('status')) &
+          scope.window.Node.DOCUMENT_POSITION_FOLLOWING
       );
     });
   });

@@ -47,17 +47,8 @@ const websiteStructuredData = robots === 'index,follow'
         const updateTemporalAmbient = () => {
           const now = new Date();
           const hour = now.getHours();
-          const minute = now.getMinutes();
-          const formattedTime = `${String(hour).padStart(2, '0')}:${String(minute).padStart(2, '0')}`;
 
           document.documentElement.dataset.nnDaypart = getDaypart(hour);
-          document.querySelectorAll('[data-nn-local-time]').forEach((element) => {
-            element.textContent = `LOCAL ${formattedTime}`;
-            element.setAttribute('datetime', formattedTime);
-            element.setAttribute('aria-label', `Device local time ${formattedTime}`);
-            element.removeAttribute('aria-hidden');
-            element.setAttribute('data-nn-local-time-ready', 'true');
-          });
         };
 
         updateTemporalAmbient();
@@ -135,12 +126,6 @@ const websiteStructuredData = robots === 'index,follow'
             </li>
           </ul>
         </nav>
-
-        <time
-          class="nn-local-time"
-          data-nn-local-time
-          aria-hidden="true"
-        ></time>
       </Container>
     </header>
 

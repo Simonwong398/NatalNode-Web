@@ -324,6 +324,7 @@ export default function BirthInputForm({
               isInteractionDisabled={isInteractionDisabled}
               onEditBirthTime={() => timeInputRef.current?.focus()}
               onSelectCandidate={handleCandidateSelection}
+              placement="blocking"
               resolution={resolution}
               resolutionError={resolutionError}
             />
@@ -356,6 +357,16 @@ export default function BirthInputForm({
               </p>
             ) : null}
           </div>
+
+          <BirthResolutionFeedback
+            isDevelopmentFixture={isDevelopmentFixtureResolver}
+            isInteractionDisabled={isInteractionDisabled}
+            onEditBirthTime={() => timeInputRef.current?.focus()}
+            onSelectCandidate={handleCandidateSelection}
+            placement="non-blocking"
+            resolution={resolution}
+            resolutionError={resolutionError}
+          />
         </form>
       </section>
 

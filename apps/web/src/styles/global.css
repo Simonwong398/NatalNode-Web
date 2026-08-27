@@ -501,29 +501,6 @@
     color: var(--nn-accent-supporting);
   }
 
-  .nn-local-time {
-    display: none;
-    min-width: 7.5rem;
-    min-height: 44px;
-    align-items: center;
-    justify-content: flex-end;
-    margin-inline-start: 8px;
-    padding-inline-start: 16px;
-    border-inline-start: 1px solid var(--nn-border-subtle);
-    color: var(--nn-text-muted);
-    font-family: var(--nn-font-mono);
-    font-size: 0.6875rem;
-    font-weight: 600;
-    letter-spacing: 0.08em;
-    line-height: 1;
-    visibility: hidden;
-    white-space: nowrap;
-  }
-
-  .nn-local-time[data-nn-local-time-ready='true'] {
-    visibility: visible;
-  }
-
   .nn-menu-toggle {
     display: inline-flex;
     min-width: 44px;
@@ -1111,12 +1088,6 @@
 
   .nn-nav-link[aria-current="page"] {
     box-shadow: inset 0 -2px 0 var(--nn-accent-primary);
-  }
-}
-
-@media (min-width: 1024px) {
-  .nn-local-time {
-    display: inline-flex;
   }
 }
 

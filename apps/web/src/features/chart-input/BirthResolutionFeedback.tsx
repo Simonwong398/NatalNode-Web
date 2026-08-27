@@ -10,6 +10,8 @@ type ExactResolution = Extract<BirthInputResolution, { ambiguityStatus: 'EXACT' 
 
 type AmbiguousResolution = Extract<BirthInputResolution, { ambiguityStatus: 'AMBIGUOUS' }>;
 
+type ResolutionFeedbackPlacement = 'blocking' | 'non-blocking';
+
 const DEVELOPMENT_FIXTURE_EXPLANATION =
   'This development resolver preserves your entered place label but uses fixed New York coordinate/timezone fixture data for UI testing; the fixture data is not derived from that place, is not historical timezone evidence, and is not production resolution.';
 
@@ -287,7 +289,7 @@ function UnknownTimeResolutionPanel({
         Exact birth time unknown
       </h3>
       <p className="nn-type-body-small mt-2">
-        Without an exact birth time, Ascendant, Midheaven, houses, and house-based interpretation will be unavailable.
+        We'll calculate what can be determined reliably. Time-dependent factors such as the Ascendant, Midheaven, and houses will remain unavailable.
       </p>
       <ResolvedLocationTelemetry
         heading={isDevelopmentFixture ? 'Fixture context' : 'Location resolved'}
@@ -303,6 +305,7 @@ interface BirthResolutionFeedbackProps {
   isInteractionDisabled: boolean;
   onEditBirthTime: () => void;
   onSelectCandidate: (candidate: AmbiguousTimeCandidate) => void;
+  placement: ResolutionFeedbackPlacement;
   resolution: BirthInputResolution | null;
   resolutionError: string | null;
 }
@@ -312,6 +315,7 @@ export default function BirthResolutionFeedback({
   isInteractionDisabled,
   onEditBirthTime,
   onSelectCandidate,
+  placement,
   resolution,
   resolutionError
 }: BirthResolutionFeedbackProps) {
@@ -356,14 +360,21 @@ export default function BirthResolutionFeedback({
       break;
   }
 
+  const isBlockingResolution =
+    resolution?.ambiguityStatus === 'AMBIGUOUS' || resolution?.ambiguityStatus === 'NONEXISTENT';
+  const isNonBlockingResolution =
+    resolution?.ambiguityStatus === 'EXACT' || resolution?.ambiguityStatus === 'UNKNOWN_TIME';
+  const shouldRenderResolutionPanel =
+    placement === 'blocking' ? isBlockingResolution : isNonBlockingResolution;
+
   return (
     <>
-      {resolutionError ? (
+      {placement === 'blocking' && resolutionError ? (
         <p className="nn-notice nn-notice--error mt-5 max-w-3xl" role="alert">
           {resolutionError}
         </p>
       ) : null}
-      {resolutionPanel}
+      {shouldRenderResolutionPanel ? resolutionPanel : null}
     </>
   );
 }
