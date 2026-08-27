@@ -4,6 +4,8 @@ import { CurrentSkyInstrument } from '@/features/public-sky';
 import type { SeoMetadata } from '@/lib/seo';
 
 const CURRENT_SKY_AT_UTC = '2026-09-01T12:00:00.000Z';
+const isCurrentSkyPreviewAvailable =
+  import.meta.env.DEV || process.env.NATALNODE_LOCAL_DEV_PREVIEW === 'true';
 
 const seo: SeoMetadata = {
   title: 'Current Sky Instrument | NatalNode',
@@ -20,7 +22,7 @@ const seo: SeoMetadata = {
       <h1 class="nn-type-page-title mt-3">Current Sky instrument</h1>
       <p class="nn-type-body mt-4 max-w-2xl">A focused readout of the supplied shared-sky snapshot at one UTC instant.</p>
     </header>
-    {import.meta.env.DEV ? (
+    {isCurrentSkyPreviewAvailable ? (
       <section class="nn-surface nn-surface--instrument mt-10 p-4 sm:p-8" aria-label="Current Sky instrument">
         <CurrentSkyInstrument atUtc={CURRENT_SKY_AT_UTC} client:load />
       </section>
