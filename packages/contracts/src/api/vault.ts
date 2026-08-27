@@ -1,4 +1,4 @@
-import type { ChartRequest } from '../index.js';
+import type { ChartRequest } from '../chart.js';
 import type { ChartNoteRecord, VaultChartCategory, VaultChartRecord } from '../vault.js';
 
 export interface SaveVaultChartApiRequest {

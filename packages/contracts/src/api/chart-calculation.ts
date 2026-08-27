@@ -1,4 +1,4 @@
-import type { ChartRequest, ChartResult } from '../index.js';
+import type { ChartRequest, ChartResult } from '../chart.js';
 
 export interface ChartCalculationApiRequest {
   readonly chart: ChartRequest;

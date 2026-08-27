@@ -1,4 +1,4 @@
-import type { ChartRequest, ChartResult } from './index.js';
+import type { ChartRequest, ChartResult } from './chart.js';
 
 /** Registered-user categories supported by the Chart Vault. */
 export type VaultChartCategory = 'SELF' | 'PARTNER' | 'FAMILY' | 'FRIEND' | 'CLIENT';
