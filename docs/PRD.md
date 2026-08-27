@@ -1201,10 +1201,69 @@ Production public astrology calculation 必须满足：
 4. 不自行添加 Swiss Ephemeris / VSOP / JPL / Astronomy Engine dependencies；
 5. 默认使用 MockEngineClient；
 6. 一次只做一个小 patch；
-7. 普通 patch 只做 targeted validation；
-8. meaningful commit boundary 必须提交；
-9. 不自动增加 P1/P2/P3 功能；
-10. docs/Git 为 source of truth。
+7. Large implementation 之前先定义 semantic responsibility boundaries；
+8. 新增 behavioral module 不得超过约 500 LOC，除非记录明确 justification；约 350 LOC 触发 architecture review；
+9. 既有 oversized file 按 grandfather rule 处理，不自动变成 refactor task；
+10. 不得在没有用户明确授权的情况下进行 repository-wide decomposition / audit；
+11. characterization 仅按 risk-driven 原则执行，product delivery 优先于 cosmetic cleanup；
+12. 普通 patch 只做 targeted validation，并控制 validation cost；
+13. meaningful commit boundary 必须提交；
+14. 不自动增加 P1/P2/P3 功能；
+15. docs/Git 为 source of truth。
+
+## 51.1 Maintainability and Module-Growth Guardrails
+
+Repository-wide Proactive Large-File Decomposition Program = **PAUSED**。
+Existing large-file audit 不是 mandatory execution backlog；product delivery 优先于 repository-wide cosmetic architecture cleanup。
+LOC thresholds 是 heuristic guardrails；它们不是 lint rules，不是 automatic refactor triggers，也不是修改 working code 的理由。本规则主要作为 Codex 的 planning constraint，用于节省 engineering effort 与 token consumption，而不是增加 process debt。
+
+当前状态：
+
+```text
+Proactive Large-File Decomposition Program
+= PAUSED
+
+Completed historical decomposition work remains accepted.
+Remaining large-file audit candidates are NOT the active roadmap.
+```
+
+因此，不得仅因 file size 继续推进以下工作：
+
+- ChartRenderer decomposition
+- global.css decomposition
+- SavedVaultChartExperience decomposition
+- local-public-edge decomposition
+- migration-runner decomposition
+- rate-limit module decomposition
+- Feedback decomposition
+- 其他 audit-ranked files
+
+Historical audit records 仅作为 reference material 保留，不得删除。已完成的 decomposition 不得 revert 或改回，包括 Vault management client decomposition、Vault component decomposition、Contracts chart extraction 与 BirthInputForm decomposition；本政策只约束 future prioritization。
+
+治理原则：
+
+- 以 responsibility-first 定义模块边界；优先保持单一、cohesive behavioral responsibility，而不是按文件大小机械拆分。
+- Behavioral module 的 preferred range 约为 100–300 LOC；约 350 LOC 触发 architecture review。新生成的 handwritten behavioral module 约 500 LOC 是 hard growth gate；如果预计实现会越过该门槛，必须在生成 large implementation 之前停下并先重划 semantic boundaries，而不是事后安排 cleanup。
+- Existing-file grandfather rule：既有 oversized file 不因历史大小自动触发拆分或 cleanup task。只有 actively blocking a product feature、反复造成 defect/unsafe change、所需 feature change 会明显加重 responsibility overload、security/privacy/scientific correctness 需要重构，或用户明确授权时，才允许 dedicated decomposition；产品工作触及既有大文件时，应做最小安全变更并只在自然且低成本时提取新增 cohesive responsibility。
+- Feature planning 必须在 meaningful feature 实现前静默检查将修改的 module、新 responsibility、归属与预期增长；不创建单独 audit task 或长报告。只有可能生成超过 500 LOC 的 behavioral module、存在真正竞争的 architecture design，或影响 public contract/security/scientific boundary 时，才向用户提出边界决策。
+- 对约 350 LOC 或以上的 behavioral source file，新增约 80 行以上的 clearly independent responsibility 时，应在同一 feature patch 中优先建立 cohesive sibling boundary；如果责任不可分，cohesion 优先于算术阈值。
+- Exemptions 包括 generated code、lockfiles、static data、fixtures、migration SQL、declarative schemas、configuration、vendor/third-party content，以及 test files。Stylesheet 需按 cascade/layer 特殊判断；不得仅因 line count 拆分 global.css，但有自然边界的新 feature styling 不应无关堆入 global stylesheet。
+- Large test file 不是自动 technical debt；测试应按 behavioral domain、fixture boundary 或 harness responsibility 组织，而不是按 LOC 机械拆分。Test file 不受 behavioral-module hard gate 直接约束，但仍须保持清晰、可定位和风险适配。
+- 对既有行为的 characterization 采用 risk-driven policy：只在 required product work 的高风险行为、真实 defect、安全/隐私/科学边界变更或明确授权 refactor 需要时补充；不因“文件很长”而创建大套件。
+- Validation 采用 targeted-validation cost control，按改动风险选择最小充分验证；check/build/full behavioral matrix 应在 meaningful milestone 或受影响 boundary 确实需要时执行，不因单纯 reorganize 反复扩大验证。
+- 禁止为规避阈值制造 generic abstraction debt；没有稳定重复责任、清晰契约和实际复用需求时，不做 one-function-per-file、speculative interface、unused generic hook 等 premature abstraction。
+
+Future priority order：
+
+1. product capability / MVP progress
+2. correctness and trust
+3. security/privacy
+4. user-visible quality and usability
+5. maintainability required by active work
+6. opportunistic structural cleanup
+7. standalone cosmetic architecture cleanup
+
+Standalone large-file cleanup 位于优先级底部，除非重新获得明确授权。该政策不创建 mandatory architecture report 或 mandatory LOC report，不新增 CI gate、lint package、test framework、automatic file-size failure、repository-wide recurring audit 或每次 module extraction 的额外 ADR；不得创建 file-size checker、custom ESLint rule、pre-commit hook、CI workflow、architecture scanner 或 dependency graph scanner。未来只有在出现实际 recurring violations 后，才可另行评估自动化。
 
 ---
 
