@@ -5,6 +5,10 @@ export {
   isRecord
 } from './chart-request.js';
 export {
+  isSkyEventsRequest,
+  isSkySnapshotRequest
+} from './sky-request.js';
+export {
   VAULT_CHART_DISPLAY_NAME_MAXIMUM_CHARACTERS,
   isMetadataUpdate,
   isSaveVaultChartApiRequest,

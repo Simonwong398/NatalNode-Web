@@ -14,6 +14,7 @@ import { createChartRoute } from './routes/chart.js';
 import { registerEmailAuthenticationRoutes } from './routes/auth-email.js';
 import { registerSessionAuthenticationRoutes } from './routes/auth-session.js';
 import { registerFeedbackRoutes } from './routes/feedback.js';
+import { registerSkyRoutes } from './routes/sky.js';
 import { registerVaultChartRoutes } from './routes/vault-charts.js';
 import { registerVaultNoteRoutes } from './routes/vault-notes.js';
 
@@ -49,6 +50,7 @@ export function createApp(dependencies: ServerDependencies): Hono {
   app.use('/api/*', enforceP0StagingRateLimits(rateLimiter));
   app.get('/api/health', (context) => context.json(HEALTH_RESPONSE));
   app.post('/api/chart', createChartRoute(dependencies));
+  registerSkyRoutes(app, dependencies);
   registerEmailAuthenticationRoutes(app, dependencies);
   registerSessionAuthenticationRoutes(app, dependencies);
   registerFeedbackRoutes(app, dependencies, rateLimiter);
