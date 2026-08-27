@@ -151,17 +151,17 @@ function AspectFact({ aspect }: { aspect: SkyCurrentAspect }) {
   );
 }
 
-function SkyHighlights({ snapshot }: { snapshot: SkySnapshotResult }) {
+function SkyHighlights({ snapshot, compact = false }: { snapshot: SkySnapshotResult; compact?: boolean }) {
   const highlightedAspects = snapshot.currentAspects.slice(0, 2);
   const retrogradeBodies = snapshot.bodyPositions.filter((body) => body.motionState === 'RETROGRADE');
 
   return (
-    <section aria-labelledby="current-sky-highlights" className="rounded-[var(--nn-radius-large)] border border-natal-border/70 bg-natal-night/25 p-4">
+    <section aria-labelledby="current-sky-highlights" className={`rounded-[var(--nn-radius-large)] border border-natal-border/70 bg-natal-night/25 ${compact ? 'p-3' : 'p-4'}`}>
       <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
         <h3 className="nn-type-card-title" id="current-sky-highlights">Sky highlights</h3>
         <span className="nn-type-metadata">Supplied facts</span>
       </div>
-      <ul className="mt-3 space-y-2 nn-type-body-small">
+      <ul className={`${compact ? 'mt-2 space-y-1.5' : 'mt-3 space-y-2'} nn-type-body-small`}>
         {highlightedAspects.map((aspect, index) => (
           <li className="flex items-start gap-2" key={`${aspect.firstBodyId}-${aspect.secondBodyId}-${index}`}>
             <span aria-hidden="true" className="shrink-0 text-natal-accent">{getBodyGlyph(aspect.firstBodyId)} {getAspectGlyph(aspect.aspectType)} {getBodyGlyph(aspect.secondBodyId)}</span>
@@ -180,7 +180,25 @@ function SkyHighlights({ snapshot }: { snapshot: SkySnapshotResult }) {
   );
 }
 
-function DevelopmentDisclosure({ snapshot }: { snapshot: SkySnapshotResult }) {
+function DevelopmentDisclosure({ snapshot, compact = false }: { snapshot: SkySnapshotResult; compact?: boolean }) {
+  if (compact) {
+    const warningText = snapshot.warnings.map((warning) => warning.message);
+    const hasProductionAstronomyWarning = snapshot.warnings.some(
+      (warning) => warning.code === 'NOT_PRODUCTION_ASTRONOMY' || warning.message === 'NOT PRODUCTION ASTRONOMY'
+    );
+    const disclosureText = [
+      'DEVELOPMENT FIXTURE',
+      ...warningText,
+      hasProductionAstronomyWarning ? null : 'NOT PRODUCTION ASTRONOMY'
+    ].filter((value): value is string => Boolean(value)).join(' · ');
+
+    return (
+      <p className="nn-type-metadata" data-development-fixture="true">
+        {disclosureText}
+      </p>
+    );
+  }
+
   return (
     <section aria-labelledby="current-sky-disclosure" className="nn-notice nn-notice--research flex-col">
       <div>
@@ -198,12 +216,44 @@ function DevelopmentDisclosure({ snapshot }: { snapshot: SkySnapshotResult }) {
   );
 }
 
+function SnapshotReadout({ snapshot, compact = false }: { snapshot: SkySnapshotResult; compact?: boolean }) {
+  return (
+    <div>
+      {!compact ? <p className="nn-eyebrow">Instrument readout</p> : null}
+      <time className={`nn-type-metadata block ${compact ? 'mt-1' : 'mt-2'}`} dateTime={snapshot.atUtc}>
+        {formatSnapshotTimestamp(snapshot.atUtc)}
+      </time>
+      <p className={`nn-type-metadata ${compact ? 'mt-0.5' : 'mt-1'}`}>{snapshot.referenceFrame} · {snapshot.zodiacModel} · UTC</p>
+    </div>
+  );
+}
+
+function CompactSkyInstrument({ snapshot }: { snapshot: SkySnapshotResult }) {
+  return (
+    <div className="grid gap-4">
+      <div className="min-w-0 rounded-[var(--nn-radius-large)] border border-natal-border/70 bg-natal-night/30 p-2 shadow-[var(--nn-shadow-low)] sm:p-3">
+        <SkyWheel snapshot={snapshot} />
+      </div>
+      <div className="space-y-4">
+        <SnapshotReadout compact snapshot={snapshot} />
+        <SkyHighlights compact snapshot={snapshot} />
+        <DevelopmentDisclosure compact snapshot={snapshot} />
+      </div>
+    </div>
+  );
+}
+
 export interface CurrentSkyInstrumentProps {
   atUtc: string;
   client?: EngineClient;
+  variant?: 'compact' | 'full';
 }
 
-export default function CurrentSkyInstrument({ atUtc, client = engineClient }: CurrentSkyInstrumentProps) {
+export default function CurrentSkyInstrument({
+  atUtc,
+  client = engineClient,
+  variant = 'full'
+}: CurrentSkyInstrumentProps) {
   const [snapshot, setSnapshot] = useState<SkySnapshotResult | null>(null);
   const [error, setError] = useState(false);
 
@@ -223,15 +273,15 @@ export default function CurrentSkyInstrument({ atUtc, client = engineClient }: C
   if (error) return <p className="nn-notice nn-notice--error" role="alert">The development Sky fixture is unavailable right now.</p>;
   if (!snapshot) return <p className="nn-async-state nn-async-state--loading" role="status" aria-live="polite">Loading the development Sky fixture…</p>;
 
+  if (variant === 'compact') {
+    return <CompactSkyInstrument snapshot={snapshot} />;
+  }
+
   return (
     <div className="grid gap-8 lg:grid-cols-[minmax(0,1.3fr)_minmax(19rem,0.7fr)]">
       <div className="min-w-0 rounded-[var(--nn-radius-large)] border border-natal-border/70 bg-natal-night/30 p-3 shadow-[var(--nn-shadow-low)] sm:p-6 lg:p-8"><SkyWheel snapshot={snapshot} /></div>
       <div className="space-y-6">
-        <div>
-          <p className="nn-eyebrow">Instrument readout</p>
-          <time className="nn-type-metadata mt-2 block" dateTime={snapshot.atUtc}>{formatSnapshotTimestamp(snapshot.atUtc)}</time>
-          <p className="nn-type-metadata mt-1">{snapshot.referenceFrame} · {snapshot.zodiacModel} · UTC</p>
-        </div>
+        <SnapshotReadout snapshot={snapshot} />
         <SkyHighlights snapshot={snapshot} />
         <section aria-labelledby="current-sky-positions"><h3 className="nn-type-card-title" id="current-sky-positions">Body positions</h3><ul className="mt-3 space-y-2 nn-type-body-small">{snapshot.bodyPositions.map((body) => <PositionFact key={body.bodyId} body={body} />)}</ul></section>
         <section aria-labelledby="current-sky-aspects"><h3 className="nn-type-card-title" id="current-sky-aspects">Current aspects</h3>{snapshot.currentAspects.length ? <ul className="mt-3 space-y-2 nn-type-body-small">{snapshot.currentAspects.map((aspect, index) => <AspectFact aspect={aspect} key={`${aspect.firstBodyId}-${aspect.secondBodyId}-${index}`} />)}</ul> : <p className="nn-type-body-small mt-3">No supplied current aspects.</p>}</section>

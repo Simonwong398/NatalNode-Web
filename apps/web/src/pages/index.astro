@@ -1,6 +1,11 @@
 ---
 import SiteLayout from '@/layouts/SiteLayout.astro';
 import { ChartExperience } from '@/features/chart-experience';
+import { CurrentSkyInstrument } from '@/features/public-sky';
+
+const CURRENT_SKY_AT_UTC = '2026-09-01T12:00:00.000Z';
+const isCurrentSkyPreviewAvailable =
+  import.meta.env.DEV === true || process.env.NATALNODE_LOCAL_DEV_PREVIEW === 'true';
 
 const seo = {
   title: 'NatalNode — Natal Chart Calculator',
@@ -16,6 +21,23 @@ const seo = {
       <h1 class="nn-type-page-title max-w-2xl">Create your birth chart</h1>
       <p class="nn-type-body max-w-xl">Enter the birth details you know.</p>
     </header>
-    <ChartExperience client:load />
+    <div class:list={isCurrentSkyPreviewAvailable ? ['grid', 'gap-8', 'md:grid-cols-[minmax(0,1fr)_minmax(18rem,0.72fr)]'] : []}>
+      {isCurrentSkyPreviewAvailable ? (
+        <aside class="order-1 min-w-0 md:order-2" aria-label="Current Sky preview">
+          <section class="nn-surface nn-surface--instrument mt-8 p-3 sm:p-5" aria-labelledby="homepage-current-sky-title">
+            <p class="nn-eyebrow">Current Sky</p>
+            <h2 class="nn-type-section-title mt-1" id="homepage-current-sky-title">The sky now</h2>
+            <CurrentSkyInstrument
+              atUtc={CURRENT_SKY_AT_UTC}
+              variant="compact"
+              client:load
+            />
+          </section>
+        </aside>
+      ) : null}
+      <div class:list={['min-w-0', isCurrentSkyPreviewAvailable ? ['order-2', 'md:order-1'] : []]}>
+        <ChartExperience client:load />
+      </div>
+    </div>
   </main>
 </SiteLayout>
