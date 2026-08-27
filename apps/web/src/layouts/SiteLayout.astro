@@ -59,6 +59,12 @@ const websiteStructuredData = robots === 'index,follow'
     <SeoHead seo={seo} />
   </head>
   <body class:list={['nn-shell', `nn-mode-${shellMode}`]} data-shell-mode={shellMode}>
+    <a
+      class="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-50 nn-button nn-button--secondary"
+      href="#main-content"
+    >
+      Skip to main content
+    </a>
     <header class="nn-site-header">
       <Container mode="shell" class="nn-site-header__inner">
         <a class="nn-brand" href="/" aria-label="NatalNode home">
@@ -129,7 +135,9 @@ const websiteStructuredData = robots === 'index,follow'
       </Container>
     </header>
 
-    <slot />
+    <div id="main-content">
+      <slot />
+    </div>
 
     <footer class="border-t border-natal-border/70">
       <Container mode="shell" class="flex flex-wrap items-center justify-between gap-x-6 gap-y-3 py-6">
