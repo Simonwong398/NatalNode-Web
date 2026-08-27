@@ -8,9 +8,9 @@ import type {
 import { engineClient } from '@/lib/engine-client';
 
 const ZODIAC_SIGNS = [
-  ['Aries', '♈'], ['Taurus', '♉'], ['Gemini', '♊'], ['Cancer', '♋'],
-  ['Leo', '♌'], ['Virgo', '♍'], ['Libra', '♎'], ['Scorpio', '♏'],
-  ['Sagittarius', '♐'], ['Capricorn', '♑'], ['Aquarius', '♒'], ['Pisces', '♓']
+  ['Aries', '♈\uFE0E'], ['Taurus', '♉\uFE0E'], ['Gemini', '♊\uFE0E'], ['Cancer', '♋\uFE0E'],
+  ['Leo', '♌\uFE0E'], ['Virgo', '♍\uFE0E'], ['Libra', '♎\uFE0E'], ['Scorpio', '♏\uFE0E'],
+  ['Sagittarius', '♐\uFE0E'], ['Capricorn', '♑\uFE0E'], ['Aquarius', '♒\uFE0E'], ['Pisces', '♓\uFE0E']
 ] as const;
 const BODY_GLYPHS: Record<string, string> = {
   Sun: '☉', Moon: '☽', Mercury: '☿', Venus: '♀', Mars: '♂',
@@ -90,8 +90,8 @@ function SkyWheel({ snapshot }: { snapshot: SkySnapshotResult }) {
           return (
             <g key={sign} aria-label={`${sign} sector`} role="group">
               <path d={sectorPath(index * 30, index * 30 + 30, 292, 232)} fill="var(--nn-chart-zodiac)" fillOpacity={index % 2 ? '0.14' : '0.08'} stroke="var(--nn-chart-zodiac)" strokeOpacity="0.55" />
-              <text aria-hidden="true" x={label.x} y={label.y - 5} textAnchor="middle" fill="var(--nn-text-primary)" fontSize="22">{glyph}</text>
-              <text aria-hidden="true" x={label.x} y={label.y + 15} textAnchor="middle" fill="var(--nn-text-secondary)" fontSize="10">{sign}</text>
+              <text aria-hidden="true" x={label.x} y={label.y - 5} textAnchor="middle" fill="var(--nn-text-primary)" fontFamily="var(--nn-font-sans)" fontSize="22">{glyph}</text>
+              <text aria-hidden="true" x={label.x} y={label.y + 15} textAnchor="middle" fill="var(--nn-text-secondary)" fontFamily="var(--nn-font-sans)" fontSize="10">{sign}</text>
             </g>
           );
         })}
