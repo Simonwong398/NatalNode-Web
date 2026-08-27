@@ -2,7 +2,8 @@
 import Container from '@/components/layout/Container.astro';
 import AuthSessionControl from '@/components/AuthSessionControl.astro';
 import SeoHead from '@/components/SeoHead.astro';
-import type { SeoMetadata } from '@/lib/seo';
+import StructuredData from '@/components/StructuredData.astro';
+import { DEFAULT_ROBOTS, SITE_NAME, SITE_ORIGIN, type SeoMetadata } from '@/lib/seo';
 import '@/styles/global.css';
 
 type ShellMode = 'editorial' | 'observatory';
@@ -10,9 +11,10 @@ type ShellMode = 'editorial' | 'observatory';
 interface Props {
   seo: SeoMetadata;
   mode?: ShellMode;
+  structuredData?: Record<string, unknown>;
 }
 
-const { seo, mode } = Astro.props;
+const { seo, mode, structuredData } = Astro.props;
 const currentPath = Astro.url.pathname;
 const isLearnPage = currentPath.startsWith('/learn');
 const isToolsPage = currentPath.startsWith('/tools');
@@ -20,6 +22,10 @@ const isVaultPage = currentPath.startsWith('/vault');
 const isAuthPage = currentPath.startsWith('/auth');
 const isCalculatePage = currentPath === '/';
 const shellMode: ShellMode = mode ?? (isLearnPage || isToolsPage || isAuthPage ? 'editorial' : 'observatory');
+const robots = seo.robots ?? DEFAULT_ROBOTS;
+const websiteStructuredData = robots === 'index,follow'
+  ? { '@context': 'https://schema.org', '@type': 'WebSite', name: SITE_NAME, url: SITE_ORIGIN }
+  : undefined;
 ---
 
 <!doctype html>
@@ -27,6 +33,8 @@ const shellMode: ShellMode = mode ?? (isLearnPage || isToolsPage || isAuthPage ?
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width" />
+    {websiteStructuredData && <StructuredData data={websiteStructuredData} />}
+    {structuredData && <StructuredData data={structuredData} />}
     <script is:inline>
       (() => {
         const getDaypart = (hour) => {
