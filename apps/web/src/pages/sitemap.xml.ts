@@ -5,6 +5,7 @@ import { resolveCanonicalUrl } from '@/lib/seo';
 const publicPaths = [
   '/',
   '/learn/',
+  '/methodology',
   '/tools/',
   '/tools/sign-lookup',
   '/tools/house-lookup',

@@ -1,0 +1,115 @@
+---
+import SiteLayout from '@/layouts/SiteLayout.astro';
+import type { SeoMetadata } from '@/lib/seo';
+
+const seo: SeoMetadata = {
+  title: 'Methodology | NatalNode',
+  description: 'How NatalNode separates chart calculation from interpretation, handles uncertainty, and exposes calculation provenance.',
+  canonical: '/methodology'
+};
+---
+
+<SiteLayout seo={seo} mode="editorial">
+  <main class="nn-container nn-container--editorial pb-20 pt-12 sm:pb-24 sm:pt-16">
+    <header class="max-w-3xl">
+      <p class="nn-eyebrow">METHODOLOGY</p>
+      <h1 class="nn-type-page-title mt-3">Calculation you can inspect.</h1>
+      <p class="nn-type-body mt-4 max-w-2xl">
+        NatalNode separates chart calculation from interpretation so the facts, assumptions, limitations, and provenance of a chart can remain visible.
+      </p>
+    </header>
+
+    <div class="mt-12 max-w-4xl space-y-12 sm:mt-16 sm:space-y-16">
+      <section class="border-t border-natal-border/70 pt-8 sm:pt-10" aria-labelledby="engine-first-title">
+        <p class="nn-eyebrow">Engine first</p>
+        <h2 class="nn-type-section-title mt-2" id="engine-first-title">The Engine owns the calculation.</h2>
+        <div class="mt-5 space-y-4 nn-type-body">
+          <p>
+            Positions, signs, ASC/MC, houses, aspects, orb, applying/exact/separating state, retrograde/direct state, and calculation warnings are Engine facts.
+          </p>
+          <p>
+            The frontend presents returned facts and status. It does not independently calculate them, fill gaps with guesses, or derive new chart facts from a partial result.
+          </p>
+        </div>
+      </section>
+
+      <section class="border-t border-natal-border/70 pt-8 sm:pt-10" aria-labelledby="architecture-title">
+        <p class="nn-eyebrow">A decoupled path</p>
+        <h2 class="nn-type-section-title mt-2" id="architecture-title">The website stays separate from the scientific core.</h2>
+        <div class="mt-5 space-y-4 nn-type-body">
+          <p>
+            The conceptual path is NatalNode.com → Website API / BFF → NatalNode Engine Public API → scientific core.
+          </p>
+          <p>
+            NatalNode.com remains decoupled from whichever astronomy provider or dataset eventually powers the Engine. Provider choice belongs behind the Engine boundary, not in Web product logic.
+          </p>
+        </div>
+      </section>
+
+      <section class="border-t border-natal-border/70 pt-8 sm:pt-10" aria-labelledby="uncertainty-title">
+        <p class="nn-eyebrow">Uncertainty stays visible</p>
+        <h2 class="nn-type-section-title mt-2" id="uncertainty-title">Unknown inputs remain unknown.</h2>
+        <div class="mt-5 space-y-4 nn-type-body">
+          <p>
+            An unknown birth time is valid. NatalNode does not silently substitute noon or another artificial time; ASC, MC, houses, and house-based interpretation remain unavailable when the time needed for them is unavailable.
+          </p>
+          <p>
+            Historical timezone and daylight-saving ambiguity should be surfaced for the user to choose between possible occurrences. The system should not silently select one and present it as certain.
+          </p>
+        </div>
+      </section>
+
+      <section class="border-t border-natal-border/70 pt-8 sm:pt-10" aria-labelledby="interpretation-title">
+        <p class="nn-eyebrow">Facts before interpretation</p>
+        <h2 class="nn-type-section-title mt-2" id="interpretation-title">Interpretation consumes explicit facts.</h2>
+        <div class="mt-5 space-y-4 nn-type-body">
+          <p>
+            Birth input → Engine calculation → structured chart facts → deterministic interpretation → optional future AI explanation.
+          </p>
+          <p>
+            Each layer has a defined responsibility. AI explanation is future and deferred; it does not calculate, repair, or guess missing chart facts.
+          </p>
+        </div>
+      </section>
+
+      <section class="border-t border-natal-border/70 pt-8 sm:pt-10" aria-labelledby="provenance-title">
+        <p class="nn-eyebrow">Calculation Details</p>
+        <h2 class="nn-type-section-title mt-2" id="provenance-title">A result should explain where it came from.</h2>
+        <div class="mt-5 space-y-4 nn-type-body">
+          <p>
+            Calculation Details uses concrete fields such as Engine Version, Chart Schema, Calculation Status, Configuration Status, Astronomy Configuration, Provenance Envelope, Warnings, and, where relevant, House System.
+          </p>
+          <p>
+            Identifiers or metadata may be unavailable. Research or incomplete results should say unavailable or incomplete instead of presenting fabricated identifiers or production claims.
+          </p>
+        </div>
+      </section>
+
+      <section class="border-t border-natal-border/70 pt-8 sm:pt-10" aria-labelledby="environment-title">
+        <p class="nn-eyebrow">Development boundary</p>
+        <h2 class="nn-type-section-title mt-2" id="environment-title">Development output is not production astronomy.</h2>
+        <div class="mt-5 space-y-4 nn-type-body">
+          <p>
+            The current Web development environment uses a mock/development boundary and may show research configuration or fixtures. It is not a production astronomy system. Production scientific claims remain gated until the production Engine configuration is approved.
+          </p>
+          <p>
+            Birth date, birth time, birth place, timezone-resolution context, and chart results are privacy-sensitive product data.
+          </p>
+        </div>
+      </section>
+
+      <section class="border-t border-natal-border/70 pt-8 sm:pt-10" aria-labelledby="does-not-title">
+        <p class="nn-eyebrow">Boundaries</p>
+        <h2 class="nn-type-section-title mt-2" id="does-not-title">What NatalNode does not do.</h2>
+        <ul class="mt-5 list-disc space-y-2 pl-5 nn-type-body">
+          <li>The frontend does not invent chart facts.</li>
+          <li>AI does not calculate or guess missing facts.</li>
+          <li>There is no silent exact-time fallback.</li>
+          <li>Known ambiguity is not hidden.</li>
+          <li>Unavailable provenance is not presented as a claim.</li>
+          <li>Web logic is not coupled to a specific provider.</li>
+        </ul>
+      </section>
+    </div>
+  </main>
+</SiteLayout>
