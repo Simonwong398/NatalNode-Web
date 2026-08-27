@@ -32,6 +32,54 @@ function formatDate(date: Date): string {
       titleId="learn-hero-title"
     />
 
+    <section class="mt-12 max-w-4xl border-t border-natal-border/70 pt-8 sm:mt-16 sm:pt-10" aria-labelledby="learn-articles-title">
+      <div class="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+        <div class="nn-section-header">
+          <p class="nn-eyebrow">Start here</p>
+          <h2 class="nn-type-section-title" id="learn-articles-title">
+            Begin with the foundations
+          </h2>
+        </div>
+        <p class="nn-type-metadata">{articles.length} published article{articles.length === 1 ? '' : 's'}</p>
+      </div>
+
+      {articles.length > 0 ? (
+        <ul class="mt-8 grid gap-5">
+          {articles.map((article) => (
+            <li class="nn-surface p-5 sm:p-6">
+              <article>
+                <p class="nn-badge">{article.data.category.replace('_', ' ')}</p>
+                <h3 class="nn-type-card-title mt-4">
+                  <a
+                    class="font-semibold underline decoration-natal-accent/50 underline-offset-4 transition-colors hover:text-natal-accent"
+                    href={`/learn/${article.data.slug}`}
+                  >
+                    {article.data.title}
+                  </a>
+                </h3>
+                <p class="nn-type-body-small mt-3 max-w-3xl">
+                  {article.data.summary ?? article.data.description}
+                </p>
+                <a
+                  class="mt-5 inline-flex font-semibold text-natal-accent underline decoration-natal-accent/50 underline-offset-4 transition-colors hover:text-white"
+                  href={`/learn/${article.data.slug}`}
+                >
+                  Read the guide →
+                </a>
+                <time class="nn-type-metadata mt-5 block" datetime={article.data.publishedAt.toISOString()}>
+                  Published {formatDate(article.data.publishedAt)}
+                </time>
+              </article>
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <p class="nn-async-state nn-async-state--empty mt-8 max-w-3xl">
+          Published articles will appear here once they are ready for readers.
+        </p>
+      )}
+    </section>
+
     <section class="mt-12 max-w-4xl border-t border-natal-border/70 pt-8 sm:mt-16 sm:pt-10" aria-labelledby="learn-methodology-title">
       <p class="nn-eyebrow">How it works</p>
       <h2 class="nn-type-section-title mt-2" id="learn-methodology-title">
@@ -63,48 +111,6 @@ function formatDate(date: Date): string {
           </li>
         ))}
       </ul>
-    </section>
-
-    <section class="mt-16 max-w-4xl" aria-labelledby="learn-articles-title">
-      <div class="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
-        <div class="nn-section-header">
-          <p class="nn-eyebrow">Editorial guide</p>
-          <h2 class="nn-type-section-title" id="learn-articles-title">
-            Articles
-          </h2>
-        </div>
-        <p class="nn-type-metadata">{articles.length} published article{articles.length === 1 ? '' : 's'}</p>
-      </div>
-
-      {articles.length > 0 ? (
-        <ul class="mt-8 grid gap-5">
-          {articles.map((article) => (
-            <li class="nn-surface p-5 sm:p-6">
-              <article>
-                <p class="nn-badge">{article.data.category.replace('_', ' ')}</p>
-                <h3 class="nn-type-card-title mt-4">
-                  <a
-                    class="font-semibold underline decoration-natal-accent/50 underline-offset-4 transition-colors hover:text-natal-accent"
-                    href={`/learn/${article.data.slug}`}
-                  >
-                    {article.data.title}
-                  </a>
-                </h3>
-                <p class="nn-type-body-small mt-3 max-w-3xl">
-                  {article.data.summary ?? article.data.description}
-                </p>
-                <time class="nn-type-metadata mt-5 block" datetime={article.data.publishedAt.toISOString()}>
-                  Published {formatDate(article.data.publishedAt)}
-                </time>
-              </article>
-            </li>
-          ))}
-        </ul>
-      ) : (
-        <p class="nn-async-state nn-async-state--empty mt-8 max-w-3xl">
-          Published articles will appear here once they are ready for readers.
-        </p>
-      )}
     </section>
   </main>
 </SiteLayout>
