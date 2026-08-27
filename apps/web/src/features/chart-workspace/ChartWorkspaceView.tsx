@@ -4,6 +4,7 @@ import { CalculationDetails } from '@/features/calculation-details';
 import { ChartRenderer } from '@/features/chart-renderer';
 import { InterpretationPanel } from '@/features/interpretation';
 import type { ChartPresentationPolicy } from './chart-presentation-policy';
+import AstrologicalNotation from './AstrologicalNotation';
 
 type WorkspaceSection = 'chart' | 'interpretation' | 'details';
 
@@ -179,6 +180,7 @@ export default function ChartWorkspaceView({
             <div className="mt-5 min-w-0">
               <ChartRenderer chart={chart} presentationPolicy={presentationPolicy} />
             </div>
+            <AstrologicalNotation chart={chart} presentationPolicy={presentationPolicy} />
           </section>
         </div>
 
