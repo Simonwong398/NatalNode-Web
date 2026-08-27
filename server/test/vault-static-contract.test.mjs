@@ -5,10 +5,22 @@ import test from 'node:test';
 const REPOSITORY_ROOT = new URL('../../', import.meta.url);
 
 test('Vault management frontend reuses existing endpoints and keeps deferred features absent', async () => {
-  const management = await readFile(
-    new URL('apps/web/src/features/vault/VaultChartManagement.tsx', REPOSITORY_ROOT),
-    'utf8'
-  );
+  const management = (
+    await Promise.all(
+      [
+        'VaultChartManagement.tsx',
+        'VaultChartMetadataForm.tsx',
+        'VaultChartNotesManager.tsx',
+        'VaultChartNoteEditor.tsx',
+        'VaultChartDeletionPanel.tsx'
+      ].map((fileName) =>
+        readFile(
+          new URL(`apps/web/src/features/vault/${fileName}`, REPOSITORY_ROOT),
+          'utf8'
+        )
+      )
+    )
+  ).join('\n');
   const api = await readFile(
     new URL(
       'apps/web/src/features/vault/vault-management-client.ts',
