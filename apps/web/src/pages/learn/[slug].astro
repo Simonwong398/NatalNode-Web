@@ -38,7 +38,13 @@ const articleStructuredData: Record<string, unknown> = {
 };
 ---
 
-<SiteLayout seo={seo} structuredData={articleStructuredData}>
+<SiteLayout
+  seo={seo}
+  structuredData={articleStructuredData}
+  ogType="article"
+  articlePublishedTime={entry.data.publishedAt.toISOString()}
+  articleModifiedTime={entry.data.updatedAt?.toISOString()}
+>
   <main class="nn-container nn-container--editorial pb-20 pt-8 sm:pb-24 sm:pt-12">
     <article class="max-w-reading">
       <header class="border-b border-natal-border/70 pb-10">

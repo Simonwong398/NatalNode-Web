@@ -12,9 +12,19 @@ interface Props {
   seo: SeoMetadata;
   mode?: ShellMode;
   structuredData?: Record<string, unknown>;
+  ogType?: 'website' | 'article';
+  articlePublishedTime?: string;
+  articleModifiedTime?: string;
 }
 
-const { seo, mode, structuredData } = Astro.props;
+const {
+  seo,
+  mode,
+  structuredData,
+  ogType,
+  articlePublishedTime,
+  articleModifiedTime
+} = Astro.props;
 const currentPath = Astro.url.pathname;
 const isLearnPage = currentPath.startsWith('/learn');
 const isToolsPage = currentPath.startsWith('/tools');
@@ -56,7 +66,12 @@ const websiteStructuredData = robots === 'index,follow'
         window.setInterval(updateTemporalAmbient, 60000);
       })();
     </script>
-    <SeoHead seo={seo} />
+    <SeoHead
+      seo={seo}
+      ogType={ogType}
+      articlePublishedTime={articlePublishedTime}
+      articleModifiedTime={articleModifiedTime}
+    />
   </head>
   <body class:list={['nn-shell', `nn-mode-${shellMode}`]} data-shell-mode={shellMode}>
     <a
