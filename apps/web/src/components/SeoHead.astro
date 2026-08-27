@@ -2,6 +2,7 @@
 import {
   DEFAULT_ROBOTS,
   resolveCanonicalUrl,
+  SITE_NAME,
   type SeoMetadata
 } from '@/lib/seo';
 
@@ -12,13 +13,22 @@ interface Props {
 const { seo } = Astro.props;
 const canonicalUrl = resolveCanonicalUrl(seo.canonical);
 const robots = seo.robots ?? DEFAULT_ROBOTS;
+const isPublicIndexable = robots === 'index,follow';
 ---
 
 <title>{seo.title}</title>
 <meta name="description" content={seo.description} />
 <meta name="robots" content={robots} />
 <link rel="canonical" href={canonicalUrl} />
-<meta property="og:type" content="website" />
-<meta property="og:title" content={seo.title} />
-<meta property="og:description" content={seo.description} />
-<meta property="og:url" content={canonicalUrl} />
+{isPublicIndexable && (
+  <>
+    <meta property="og:title" content={seo.title} />
+    <meta property="og:description" content={seo.description} />
+    <meta property="og:url" content={canonicalUrl} />
+    <meta property="og:site_name" content={SITE_NAME} />
+    <meta property="og:type" content="website" />
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:title" content={seo.title} />
+    <meta name="twitter:description" content={seo.description} />
+  </>
+)}
