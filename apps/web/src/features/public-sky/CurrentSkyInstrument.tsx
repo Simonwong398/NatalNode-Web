@@ -23,18 +23,26 @@ const ASPECT_GLYPHS: Record<string, string> = {
   square: '□',
   sextile: '✶'
 };
-const ASPECT_STYLES: Record<string, { stroke: string; strokeDasharray?: string }> = {
-  conjunction: { stroke: 'var(--nn-chart-aspect-neutral)' },
-  opposition: { stroke: 'var(--nn-chart-aspect-dynamic)', strokeDasharray: '8 4' },
-  trine: { stroke: 'var(--nn-chart-aspect-harmonious)' },
-  square: { stroke: 'var(--nn-chart-aspect-dynamic)', strokeDasharray: '6 3 1 3' },
-  sextile: { stroke: 'var(--nn-chart-aspect-harmonious)', strokeDasharray: '2 4' }
+const BODY_ABBREVIATIONS: Record<string, string> = {
+  Sun: 'Su', Moon: 'Mo', Mercury: 'Me', Venus: 'Ve', Mars: 'Ma',
+  Jupiter: 'Ju', Saturn: 'Sa', Uranus: 'Ur', Neptune: 'Ne', Pluto: 'Pl'
+};
+const ASPECT_STYLES: Record<string, { stroke: string; strokeDasharray?: string; opacity: number; strokeWidth: number }> = {
+  conjunction: { stroke: 'var(--nn-chart-aspect-neutral)', opacity: 0.88, strokeWidth: 1.8 },
+  opposition: { stroke: 'var(--nn-chart-aspect-dynamic)', strokeDasharray: '8 4', opacity: 0.9, strokeWidth: 1.8 },
+  trine: { stroke: 'var(--nn-chart-aspect-harmonious)', opacity: 0.84, strokeWidth: 1.7 },
+  square: { stroke: 'var(--nn-chart-aspect-dynamic)', strokeDasharray: '6 3 1 3', opacity: 0.9, strokeWidth: 1.8 },
+  sextile: { stroke: 'var(--nn-chart-aspect-harmonious)', strokeDasharray: '2 4', opacity: 0.76, strokeWidth: 1.5 }
 };
 
 const UNKNOWN_GLYPH = '·';
 
 function getBodyGlyph(bodyId: string): string {
   return BODY_GLYPHS[bodyId] ?? UNKNOWN_GLYPH;
+}
+
+function getBodyAbbreviation(bodyId: string): string {
+  return BODY_ABBREVIATIONS[bodyId] ?? bodyId.slice(0, 2);
 }
 
 function getAspectGlyph(aspectType: string): string {
@@ -95,10 +103,16 @@ function SkyWheel({ snapshot }: { snapshot: SkySnapshotResult }) {
           if (!first || !second) return null;
           const a = point(first.longitude, 138), b = point(second.longitude, 138);
           const style = ASPECT_STYLES[aspect.aspectType] ?? {
-            stroke: 'var(--nn-chart-aspect-neutral)'
+            stroke: 'var(--nn-chart-aspect-neutral)', opacity: 0.82, strokeWidth: 1.5
           };
 
-          return <line key={`${aspect.firstBodyId}-${aspect.secondBodyId}-${index}`} x1={a.x} y1={a.y} x2={b.x} y2={b.y} stroke={style.stroke} strokeOpacity="0.68" strokeWidth="1.5" strokeDasharray={style.strokeDasharray} vectorEffect="non-scaling-stroke" aria-label={formatAspect(aspect)} />;
+          return (
+            <g key={`${aspect.firstBodyId}-${aspect.secondBodyId}-${index}`} aria-label={formatAspect(aspect)} role="group">
+              <title>{formatAspect(aspect)}</title>
+              <line aria-hidden="true" x1={a.x} y1={a.y} x2={b.x} y2={b.y} stroke="var(--nn-bg-observatory)" strokeOpacity="0.82" strokeWidth={style.strokeWidth + 2.4} strokeDasharray={style.strokeDasharray} strokeLinecap="round" vectorEffect="non-scaling-stroke" />
+              <line aria-hidden="true" x1={a.x} y1={a.y} x2={b.x} y2={b.y} stroke={style.stroke} strokeOpacity={style.opacity} strokeWidth={style.strokeWidth} strokeDasharray={style.strokeDasharray} strokeLinecap="round" vectorEffect="non-scaling-stroke" />
+            </g>
+          );
         })}
       </g>
       <g aria-label="Supplied body positions" role="group">
@@ -109,8 +123,10 @@ function SkyWheel({ snapshot }: { snapshot: SkySnapshotResult }) {
           return (
             <g key={body.bodyId} role="group" aria-label={`${body.bodyId} at ${formatDegrees(body.longitude)}, ${body.sign}${motion}`}>
               <line aria-hidden="true" x1={marker.x} y1={marker.y} x2={label.x} y2={label.y} stroke="var(--nn-chart-body-secondary)" strokeOpacity="0.45" strokeDasharray="2 3" />
-              <circle aria-hidden="true" cx={marker.x} cy={marker.y} r="5" fill="var(--nn-chart-body-primary)" stroke="var(--nn-surface-elevated)" strokeWidth="2" />
-              <text aria-hidden="true" x={label.x} y={label.y} textAnchor="middle" dominantBaseline="middle" fill="var(--nn-chart-body-primary)" fontSize="17" fontWeight="700">{getBodyGlyph(body.bodyId)}</text>
+              <circle aria-hidden="true" cx={marker.x} cy={marker.y} r="10" fill="var(--nn-chart-body-secondary)" fillOpacity="0.12" stroke="var(--nn-chart-body-secondary)" strokeOpacity="0.36" strokeWidth="1" />
+              <circle aria-hidden="true" cx={marker.x} cy={marker.y} r="5.5" fill="var(--nn-chart-body-primary)" stroke="var(--nn-surface-elevated)" strokeWidth="2" />
+              <text aria-hidden="true" x={label.x} y={label.y - 6} textAnchor="middle" dominantBaseline="middle" fill="var(--nn-chart-body-primary)" fontFamily="ui-sans-serif, system-ui, sans-serif" fontSize="18" fontWeight="700">{getBodyGlyph(body.bodyId)}</text>
+              <text aria-hidden="true" x={label.x} y={label.y + 10} textAnchor="middle" dominantBaseline="middle" fill="var(--nn-chart-body-secondary)" fontFamily="ui-sans-serif, system-ui, sans-serif" fontSize="8" fontWeight="700" letterSpacing="0.08em">{getBodyAbbreviation(body.bodyId)}</text>
             </g>
           );
         })}
@@ -132,6 +148,35 @@ function AspectFact({ aspect }: { aspect: SkyCurrentAspect }) {
       </span>
       {formatAspect(aspect)}
     </li>
+  );
+}
+
+function SkyHighlights({ snapshot }: { snapshot: SkySnapshotResult }) {
+  const highlightedAspects = snapshot.currentAspects.slice(0, 2);
+  const retrogradeBodies = snapshot.bodyPositions.filter((body) => body.motionState === 'RETROGRADE');
+
+  return (
+    <section aria-labelledby="current-sky-highlights" className="rounded-[var(--nn-radius-large)] border border-natal-border/70 bg-natal-night/25 p-4">
+      <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
+        <h3 className="nn-type-card-title" id="current-sky-highlights">Sky highlights</h3>
+        <span className="nn-type-metadata">Supplied facts</span>
+      </div>
+      <ul className="mt-3 space-y-2 nn-type-body-small">
+        {highlightedAspects.map((aspect, index) => (
+          <li className="flex items-start gap-2" key={`${aspect.firstBodyId}-${aspect.secondBodyId}-${index}`}>
+            <span aria-hidden="true" className="shrink-0 text-natal-accent">{getBodyGlyph(aspect.firstBodyId)} {getAspectGlyph(aspect.aspectType)} {getBodyGlyph(aspect.secondBodyId)}</span>
+            <span>{formatAspect(aspect)}</span>
+          </li>
+        ))}
+        {retrogradeBodies.length > 0 ? (
+          <li className="flex items-start gap-2">
+            <span aria-hidden="true" className="shrink-0 text-natal-accent">R</span>
+            <span>{retrogradeBodies.length} {retrogradeBodies.length === 1 ? 'body' : 'bodies'} marked retrograde</span>
+          </li>
+        ) : null}
+        {highlightedAspects.length === 0 && retrogradeBodies.length === 0 ? <li>No supplied highlight facts.</li> : null}
+      </ul>
+    </section>
   );
 }
 
@@ -179,14 +224,15 @@ export default function CurrentSkyInstrument({ atUtc, client = engineClient }: C
   if (!snapshot) return <p className="nn-async-state nn-async-state--loading" role="status" aria-live="polite">Loading the development Sky fixture…</p>;
 
   return (
-    <div className="grid gap-8 lg:grid-cols-[minmax(0,1.15fr)_minmax(18rem,0.85fr)]">
-      <div className="min-w-0 rounded-[var(--nn-radius-large)] border border-natal-border/70 bg-natal-night/30 p-3 sm:p-6"><SkyWheel snapshot={snapshot} /></div>
+    <div className="grid gap-8 lg:grid-cols-[minmax(0,1.3fr)_minmax(19rem,0.7fr)]">
+      <div className="min-w-0 rounded-[var(--nn-radius-large)] border border-natal-border/70 bg-natal-night/30 p-3 shadow-[var(--nn-shadow-low)] sm:p-6 lg:p-8"><SkyWheel snapshot={snapshot} /></div>
       <div className="space-y-6">
         <div>
           <p className="nn-eyebrow">Instrument readout</p>
           <time className="nn-type-metadata mt-2 block" dateTime={snapshot.atUtc}>{formatSnapshotTimestamp(snapshot.atUtc)}</time>
           <p className="nn-type-metadata mt-1">{snapshot.referenceFrame} · {snapshot.zodiacModel} · UTC</p>
         </div>
+        <SkyHighlights snapshot={snapshot} />
         <section aria-labelledby="current-sky-positions"><h3 className="nn-type-card-title" id="current-sky-positions">Body positions</h3><ul className="mt-3 space-y-2 nn-type-body-small">{snapshot.bodyPositions.map((body) => <PositionFact key={body.bodyId} body={body} />)}</ul></section>
         <section aria-labelledby="current-sky-aspects"><h3 className="nn-type-card-title" id="current-sky-aspects">Current aspects</h3>{snapshot.currentAspects.length ? <ul className="mt-3 space-y-2 nn-type-body-small">{snapshot.currentAspects.map((aspect, index) => <AspectFact aspect={aspect} key={`${aspect.firstBodyId}-${aspect.secondBodyId}-${index}`} />)}</ul> : <p className="nn-type-body-small mt-3">No supplied current aspects.</p>}</section>
         <p className="nn-notice nn-notice--trust">Development-only instrument. Supplied Engine facts are shown without interpretation.</p>
