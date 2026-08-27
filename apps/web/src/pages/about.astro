@@ -1,0 +1,91 @@
+---
+import SiteLayout from '@/layouts/SiteLayout.astro';
+import type { SeoMetadata } from '@/lib/seo';
+
+const seo: SeoMetadata = {
+  title: 'About NatalNode',
+  description: 'NatalNode is building a clearer, more transparent way to calculate, inspect, and understand a natal chart.',
+  canonical: '/about'
+};
+---
+
+<SiteLayout seo={seo} mode="editorial">
+  <main class="nn-container nn-container--editorial pb-20 pt-12 sm:pb-24 sm:pt-16">
+    <header class="max-w-3xl">
+      <p class="nn-eyebrow">ABOUT NATALNODE</p>
+      <h1 class="nn-type-page-title mt-3">A clearer way to read a chart.</h1>
+      <p class="nn-type-body mt-4 max-w-2xl">
+        NatalNode is building a clearer, more transparent way to calculate, inspect, and understand a natal chart—combining professional chart UX, structured chart facts, clear interpretation, and calculation transparency.
+      </p>
+    </header>
+
+    <div class="mt-12 max-w-4xl space-y-12 sm:mt-16 sm:space-y-16">
+      <section class="border-t border-natal-border/70 pt-8 sm:pt-10" aria-labelledby="why-title">
+        <p class="nn-eyebrow">Why NatalNode exists</p>
+        <h2 class="nn-type-section-title mt-2" id="why-title">Keep the layers visible.</h2>
+        <div class="mt-5 space-y-4 nn-type-body">
+          <p>
+            A chart can become one opaque result: calculation, interpretation, and presentation blended together. NatalNode keeps those layers distinct so you can tell what was calculated, what is interpretive, and what is unavailable or limited.
+          </p>
+        </div>
+      </section>
+
+      <section class="border-t border-natal-border/70 pt-8 sm:pt-10" aria-labelledby="calculation-title">
+        <p class="nn-eyebrow">Calculation before interpretation</p>
+        <h2 class="nn-type-section-title mt-2" id="calculation-title">Start with explicit chart facts.</h2>
+        <div class="mt-5 space-y-4 nn-type-body">
+          <p>
+            The product direction is straightforward: Birth input → chart calculation → structured chart facts → interpretation. NatalNode.com is the first-party Web product around the NatalNode Engine boundary, presenting interpretation grounded in the facts returned there.
+          </p>
+          <p>
+            Any future AI explanation would sit after those facts; it would not calculate them or fill in what is missing.
+          </p>
+        </div>
+      </section>
+
+      <section class="border-t border-natal-border/70 pt-8 sm:pt-10" aria-labelledby="uncertainty-title">
+        <p class="nn-eyebrow">Uncertainty stays visible</p>
+        <h2 class="nn-type-section-title mt-2" id="uncertainty-title">Unknown should stay unknown.</h2>
+        <div class="mt-5 space-y-4 nn-type-body">
+          <p>
+            An unknown birth time can leave time-dependent parts of a chart unavailable. Historical timezone ambiguity may need to be surfaced for a user to choose between possible occurrences, and provenance may not be available for every result.
+          </p>
+          <p>
+            NatalNode should show those limits instead of creating false precision. The product does not treat an unavailable fact as an invitation to guess.
+          </p>
+        </div>
+      </section>
+
+      <section class="border-t border-natal-border/70 pt-8 sm:pt-10" aria-labelledby="inspectability-title">
+        <p class="nn-eyebrow">Inspectability</p>
+        <h2 class="nn-type-section-title mt-2" id="inspectability-title">A chart should not be a black box.</h2>
+        <div class="mt-5 space-y-4 nn-type-body">
+          <p>
+            When available, Calculation Details can expose calculation status, Engine version, chart schema, configuration status, provenance, and warnings alongside the result.
+          </p>
+          <p>
+            Not every field is present in every result. Showing what is known—and what is not—is part of making the chart easier to inspect.
+          </p>
+        </div>
+      </section>
+
+      <section class="border-t border-natal-border/70 pt-8 sm:pt-10" aria-labelledby="direction-title">
+        <p class="nn-eyebrow">Product direction</p>
+        <h2 class="nn-type-section-title mt-2" id="direction-title">Build toward clearer understanding.</h2>
+        <div class="mt-5 space-y-4 nn-type-body">
+          <p>
+            Planned work is focused on better chart understanding, richer deterministic interpretation, additional professional chart tools, and stronger Learn and reference tools. Future capabilities will stay on the same Engine-first boundary and will be labeled future or planned until they are ready.
+          </p>
+          <p>
+            <a
+              class="inline-flex font-semibold text-natal-accent underline decoration-natal-accent/50 underline-offset-4 transition-colors hover:text-white"
+              href="/methodology"
+            >
+              Read our methodology →
+            </a>
+          </p>
+        </div>
+      </section>
+    </div>
+  </main>
+</SiteLayout>

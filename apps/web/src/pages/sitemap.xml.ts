@@ -6,6 +6,7 @@ const publicPaths = [
   '/',
   '/learn/',
   '/methodology',
+  '/about',
   '/tools/',
   '/tools/sign-lookup',
   '/tools/house-lookup',
