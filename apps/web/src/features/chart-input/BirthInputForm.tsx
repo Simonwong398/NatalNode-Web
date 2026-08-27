@@ -1,5 +1,8 @@
 import { useRef, useState } from 'react';
-import { cn } from '@/lib/utils';
+import BirthAdvancedSettings from './BirthAdvancedSettings';
+import BirthDateTimeFields from './BirthDateTimeFields';
+import BirthLocationFields from './BirthLocationFields';
+import BirthResolutionFeedback from './BirthResolutionFeedback';
 import {
   DEVELOPMENT_RESOLVER_NOTICE,
   DevelopmentBirthInputResolver
@@ -11,8 +14,7 @@ import {
   type BirthInputDraft,
   type BirthInputResolution,
   type CalculationReadyBirthInputResolution,
-  type HouseSystem,
-  type UnknownTimeBirthInputResolution
+  type HouseSystem
 } from './types';
 import {
   EMPTY_BIRTH_DATE_PARTS,
@@ -23,7 +25,7 @@ import {
   type BirthDatePart,
   type BirthDateParts
 } from './birth-date-input';
-import { formatCoordinate } from './resolution-telemetry';
+import { useBirthInputResolution } from './useBirthInputResolution';
 
 type ValidationField = 'localDate' | 'localTime' | 'locationLabel' | 'houseSystem';
 
@@ -34,15 +36,7 @@ type EditableDraft = Pick<
   'localTime' | 'locationLabel' | 'houseSystem'
 >;
 
-type ExactResolution = Extract<BirthInputResolution, { ambiguityStatus: 'EXACT' }>;
-
-type AmbiguousResolution = Extract<BirthInputResolution, { ambiguityStatus: 'AMBIGUOUS' }>;
-
-const inputClassName = 'nn-field';
-
 const defaultResolver: BirthInputResolver = new DevelopmentBirthInputResolver();
-const DEVELOPMENT_FIXTURE_EXPLANATION =
-  'This development resolver preserves your entered place label but uses fixed New York coordinate/timezone fixture data for UI testing; the fixture data is not derived from that place, is not historical timezone evidence, and is not production resolution.';
 
 export interface BirthInputFormProps {
   isCalculationPending?: boolean;
@@ -53,18 +47,6 @@ export interface BirthInputFormProps {
 export interface ResolvedBirthInputSelection {
   resolution: CalculationReadyBirthInputResolution;
   houseSystem: HouseSystem;
-}
-
-function FieldError({ id, message }: { id: string; message?: string }) {
-  if (!message) {
-    return null;
-  }
-
-  return (
-    <p className="nn-status nn-status--error mt-2" id={id} role="alert">
-      {message}
-    </p>
-  );
 }
 
 function validateDraft(
@@ -114,363 +96,6 @@ function applyResolutionToDraft(
   };
 }
 
-function toExactResolution(
-  resolution: AmbiguousResolution,
-  candidate: AmbiguousTimeCandidate
-): ExactResolution {
-  return {
-    localDate: resolution.localDate,
-    localTime: resolution.localTime,
-    locationLabel: resolution.locationLabel,
-    latitude: resolution.latitude,
-    longitude: resolution.longitude,
-    ianaTimeZone: resolution.ianaTimeZone,
-    resolvedUtcInstant: candidate.resolvedUtcInstant,
-    utcOffsetSeconds: candidate.utcOffsetSeconds,
-    timezoneDatabaseVersion: resolution.timezoneDatabaseVersion,
-    timezoneResolutionMethod: resolution.timezoneResolutionMethod,
-    ambiguityStatus: 'EXACT'
-  };
-}
-
-// Presentation-only formatting of the offset supplied by the resolver.
-function formatUtcOffset(utcOffsetSeconds: number): string {
-  const sign = utcOffsetSeconds < 0 ? '-' : '+';
-  const absoluteSeconds = Math.abs(utcOffsetSeconds);
-  const hours = Math.floor(absoluteSeconds / 3_600);
-  const minutes = Math.floor((absoluteSeconds % 3_600) / 60);
-
-  return `UTC${sign}${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`;
-}
-
-interface ResolutionTelemetryData {
-  locationLabel: string;
-  latitude: number;
-  longitude: number;
-  ianaTimeZone: string;
-  utcOffsetSeconds: number | null;
-}
-
-function ResolvedLocationTelemetry({
-  heading,
-  isDevelopmentFixture = false,
-  resolution
-}: {
-  heading: string;
-  isDevelopmentFixture?: boolean;
-  resolution: ResolutionTelemetryData;
-}) {
-  const latitude = formatCoordinate(resolution.latitude, 'latitude');
-  const longitude = formatCoordinate(resolution.longitude, 'longitude');
-  const fixtureCoordinates = [latitude, longitude]
-    .filter((coordinate): coordinate is string => coordinate !== null)
-    .join(' · ');
-
-  if (!resolution.locationLabel && !latitude && !longitude && !resolution.ianaTimeZone) {
-    return null;
-  }
-
-  return (
-    <div className="mt-4 min-w-0">
-      <p className="nn-eyebrow">{heading}</p>
-      {isDevelopmentFixture ? (
-        <p className="nn-type-body-small mt-2">{DEVELOPMENT_FIXTURE_EXPLANATION}</p>
-      ) : null}
-      <dl className="mt-3 grid min-w-0 gap-3 sm:grid-cols-3">
-        {resolution.locationLabel ? (
-          <div className="min-w-0">
-            <dt className="nn-type-metadata">
-              {isDevelopmentFixture ? 'Location input' : 'Location'}
-            </dt>
-            <dd className="nn-type-body-small mt-1 break-words">{resolution.locationLabel}</dd>
-          </div>
-        ) : null}
-        {isDevelopmentFixture ? (
-          fixtureCoordinates ? (
-            <div className="min-w-0">
-              <dt className="nn-type-metadata">Fixture coordinates</dt>
-              <dd className="nn-type-numeric mt-1">{fixtureCoordinates}</dd>
-            </div>
-          ) : null
-        ) : (
-          <>
-            {latitude ? (
-              <div className="min-w-0">
-                <dt className="nn-type-metadata">Latitude</dt>
-                <dd className="nn-type-numeric mt-1">{latitude}</dd>
-              </div>
-            ) : null}
-            {longitude ? (
-              <div className="min-w-0">
-                <dt className="nn-type-metadata">Longitude</dt>
-                <dd className="nn-type-numeric mt-1">{longitude}</dd>
-              </div>
-            ) : null}
-          </>
-        )}
-        {resolution.ianaTimeZone ? (
-          <div className="min-w-0">
-            <dt className="nn-type-metadata">
-              {isDevelopmentFixture ? 'Fixture timezone' : 'IANA timezone'}
-            </dt>
-            <dd className="nn-type-numeric mt-1 break-words">{resolution.ianaTimeZone}</dd>
-          </div>
-        ) : null}
-        {resolution.utcOffsetSeconds !== null ? (
-          <div className="min-w-0">
-            <dt className="nn-type-metadata">
-              {isDevelopmentFixture ? 'Fixture UTC offset' : 'UTC offset'}
-            </dt>
-            <dd className="nn-type-numeric mt-1">{formatUtcOffset(resolution.utcOffsetSeconds)}</dd>
-          </div>
-        ) : null}
-      </dl>
-    </div>
-  );
-}
-
-function ExactResolutionPanel({
-  isDevelopmentFixture,
-  resolution
-}: {
-  isDevelopmentFixture: boolean;
-  resolution: ExactResolution;
-}) {
-  return (
-    <section
-      aria-labelledby="timezone-resolved-title"
-      aria-live="polite"
-      className={cn(
-        'nn-notice mt-5 min-w-0 flex-col',
-        isDevelopmentFixture ? 'nn-notice--research' : 'nn-notice--info'
-      )}
-      role="status"
-    >
-      <p
-        className={cn(
-          'nn-eyebrow',
-          isDevelopmentFixture ? 'nn-status--research' : 'nn-status--success'
-        )}
-      >
-        {isDevelopmentFixture ? 'Development fixture' : 'Resolution confirmed'}
-      </p>
-      <h3 className="nn-type-card-title" id="timezone-resolved-title">
-        {isDevelopmentFixture ? 'Development fixture data' : 'Timezone resolved'}
-      </h3>
-      <ResolvedLocationTelemetry
-        heading={isDevelopmentFixture ? 'Fixture details' : 'Location resolved'}
-        isDevelopmentFixture={isDevelopmentFixture}
-        resolution={resolution}
-      />
-    </section>
-  );
-}
-
-function AmbiguousResolutionPanel({
-  isDisabled,
-  isDevelopmentFixture,
-  resolution,
-  onSelectCandidate
-}: {
-  isDisabled: boolean;
-  isDevelopmentFixture: boolean;
-  resolution: AmbiguousResolution;
-  onSelectCandidate: (candidate: AmbiguousTimeCandidate) => void;
-}) {
-  return (
-    <section
-      aria-labelledby="ambiguous-time-title"
-      className="nn-notice nn-notice--trust mt-5 min-w-0 flex-col"
-      role="alert"
-    >
-      <p
-        className={cn(
-          'nn-eyebrow',
-          isDevelopmentFixture ? 'nn-status--research' : 'nn-status--warning'
-        )}
-      >
-        {isDevelopmentFixture ? 'Development fixture' : 'Resolution needed'}
-      </p>
-      <h3 className="nn-type-card-title" id="ambiguous-time-title">
-        {isDevelopmentFixture ? 'Ambiguous fixture state' : 'This local time occurred twice'}
-      </h3>
-      <p className="nn-type-body-small mt-2">
-        {isDevelopmentFixture
-          ? 'This development fixture simulates two candidate occurrences for UI testing. Choose one; NatalNode will not silently choose one.'
-          : 'Choose which occurrence matches the birth record. NatalNode will not silently choose one.'}
-      </p>
-      <ResolvedLocationTelemetry
-        heading={isDevelopmentFixture ? 'Fixture context' : 'Location context'}
-        isDevelopmentFixture={isDevelopmentFixture}
-        resolution={resolution}
-      />
-      <fieldset className="mt-4 grid gap-3">
-        <legend className="nn-type-label">
-          {isDevelopmentFixture ? 'Select a fixture candidate' : 'Select an occurrence'}
-        </legend>
-        {resolution.candidates.map((candidate) => {
-          const isEarlier = candidate.occurrence === 'EARLIER';
-
-          return (
-            <label
-              className="nn-surface flex min-h-11 cursor-pointer items-start gap-3 p-3 focus-within:border-[color:var(--nn-accent-supporting)] has-[:checked]:border-[color:var(--nn-accent-primary)] has-[:checked]:bg-[color:var(--nn-surface-selected)]"
-              key={candidate.occurrence}
-            >
-              <input
-                className="nn-checkbox mt-0.5"
-                disabled={isDisabled}
-                name="ambiguous-occurrence"
-                onChange={() => onSelectCandidate(candidate)}
-                required
-                type="radio"
-                value={candidate.occurrence}
-              />
-              <span>
-                <span className="nn-type-label block">
-                  {isEarlier ? 'Earlier occurrence' : 'Later occurrence'}
-                </span>
-                <span className="nn-type-metadata mt-1 block">
-                  {isEarlier
-                    ? 'The first occurrence of this local clock time.'
-                    : 'The second occurrence of this local clock time.'}
-                </span>
-              </span>
-            </label>
-          );
-        })}
-      </fieldset>
-    </section>
-  );
-}
-
-function NonexistentResolutionPanel({
-  isDisabled,
-  isDevelopmentFixture,
-  onEditBirthTime,
-  resolution
-}: {
-  isDisabled: boolean;
-  isDevelopmentFixture: boolean;
-  onEditBirthTime: () => void;
-  resolution: Extract<BirthInputResolution, { ambiguityStatus: 'NONEXISTENT' }>;
-}) {
-  return (
-    <section
-      aria-labelledby="nonexistent-time-title"
-      className="nn-notice nn-notice--error mt-5 min-w-0 flex-col"
-      role="alert"
-    >
-      <p className="nn-eyebrow nn-status--error">
-        {isDevelopmentFixture ? 'Development fixture' : 'Birth time needs editing'}
-      </p>
-      <h3 className="nn-type-card-title" id="nonexistent-time-title">
-        {isDevelopmentFixture ? 'Nonexistent fixture state' : 'This local time did not exist'}
-      </h3>
-      <p className="nn-type-body-small mt-2">
-        {isDevelopmentFixture
-          ? 'This development fixture simulates a nonexistent local time for UI testing. It does not establish a real historical DST gap for the entered place and date. The fixture was not shifted or replaced.'
-          : 'The entered local time did not exist at this location and date. It was not shifted or replaced.'}
-      </p>
-      <ResolvedLocationTelemetry
-        heading={isDevelopmentFixture ? 'Fixture context' : 'Location context'}
-        isDevelopmentFixture={isDevelopmentFixture}
-        resolution={resolution}
-      />
-      <button
-        className="nn-button nn-button--secondary mt-4 self-start"
-        disabled={isDisabled}
-        onClick={onEditBirthTime}
-        type="button"
-      >
-        Edit birth time
-      </button>
-    </section>
-  );
-}
-
-function UnknownTimeResolutionPanel({
-  isDevelopmentFixture,
-  resolution
-}: {
-  isDevelopmentFixture: boolean;
-  resolution: UnknownTimeBirthInputResolution;
-}) {
-  return (
-    <section
-      aria-labelledby="unknown-time-title"
-      aria-live="polite"
-      className="nn-notice nn-notice--trust mt-5 min-w-0 flex-col"
-      role="status"
-    >
-      <p className="nn-eyebrow nn-status--trust">Trust limitation</p>
-      <h3 className="nn-type-card-title" id="unknown-time-title">
-        Exact birth time unknown
-      </h3>
-      <p className="nn-type-body-small mt-2">
-        Without an exact birth time, Ascendant, Midheaven, houses, and house-based interpretation will be unavailable.
-      </p>
-      <ResolvedLocationTelemetry
-        heading={isDevelopmentFixture ? 'Fixture context' : 'Location resolved'}
-        isDevelopmentFixture={isDevelopmentFixture}
-        resolution={resolution}
-      />
-    </section>
-  );
-}
-
-function ResolutionPanel({
-  isDevelopmentFixture,
-  isInteractionDisabled,
-  resolution,
-  onSelectCandidate,
-  onEditBirthTime
-}: {
-  isDevelopmentFixture: boolean;
-  isInteractionDisabled: boolean;
-  resolution: BirthInputResolution | null;
-  onSelectCandidate: (candidate: AmbiguousTimeCandidate) => void;
-  onEditBirthTime: () => void;
-}) {
-  if (!resolution) {
-    return null;
-  }
-
-  switch (resolution.ambiguityStatus) {
-    case 'EXACT':
-      return (
-        <ExactResolutionPanel
-          isDevelopmentFixture={isDevelopmentFixture}
-          resolution={resolution}
-        />
-      );
-    case 'AMBIGUOUS':
-      return (
-        <AmbiguousResolutionPanel
-          isDisabled={isInteractionDisabled}
-          isDevelopmentFixture={isDevelopmentFixture}
-          onSelectCandidate={onSelectCandidate}
-          resolution={resolution}
-        />
-      );
-    case 'NONEXISTENT':
-      return (
-        <NonexistentResolutionPanel
-          isDisabled={isInteractionDisabled}
-          isDevelopmentFixture={isDevelopmentFixture}
-          onEditBirthTime={onEditBirthTime}
-          resolution={resolution}
-        />
-      );
-    case 'UNKNOWN_TIME':
-      return (
-        <UnknownTimeResolutionPanel
-          isDevelopmentFixture={isDevelopmentFixture}
-          resolution={resolution}
-        />
-      );
-  }
-}
-
 function BirthDataTrustSection() {
   return (
     <section
@@ -510,22 +135,20 @@ export default function BirthInputForm({
   const [draft, setDraft] = useState<BirthInputDraft>(INITIAL_BIRTH_INPUT_STATE);
   const [birthDateParts, setBirthDateParts] = useState<BirthDateParts>(EMPTY_BIRTH_DATE_PARTS);
   const [errors, setErrors] = useState<ValidationErrors>({});
-  const [resolution, setResolution] = useState<BirthInputResolution | null>(null);
-  const [resolutionError, setResolutionError] = useState<string | null>(null);
-  const [isResolving, setIsResolving] = useState(false);
   const [isAdvancedSettingsOpen, setIsAdvancedSettingsOpen] = useState(false);
   const timeInputRef = useRef<HTMLInputElement>(null);
-  const latestRequestRef = useRef(0);
+  const {
+    clearResolutionError,
+    invalidateResolution,
+    isResolving,
+    resolution,
+    resolutionError,
+    resolveDraft,
+    selectCandidate
+  } = useBirthInputResolution(resolver);
   const unknownTime = draft.ambiguityStatus === 'UNKNOWN_TIME';
   const isInteractionDisabled = isResolving || isCalculationPending;
   const isDevelopmentFixtureResolver = resolver instanceof DevelopmentBirthInputResolver;
-
-  const invalidateResolution = () => {
-    latestRequestRef.current += 1;
-    setResolution(null);
-    setResolutionError(null);
-    setIsResolving(false);
-  };
 
   const updateEditableDraft = (patch: Partial<EditableDraft>) => {
     setDraft((current) => ({
@@ -609,17 +232,17 @@ export default function BirthInputForm({
       return;
     }
 
-    const exactResolution = toExactResolution(resolution, candidate);
+    const exactResolution = selectCandidate(candidate);
+    if (!exactResolution) {
+      return;
+    }
+
     const nextBirthDateParts = toBirthDateParts(exactResolution.localDate);
 
-    setResolution(exactResolution);
     if (nextBirthDateParts) {
       setBirthDateParts(nextBirthDateParts);
     }
     setDraft((current) => applyResolutionToDraft(current, exactResolution));
-    setResolutionError(null);
-    setIsResolving(false);
-    latestRequestRef.current += 1;
   };
 
   const handleSubmit = async (event: { preventDefault: () => void }) => {
@@ -631,7 +254,7 @@ export default function BirthInputForm({
 
     const nextErrors = validateDraft(draft, unknownTime, birthDateParts);
     setErrors(nextErrors);
-    setResolutionError(null);
+    clearResolutionError();
 
     if (nextErrors.houseSystem) {
       setIsAdvancedSettingsOpen(true);
@@ -649,18 +272,7 @@ export default function BirthInputForm({
       return;
     }
 
-    const requestId = latestRequestRef.current + 1;
-    latestRequestRef.current = requestId;
-    setIsResolving(true);
-
-    try {
-      const nextResolution = await resolver.resolve({ ...draft });
-
-      if (latestRequestRef.current !== requestId) {
-        return;
-      }
-
-      setResolution(nextResolution);
+    await resolveDraft(draft, (nextResolution) => {
       const nextBirthDateParts = toBirthDateParts(nextResolution.localDate);
 
       if (nextBirthDateParts) {
@@ -674,18 +286,7 @@ export default function BirthInputForm({
       ) {
         onResolvedInput({ resolution: nextResolution, houseSystem: selectedHouseSystem });
       }
-    } catch {
-      if (latestRequestRef.current !== requestId) {
-        return;
-      }
-
-      setResolution(null);
-      setResolutionError('Birth input resolution is unavailable in this development environment.');
-    } finally {
-      if (latestRequestRef.current === requestId) {
-        setIsResolving(false);
-      }
-    }
+    });
   };
 
   return (
@@ -695,226 +296,66 @@ export default function BirthInputForm({
         className="nn-surface nn-surface--elevated nn-calculate-principal-surface mt-8 min-w-0 p-5 sm:p-7"
       >
         <form className="grid gap-6" noValidate onSubmit={handleSubmit}>
-        <div className="grid min-w-0 gap-7 lg:grid-cols-[minmax(0,1.15fr)_minmax(0,1fr)]">
-          <fieldset
-            aria-describedby={errors.localDate ? 'birth-date-error' : 'birth-date-help'}
-            className="min-w-0 border-0 p-0"
-          >
-            <legend className="nn-type-label">Birth date</legend>
-            <p className="nn-type-metadata mt-2" id="birth-date-help">
-              Use the date recorded at the birth place.
-            </p>
-            <div className="mt-4 grid min-w-0 grid-cols-[minmax(4.5rem,0.65fr)_minmax(0,1.35fr)] gap-3 sm:grid-cols-[minmax(4.5rem,0.7fr)_minmax(9rem,1.35fr)_minmax(5.5rem,0.8fr)]">
-              <div className="min-w-0">
-                <label className="nn-type-label" htmlFor="birth-date-day">
-                  Day
-                </label>
-                <input
-                  aria-describedby={errors.localDate ? 'birth-date-error' : 'birth-date-help'}
-                  aria-invalid={Boolean(errors.localDate)}
-                  autoComplete="bday-day"
-                  className={inputClassName}
-                  disabled={isInteractionDisabled}
-                  id="birth-date-day"
-                  inputMode="numeric"
-                  maxLength={2}
-                  onChange={(event) => handleBirthDatePartChange('day', event.target.value)}
-                  placeholder="DD"
-                  required
-                  type="text"
-                  value={birthDateParts.day}
-                />
-              </div>
-              <div className="min-w-0">
-                <label className="nn-type-label" htmlFor="birth-date-month">
-                  Month
-                </label>
-                <select
-                  aria-describedby={errors.localDate ? 'birth-date-error' : 'birth-date-help'}
-                  aria-invalid={Boolean(errors.localDate)}
-                  autoComplete="bday-month"
-                  className={cn(inputClassName, 'appearance-auto')}
-                  disabled={isInteractionDisabled}
-                  id="birth-date-month"
-                  onChange={(event) => handleBirthDatePartChange('month', event.target.value)}
-                  required
-                  value={birthDateParts.month}
-                >
-                  <option value="">Month</option>
-                  <option value="01">January</option>
-                  <option value="02">February</option>
-                  <option value="03">March</option>
-                  <option value="04">April</option>
-                  <option value="05">May</option>
-                  <option value="06">June</option>
-                  <option value="07">July</option>
-                  <option value="08">August</option>
-                  <option value="09">September</option>
-                  <option value="10">October</option>
-                  <option value="11">November</option>
-                  <option value="12">December</option>
-                </select>
-              </div>
-              <div className="col-span-2 min-w-0 sm:col-span-1">
-                <label className="nn-type-label" htmlFor="birth-date-year">
-                  Year
-                </label>
-                <input
-                  aria-describedby={errors.localDate ? 'birth-date-error' : 'birth-date-help'}
-                  aria-invalid={Boolean(errors.localDate)}
-                  autoComplete="bday-year"
-                  className={inputClassName}
-                  disabled={isInteractionDisabled}
-                  id="birth-date-year"
-                  inputMode="numeric"
-                  maxLength={4}
-                  onChange={(event) => handleBirthDatePartChange('year', event.target.value)}
-                  placeholder="YYYY"
-                  required
-                  type="text"
-                  value={birthDateParts.year}
-                />
-              </div>
-            </div>
-            <FieldError id="birth-date-error" message={errors.localDate} />
-          </fieldset>
-
-          <fieldset
-            aria-describedby={errors.localTime ? 'birth-time-error' : 'birth-time-help'}
-            className="min-w-0 border-0 p-0"
-          >
-            <legend className="nn-type-label">Birth time</legend>
-            <p className="nn-type-metadata mt-2" id="birth-time-help">
-              Use the local time recorded at the birth place.
-            </p>
-            <input
-              aria-describedby={errors.localTime ? 'birth-time-error' : 'birth-time-help'}
-              aria-invalid={Boolean(errors.localTime)}
-              className="nn-field mt-4"
-              disabled={unknownTime || isInteractionDisabled}
-              id="birth-time"
-              name="localTime"
-              onChange={(event) => updateEditableDraft({ localTime: event.target.value })}
-              ref={timeInputRef}
-              required={!unknownTime}
-              step="60"
-              type="time"
-              value={draft.localTime ?? ''}
-            />
-            <label
-              className="nn-surface mt-4 flex min-h-11 min-w-0 cursor-pointer items-start gap-3 p-3 focus-within:border-[color:var(--nn-accent-supporting)]"
-              htmlFor="unknown-time"
-            >
-              <input
-                checked={unknownTime}
-                className="nn-checkbox mt-0.5 shrink-0"
-                disabled={isInteractionDisabled}
-                id="unknown-time"
-                name="unknownTime"
-                onChange={(event) => handleUnknownTimeChange(event.target.checked)}
-                type="checkbox"
-              />
-              <span className="min-w-0">
-                <span className="nn-type-label block">I don&apos;t know my exact birth time</span>
-                <span className="nn-type-metadata mt-1 block">
-                  Keep time unknown; this is a trust limitation, not an input error.
-                </span>
-              </span>
-            </label>
-            <FieldError id="birth-time-error" message={errors.localTime} />
-          </fieldset>
-        </div>
-
-        <section
-          aria-label="Birth place and system feedback"
-          className="min-w-0 border-t border-[color:var(--nn-border-subtle)] pt-6"
-        >
-          <label className="nn-type-label" htmlFor="birth-place">
-            Birth place
-          </label>
-          <input
-            aria-describedby={errors.locationLabel ? 'birth-place-error' : undefined}
-            aria-invalid={Boolean(errors.locationLabel)}
-            className={inputClassName + ' mt-2 max-w-3xl'}
-            disabled={isInteractionDisabled}
-            id="birth-place"
-            name="locationLabel"
-            onChange={(event) => updateEditableDraft({ locationLabel: event.target.value })}
-            placeholder="City, region, country"
-            required
-            type="text"
-            value={draft.locationLabel}
-          />
-          <FieldError id="birth-place-error" message={errors.locationLabel} />
-
-          {resolutionError ? (
-            <p className="nn-notice nn-notice--error mt-5 max-w-3xl" role="alert">
-              {resolutionError}
-            </p>
-          ) : null}
-          <ResolutionPanel
-            isDevelopmentFixture={isDevelopmentFixtureResolver}
+          <BirthDateTimeFields
+            birthDateParts={birthDateParts}
+            dateError={errors.localDate}
             isInteractionDisabled={isInteractionDisabled}
-            onEditBirthTime={() => timeInputRef.current?.focus()}
-            onSelectCandidate={handleCandidateSelection}
-            resolution={resolution}
+            localTime={draft.localTime}
+            onBirthDatePartChange={handleBirthDatePartChange}
+            onLocalTimeChange={(localTime) => updateEditableDraft({ localTime })}
+            onUnknownTimeChange={handleUnknownTimeChange}
+            timeError={errors.localTime}
+            timeInputRef={timeInputRef}
+            unknownTime={unknownTime}
           />
-        </section>
 
-        <details
-          className="min-w-0 border-t border-[color:var(--nn-border-subtle)] pt-5"
-          onToggle={(event) => setIsAdvancedSettingsOpen(event.currentTarget.open)}
-          open={isAdvancedSettingsOpen}
-        >
-          <summary className="nn-type-label cursor-pointer">
-            Advanced chart settings
-          </summary>
-          <div className="mt-4 max-w-sm">
-            <label className="nn-type-label" htmlFor="house-system">
-              House system
-            </label>
-            <select
-              aria-describedby={errors.houseSystem ? 'house-system-error' : undefined}
-              aria-invalid={Boolean(errors.houseSystem)}
-              className={cn(inputClassName, 'mt-2 appearance-auto')}
-              disabled={isInteractionDisabled}
-              id="house-system"
-              name="houseSystem"
-              onChange={(event) =>
-                updateEditableDraft({ houseSystem: event.target.value as HouseSystem | '' })
-              }
-              required
-              value={draft.houseSystem}
-            >
-              <option disabled value="">
-                Choose a house system
-              </option>
-              <option value="Placidus">Placidus</option>
-              <option value="Whole Sign">Whole Sign</option>
-              <option value="Equal">Equal</option>
-            </select>
-            <FieldError id="house-system-error" message={errors.houseSystem} />
-          </div>
-        </details>
-
-        <div className="flex flex-col gap-3 border-t border-[color:var(--nn-border-subtle)] pt-5 sm:flex-row sm:items-center sm:justify-between">
-          <button
-            className="nn-button nn-button--primary w-full sm:w-auto"
-            disabled={isInteractionDisabled}
-            type="submit"
+          <section
+            aria-label="Birth place and system feedback"
+            className="min-w-0 border-t border-[color:var(--nn-border-subtle)] pt-6"
           >
-            {isCalculationPending
-              ? 'Calculating chart…'
-              : isResolving
-                ? 'Resolving birth time…'
-                : 'Calculate Chart'}
-          </button>
-          {isResolving ? (
-            <p className="nn-status nn-status--info" role="status" aria-live="polite">
-              Reading the development resolver result…
-            </p>
-          ) : null}
-        </div>
+            <BirthLocationFields
+              error={errors.locationLabel}
+              isInteractionDisabled={isInteractionDisabled}
+              locationLabel={draft.locationLabel}
+              onLocationLabelChange={(locationLabel) => updateEditableDraft({ locationLabel })}
+            />
+            <BirthResolutionFeedback
+              isDevelopmentFixture={isDevelopmentFixtureResolver}
+              isInteractionDisabled={isInteractionDisabled}
+              onEditBirthTime={() => timeInputRef.current?.focus()}
+              onSelectCandidate={handleCandidateSelection}
+              resolution={resolution}
+              resolutionError={resolutionError}
+            />
+          </section>
+
+          <BirthAdvancedSettings
+            error={errors.houseSystem}
+            houseSystem={draft.houseSystem}
+            isInteractionDisabled={isInteractionDisabled}
+            isOpen={isAdvancedSettingsOpen}
+            onHouseSystemChange={(houseSystem) => updateEditableDraft({ houseSystem })}
+            onOpenChange={setIsAdvancedSettingsOpen}
+          />
+
+          <div className="flex flex-col gap-3 border-t border-[color:var(--nn-border-subtle)] pt-5 sm:flex-row sm:items-center sm:justify-between">
+            <button
+              className="nn-button nn-button--primary w-full sm:w-auto"
+              disabled={isInteractionDisabled}
+              type="submit"
+            >
+              {isCalculationPending
+                ? 'Calculating chart…'
+                : isResolving
+                  ? 'Resolving birth time…'
+                  : 'Calculate Chart'}
+            </button>
+            {isResolving ? (
+              <p className="nn-status nn-status--info" role="status" aria-live="polite">
+                Reading the development resolver result…
+              </p>
+            ) : null}
+          </div>
         </form>
       </section>
 
