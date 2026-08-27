@@ -4,8 +4,8 @@ import { SEO_TOOL_TAXONOMY } from '@/lib/content-taxonomy';
 import type { SeoMetadata } from '@/lib/seo';
 
 const seo: SeoMetadata = {
-  title: 'Astrology Tools | NatalNode',
-  description: 'A clear home for future NatalNode utilities built around useful transformations and educational lookup.',
+  title: 'Astrology Reference Tools | NatalNode',
+  description: 'Explore clear reference tools for signs, houses, and aspects, or start a NatalNode chart calculation.',
   canonical: '/tools/'
 };
 
@@ -17,18 +17,18 @@ const availableTools = SEO_TOOL_TAXONOMY.filter((tool) => tool.status === 'AVAIL
     <header class="max-w-3xl nn-tools-hub__header">
       <p class="nn-eyebrow">Tools</p>
       <h1 class="nn-type-page-title mt-3">
-        Useful astrology utilities, kept focused.
+        Reference tools for the building blocks of a chart.
       </h1>
       <p class="nn-type-body mt-4 max-w-2xl">
-        This public surface is reserved for standalone tools that answer a focused question or make a chart concept easier to understand.
+        Use these focused educational lookups to understand signs, houses, and aspects without performing a full natal-chart calculation.
       </p>
     </header>
 
     <section class="mt-12 max-w-5xl nn-tools-hub__directory" aria-labelledby="available-tools-title">
       <div class="nn-section-header max-w-2xl">
-        <p class="nn-eyebrow">Available now</p>
+        <p class="nn-eyebrow">Reference tools</p>
         <h2 class="nn-type-section-title" id="available-tools-title">
-        Start with a focused question
+          Start with a focused question
         </h2>
       </div>
       <ul class="mt-8 grid gap-5 md:grid-cols-3 nn-tools-card-grid">
@@ -57,14 +57,15 @@ const availableTools = SEO_TOOL_TAXONOMY.filter((tool) => tool.status === 'AVAIL
       </div>
       <div class="mt-5 space-y-4 nn-type-body">
         <p>
-          {availableTools.length} focused utilities are currently available for stable educational lookup and transformations that do not need a browser astronomy engine.
+          {availableTools.length} reference tools are currently available for educational lookup and interpretation of chart building blocks. They do not calculate a natal chart.
         </p>
         <p>
           Additional utility concepts will be linked only when their functionality exists, keeping the directory useful instead of filling it with placeholder inventory.
         </p>
       </div>
-      <a class="nn-button nn-button--quiet mt-6" href="/">
-        Open the chart workspace →
+      <p class="nn-type-body-small mt-6">Looking to calculate a natal chart?</p>
+      <a class="nn-button nn-button--quiet mt-2" href="/">
+        Calculate a chart →
       </a>
     </section>
   </main>
