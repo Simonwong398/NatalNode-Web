@@ -16,6 +16,21 @@ import { PostgresEmailMagicLinkAuthLifecycle } from '../../persistence/postgres/
 
 export type { PostgresPoolRuntimeConfig } from './postgres-pool-config.js';
 
+const ACCOUNT_EXPORT_MINIMUM_POOL_MAX = 4;
+const POSTGRES_DEFAULT_POOL_MAX = 10;
+
+function assertAccountExportPoolCapacity(
+  config: PostgresPoolRuntimeConfig
+): void {
+  const maximum = config.max ?? POSTGRES_DEFAULT_POOL_MAX;
+
+  if (!Number.isSafeInteger(maximum) || maximum < ACCOUNT_EXPORT_MINIMUM_POOL_MAX) {
+    throw new Error(
+      'Postgres pool max must be at least four for account export capacity.'
+    );
+  }
+}
+
 export interface PostgresPoolRuntime {
   readonly sqlExecutor: SqlExecutor;
   readonly accountDataExport: AccountDataExportRepository;
@@ -28,6 +43,7 @@ export interface PostgresPoolRuntime {
 export function createPostgresPoolRuntime(
   config: PostgresPoolRuntimeConfig
 ): PostgresPoolRuntime {
+  assertAccountExportPoolCapacity(config);
   const pool = new Pool(createPostgresPoolConfig(config));
   const sqlExecutor = new PostgresSqlExecutor(pool);
   let closePromise: Promise<void> | undefined;

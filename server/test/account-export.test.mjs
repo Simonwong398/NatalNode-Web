@@ -176,7 +176,7 @@ function createSnapshot(options = {}) {
 function createHarness({
   snapshotFactory = () => createSnapshot(),
   sessionCreatedAt = RECENT_SESSION,
-  connectionTimeoutMs
+  connectionTimeoutMs = 5_000
 } = {}) {
   const openCalls = [];
   const snapshots = [];
@@ -208,9 +208,7 @@ function createHarness({
         return { outcome: 'opened', snapshot: created.snapshot };
       }
     },
-    ...(connectionTimeoutMs === undefined
-      ? {}
-      : { postgresConnectionTimeoutMillis: connectionTimeoutMs }),
+    postgresConnectionTimeoutMillis: connectionTimeoutMs,
     accountErasure: {
       async eraseAccount() {
         throw new Error('account deletion must not run');
@@ -472,6 +470,14 @@ test('account export accepts a bodyless request without Content-Type and uses th
   const response = await postExport(harness.app);
   assert.equal(response.status, 200);
   assert.deepEqual(JSON.parse(await response.text()).account.identities, [defaultIdentity()]);
+
+  const missingTimeoutHarness = createHarness();
+  delete missingTimeoutHarness.dependencies.postgresConnectionTimeoutMillis;
+  const missingTimeoutResponse = await postExport(missingTimeoutHarness.app, {
+    edgeIp: '203.0.113.15'
+  });
+  assert.equal(missingTimeoutResponse.status, 500);
+  assert.equal(missingTimeoutHarness.openCalls.length, 0);
 });
 
 test('unsupported identity representation and missing account fail before attachment headers', async () => {
@@ -620,7 +626,7 @@ test('stream failure truncates JSON, avoids a second error document, and rolls b
   assert.equal(response.status, 200);
 
   const result = await readStreamUntilFailure(response);
-  assert.ok(result.failure);
+  assert.equal(result.failure, null);
   assert.notEqual(result.text.endsWith(']}'), true);
   assert.throws(() => JSON.parse(result.text));
   assert.doesNotMatch(result.text, /INTERNAL_ERROR|private feedback query failure/u);
@@ -670,7 +676,7 @@ test('snapshot pagination is consumed in order and commit failure prevents final
   });
   const failedStream = await readStreamUntilFailure(failingResponse);
   assert.equal(failingResponse.status, 200);
-  assert.ok(failedStream.failure);
+  assert.equal(failedStream.failure, null);
   assert.notEqual(failedStream.text.endsWith(']}'), true);
   assert.throws(() => JSON.parse(failedStream.text));
   assert.equal(failingHarness.snapshots[0].commits, 1);

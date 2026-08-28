@@ -235,6 +235,18 @@ export function createAccountExportStream(
     }
   };
 
+  const closeController = () => {
+    if (controller === undefined) {
+      return;
+    }
+
+    try {
+      controller.close();
+    } catch (_error) {
+      // The stream may already be closed or cancelled.
+    }
+  };
+
   const fail = (): Promise<void> => {
     if (failurePromise === undefined) {
       failurePromise = (async () => {
@@ -253,16 +265,7 @@ export function createAccountExportStream(
 
   const abortListener = () => {
     streamEnded = true;
-
-    if (controller !== undefined) {
-      try {
-        controller.error(STREAM_STOPPED_ERROR);
-      } catch (_error) {
-        // The stream may already be closed or errored.
-      }
-    }
-
-    void fail();
+    void fail().then(closeController, closeController);
   };
 
   options.signal.addEventListener('abort', abortListener, { once: true });
@@ -296,12 +299,7 @@ export function createAccountExportStream(
       } catch (_error) {
         streamEnded = true;
         await fail();
-
-        try {
-          streamController.error(STREAM_STOPPED_ERROR);
-        } catch (_error) {
-          // The cancellation callback may have errored the stream first.
-        }
+        closeController();
       }
     },
     async cancel() {

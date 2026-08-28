@@ -142,6 +142,41 @@ function assertSnapshotNotAborted(signal: AbortSignal | undefined): void {
   }
 }
 
+/** Races setup queries against cancellation before the snapshot owns the client. */
+async function awaitAccountDataExportOperation<Result>(
+  operation: () => Promise<Result>,
+  signal: AbortSignal | undefined
+): Promise<Result> {
+  if (signal === undefined) {
+    return operation();
+  }
+
+  if (signal.aborted) {
+    throw new AccountDataExportSnapshotAbortedError();
+  }
+
+  const operationPromise = operation();
+  let abortHandler: (() => void) | undefined;
+  const abortPromise = new Promise<never>((_resolve, reject) => {
+    abortHandler = () => reject(new AccountDataExportSnapshotAbortedError());
+    signal.addEventListener('abort', abortHandler, { once: true });
+  });
+
+  try {
+    return await Promise.race([operationPromise, abortPromise]);
+  } catch (error) {
+    if (signal.aborted) {
+      void operationPromise.catch(() => undefined);
+    }
+
+    throw error;
+  } finally {
+    if (abortHandler !== undefined) {
+      signal.removeEventListener('abort', abortHandler);
+    }
+  }
+}
+
 function assertSnapshotTimeout(timeoutMs: number | undefined): void {
   if (
     timeoutMs !== undefined &&
@@ -216,6 +251,64 @@ async function checkoutClient(
 
     throw error;
   }
+}
+
+interface AccountDataExportOpenClientLease {
+  readonly released: boolean;
+  release(discard?: boolean): void;
+  dispose(): void;
+}
+
+function createAccountDataExportOpenClientLease(
+  client: PoolClient,
+  signal: AbortSignal | undefined
+): AccountDataExportOpenClientLease {
+  let released = false;
+  let abortHandler: (() => void) | undefined;
+
+  const removeAbortHandler = () => {
+    if (signal !== undefined && abortHandler !== undefined) {
+      signal.removeEventListener('abort', abortHandler);
+      abortHandler = undefined;
+    }
+  };
+
+  const release = (discard?: boolean) => {
+    if (released) {
+      return;
+    }
+
+    released = true;
+    removeAbortHandler();
+    if (discard === undefined) {
+      client.release();
+    } else {
+      client.release(discard);
+    }
+  };
+
+  if (signal !== undefined) {
+    abortHandler = () => {
+      try {
+        release(true);
+      } catch (_error) {
+        // Cancellation cleanup must not throw from an AbortSignal callback.
+      }
+    };
+    signal.addEventListener('abort', abortHandler, { once: true });
+
+    if (signal.aborted) {
+      abortHandler();
+    }
+  }
+
+  return {
+    get released() {
+      return released;
+    },
+    release,
+    dispose: removeAbortHandler
+  };
 }
 
 class PostgresAccountDataExportSnapshot implements AccountDataExportSnapshot {
@@ -496,6 +589,7 @@ export class PostgresAccountDataExportRepository
     options?: AccountDataExportSnapshotOpenOptions
   ): Promise<AccountDataExportSnapshotOpenResult> {
     let client: PoolClient | undefined;
+    let clientLease: AccountDataExportOpenClientLease | undefined;
     let transactionStarted = false;
     const signal = options?.signal;
     const timeoutMs = options?.timeoutMs;
@@ -505,45 +599,73 @@ export class PostgresAccountDataExportRepository
 
     try {
       client = await checkoutClient(this.pool, signal);
-      const executor = new PostgresClientSqlExecutor(client);
+      const checkedOutClient = client;
+      clientLease = createAccountDataExportOpenClientLease(
+        checkedOutClient,
+        signal
+      );
+      const executor = new PostgresClientSqlExecutor(checkedOutClient);
 
       assertSnapshotNotAborted(signal);
-      await client.query(ACCOUNT_DATA_EXPORT_BEGIN_SQL);
+      await awaitAccountDataExportOperation(
+        () => checkedOutClient.query(ACCOUNT_DATA_EXPORT_BEGIN_SQL),
+        signal
+      );
       transactionStarted = true;
       assertSnapshotNotAborted(signal);
 
       if (timeoutMs !== undefined) {
         const timeoutParameter = `${timeoutMs}ms`;
-        await executor.query(ACCOUNT_DATA_EXPORT_STATEMENT_TIMEOUT_SQL, [
-          timeoutParameter
-        ]);
+        await awaitAccountDataExportOperation(
+          () =>
+            executor.query(ACCOUNT_DATA_EXPORT_STATEMENT_TIMEOUT_SQL, [
+              timeoutParameter
+            ]),
+          signal
+        );
         assertSnapshotNotAborted(signal);
-        await executor.query(ACCOUNT_DATA_EXPORT_IDLE_TIMEOUT_SQL, [
-          timeoutParameter
-        ]);
+        await awaitAccountDataExportOperation(
+          () =>
+            executor.query(ACCOUNT_DATA_EXPORT_IDLE_TIMEOUT_SQL, [
+              timeoutParameter
+            ]),
+          signal
+        );
         assertSnapshotNotAborted(signal);
       }
 
-      const accountResult = await executor.query<AccountDataExportUserRow>(
-        ACCOUNT_DATA_EXPORT_ACCOUNT_SQL,
-        [userId]
+      const accountResult = await awaitAccountDataExportOperation(
+        () =>
+          executor.query<AccountDataExportUserRow>(
+            ACCOUNT_DATA_EXPORT_ACCOUNT_SQL,
+            [userId]
+          ),
+        signal
       );
       assertSnapshotNotAborted(signal);
       const accountRow = accountResult.rows[0];
 
       if (accountRow === undefined) {
         assertSnapshotNotAborted(signal);
-        await client.query(ACCOUNT_DATA_EXPORT_COMMIT_SQL);
+        await awaitAccountDataExportOperation(
+          () => checkedOutClient.query(ACCOUNT_DATA_EXPORT_COMMIT_SQL),
+          signal
+        );
         assertSnapshotNotAborted(signal);
-        client.release();
+        clientLease.release();
+        clientLease = undefined;
+        client = undefined;
         return { outcome: 'account-not-found' };
       }
 
-      const providerResult =
-        await executor.query<AccountDataExportProviderRow>(
-          ACCOUNT_DATA_EXPORT_IDENTITY_PROVIDERS_SQL,
-          [userId]
-        );
+      const providerResult = await awaitAccountDataExportOperation(
+        () =>
+          executor.query<AccountDataExportProviderRow>(
+            ACCOUNT_DATA_EXPORT_IDENTITY_PROVIDERS_SQL,
+            [userId]
+          ),
+        signal
+      );
       assertSnapshotNotAborted(signal);
 
       for (const providerRow of providerResult.rows) {
@@ -555,7 +677,7 @@ export class PostgresAccountDataExportRepository
       }
 
       const snapshot = new PostgresAccountDataExportSnapshot(
-        client,
+        checkedOutClient,
         executor,
         userId,
         signal,
@@ -564,13 +686,22 @@ export class PostgresAccountDataExportRepository
           updatedAt: toTimestampString(accountRow.updated_at)
         })
       );
+      clientLease.dispose();
+      clientLease = undefined;
       client = undefined;
       transactionStarted = false;
 
       return { outcome: 'opened', snapshot };
     } catch (error) {
       if (client !== undefined) {
-        await cleanupAfterOpenFailure(client, transactionStarted, error);
+        await cleanupAfterOpenFailure(
+          client,
+          transactionStarted,
+          error,
+          clientLease
+        );
+      } else {
+        clientLease?.dispose();
       }
 
       throw error;
@@ -581,11 +712,12 @@ export class PostgresAccountDataExportRepository
 async function cleanupAfterOpenFailure(
   client: PoolClient,
   transactionStarted: boolean,
-  originalError: unknown
+  originalError: unknown,
+  clientLease?: AccountDataExportOpenClientLease
 ): Promise<never> {
   const cleanupErrors: unknown[] = [];
 
-  if (transactionStarted) {
+  if (transactionStarted && !clientLease?.released) {
     try {
       await client.query(ACCOUNT_DATA_EXPORT_ROLLBACK_SQL);
     } catch (rollbackError) {
@@ -593,11 +725,19 @@ async function cleanupAfterOpenFailure(
     }
   }
 
-  try {
-    client.release(!transactionStarted || cleanupErrors.length > 0);
-  } catch (releaseError) {
-    cleanupErrors.push(releaseError);
+  if (!clientLease?.released) {
+    try {
+      if (clientLease !== undefined) {
+        clientLease.release(!transactionStarted || cleanupErrors.length > 0);
+      } else {
+        client.release(!transactionStarted || cleanupErrors.length > 0);
+      }
+    } catch (releaseError) {
+      cleanupErrors.push(releaseError);
+    }
   }
+
+  clientLease?.dispose();
 
   if (cleanupErrors.length > 0) {
     throw new AggregateError(
