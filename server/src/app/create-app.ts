@@ -11,6 +11,7 @@ import {
 } from './security/api-rate-limiting.js';
 import { enforceSameOriginUnsafeApiRequests } from './security/enforce-same-origin-unsafe-api-requests.js';
 import { createChartRoute } from './routes/chart.js';
+import { createProblemDetailsContextResponse } from './problem-details/context-response.js';
 import { registerEmailAuthenticationRoutes } from './routes/auth-email.js';
 import { registerSessionAuthenticationRoutes } from './routes/auth-session.js';
 import { registerFeedbackRoutes } from './routes/feedback.js';
@@ -39,6 +40,10 @@ const INTERNAL_ERROR_RESPONSE = {
   }
 } as const;
 
+function isApiPath(pathname: string): boolean {
+  return pathname === '/api' || pathname.startsWith('/api/');
+}
+
 export function createApp(dependencies: ServerDependencies): Hono {
   const app = new Hono();
   const rateLimiter = new InMemoryP0StagingRateLimiter();
@@ -61,7 +66,11 @@ export function createApp(dependencies: ServerDependencies): Hono {
   registerVaultChartRoutes(app, dependencies);
   registerVaultNoteRoutes(app, dependencies);
 
-  app.notFound((context) => context.json(NOT_FOUND_RESPONSE, 404));
+  app.notFound((context) =>
+    isApiPath(context.req.path)
+      ? createProblemDetailsContextResponse(context, { code: 'NOT_FOUND' })
+      : context.json(NOT_FOUND_RESPONSE, 404)
+  );
 
   app.onError((_error, context) => {
     logUnhandledApiError(context);

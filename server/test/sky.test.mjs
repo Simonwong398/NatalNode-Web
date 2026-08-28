@@ -18,10 +18,10 @@ import { classifyApiEndpointFamily } from '../dist/app/observability/api-request
 
 const PUBLIC_WEB_ORIGIN = 'https://natalnode.test';
 const SKY_CALCULATION_UNAVAILABLE_RESPONSE = {
-  error: {
-    code: 'CALCULATION_UNAVAILABLE',
-    message: 'Sky calculation is currently unavailable.'
-  }
+  type: 'about:blank',
+  title: 'Service Unavailable',
+  status: 503,
+  code: 'CALCULATION_UNAVAILABLE'
 };
 
 function createDependencies(engineClient) {
@@ -268,7 +268,9 @@ test('invalid Sky event intervals are rejected before EngineClient invocation', 
   ]) {
     const response = await postJson(app, '/api/sky/events', body);
     assert.equal(response.status, 400);
-    assert.equal((await response.json()).error.code, 'INVALID_REQUEST');
+    const payload = await response.json();
+    assert.equal(payload.code, 'INVALID_REQUEST');
+    assert.equal('error' in payload, false);
   }
 
   assert.equal(eventCalls, 0);
@@ -285,7 +287,9 @@ test('snapshot request validation rejects extras and non-canonical or non-UTC ti
   ]) {
     const response = await postJson(app, '/api/sky/snapshot', body);
     assert.equal(response.status, 400);
-    assert.equal((await response.json()).error.code, 'INVALID_REQUEST');
+    const payload = await response.json();
+    assert.equal(payload.code, 'INVALID_REQUEST');
+    assert.equal('error' in payload, false);
   }
 });
 

@@ -1,31 +1,10 @@
 import type { Context, Hono } from 'hono';
-import type { ApiErrorResponse } from '@natalnode/contracts';
 import type { ServerDependencies } from '../dependencies.js';
+import { createProblemDetailsContextResponse } from '../problem-details/context-response.js';
 import {
   isSkyEventsRequest,
   isSkySnapshotRequest
 } from '../validation/index.js';
-
-const INVALID_SNAPSHOT_REQUEST_RESPONSE: ApiErrorResponse = {
-  error: {
-    code: 'INVALID_REQUEST',
-    message: 'Invalid Sky snapshot request.'
-  }
-};
-
-const INVALID_EVENTS_REQUEST_RESPONSE: ApiErrorResponse = {
-  error: {
-    code: 'INVALID_REQUEST',
-    message: 'Invalid Sky events request.'
-  }
-};
-
-const CALCULATION_UNAVAILABLE_RESPONSE: ApiErrorResponse = {
-  error: {
-    code: 'CALCULATION_UNAVAILABLE',
-    message: 'Sky calculation is currently unavailable.'
-  }
-};
 
 async function readJson(context: Context): Promise<unknown> {
   try {
@@ -42,14 +21,18 @@ async function getSkySnapshot(
   const request = await readJson(context);
 
   if (!isSkySnapshotRequest(request)) {
-    return context.json(INVALID_SNAPSHOT_REQUEST_RESPONSE, 400);
+    return createProblemDetailsContextResponse(context, {
+      code: 'INVALID_REQUEST'
+    });
   }
 
   try {
     const result = await dependencies.engineClient.getSkySnapshot(request);
     return context.json(result);
   } catch (_error) {
-    return context.json(CALCULATION_UNAVAILABLE_RESPONSE, 503);
+    return createProblemDetailsContextResponse(context, {
+      code: 'CALCULATION_UNAVAILABLE'
+    });
   }
 }
 
@@ -60,14 +43,18 @@ async function getSkyEvents(
   const request = await readJson(context);
 
   if (!isSkyEventsRequest(request)) {
-    return context.json(INVALID_EVENTS_REQUEST_RESPONSE, 400);
+    return createProblemDetailsContextResponse(context, {
+      code: 'INVALID_REQUEST'
+    });
   }
 
   try {
     const result = await dependencies.engineClient.getSkyEvents(request);
     return context.json(result);
   } catch (_error) {
-    return context.json(CALCULATION_UNAVAILABLE_RESPONSE, 503);
+    return createProblemDetailsContextResponse(context, {
+      code: 'CALCULATION_UNAVAILABLE'
+    });
   }
 }
 
