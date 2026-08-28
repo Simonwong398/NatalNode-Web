@@ -1,4 +1,5 @@
 ---
+const isAccountPage = Astro.url.pathname === '/account';
 const isFeedbackPage = Astro.url.pathname === '/feedback';
 ---
 
@@ -8,6 +9,14 @@ const isFeedbackPage = Astro.url.pathname === '/feedback';
   aria-busy="true"
   hidden
 >
+  <a
+    class="nn-session-control__link nn-button nn-button--quiet"
+    data-auth-account
+    aria-current={isAccountPage ? 'page' : undefined}
+    hidden
+  >
+    Account
+  </a>
   <a
     class="nn-session-control__link nn-button nn-button--quiet"
     data-auth-signed-out
@@ -47,14 +56,16 @@ const isFeedbackPage = Astro.url.pathname === '/feedback';
 
   const root = document.querySelector<HTMLElement>('[data-auth-session-control]');
   const signedOutLink = root?.querySelector<HTMLAnchorElement>('[data-auth-signed-out]');
+  const accountLink = root?.querySelector<HTMLAnchorElement>('[data-auth-account]');
   const feedbackLink = root?.querySelector<HTMLAnchorElement>('[data-auth-feedback]');
   const signedInButton = root?.querySelector<HTMLButtonElement>('[data-auth-signed-in]');
   const statusElement = root?.querySelector<HTMLElement>('[data-auth-status]');
 
-  if (root && signedOutLink && feedbackLink && signedInButton && statusElement) {
+  if (root && signedOutLink && accountLink && feedbackLink && signedInButton && statusElement) {
     initializeAuthSessionControl({
       root,
       signedOutLink,
+      accountLink,
       feedbackLink,
       signedInButton,
       statusElement

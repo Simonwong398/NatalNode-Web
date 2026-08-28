@@ -7,6 +7,7 @@ export const GET: APIRoute = () => {
   const body = [
     'User-agent: *',
     'Allow: /',
+    'Disallow: /account',
     'Disallow: /auth',
     'Disallow: /vault',
     'Disallow: /feedback',

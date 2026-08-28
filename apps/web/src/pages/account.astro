@@ -1,0 +1,224 @@
+---
+import SiteLayout from '@/layouts/SiteLayout.astro';
+import type { SeoMetadata } from '@/lib/seo';
+
+const seo: SeoMetadata = {
+  title: 'Account | NatalNode',
+  description: 'Manage your NatalNode account.',
+  canonical: '/account',
+  robots: 'noindex,nofollow'
+};
+---
+
+<SiteLayout seo={seo} mode="editorial">
+  <main class="nn-container nn-container--form py-12 sm:py-16">
+    <header class="max-w-2xl">
+      <p class="nn-eyebrow">Account</p>
+      <h1 class="nn-type-page-title mt-3" id="account-page-title">
+        Account management
+      </h1>
+      <p class="nn-type-body mt-4">
+        Manage the lifecycle of your NatalNode account.
+      </p>
+    </header>
+
+    <section
+      class="mt-10"
+      data-account-page
+      aria-labelledby="account-page-title"
+      aria-busy="true"
+    >
+      <p class="nn-async-state" data-account-loading role="status" aria-live="polite">
+        Confirming your session…
+      </p>
+
+      <p
+        class="nn-async-state nn-async-state--error"
+        data-account-session-error
+        role="alert"
+        tabindex="-1"
+        hidden
+      >
+        We couldn't confirm your session. Refresh the page and try again.
+      </p>
+
+      <div class="max-w-2xl" data-account-content hidden>
+        <section
+          class="account-danger-surface p-6 sm:p-8"
+          aria-labelledby="account-danger-title"
+        >
+          <p class="nn-eyebrow">Danger zone</p>
+          <h2 class="nn-type-section-title mt-3" id="account-danger-title">
+            Delete account
+          </h2>
+          <p class="nn-type-body-small mt-3 max-w-xl">
+            This permanently removes your account from the active NatalNode application,
+            including saved Vault charts and notes and private Feedback associated with
+            your account. This is different from deleting one saved chart. You will be
+            signed out.
+          </p>
+          <button
+            class="nn-button nn-button--secondary mt-6"
+            data-account-delete-open
+            type="button"
+            aria-expanded="false"
+            aria-controls="account-delete-confirmation"
+          >
+            Delete account
+          </button>
+
+          <section
+            class="mt-6 border-t border-[var(--nn-border-default)] pt-6"
+            id="account-delete-confirmation"
+            data-account-delete-confirmation
+            aria-labelledby="account-delete-confirmation-title"
+            hidden
+          >
+            <h3
+              class="nn-type-card-title"
+              id="account-delete-confirmation-title"
+              data-account-delete-heading
+            >
+              Confirm account deletion
+            </h3>
+            <p class="nn-type-body-small mt-3 max-w-xl" id="account-delete-help">
+              Enter <strong>DELETE</strong> exactly to confirm this permanent action.
+              A recent sign-in may be required.
+            </p>
+
+            <form class="mt-5" data-account-delete-form novalidate aria-busy="false">
+              <label class="nn-type-label" for="account-delete-phrase">
+                Confirmation phrase
+              </label>
+              <input
+                class="nn-field mt-2 max-w-sm"
+                id="account-delete-phrase"
+                data-account-delete-input
+                name="confirmation"
+                type="text"
+                autocomplete="off"
+                autocapitalize="characters"
+                spellcheck="false"
+                aria-describedby="account-delete-help account-delete-error"
+              />
+
+              <div class="mt-5 flex flex-wrap gap-3">
+                <button
+                  class="nn-button nn-button--secondary"
+                  data-account-delete-cancel
+                  type="button"
+                >
+                  Cancel
+                </button>
+                <button
+                  class="nn-button account-danger-button"
+                  data-account-delete-submit
+                  type="submit"
+                  disabled
+                >
+                  Delete account permanently
+                </button>
+              </div>
+
+              <p
+                class="nn-status mt-4"
+                data-account-delete-pending
+                role="status"
+                aria-live="polite"
+                hidden
+              >
+                Deleting your account…
+              </p>
+              <p
+                class="nn-notice nn-notice--error mt-4"
+                id="account-delete-error"
+                data-account-delete-error
+                role="alert"
+                tabindex="-1"
+                hidden
+              ></p>
+              <section
+                class="nn-notice nn-notice--error mt-4 flex-col"
+                data-account-reauth
+                role="alert"
+                aria-labelledby="account-reauth-title"
+                tabindex="-1"
+                hidden
+              >
+                <h4 class="font-semibold text-[var(--nn-text-primary)]" id="account-reauth-title">
+                  Re-authentication required
+                </h4>
+                <p>
+                  For security, please sign in again with an Email Magic Link before
+                  deleting your account.
+                </p>
+                <a class="nn-button nn-button--secondary self-start" href="/auth/sign-in">
+                  Sign in again
+                </a>
+              </section>
+            </form>
+          </section>
+        </section>
+      </div>
+    </section>
+  </main>
+</SiteLayout>
+
+<script>
+  import { initializeAccountDeletion } from '@/features/account/account-deletion';
+
+  const root = document.querySelector<HTMLElement>('[data-account-page]');
+  const loading = root?.querySelector<HTMLElement>('[data-account-loading]');
+  const sessionError = root?.querySelector<HTMLElement>('[data-account-session-error]');
+  const accountContent = root?.querySelector<HTMLElement>('[data-account-content]');
+  const openButton = root?.querySelector<HTMLButtonElement>('[data-account-delete-open]');
+  const confirmationRegion = root?.querySelector<HTMLElement>('[data-account-delete-confirmation]');
+  const form = root?.querySelector<HTMLFormElement>('[data-account-delete-form]');
+  const confirmationInput = root?.querySelector<HTMLInputElement>('[data-account-delete-input]');
+  const cancelButton = root?.querySelector<HTMLButtonElement>('[data-account-delete-cancel]');
+  const submitButton = root?.querySelector<HTMLButtonElement>('[data-account-delete-submit]');
+  const pendingStatus = root?.querySelector<HTMLElement>('[data-account-delete-pending]');
+  const errorStatus = root?.querySelector<HTMLElement>('[data-account-delete-error]');
+  const reauthStatus = root?.querySelector<HTMLElement>('[data-account-reauth]');
+
+  if (
+    root && loading && sessionError && accountContent && openButton &&
+    confirmationRegion && form && confirmationInput && cancelButton &&
+    submitButton && pendingStatus && errorStatus && reauthStatus
+  ) {
+    initializeAccountDeletion({
+      root,
+      loading,
+      sessionError,
+      accountContent,
+      openButton,
+      confirmationRegion,
+      form,
+      confirmationInput,
+      cancelButton,
+      submitButton,
+      pendingStatus,
+      errorStatus,
+      reauthStatus
+    });
+  }
+</script>
+
+<style>
+  .account-danger-surface {
+    border: 1px solid color-mix(in srgb, var(--nn-status-error) 38%, var(--nn-border-default));
+    border-radius: var(--nn-radius-medium);
+    background: color-mix(in srgb, var(--nn-status-error-surface) 54%, var(--nn-surface-base));
+  }
+
+  .account-danger-button {
+    color: var(--nn-text-primary);
+    border-color: color-mix(in srgb, var(--nn-status-error) 72%, var(--nn-border-default));
+    background: color-mix(in srgb, var(--nn-status-error) 32%, var(--nn-surface-interactive));
+  }
+
+  .account-danger-button:hover:not(:disabled) {
+    border-color: var(--nn-status-error);
+    background: color-mix(in srgb, var(--nn-status-error) 44%, var(--nn-surface-interactive));
+  }
+</style>

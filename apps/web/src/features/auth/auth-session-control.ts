@@ -5,6 +5,7 @@ import type {
 
 const SESSION_ENDPOINT = '/api/auth/session';
 const LOGOUT_ENDPOINT = '/api/auth/logout';
+const ACCOUNT_PATH = '/account';
 const SIGNED_IN_STATUS = 'signedIn';
 const SIGNED_OUT_STATUS = 'signedOut';
 const LOGOUT_PENDING_STATUS = 'logoutPending';
@@ -23,6 +24,7 @@ type AuthSessionState =
 export interface AuthSessionControlElements {
   readonly root: HTMLElement;
   readonly signedOutLink: HTMLAnchorElement;
+  readonly accountLink: HTMLAnchorElement;
   readonly feedbackLink: HTMLAnchorElement;
   readonly signedInButton: HTMLButtonElement;
   readonly statusElement: HTMLElement;
@@ -61,6 +63,12 @@ function render(
   elements.root.hidden = state === 'loading';
   elements.root.setAttribute('aria-busy', state === 'loading' ? 'true' : 'false');
   elements.signedOutLink.hidden = !isSignedOut;
+  elements.accountLink.hidden = !isSignedIn;
+  if (isSignedIn) {
+    elements.accountLink.setAttribute('href', ACCOUNT_PATH);
+  } else {
+    elements.accountLink.removeAttribute('href');
+  }
   elements.feedbackLink.hidden = !isSignedIn;
   elements.signedInButton.hidden = !isSignedIn;
   elements.signedInButton.disabled = isLogoutPending;
