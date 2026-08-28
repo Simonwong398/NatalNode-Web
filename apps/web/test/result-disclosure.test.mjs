@@ -6,6 +6,7 @@ import {
   assertNoResultDisclosureHarnessLeak,
   AVAILABLE_POLICY,
   focusedChart,
+  TEST_CHART_REQUEST,
   UNKNOWN_TIME_POLICY,
   withResultWorkspace
 } from './support/result-disclosure-harness.mjs';
@@ -27,16 +28,43 @@ function assertActiveMode(scope, activeName) {
   }
 }
 
-test('Chart is the default single active mode and the unchanged Save slot remains separate', async () => {
+test('Chart is the default single active mode with contextual Save and compact chart facts', async () => {
   await withResultWorkspace({}, async (scope) => {
     assert.equal(scope.container.querySelectorAll('[role="tab"]').length, 3);
     assert.equal(scope.container.querySelector('[role="tablist"]').getAttribute('aria-orientation'), 'horizontal');
     assert.doesNotMatch(scope.container.querySelector('nav').className, /lg:hidden/u);
     assertActiveMode(scope, 'Chart');
     assert.match(scope.text(scope.panel('Chart')), /Chart renderer/u);
-    assert.match(scope.text(scope.panel('Chart')), /Astrological notation/u);
     assert.doesNotMatch(scope.text(scope.panel('Chart')), /Save this chart/u);
-    assert.equal(scope.container.querySelectorAll('[data-testid="save-chart-panel"]').length, 1);
+
+    const saveAction = scope.button('Save chart');
+    const saveRegion = scope.document.getElementById(saveAction.getAttribute('aria-controls'));
+    assert.equal(saveAction.getAttribute('aria-expanded'), 'false');
+    assert.ok(saveRegion);
+    assert.equal(saveRegion.hidden, true);
+    assert.equal(saveRegion.querySelectorAll('form').length, 1);
+    assert.equal(scope.container.querySelectorAll('button[role="tab"]').length, 3);
+
+    const chartPanel = scope.panel('Chart');
+    const orientationHeading = [...chartPanel.querySelectorAll('h4')].find(
+      (heading) => scope.text(heading) === 'Chart facts at a glance'
+    );
+    assert.ok(orientationHeading);
+    const orientation = orientationHeading.closest('section');
+    const compactFacts = orientation.querySelector(':scope > dl');
+    assert.deepEqual(
+      [...compactFacts.querySelectorAll(':scope > div > dt')].map((item) => scope.text(item)),
+      ['☉ Sun', '☽ Moon', 'ASC']
+    );
+    assert.match(scope.text(compactFacts), /Taurus · 45\.25°/u);
+    assert.match(scope.text(compactFacts), /Libra · 183\.75°/u);
+    assert.match(scope.text(compactFacts), /Cancer · 109\.8°/u);
+    assert.match(scope.text(orientation), /3 body placements · 1 major aspect/u);
+
+    const completeFacts = scope.disclosure('Complete chart facts');
+    const completeFactsContent = scope.disclosureContent('Complete chart facts');
+    assert.equal(completeFacts.getAttribute('aria-expanded'), 'false');
+    assert.equal(completeFactsContent.hidden, true);
 
     for (const panel of scope.container.querySelectorAll('[role="tabpanel"]')) {
       assert.doesNotMatch(panel.className, /lg:block/u);
@@ -44,11 +72,63 @@ test('Chart is the default single active mode and the unchanged Save slot remain
   });
 });
 
+test('Save intent reveals one unchanged form without changing mode and submits the same chart request', async () => {
+  await withResultWorkspace({}, async (scope) => {
+    const saveAction = scope.button('Save chart');
+    const saveRegion = scope.document.getElementById(saveAction.getAttribute('aria-controls'));
+    assertActiveMode(scope, 'Chart');
+
+    await scope.click(saveAction);
+    assert.equal(saveAction.getAttribute('aria-expanded'), 'true');
+    assert.equal(saveRegion.hidden, false);
+    assert.equal(saveRegion.querySelectorAll('form').length, 1);
+    assert.equal(scope.control('Chart name').closest('[id]') !== null, true);
+    assert.equal(scope.control('Category').value, 'SELF');
+    assertActiveMode(scope, 'Chart');
+
+    await scope.click(scope.tab('Interpretation'));
+    assertActiveMode(scope, 'Interpretation');
+    assert.equal(saveAction.getAttribute('aria-expanded'), 'true');
+    assert.equal(saveRegion.hidden, false);
+    assert.equal(saveRegion.querySelectorAll('form').length, 1);
+
+    await scope.change(scope.control('Chart name'), 'Focused fixture chart');
+    await scope.submit(scope.control('Chart name').form);
+    await scope.flush();
+    assert.equal(scope.fetchCalls.length, 1);
+    const requestBody = JSON.parse(scope.fetchCalls[0].init.body);
+    assert.deepEqual(requestBody.chart, TEST_CHART_REQUEST);
+    assert.equal(requestBody.displayName, 'Focused fixture chart');
+    assert.equal(requestBody.category, 'SELF');
+  });
+});
+
+test('complete Chart facts open once and preserve the full existing notation after the wheel', async () => {
+  await withResultWorkspace({ chart: focusedChart() }, async (scope) => {
+    const chartPanel = scope.panel('Chart');
+    const renderer = chartPanel.querySelector('[data-testid="chart-renderer"]');
+    const completeFacts = scope.disclosure('Complete chart facts');
+    const completeFactsContent = scope.disclosureContent('Complete chart facts');
+    assert.ok(renderer.compareDocumentPosition(completeFacts) & scope.window.Node.DOCUMENT_POSITION_FOLLOWING);
+    assert.equal(completeFactsContent.hidden, true);
+
+    await scope.click(completeFacts);
+    assert.equal(completeFacts.getAttribute('aria-expanded'), 'true');
+    assert.equal(completeFactsContent.hidden, false);
+    assert.equal(completeFactsContent.querySelectorAll('dl > div').length, 3);
+    assert.equal(completeFactsContent.querySelectorAll('li').length, 1);
+    assert.equal(completeFactsContent.querySelectorAll('button').length, 0);
+    assert.match(scope.text(completeFactsContent), /Mercury/u);
+    assert.match(scope.text(completeFactsContent), /House XI/u);
+    assert.match(scope.text(completeFactsContent), /orb 1\.5° · APPLYING/u);
+  });
+});
+
 test('mouse and keyboard mode navigation expose exactly one panel with stable relationships', async () => {
   await withResultWorkspace({}, async (scope) => {
     await scope.click(scope.tab('Interpretation'));
     assertActiveMode(scope, 'Interpretation');
-    assert.equal(scope.container.querySelectorAll('[data-testid="save-chart-panel"]').length, 1);
+    assert.equal(scope.button('Save chart').getAttribute('aria-expanded'), 'false');
 
     await scope.key(scope.tab('Interpretation'), 'ArrowRight');
     assertActiveMode(scope, 'Details');
@@ -126,6 +206,19 @@ test('unknown time keeps Core placements and a non-expandable house limitation g
     { chart: focusedChart(), presentationPolicy: UNKNOWN_TIME_POLICY },
     async (scope) => {
       assert.match(scope.text(), /Birth time is unknown/u);
+      const chartPanel = scope.panel('Chart');
+      const orientationHeading = [...chartPanel.querySelectorAll('h4')].find(
+        (heading) => scope.text(heading) === 'Chart facts at a glance'
+      );
+      const compactFacts = orientationHeading.closest('section').querySelector(':scope > dl');
+      assert.deepEqual(
+        [...compactFacts.querySelectorAll(':scope > div > dt')].map((item) => scope.text(item)),
+        ['☉ Sun', '☽ Moon']
+      );
+      assert.doesNotMatch(scope.text(compactFacts), /ASC/u);
+      assert.match(scope.text(chartPanel), /Time-dependent angles and houses unavailable\./u);
+      assert.equal(scope.disclosureContent('Complete chart facts').hidden, true);
+
       await scope.click(scope.tab('Interpretation'));
       const panel = scope.panel('Interpretation');
 

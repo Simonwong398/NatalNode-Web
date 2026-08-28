@@ -6,11 +6,3 @@ export { default as InterpretationPanel } from '../../dist/result-disclosure-cha
 export function ChartRenderer() {
   return React.createElement('div', { 'data-testid': 'chart-renderer' }, 'Chart renderer');
 }
-
-export default function AstrologicalNotation() {
-  return React.createElement(
-    'div',
-    { 'data-testid': 'astrological-notation' },
-    'Astrological notation'
-  );
-}

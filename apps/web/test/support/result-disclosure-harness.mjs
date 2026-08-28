@@ -16,7 +16,8 @@ const GLOBAL_NAMES = [
   'MouseEvent',
   'KeyboardEvent',
   'FocusEvent',
-  'IS_REACT_ACT_ENVIRONMENT'
+  'IS_REACT_ACT_ENVIRONMENT',
+  'fetch'
 ];
 
 const ORIGINAL_GLOBAL_DESCRIPTORS = new Map(
@@ -24,6 +25,10 @@ const ORIGINAL_GLOBAL_DESCRIPTORS = new Map(
 );
 const WORKSPACE_URL = new URL(
   '../../dist/result-disclosure-characterization/features/chart-workspace/ChartWorkspaceView.js',
+  import.meta.url
+);
+const ASTROLOGICAL_NOTATION_URL = new URL(
+  '../../dist/result-disclosure-characterization/features/chart-workspace/AstrologicalNotation.js',
   import.meta.url
 );
 const INTERPRETATION_URL = new URL(
@@ -36,6 +41,14 @@ const DETERMINISTIC_INTERPRETATION_URL = new URL(
 );
 const INTERPRETATION_CONTENT_URL = new URL(
   '../../dist/result-disclosure-characterization/features/interpretation/interpretation-content.js',
+  import.meta.url
+);
+const SAVE_PANEL_URL = new URL(
+  '../../dist/result-disclosure-characterization/features/vault/SaveChartPanel.js',
+  import.meta.url
+);
+const SAVE_VAULT_CHART_URL = new URL(
+  '../../dist/result-disclosure-characterization/features/vault/save-vault-chart.js',
   import.meta.url
 );
 const PROXIES_URL = new URL('./result-disclosure-proxies.mjs', import.meta.url);
@@ -52,7 +65,7 @@ function restoreDescriptor(object, property, descriptor) {
   }
 }
 
-function installWindowGlobals(window) {
+function installWindowGlobals(window, fetchStub) {
   const values = {
     window,
     document: window.document,
@@ -64,7 +77,8 @@ function installWindowGlobals(window) {
     MouseEvent: window.MouseEvent,
     KeyboardEvent: window.KeyboardEvent,
     FocusEvent: window.FocusEvent,
-    IS_REACT_ACT_ENVIRONMENT: true
+    IS_REACT_ACT_ENVIRONMENT: true,
+    fetch: fetchStub
   };
 
   for (const name of GLOBAL_NAMES) {
@@ -84,10 +98,13 @@ async function loadComponent() {
         if (
           specifier === '@/features/calculation-details' ||
           specifier === '@/features/chart-renderer' ||
-          specifier === '@/features/interpretation' ||
-          (specifier === './AstrologicalNotation' && context.parentURL === WORKSPACE_URL.href)
+          specifier === '@/features/interpretation'
         ) {
           return nextResolve(PROXIES_URL.href, context);
+        }
+
+        if (specifier === './AstrologicalNotation' && context.parentURL === WORKSPACE_URL.href) {
+          return nextResolve(ASTROLOGICAL_NOTATION_URL.href, context);
         }
 
         if (
@@ -104,12 +121,24 @@ async function loadComponent() {
           return nextResolve(INTERPRETATION_CONTENT_URL.href, context);
         }
 
+        if (specifier === './save-vault-chart' && context.parentURL === SAVE_PANEL_URL.href) {
+          return nextResolve(SAVE_VAULT_CHART_URL.href, context);
+        }
+
         return nextResolve(specifier, context);
       }
     });
 
     try {
-      return (await import(WORKSPACE_URL.href)).default;
+      const [workspaceModule, savePanelModule] = await Promise.all([
+        import(WORKSPACE_URL.href),
+        import(SAVE_PANEL_URL.href)
+      ]);
+
+      return {
+        ChartWorkspaceView: workspaceModule.default,
+        SaveChartPanel: savePanelModule.default
+      };
     } finally {
       hook.deregister();
     }
@@ -139,6 +168,19 @@ function findTab(root, name) {
   return matches[0];
 }
 
+function findButton(root, name) {
+  const matches = exactTextElements(root, 'button', name);
+  assert.equal(matches.length, 1, `expected one ${name} button, found ${matches.length}`);
+  return matches[0];
+}
+
+function findControl(root, labelText) {
+  const labels = exactTextElements(root, 'label', labelText);
+  assert.equal(labels.length, 1, `expected one ${labelText} label, found ${labels.length}`);
+  assert.ok(labels[0].control, `expected ${labelText} to label a control`);
+  return labels[0].control;
+}
+
 function findDisclosure(root, name) {
   const matches = [...root.querySelectorAll('button[aria-expanded]')].filter((button) =>
     [...button.querySelectorAll('.nn-type-label')].some(
@@ -166,18 +208,25 @@ function panelForTab(root, name) {
   return panel;
 }
 
-function makeScope(window, container, root, render) {
+function makeScope(window, container, root, render, fetchCalls) {
   return {
     window,
     document: window.document,
     container,
     root,
     render,
+    fetchCalls,
     tab(name) {
       return findTab(container, name);
     },
     panel(name) {
       return panelForTab(container, name);
+    },
+    button(name) {
+      return findButton(container, name);
+    },
+    control(name) {
+      return findControl(container, name);
     },
     disclosure(name) {
       return findDisclosure(container, name);
@@ -203,6 +252,29 @@ function makeScope(window, container, root, render) {
       await React.act(async () => {
         element.dispatchEvent(new window.KeyboardEvent('keydown', { bubbles: true, key }));
       });
+    },
+    async change(control, value) {
+      const prototype = control instanceof window.HTMLSelectElement
+        ? window.HTMLSelectElement.prototype
+        : window.HTMLInputElement.prototype;
+      const descriptor = Object.getOwnPropertyDescriptor(prototype, 'value');
+      descriptor.set.call(control, value);
+
+      await React.act(async () => {
+        control.dispatchEvent(new window.Event('input', { bubbles: true }));
+        control.dispatchEvent(new window.Event('change', { bubbles: true }));
+      });
+    },
+    async submit(form) {
+      await React.act(async () => {
+        form.dispatchEvent(new window.Event('submit', { bubbles: true, cancelable: true }));
+      });
+    },
+    async flush() {
+      await React.act(async () => {
+        await Promise.resolve();
+        await Promise.resolve();
+      });
     }
   };
 }
@@ -217,6 +289,23 @@ export const UNKNOWN_TIME_POLICY = {
   showAngles: false,
   showHouses: false,
   showHouseInterpretation: false
+};
+
+export const TEST_CHART_REQUEST = {
+  birth: {
+    localDate: '1990-05-15',
+    localTime: '07:05',
+    locationLabel: 'Fixture City',
+    latitude: 34.0522,
+    longitude: -118.2437,
+    ianaTimeZone: 'America/Los_Angeles',
+    resolvedUtcInstant: '1990-05-15T14:05:00.000Z',
+    utcOffsetSeconds: -25200,
+    timezoneDatabaseVersion: 'fixture-tzdb',
+    timezoneResolutionMethod: 'FIXTURE',
+    ambiguityStatus: 'EXACT'
+  },
+  houseSystem: 'PLACIDUS'
 };
 
 export function focusedChart() {
@@ -247,7 +336,12 @@ export async function withResultWorkspace(options = {}, exercise) {
   assert.equal(activeScope, undefined, 'a prior result disclosure test leaked its DOM scope');
 
   const window = new Window({ url: 'https://example.test/' });
-  installWindowGlobals(window);
+  const fetchCalls = [];
+  const fetchStub = async (input, init) => {
+    fetchCalls.push({ input, init, url: String(input) });
+    return new Response(null, { status: 500 });
+  };
+  installWindowGlobals(window, fetchStub);
   const container = window.document.createElement('div');
   window.document.body.append(container);
   let root;
@@ -255,16 +349,13 @@ export async function withResultWorkspace(options = {}, exercise) {
 
   try {
     const { createRoot } = await loadReactDomClient();
-    const ChartWorkspaceView = await loadComponent();
+    const { ChartWorkspaceView, SaveChartPanel } = await loadComponent();
     root = createRoot(container);
     activeScope.root = root;
     const chart = options.chart ?? focusedChart();
     const presentationPolicy = options.presentationPolicy ?? AVAILABLE_POLICY;
-    const savePanel = React.createElement(
-      'section',
-      { 'data-testid': 'save-chart-panel' },
-      'Save this chart'
-    );
+    const chartRequest = options.chartRequest ?? TEST_CHART_REQUEST;
+    const savePanel = React.createElement(SaveChartPanel, { chartRequest });
     const render = () => {
       root.render(
         React.createElement(
@@ -272,7 +363,7 @@ export async function withResultWorkspace(options = {}, exercise) {
           {
             chart,
             presentationPolicy,
-            requestedHouseSystem: 'PLACIDUS'
+            requestedHouseSystem: chartRequest.houseSystem
           },
           savePanel
         )
@@ -280,7 +371,7 @@ export async function withResultWorkspace(options = {}, exercise) {
     };
 
     await React.act(async () => render());
-    return await exercise(makeScope(window, container, root, render));
+    return await exercise(makeScope(window, container, root, render, fetchCalls));
   } finally {
     if (root) {
       React.act(() => root.unmount());

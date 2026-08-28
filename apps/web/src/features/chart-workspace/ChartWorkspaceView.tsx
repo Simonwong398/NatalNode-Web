@@ -37,12 +37,14 @@ export default function ChartWorkspaceView({
   const workspaceId = useId();
   const titleId = `${workspaceId}-title`;
   const wheelTitleId = `${workspaceId}-wheel-title`;
+  const savePanelId = `${workspaceId}-save-panel`;
   const tabRefs = useRef<Record<ResultMode, HTMLButtonElement | null>>({
     chart: null,
     interpretation: null,
     details: null
   });
   const [activeMode, setActiveMode] = useState<ResultMode>('chart');
+  const [isSaveOpen, setIsSaveOpen] = useState(false);
   const isResearchConfiguration = chart.calculationStatus === 'INCOMPLETE_RESEARCH';
 
   const sectionIds = {
@@ -96,17 +98,30 @@ export default function ChartWorkspaceView({
             Natal Chart
           </h2>
         </div>
-        <div className="flex flex-wrap gap-2" aria-label="Chart status">
-          <span className="nn-badge">
-            Schema {chart.schemaVersion}
-          </span>
-          <span className="nn-badge">
-            {chart.calculationStatus}
-          </span>
-          {isResearchConfiguration ? (
-            <span className="nn-badge nn-status--research">
-              Research configuration
+        <div className="flex flex-col gap-3 lg:items-end">
+          <div className="flex flex-wrap gap-2" aria-label="Chart status">
+            <span className="nn-badge">
+              Schema {chart.schemaVersion}
             </span>
+            <span className="nn-badge">
+              {chart.calculationStatus}
+            </span>
+            {isResearchConfiguration ? (
+              <span className="nn-badge nn-status--research">
+                Research configuration
+              </span>
+            ) : null}
+          </div>
+          {children ? (
+            <button
+              aria-controls={savePanelId}
+              aria-expanded={isSaveOpen}
+              className="nn-button nn-button--quiet self-start px-3 lg:self-auto"
+              onClick={() => setIsSaveOpen((current) => !current)}
+              type="button"
+            >
+              Save chart
+            </button>
           ) : null}
         </div>
       </header>
@@ -121,6 +136,12 @@ export default function ChartWorkspaceView({
             Birth time is unknown. Ascendant, Midheaven, houses, and house-based interpretation are unavailable.
           </span>
         </p>
+      ) : null}
+
+      {children ? (
+        <div className="mx-5 mt-5 sm:mx-7" hidden={!isSaveOpen} id={savePanelId}>
+          {children}
+        </div>
       ) : null}
 
       <nav
@@ -186,8 +207,6 @@ export default function ChartWorkspaceView({
             <AstrologicalNotation chart={chart} presentationPolicy={presentationPolicy} />
           </section>
         </div>
-
-        {children ? <div className="min-w-0">{children}</div> : null}
 
         <div
           aria-labelledby={tabIds.interpretation}

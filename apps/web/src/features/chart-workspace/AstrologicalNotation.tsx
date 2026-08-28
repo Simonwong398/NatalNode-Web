@@ -1,5 +1,5 @@
-import { useId } from 'react';
-import type { AspectFact, BodyFact, ChartResult } from '@natalnode/contracts';
+import { useId, useState } from 'react';
+import type { AngleFact, AspectFact, BodyFact, ChartResult } from '@natalnode/contracts';
 import type { ChartPresentationPolicy } from './chart-presentation-policy';
 
 const PLANET_GLYPHS: Record<string, string> = {
@@ -63,6 +63,34 @@ function Glyph({ value }: { value: string | undefined }) {
   return value ? <span aria-hidden="true">{value}</span> : null;
 }
 
+function BodyOrientation({ body }: { body: BodyFact }) {
+  return (
+    <div className="min-w-0 border-l border-natal-border/50 pl-3">
+      <dt className="nn-type-label break-words">
+        <Glyph value={PLANET_GLYPHS[body.bodyId]} />{' '}
+        {body.bodyId}
+        {body.retrograde === true ? ' (retrograde)' : null}
+      </dt>
+      <dd className="nn-type-body-small mt-1 break-words">
+        <Glyph value={ZODIAC_GLYPHS[body.sign]} />{' '}
+        {body.sign} · {formatLongitude(body.longitude)}
+      </dd>
+    </div>
+  );
+}
+
+function AngleOrientation({ angle }: { angle: AngleFact }) {
+  return (
+    <div className="min-w-0 border-l border-natal-border/50 pl-3">
+      <dt className="nn-type-label break-words">{angle.angleId}</dt>
+      <dd className="nn-type-body-small mt-1 break-words">
+        <Glyph value={ZODIAC_GLYPHS[angle.sign]} />{' '}
+        {angle.sign} · {formatLongitude(angle.longitude)}
+      </dd>
+    </div>
+  );
+}
+
 function BodyNotation({ body, showHouses }: { body: BodyFact; showHouses: boolean }) {
   const house = body.house;
   const houseNotation = showHouses && typeof house === 'number' && Number.isInteger(house) && house >= 1 && house <= 12
@@ -109,39 +137,118 @@ export type AstrologicalNotationProps = {
   presentationPolicy: ChartPresentationPolicy;
 };
 
-export default function AstrologicalNotation({ chart, presentationPolicy }: AstrologicalNotationProps) {
-  const titleId = `${useId()}-astrological-notation-title`;
+function bodyCount(count: number) {
+  return `${count} ${count === 1 ? 'body placement' : 'body placements'}`;
+}
 
-  if (chart.bodies.length === 0 && chart.aspects.length === 0) {
+function aspectCount(count: number) {
+  return `${count} ${count === 1 ? 'major aspect' : 'major aspects'}`;
+}
+
+export default function AstrologicalNotation({ chart, presentationPolicy }: AstrologicalNotationProps) {
+  const notationId = useId();
+  const titleId = `${notationId}-astrological-notation-title`;
+  const disclosureTitleId = `${notationId}-complete-chart-facts-title`;
+  const disclosureControlId = `${notationId}-complete-chart-facts-control`;
+  const disclosureContentId = `${notationId}-complete-chart-facts-content`;
+  const [isCompleteFactsOpen, setIsCompleteFactsOpen] = useState(false);
+  const orientationBodies = ['Sun', 'Moon'].flatMap((bodyId) => {
+    const body = chart.bodies.find((candidate) => candidate.bodyId === bodyId);
+    return body ? [body] : [];
+  });
+  const ascendant = presentationPolicy.showAngles
+    ? chart.angles.find((angle) => angle.angleId === 'ASC')
+    : undefined;
+  const hasCompleteFacts = chart.bodies.length > 0 || chart.aspects.length > 0;
+  const countSummary = `${bodyCount(chart.bodies.length)} · ${aspectCount(chart.aspects.length)}`;
+
+  if (orientationBodies.length === 0 && !ascendant && !hasCompleteFacts) {
     return null;
   }
 
   return (
     <section aria-labelledby={titleId} className="mt-6 border-t border-natal-border/70 pt-5">
       <div className="nn-section-header">
-        <p className="nn-eyebrow">Astrological notation</p>
+        <p className="nn-eyebrow">Chart orientation</p>
         <h4 className="nn-type-section-title" id={titleId}>
           Chart facts at a glance
         </h4>
       </div>
 
-      {chart.bodies.length > 0 ? (
-        <dl className="mt-3">
-          {chart.bodies.map((body, index) => (
-            <BodyNotation body={body} key={`${body.bodyId}-${index}`} showHouses={presentationPolicy.showHouses} />
+      {orientationBodies.length > 0 || ascendant ? (
+        <dl className="mt-4 grid min-w-0 gap-3 sm:grid-cols-3">
+          {orientationBodies.map((body) => (
+            <BodyOrientation body={body} key={body.bodyId} />
           ))}
+          {ascendant ? <AngleOrientation angle={ascendant} /> : null}
         </dl>
       ) : null}
 
-      {chart.aspects.length > 0 ? (
-        <div className={chart.bodies.length > 0 ? 'mt-5' : 'mt-3'}>
-          <h5 className="text-sm font-semibold text-nn-text-primary">Major aspects</h5>
-          <ul className="mt-1">
-            {chart.aspects.map((aspect, index) => (
-              <AspectNotation aspect={aspect} key={`${aspect.firstBodyId}-${aspect.type}-${aspect.secondBodyId}-${index}`} />
-            ))}
-          </ul>
-        </div>
+      <p className="nn-type-metadata mt-4">{countSummary}</p>
+
+      {!presentationPolicy.showAngles || !presentationPolicy.showHouses ? (
+        <p className="nn-type-body-small mt-3">
+          Time-dependent angles and houses unavailable.
+        </p>
+      ) : null}
+
+      {hasCompleteFacts ? (
+        <section aria-labelledby={disclosureTitleId} className="mt-4">
+          <h5>
+            <button
+              aria-controls={disclosureContentId}
+              aria-expanded={isCompleteFactsOpen}
+              className="nn-button nn-button--quiet w-full justify-between px-4 text-left"
+              id={disclosureControlId}
+              onClick={() => setIsCompleteFactsOpen((current) => !current)}
+              type="button"
+            >
+              <span>
+                <span className="nn-type-label block" id={disclosureTitleId}>
+                  Complete chart facts
+                </span>
+                <span className="nn-type-metadata mt-1 block font-normal">
+                  {countSummary}
+                </span>
+              </span>
+              <span aria-hidden="true" className="text-lg">
+                {isCompleteFactsOpen ? '−' : '+'}
+              </span>
+            </button>
+          </h5>
+
+          <div
+            aria-labelledby={disclosureControlId}
+            hidden={!isCompleteFactsOpen}
+            id={disclosureContentId}
+          >
+            {chart.bodies.length > 0 ? (
+              <dl className="mt-3">
+                {chart.bodies.map((body, index) => (
+                  <BodyNotation
+                    body={body}
+                    key={`${body.bodyId}-${index}`}
+                    showHouses={presentationPolicy.showHouses}
+                  />
+                ))}
+              </dl>
+            ) : null}
+
+            {chart.aspects.length > 0 ? (
+              <div className={chart.bodies.length > 0 ? 'mt-5' : 'mt-3'}>
+                <h6 className="text-sm font-semibold text-nn-text-primary">Major aspects</h6>
+                <ul className="mt-1">
+                  {chart.aspects.map((aspect, index) => (
+                    <AspectNotation
+                      aspect={aspect}
+                      key={`${aspect.firstBodyId}-${aspect.type}-${aspect.secondBodyId}-${index}`}
+                    />
+                  ))}
+                </ul>
+              </div>
+            ) : null}
+          </div>
+        </section>
       ) : null}
     </section>
   );
