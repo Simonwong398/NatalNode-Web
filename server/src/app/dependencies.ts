@@ -9,6 +9,7 @@ import type {
 } from '../auth-runtime/index.js';
 import type {
   AccountErasureRepository,
+  AccountDataExportRepository,
   EmailMagicLinkAuthLifecycle,
   PersistenceRepositories
 } from '../persistence/index.js';
@@ -19,6 +20,8 @@ export interface ServerDependencies {
   readonly publicWebOrigin: string;
   readonly authenticator: RequestAuthenticator;
   readonly accountErasure: AccountErasureRepository;
+  readonly accountDataExport: AccountDataExportRepository;
+  readonly postgresConnectionTimeoutMillis?: number;
   readonly emailMagicLinkAuthLifecycle: EmailMagicLinkAuthLifecycle;
   readonly idGenerator: IdGenerator;
   readonly persistence: PersistenceRepositories;

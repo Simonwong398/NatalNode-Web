@@ -122,6 +122,7 @@ export type {
   AccountDataExportPage,
   AccountDataExportRepository,
   AccountDataExportSnapshot,
+  AccountDataExportSnapshotOpenOptions,
   AccountDataExportSnapshotOpenResult,
   AuthSessionRepository,
   AuthIdentityRepository,

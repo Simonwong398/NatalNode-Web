@@ -56,8 +56,8 @@ The PostgreSQL lifecycle chain is:
 `PostgresPoolRuntimeConfig` → `createPostgresPoolRuntime` → owned `pg.Pool` →
 `PostgresSqlExecutor` → `SqlExecutor` → server runtime composition.
 
-`PostgresPoolRuntime` owns pool creation and shutdown while exposing only
-`SqlExecutor` upward. Environment parsing, automatic migrations, readiness
+`PostgresPoolRuntime` owns pool creation and shutdown while exposing the
+`SqlExecutor` and dedicated account-export repository upward. Environment parsing, automatic migrations, readiness
 checks, email delivery, provider selection, process/listener startup, and
 signal handling remain separate boundaries. Future bootstrap code should make
 this the single place where runtime dependencies are wired.

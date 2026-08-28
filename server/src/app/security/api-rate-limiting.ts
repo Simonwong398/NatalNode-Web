@@ -36,6 +36,16 @@ export const P0_STAGING_RATE_LIMIT_POLICIES = {
     limit: 5,
     windowMs: 60 * 60 * 1_000
   },
+  accountExportEdge: {
+    identifier: 'ACCOUNT_EXPORT_EDGE',
+    limit: 20,
+    windowMs: 10 * 60 * 1_000
+  },
+  accountExportAccount: {
+    identifier: 'ACCOUNT_EXPORT_ACCOUNT',
+    limit: 5,
+    windowMs: 10 * 60 * 1_000
+  },
   accountDeletion: {
     identifier: 'ACCOUNT_DELETION',
     limit: 5,
@@ -228,6 +238,10 @@ export function selectP0StagingRateLimitPolicy(
     return P0_STAGING_RATE_LIMIT_POLICIES.feedbackSubmissionEdge;
   }
 
+  if (method === 'POST' && pathname === '/api/account/export') {
+    return P0_STAGING_RATE_LIMIT_POLICIES.accountExportEdge;
+  }
+
   if (method === 'DELETE' && pathname === '/api/account') {
     return P0_STAGING_RATE_LIMIT_POLICIES.accountDeletion;
   }
@@ -272,6 +286,25 @@ export function enforceFeedbackAccountRateLimit(
     const principal = context.get('authenticatedPrincipal');
     const decision = limiter.attempt(
       P0_STAGING_RATE_LIMIT_POLICIES.feedbackSubmissionAccount,
+      principal.userId
+    );
+
+    if (!decision.allowed) {
+      context.header('Retry-After', decision.retryAfterSeconds.toString());
+      return context.json(RATE_LIMITED_RESPONSE, 429);
+    }
+
+    await next();
+  };
+}
+
+export function enforceAccountExportAccountRateLimit(
+  limiter: InMemoryP0StagingRateLimiter
+): MiddlewareHandler<AuthenticatedRequestEnv> {
+  return async (context, next) => {
+    const principal = context.get('authenticatedPrincipal');
+    const decision = limiter.attempt(
+      P0_STAGING_RATE_LIMIT_POLICIES.accountExportAccount,
       principal.userId
     );
 

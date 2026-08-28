@@ -6,9 +6,11 @@ import {
 } from './postgres-pool-config.js';
 import { PostgresSqlExecutor } from './postgres-sql-executor.js';
 import type {
+  AccountDataExportRepository,
   AccountErasureRepository,
   EmailMagicLinkAuthLifecycle
 } from '../../persistence/index.js';
+import { PostgresAccountDataExportRepository } from '../../persistence/postgres/postgres-account-data-export-repository.js';
 import { PostgresAccountErasureRepository } from '../../persistence/postgres/postgres-account-erasure-repository.js';
 import { PostgresEmailMagicLinkAuthLifecycle } from '../../persistence/postgres/postgres-email-magic-link-auth-lifecycle.js';
 
@@ -16,6 +18,8 @@ export type { PostgresPoolRuntimeConfig } from './postgres-pool-config.js';
 
 export interface PostgresPoolRuntime {
   readonly sqlExecutor: SqlExecutor;
+  readonly accountDataExport: AccountDataExportRepository;
+  readonly connectionTimeoutMillis?: number;
   readonly accountErasure: AccountErasureRepository;
   readonly emailMagicLinkAuthLifecycle: EmailMagicLinkAuthLifecycle;
   close(): Promise<void>;
@@ -30,6 +34,8 @@ export function createPostgresPoolRuntime(
 
   return {
     sqlExecutor,
+    accountDataExport: new PostgresAccountDataExportRepository(pool),
+    connectionTimeoutMillis: config.connectionTimeoutMillis,
     accountErasure: new PostgresAccountErasureRepository(pool),
     emailMagicLinkAuthLifecycle: new PostgresEmailMagicLinkAuthLifecycle(pool),
     close(): Promise<void> {

@@ -8,6 +8,7 @@ export type {
   AccountDataExportPage,
   AccountDataExportRepository,
   AccountDataExportSnapshot,
+  AccountDataExportSnapshotOpenOptions,
   AccountDataExportSnapshotOpenResult
 } from './account-data-export-repository.js';
 export type { AuthSessionRepository } from './auth-session-repository.js';

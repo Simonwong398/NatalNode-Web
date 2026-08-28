@@ -29,10 +29,12 @@ import {
   ACCOUNT_DATA_EXPORT_CHARTS_SQL,
   ACCOUNT_DATA_EXPORT_COMMIT_SQL,
   ACCOUNT_DATA_EXPORT_FEEDBACK_SQL,
+  ACCOUNT_DATA_EXPORT_IDLE_TIMEOUT_SQL,
   ACCOUNT_DATA_EXPORT_IDENTITIES_SQL,
   ACCOUNT_DATA_EXPORT_IDENTITY_PROVIDERS_SQL,
   ACCOUNT_DATA_EXPORT_NOTES_SQL,
-  ACCOUNT_DATA_EXPORT_ROLLBACK_SQL
+  ACCOUNT_DATA_EXPORT_ROLLBACK_SQL,
+  ACCOUNT_DATA_EXPORT_STATEMENT_TIMEOUT_SQL
 } from './account-data-export-queries.js';
 import type {
   AccountDataExportChartPageItem,
@@ -40,6 +42,7 @@ import type {
   AccountDataExportPage,
   AccountDataExportRepository,
   AccountDataExportSnapshot,
+  AccountDataExportSnapshotOpenOptions,
   AccountDataExportSnapshotOpenResult
 } from '../account-data-export-repository.js';
 
@@ -126,16 +129,117 @@ class AccountDataExportSnapshotClosedError extends Error {
   }
 }
 
+class AccountDataExportSnapshotAbortedError extends Error {
+  public constructor() {
+    super('Account export snapshot was cancelled.');
+    this.name = 'AccountDataExportSnapshotAbortedError';
+  }
+}
+
+function assertSnapshotNotAborted(signal: AbortSignal | undefined): void {
+  if (signal?.aborted) {
+    throw new AccountDataExportSnapshotAbortedError();
+  }
+}
+
+function assertSnapshotTimeout(timeoutMs: number | undefined): void {
+  if (
+    timeoutMs !== undefined &&
+    (!Number.isSafeInteger(timeoutMs) || timeoutMs <= 0)
+  ) {
+    throw new Error('Account export snapshot timeout must be positive.');
+  }
+}
+
+async function checkoutClient(
+  pool: Pool,
+  signal: AbortSignal | undefined
+): Promise<PoolClient> {
+  const checkoutPromise = pool.connect();
+
+  if (signal === undefined) {
+    return checkoutPromise;
+  }
+
+  if (signal.aborted) {
+    void checkoutPromise.then(
+      (lateClient) => {
+        try {
+          lateClient.release(true);
+        } catch (_error) {
+          // The caller already observed cancellation; late cleanup is best effort.
+        }
+      },
+      () => undefined
+    );
+    throw new AccountDataExportSnapshotAbortedError();
+  }
+
+  let abortHandler: (() => void) | undefined;
+  let clientDelivered = false;
+  const abortPromise = new Promise<never>((_resolve, reject) => {
+    abortHandler = () => reject(new AccountDataExportSnapshotAbortedError());
+    signal.addEventListener('abort', abortHandler, { once: true });
+  });
+
+  try {
+    const client = await Promise.race([checkoutPromise, abortPromise]);
+    clientDelivered = true;
+
+    if (abortHandler !== undefined) {
+      signal.removeEventListener('abort', abortHandler);
+    }
+
+    if (signal.aborted) {
+      client.release(true);
+      throw new AccountDataExportSnapshotAbortedError();
+    }
+
+    return client;
+  } catch (error) {
+    if (abortHandler !== undefined) {
+      signal.removeEventListener('abort', abortHandler);
+    }
+
+    if (!clientDelivered) {
+      void checkoutPromise.then(
+        (lateClient) => {
+          try {
+            lateClient.release(true);
+          } catch (_error) {
+            // The checkout lost the lifecycle race; never return it to the pool.
+          }
+        },
+        () => undefined
+      );
+    }
+
+    throw error;
+  }
+}
+
 class PostgresAccountDataExportSnapshot implements AccountDataExportSnapshot {
   private state: 'open' | 'committed' | 'rolled-back' | 'failed' = 'open';
   private terminalPromise: Promise<void> | undefined;
+  private clientReleased = false;
+  private readonly abortHandler: (() => void) | undefined;
 
   public constructor(
     private readonly client: PoolClient,
     private readonly executor: PostgresClientSqlExecutor,
     private readonly userId: string,
+    private readonly signal: AbortSignal | undefined,
     public readonly account: AccountDataExportAccountMetadata
-  ) {}
+  ) {
+    if (signal !== undefined) {
+      this.abortHandler = () => this.abortAndDiscardClient();
+      signal.addEventListener('abort', this.abortHandler, { once: true });
+
+      if (signal.aborted) {
+        this.abortAndDiscardClient();
+      }
+    }
+  }
 
   public listIdentities(
     cursor?: AccountDataExportCursor
@@ -253,8 +357,12 @@ class PostgresAccountDataExportSnapshot implements AccountDataExportSnapshot {
       throw new AccountDataExportSnapshotClosedError();
     }
 
+    assertSnapshotNotAborted(this.signal);
+
     try {
-      return await operation();
+      const result = await operation();
+      assertSnapshotNotAborted(this.signal);
+      return result;
     } catch (error) {
       try {
         await this.rollback();
@@ -297,13 +405,16 @@ class PostgresAccountDataExportSnapshot implements AccountDataExportSnapshot {
   private async finishCommit(): Promise<void> {
     try {
       await this.client.query(ACCOUNT_DATA_EXPORT_COMMIT_SQL);
+      assertSnapshotNotAborted(this.signal);
       this.state = 'committed';
-      this.client.release();
+      this.removeAbortHandler();
+      this.releaseClient();
     } catch (error) {
       this.state = 'failed';
+      this.removeAbortHandler();
 
       try {
-        this.client.release(true);
+        this.releaseClient(true);
       } catch (releaseError) {
         throw new AggregateError(
           [error, releaseError],
@@ -319,12 +430,14 @@ class PostgresAccountDataExportSnapshot implements AccountDataExportSnapshot {
     try {
       await this.client.query(ACCOUNT_DATA_EXPORT_ROLLBACK_SQL);
       this.state = 'rolled-back';
-      this.client.release();
+      this.removeAbortHandler();
+      this.releaseClient();
     } catch (error) {
       this.state = 'failed';
+      this.removeAbortHandler();
 
       try {
-        this.client.release(true);
+        this.releaseClient(true);
       } catch (releaseError) {
         throw new AggregateError(
           [error, releaseError],
@@ -335,6 +448,42 @@ class PostgresAccountDataExportSnapshot implements AccountDataExportSnapshot {
       throw error;
     }
   }
+
+  private abortAndDiscardClient(): void {
+    if (this.state !== 'open' || this.clientReleased) {
+      return;
+    }
+
+    this.state = 'failed';
+    this.removeAbortHandler();
+
+    try {
+      this.releaseClient(true);
+    } catch (_error) {
+      // Cancellation cleanup must not throw from an AbortSignal callback.
+    }
+  }
+
+  private removeAbortHandler(): void {
+    if (this.signal !== undefined && this.abortHandler !== undefined) {
+      this.signal.removeEventListener('abort', this.abortHandler);
+    }
+  }
+
+  private releaseClient(discard = false): void {
+    if (this.clientReleased) {
+      return;
+    }
+
+    this.clientReleased = true;
+
+    if (discard) {
+      this.client.release(true);
+      return;
+    }
+
+    this.client.release();
+  }
 }
 
 export class PostgresAccountDataExportRepository
@@ -343,26 +492,49 @@ export class PostgresAccountDataExportRepository
   public constructor(private readonly pool: Pool) {}
 
   public async openSnapshot(
-    userId: string
+    userId: string,
+    options?: AccountDataExportSnapshotOpenOptions
   ): Promise<AccountDataExportSnapshotOpenResult> {
     let client: PoolClient | undefined;
     let transactionStarted = false;
+    const signal = options?.signal;
+    const timeoutMs = options?.timeoutMs;
+
+    assertSnapshotTimeout(timeoutMs);
+    assertSnapshotNotAborted(signal);
 
     try {
-      client = await this.pool.connect();
+      client = await checkoutClient(this.pool, signal);
       const executor = new PostgresClientSqlExecutor(client);
 
+      assertSnapshotNotAborted(signal);
       await client.query(ACCOUNT_DATA_EXPORT_BEGIN_SQL);
       transactionStarted = true;
+      assertSnapshotNotAborted(signal);
+
+      if (timeoutMs !== undefined) {
+        const timeoutParameter = `${timeoutMs}ms`;
+        await executor.query(ACCOUNT_DATA_EXPORT_STATEMENT_TIMEOUT_SQL, [
+          timeoutParameter
+        ]);
+        assertSnapshotNotAborted(signal);
+        await executor.query(ACCOUNT_DATA_EXPORT_IDLE_TIMEOUT_SQL, [
+          timeoutParameter
+        ]);
+        assertSnapshotNotAborted(signal);
+      }
 
       const accountResult = await executor.query<AccountDataExportUserRow>(
         ACCOUNT_DATA_EXPORT_ACCOUNT_SQL,
         [userId]
       );
+      assertSnapshotNotAborted(signal);
       const accountRow = accountResult.rows[0];
 
       if (accountRow === undefined) {
+        assertSnapshotNotAborted(signal);
         await client.query(ACCOUNT_DATA_EXPORT_COMMIT_SQL);
+        assertSnapshotNotAborted(signal);
         client.release();
         return { outcome: 'account-not-found' };
       }
@@ -372,6 +544,7 @@ export class PostgresAccountDataExportRepository
           ACCOUNT_DATA_EXPORT_IDENTITY_PROVIDERS_SQL,
           [userId]
         );
+      assertSnapshotNotAborted(signal);
 
       for (const providerRow of providerResult.rows) {
         if (providerRow.provider !== 'EMAIL_MAGIC_LINK') {
@@ -385,6 +558,7 @@ export class PostgresAccountDataExportRepository
         client,
         executor,
         userId,
+        signal,
         presentAccountDataExportAccount({
           createdAt: toTimestampString(accountRow.created_at),
           updatedAt: toTimestampString(accountRow.updated_at)

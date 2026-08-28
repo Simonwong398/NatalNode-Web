@@ -4,6 +4,11 @@ export const ACCOUNT_DATA_EXPORT_BEGIN_SQL =
 export const ACCOUNT_DATA_EXPORT_COMMIT_SQL = 'COMMIT';
 export const ACCOUNT_DATA_EXPORT_ROLLBACK_SQL = 'ROLLBACK';
 
+export const ACCOUNT_DATA_EXPORT_STATEMENT_TIMEOUT_SQL =
+  "SELECT set_config('statement_timeout', $1, true)";
+export const ACCOUNT_DATA_EXPORT_IDLE_TIMEOUT_SQL =
+  "SELECT set_config('idle_in_transaction_session_timeout', $1, true)";
+
 export const ACCOUNT_DATA_EXPORT_ACCOUNT_SQL = `
   SELECT user_id, created_at, updated_at
   FROM users

@@ -64,6 +64,8 @@ export function createServerRuntimeDependencies(
     publicWebOrigin: config.publicWebOrigin,
     authenticator,
     accountErasure: bindings.accountErasure,
+    accountDataExport: bindings.accountDataExport,
+    postgresConnectionTimeoutMillis: bindings.postgresConnectionTimeoutMillis,
     emailMagicLinkAuthLifecycle: bindings.emailMagicLinkAuthLifecycle,
     idGenerator,
     persistence,

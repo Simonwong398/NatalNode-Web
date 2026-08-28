@@ -40,6 +40,13 @@ export interface AccountDataExportSnapshot {
   rollback(): Promise<void>;
 }
 
+export interface AccountDataExportSnapshotOpenOptions {
+  /** Cancels checkout/snapshot reads without changing account authority. */
+  readonly signal?: AbortSignal;
+  /** Finite transaction-local timeout in milliseconds for PostgreSQL work. */
+  readonly timeoutMs?: number;
+}
+
 export type AccountDataExportSnapshotOpenResult =
   | { readonly outcome: 'account-not-found' }
   | {
@@ -49,5 +56,8 @@ export type AccountDataExportSnapshotOpenResult =
 
 /** Dedicated read boundary for one complete account-export snapshot. */
 export interface AccountDataExportRepository {
-  openSnapshot(userId: string): Promise<AccountDataExportSnapshotOpenResult>;
+  openSnapshot(
+    userId: string,
+    options?: AccountDataExportSnapshotOpenOptions
+  ): Promise<AccountDataExportSnapshotOpenResult>;
 }
