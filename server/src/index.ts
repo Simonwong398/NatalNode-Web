@@ -46,6 +46,7 @@ export type {
 
 export type {
   AuthenticationExpirationPolicy,
+  AuthLifecycleCleanupOptions,
   AuthSessionRecord,
   CompleteEmailMagicLinkAuthenticationInput,
   ConsumeEmailMagicLinkTokenInput,
@@ -63,6 +64,7 @@ export type {
   TokenHasher
 } from './auth-runtime/index.js';
 export {
+  AuthLifecycleCleanup,
   completeEmailMagicLinkAuthentication,
   consumeEmailMagicLinkToken,
   issueAuthSession,
@@ -124,6 +126,9 @@ export type {
   AccountDataExportSnapshot,
   AccountDataExportSnapshotOpenOptions,
   AccountDataExportSnapshotOpenResult,
+  AuthLifecycleCleanupBatchInput,
+  AuthLifecycleCleanupRepository,
+  AuthLifecycleCleanupResult,
   AuthSessionRepository,
   AuthIdentityRepository,
   AuthIdentityProvisioningInput,
@@ -145,6 +150,7 @@ export {
   createPostgresPersistence,
   PostgresAccountDataExportRepository,
   PostgresAccountErasureRepository,
+  PostgresAuthLifecycleCleanupRepository,
   PostgresAuthSessionRepository,
   PostgresAuthIdentityRepository,
   PostgresAuthIdentityProvisioningRepository,

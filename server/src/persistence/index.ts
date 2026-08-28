@@ -12,6 +12,16 @@ export type {
   AccountDataExportSnapshotOpenResult
 } from './account-data-export-repository.js';
 export type { AuthSessionRepository } from './auth-session-repository.js';
+export {
+  assertAuthLifecycleCleanupBatchSize,
+  AUTH_LIFECYCLE_CLEANUP_DEFAULT_BATCH_SIZE,
+  AUTH_LIFECYCLE_CLEANUP_MAX_BATCH_SIZE
+} from './auth-lifecycle-cleanup-repository.js';
+export type {
+  AuthLifecycleCleanupBatchInput,
+  AuthLifecycleCleanupRepository,
+  AuthLifecycleCleanupResult
+} from './auth-lifecycle-cleanup-repository.js';
 export type { AuthIdentityRepository } from './auth-identity-repository.js';
 export type {
   AuthIdentityProvisioningInput,

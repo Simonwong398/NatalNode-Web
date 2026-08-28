@@ -3,6 +3,9 @@ export type {
   EmailMagicLinkChallengeRecord
 } from './types.js';
 
+export { AuthLifecycleCleanup } from './auth-lifecycle-cleanup.js';
+export type { AuthLifecycleCleanupOptions } from './auth-lifecycle-cleanup.js';
+
 export type { AuthenticationExpirationPolicy } from './authentication-expiration-policy.js';
 export type {
   EmailMagicLinkDelivery,
