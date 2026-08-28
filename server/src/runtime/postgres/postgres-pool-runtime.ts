@@ -8,10 +8,12 @@ import { PostgresSqlExecutor } from './postgres-sql-executor.js';
 import type {
   AccountDataExportRepository,
   AccountErasureRepository,
+  AuthLifecycleCleanupRepository,
   EmailMagicLinkAuthLifecycle
 } from '../../persistence/index.js';
 import { PostgresAccountDataExportRepository } from '../../persistence/postgres/postgres-account-data-export-repository.js';
 import { PostgresAccountErasureRepository } from '../../persistence/postgres/postgres-account-erasure-repository.js';
+import { PostgresAuthLifecycleCleanupRepository } from '../../persistence/postgres/postgres-auth-lifecycle-cleanup-repository.js';
 import { PostgresEmailMagicLinkAuthLifecycle } from '../../persistence/postgres/postgres-email-magic-link-auth-lifecycle.js';
 
 export type { PostgresPoolRuntimeConfig } from './postgres-pool-config.js';
@@ -36,6 +38,7 @@ export interface PostgresPoolRuntime {
   readonly accountDataExport: AccountDataExportRepository;
   readonly connectionTimeoutMillis?: number;
   readonly accountErasure: AccountErasureRepository;
+  readonly authLifecycleCleanupRepository: AuthLifecycleCleanupRepository;
   readonly emailMagicLinkAuthLifecycle: EmailMagicLinkAuthLifecycle;
   close(): Promise<void>;
 }
@@ -53,6 +56,7 @@ export function createPostgresPoolRuntime(
     accountDataExport: new PostgresAccountDataExportRepository(pool),
     connectionTimeoutMillis: config.connectionTimeoutMillis,
     accountErasure: new PostgresAccountErasureRepository(pool),
+    authLifecycleCleanupRepository: new PostgresAuthLifecycleCleanupRepository(pool),
     emailMagicLinkAuthLifecycle: new PostgresEmailMagicLinkAuthLifecycle(pool),
     close(): Promise<void> {
       if (closePromise === undefined) {
