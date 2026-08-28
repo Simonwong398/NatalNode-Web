@@ -458,17 +458,22 @@ addressable:
 - `email_magic_link_challenges_email_normalized_idx` supports the existing
   account-erasure email cleanup, not the scheduled eligibility scan.
 
-There is no current index on `email_magic_link_challenges.consumed_at`. A
-bounded consumed-row phase that must remain predictable as the table grows
-should use a dedicated partial index, for example an index beginning with
-`consumed_at` and restricted to `consumed_at IS NOT NULL`, subject to an
-implementation-time query-plan check.
+There is no current index on `email_magic_link_challenges.consumed_at`. The
+consumed phase is intentionally broader than the expiry phase: it deletes
+committed consumed rows even when `expires_at` is still in the future. A
+bounded selection ordered by consumed time and the primary-key tie-breaker
+therefore cannot rely on the existing `expires_at` or `email_normalized`
+indexes without potentially scanning an arbitrary portion of the table.
 
-**MIGRATION REQUIRED FOR IMPLEMENTATION** for the consumed-row phase if the
-staging query plan confirms that the existing indexes would otherwise require
-a materially unbounded table scan. The migration, exact DDL, checksum, and
-live query-plan verification belong to the future implementation slice; no
-migration is created here.
+**MIGRATION REQUIRED** before activating the consumed-row phase in B1. The
+narrow semantic index shape is a partial index beginning with
+`(consumed_at, challenge_id)` and restricted to `consumed_at IS NOT NULL`.
+This directly supports the consumed eligibility predicate, deterministic
+ordering, and bounded candidate selection without indexing active rows. B1
+must verify that PostgreSQL uses the index with the selected batch query, but
+that query-plan check validates the required migration; it does not defer the
+decision whether the index is needed. The migration, exact DDL, and checksum
+belong to B1; no migration is created here.
 
 No speculative index is approved for `users` or `auth_identities`, and no
 index change is needed for the expired-session or expired-unconsumed-challenge
@@ -631,8 +636,9 @@ this task.
   predicates from this document.
 - Preserve the existing Auth repositories and completion transaction
   semantics.
-- Add the consumed-state index migration only if the implementation-time
-  query plan confirms the requirement, with the required migration validation.
+- Add the narrow `(consumed_at, challenge_id) WHERE consumed_at IS NOT NULL`
+  index migration before activating the consumed phase, and verify its use
+  with the bounded candidate query.
 - Add focused persistence/concurrency tests without changing Auth validity.
 
 ### `WEB-PRIVACY-003B2` — Integrate safe internal maintenance trigger
@@ -734,7 +740,8 @@ This document is the single approved technical direction for
 - replay safety follows from the actual candidate and consume predicates;
 - account-erasure and lifecycle-lock boundaries are preserved;
 - execution is explicit, internal, bounded, idempotent, and multi-instance-safe;
-- the consumed-state migration need is identified truthfully;
+- the consumed-state migration is explicitly required before the consumed
+  phase is activated;
 - the server `Clock` is the authoritative cleanup cutoff;
 - failures cannot weaken Auth correctness;
 - export, legal, deployment, scientific, and provider boundaries remain
@@ -745,4 +752,3 @@ This document is the single approved technical direction for
 The next action is a review gate, not implementation:
 
 > **REVIEW WEB-PRIVACY-003A CONTRACT BEFORE IMPLEMENTATION.**
-
