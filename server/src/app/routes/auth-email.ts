@@ -88,7 +88,7 @@ async function requestEmailMagicLink(
     idGenerator: dependencies.idGenerator,
     tokenGenerator: dependencies.secureTokenGenerator,
     tokenHasher: dependencies.tokenHasher,
-    emailMagicLinkChallenges: dependencies.persistence.emailMagicLinkChallenges
+    authLifecycle: dependencies.emailMagicLinkAuthLifecycle
   });
 
   await dependencies.emailMagicLinkDelivery.sendMagicLink({
@@ -122,9 +122,7 @@ async function completeEmailMagicLink(
     idGenerator: dependencies.idGenerator,
     tokenGenerator: dependencies.secureTokenGenerator,
     tokenHasher: dependencies.tokenHasher,
-    emailMagicLinkChallenges: dependencies.persistence.emailMagicLinkChallenges,
-    authIdentityProvisioning: dependencies.persistence.authIdentityProvisioning,
-    authSessions: dependencies.persistence.authSessions
+    authLifecycle: dependencies.emailMagicLinkAuthLifecycle
   });
 
   if (completed === null) {

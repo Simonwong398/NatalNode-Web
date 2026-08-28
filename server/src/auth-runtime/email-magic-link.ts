@@ -1,4 +1,5 @@
 import type { IdGenerator } from '../app/creation-boundaries.js';
+import type { EmailMagicLinkAuthLifecycle } from '../persistence/email-magic-link-auth-lifecycle.js';
 import type { EmailMagicLinkChallengeRepository } from '../persistence/email-magic-link-challenge-repository.js';
 import type { SecureTokenGenerator } from './secure-token.js';
 import { normalizeEmailAddress } from './email-normalization.js';
@@ -18,7 +19,7 @@ export interface IssueEmailMagicLinkChallengeInput {
   readonly idGenerator: IdGenerator;
   readonly tokenGenerator: SecureTokenGenerator;
   readonly tokenHasher: TokenHasher;
-  readonly emailMagicLinkChallenges: EmailMagicLinkChallengeRepository;
+  readonly authLifecycle: EmailMagicLinkAuthLifecycle;
 }
 
 /** Issues and persists one email magic-link challenge. */
@@ -48,7 +49,7 @@ export async function issueEmailMagicLinkChallenge(
     consumedAt: null
   };
 
-  await input.emailMagicLinkChallenges.create(record);
+  await input.authLifecycle.createChallenge(record);
 
   return { token, record };
 }

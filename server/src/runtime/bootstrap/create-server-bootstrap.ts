@@ -36,6 +36,9 @@ export async function createServerBootstrap(
     const serverDependencies = createServerRuntimeDependencies(
       {
         sqlExecutor: postgresRuntime.sqlExecutor,
+        accountErasure: postgresRuntime.accountErasure,
+        emailMagicLinkAuthLifecycle:
+          postgresRuntime.emailMagicLinkAuthLifecycle,
         engineClient: bindings.engineClient,
         emailMagicLinkDelivery: bindings.emailMagicLinkDelivery
       },

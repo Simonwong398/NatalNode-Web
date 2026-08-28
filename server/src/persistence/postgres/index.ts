@@ -1,9 +1,11 @@
 export { createPostgresPersistence } from './create-postgres-persistence.js';
+export { PostgresAccountErasureRepository } from './postgres-account-erasure-repository.js';
 export { PostgresAuthSessionRepository } from './postgres-auth-session-repository.js';
 export { PostgresAuthIdentityRepository } from './postgres-auth-identity-repository.js';
 export { PostgresAuthIdentityProvisioningRepository } from './postgres-auth-identity-provisioning-repository.js';
 export { PostgresChartNoteRepository } from './postgres-chart-note-repository.js';
 export { PostgresEmailMagicLinkChallengeRepository } from './postgres-email-magic-link-challenge-repository.js';
+export { PostgresEmailMagicLinkAuthLifecycle } from './postgres-email-magic-link-auth-lifecycle.js';
 export { PostgresFeedbackSubmissionRepository } from './postgres-feedback-submission-repository.js';
 export { PostgresUserRepository } from './postgres-user-repository.js';
 export { PostgresVaultChartRepository } from './postgres-vault-chart-repository.js';

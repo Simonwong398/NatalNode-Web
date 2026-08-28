@@ -17,7 +17,7 @@ provider
 → future secure cookie
 → auth_sessions token hash
 → future RequestAuthenticator
-→ AuthenticatedPrincipal.userId
+→ AuthenticatedPrincipal.userId + immutable sessionCreatedAt
 ```
 
 `NodeSecureTokenGenerator` uses Node's built-in `node:crypto` CSPRNG to create
@@ -32,30 +32,33 @@ hasher can later support magic-link secrets without a second crypto
 implementation.
 
 Magic-link issuance normalizes email identity with trim plus lowercase only,
-persists the challenge hash before returning transient plaintext, and consumes
-presented tokens through the repository's atomic single-use operation. Challenge
-lifetime remains caller policy.
+acquires the normalized-email PostgreSQL lifecycle lock, and persists the
+challenge hash before returning transient plaintext. Challenge lifetime remains
+caller policy.
 
 Email Magic Link authentication now composes:
 
 ```text
-magic-link challenge
+magic-link challenge candidate
+→ normalized-email PostgreSQL lifecycle lock
 → atomic consume
-→ atomic identity provisioning
+→ identity provisioning
 → secure session issuance
 → auth_sessions persistence
+→ one transaction commit
 ```
 
 Invalid or unusable links resolve to `null`. Downstream infrastructure errors
-propagate, and a consumed challenge is never rolled back or reused. The
-orchestration returns transient session material only after its hash-bearing
-record is persisted.
+propagate and roll back challenge consumption, identity provisioning, and
+session persistence together. The orchestration returns transient session
+material only after its hash-bearing record is committed.
 
 Session tokens are intended for a configured host-only HttpOnly cookie with
 `SameSite=Lax` and an explicit deployment `Secure` policy. The server-side
 session expiration remains authoritative. `SessionRequestAuthenticator` reads
 only that opaque cookie, fails closed on duplicate cookies, hashes it before
-lookup, and returns only `userId`.
+lookup, and returns the owning `userId` plus the immutable server-side session
+`createdAt` needed for bounded recent-auth checks.
 
 The provider-neutral magic-link URL builder now constructs the configured
 fragment-based completion URL before the delivery boundary receives it. The

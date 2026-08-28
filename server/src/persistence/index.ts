@@ -1,3 +1,7 @@
+export type {
+  AccountErasureRepository,
+  AccountErasureResult
+} from './account-erasure-repository.js';
 export type { AuthSessionRepository } from './auth-session-repository.js';
 export type { AuthIdentityRepository } from './auth-identity-repository.js';
 export type {
@@ -6,6 +10,11 @@ export type {
 } from './auth-identity-provisioning-repository.js';
 export type { ChartNoteRepository } from './chart-note-repository.js';
 export type { EmailMagicLinkChallengeRepository } from './email-magic-link-challenge-repository.js';
+export type {
+  ConsumeEmailMagicLinkChallengeInput,
+  ConsumedEmailMagicLinkTransactionContext,
+  EmailMagicLinkAuthLifecycle
+} from './email-magic-link-auth-lifecycle.js';
 export type {
   FeedbackSubmissionRecord,
   FeedbackSubmissionRepository

@@ -63,6 +63,8 @@ export function createServerRuntimeDependencies(
   return {
     publicWebOrigin: config.publicWebOrigin,
     authenticator,
+    accountErasure: bindings.accountErasure,
+    emailMagicLinkAuthLifecycle: bindings.emailMagicLinkAuthLifecycle,
     idGenerator,
     persistence,
     engineClient: bindings.engineClient,

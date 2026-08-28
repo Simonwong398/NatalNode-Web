@@ -1,4 +1,8 @@
 export {
+  isAccountDeletionApiRequest,
+  type AccountDeletionApiRequest
+} from './account-deletion.js';
+export {
   isBirthRequest,
   isChartCalculationApiRequest,
   isChartRequest,

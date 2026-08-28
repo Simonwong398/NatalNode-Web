@@ -36,6 +36,11 @@ export const P0_STAGING_RATE_LIMIT_POLICIES = {
     limit: 5,
     windowMs: 60 * 60 * 1_000
   },
+  accountDeletion: {
+    identifier: 'ACCOUNT_DELETION',
+    limit: 5,
+    windowMs: 10 * 60 * 1_000
+  },
   vaultMutation: {
     identifier: 'VAULT_MUTATION',
     limit: 60,
@@ -221,6 +226,10 @@ export function selectP0StagingRateLimitPolicy(
 
   if (method === 'POST' && pathname === '/api/feedback') {
     return P0_STAGING_RATE_LIMIT_POLICIES.feedbackSubmissionEdge;
+  }
+
+  if (method === 'DELETE' && pathname === '/api/account') {
+    return P0_STAGING_RATE_LIMIT_POLICIES.accountDeletion;
   }
 
   return isVaultMutation(method, pathname)

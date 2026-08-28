@@ -1,8 +1,5 @@
 import type { IdGenerator } from '../app/creation-boundaries.js';
-import type { AuthIdentityProvisioningRepository } from '../persistence/auth-identity-provisioning-repository.js';
-import type { AuthSessionRepository } from '../persistence/auth-session-repository.js';
-import type { EmailMagicLinkChallengeRepository } from '../persistence/email-magic-link-challenge-repository.js';
-import { consumeEmailMagicLinkToken } from './email-magic-link.js';
+import type { EmailMagicLinkAuthLifecycle } from '../persistence/email-magic-link-auth-lifecycle.js';
 import { issueAuthSession } from './issue-auth-session.js';
 import type { SecureTokenGenerator } from './secure-token.js';
 import type { TokenHasher } from './token-hasher.js';
@@ -20,49 +17,47 @@ export interface CompleteEmailMagicLinkAuthenticationInput {
   readonly idGenerator: IdGenerator;
   readonly tokenGenerator: SecureTokenGenerator;
   readonly tokenHasher: TokenHasher;
-  readonly emailMagicLinkChallenges: EmailMagicLinkChallengeRepository;
-  readonly authIdentityProvisioning: AuthIdentityProvisioningRepository;
-  readonly authSessions: AuthSessionRepository;
+  readonly authLifecycle: EmailMagicLinkAuthLifecycle;
 }
 
 /** Completes one consumed email magic-link challenge into a persisted session. */
 export async function completeEmailMagicLinkAuthentication(
   input: CompleteEmailMagicLinkAuthenticationInput
 ): Promise<CompletedEmailMagicLinkAuthentication | null> {
-  const consumedChallenge = await consumeEmailMagicLinkToken({
-    token: input.presentedToken,
-    now: input.now,
-    consumedAt: input.now,
-    tokenHasher: input.tokenHasher,
-    emailMagicLinkChallenges: input.emailMagicLinkChallenges
-  });
-
-  if (!consumedChallenge) {
+  if (input.presentedToken.trim().length === 0) {
     return null;
   }
 
-  const proposedUserId = input.idGenerator.generate();
-  const proposedIdentityId = input.idGenerator.generate();
-  const returnedIdentity = await input.authIdentityProvisioning.resolveOrCreate({
-    provider: 'EMAIL_MAGIC_LINK',
-    providerSubject: consumedChallenge.emailNormalized,
-    proposedUserId,
-    proposedIdentityId,
-    now: input.now
-  });
-  const issuedSession = issueAuthSession({
-    userId: returnedIdentity.userId,
-    createdAt: input.now,
-    expiresAt: input.sessionExpiresAt,
-    tokenGenerator: input.tokenGenerator,
-    tokenHasher: input.tokenHasher
-  });
+  const tokenHash = input.tokenHasher.hash(input.presentedToken);
 
-  await input.authSessions.create(issuedSession.record);
+  return input.authLifecycle.withConsumedChallenge({
+    tokenHash,
+    now: input.now,
+    consumedAt: input.now
+  }, async ({ challenge, authIdentityProvisioning, authSessions }) => {
+    const proposedUserId = input.idGenerator.generate();
+    const proposedIdentityId = input.idGenerator.generate();
+    const returnedIdentity = await authIdentityProvisioning.resolveOrCreate({
+      provider: 'EMAIL_MAGIC_LINK',
+      providerSubject: challenge.emailNormalized,
+      proposedUserId,
+      proposedIdentityId,
+      now: input.now
+    });
+    const issuedSession = issueAuthSession({
+      userId: returnedIdentity.userId,
+      createdAt: input.now,
+      expiresAt: input.sessionExpiresAt,
+      tokenGenerator: input.tokenGenerator,
+      tokenHasher: input.tokenHasher
+    });
 
-  return {
-    userId: returnedIdentity.userId,
-    sessionToken: issuedSession.token,
-    sessionExpiresAt: input.sessionExpiresAt
-  };
+    await authSessions.create(issuedSession.record);
+
+    return {
+      userId: returnedIdentity.userId,
+      sessionToken: issuedSession.token,
+      sessionExpiresAt: input.sessionExpiresAt
+    };
+  });
 }

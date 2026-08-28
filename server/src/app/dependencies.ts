@@ -7,13 +7,19 @@ import type {
   SessionCookiePolicy,
   TokenHasher
 } from '../auth-runtime/index.js';
-import type { PersistenceRepositories } from '../persistence/index.js';
+import type {
+  AccountErasureRepository,
+  EmailMagicLinkAuthLifecycle,
+  PersistenceRepositories
+} from '../persistence/index.js';
 import type { RequestAuthenticator } from './auth/index.js';
 import type { Clock, IdGenerator } from './creation-boundaries.js';
 
 export interface ServerDependencies {
   readonly publicWebOrigin: string;
   readonly authenticator: RequestAuthenticator;
+  readonly accountErasure: AccountErasureRepository;
+  readonly emailMagicLinkAuthLifecycle: EmailMagicLinkAuthLifecycle;
   readonly idGenerator: IdGenerator;
   readonly persistence: PersistenceRepositories;
   readonly engineClient: EngineClient;

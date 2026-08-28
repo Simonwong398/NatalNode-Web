@@ -17,6 +17,7 @@ import { registerFeedbackRoutes } from './routes/feedback.js';
 import { registerSkyRoutes } from './routes/sky.js';
 import { registerVaultChartRoutes } from './routes/vault-charts.js';
 import { registerVaultNoteRoutes } from './routes/vault-notes.js';
+import { registerAccountRoutes } from './routes/account.js';
 
 const HEALTH_RESPONSE = {
   service: 'natalnode-web-bff',
@@ -53,6 +54,7 @@ export function createApp(dependencies: ServerDependencies): Hono {
   registerSkyRoutes(app, dependencies);
   registerEmailAuthenticationRoutes(app, dependencies);
   registerSessionAuthenticationRoutes(app, dependencies);
+  registerAccountRoutes(app, dependencies);
   registerFeedbackRoutes(app, dependencies, rateLimiter);
   registerVaultChartRoutes(app, dependencies);
   registerVaultNoteRoutes(app, dependencies);

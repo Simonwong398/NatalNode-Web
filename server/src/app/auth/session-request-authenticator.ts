@@ -37,6 +37,11 @@ export class SessionRequestAuthenticator implements RequestAuthenticator {
       now
     );
 
-    return session ? { userId: session.userId } : null;
+    return session
+      ? {
+          userId: session.userId,
+          sessionCreatedAt: session.createdAt
+        }
+      : null;
   }
 }

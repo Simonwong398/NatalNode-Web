@@ -79,6 +79,8 @@ export type {
 } from './runtime/index.js';
 
 export type {
+  AccountErasureRepository,
+  AccountErasureResult,
   AuthSessionRepository,
   AuthIdentityRepository,
   AuthIdentityProvisioningInput,
@@ -86,6 +88,7 @@ export type {
   ChartNoteContentUpdate,
   ChartNoteRepository,
   EmailMagicLinkChallengeRepository,
+  EmailMagicLinkAuthLifecycle,
   FeedbackSubmissionRecord,
   FeedbackSubmissionRepository,
   PersistenceRepositories,
@@ -97,11 +100,13 @@ export type {
 export type { SqlExecutor, SqlQueryResult } from './db/index.js';
 export {
   createPostgresPersistence,
+  PostgresAccountErasureRepository,
   PostgresAuthSessionRepository,
   PostgresAuthIdentityRepository,
   PostgresAuthIdentityProvisioningRepository,
   PostgresChartNoteRepository,
   PostgresEmailMagicLinkChallengeRepository,
+  PostgresEmailMagicLinkAuthLifecycle,
   PostgresFeedbackSubmissionRepository,
   PostgresUserRepository,
   PostgresVaultChartRepository
