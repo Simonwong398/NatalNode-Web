@@ -6,29 +6,15 @@ import type {
   DeleteChartNoteApiResponse,
   ListChartNotesApiResponse,
   UpdateChartNoteApiRequest,
-  UpdateChartNoteApiResponse,
-  VaultApiErrorResponse
+  UpdateChartNoteApiResponse
 } from '@natalnode/contracts';
 import { requireAuthentication } from '../auth/index.js';
 import type { ServerDependencies } from '../dependencies.js';
+import { createProblemDetailsContextResponse } from '../problem-details/context-response.js';
 import {
   isChartNoteContentRequest,
   normalizeChartNoteContent
 } from '../validation/index.js';
-
-const INVALID_REQUEST_RESPONSE: VaultApiErrorResponse = {
-  error: {
-    code: 'INVALID_REQUEST',
-    message: 'Invalid chart note request.'
-  }
-};
-
-const NOT_FOUND_RESPONSE: VaultApiErrorResponse = {
-  error: {
-    code: 'NOT_FOUND',
-    message: 'Chart or note not found.'
-  }
-};
 
 async function findOwnedChartUserId(
   context: Context,
@@ -50,12 +36,16 @@ async function parseNoteContent(
   try {
     payload = await context.req.json();
   } catch (_error) {
-    return context.json(INVALID_REQUEST_RESPONSE, 400);
+    return createProblemDetailsContextResponse(context, {
+      code: 'INVALID_REQUEST'
+    });
   }
 
   return isChartNoteContentRequest(payload)
     ? payload
-    : context.json(INVALID_REQUEST_RESPONSE, 400);
+    : createProblemDetailsContextResponse(context, {
+        code: 'INVALID_REQUEST'
+      });
 }
 
 export function registerVaultNoteRoutes(app: Hono, dependencies: ServerDependencies): void {
@@ -67,7 +57,9 @@ export function registerVaultNoteRoutes(app: Hono, dependencies: ServerDependenc
       const userId = await findOwnedChartUserId(context, dependencies, chartId);
 
       if (userId === null) {
-        return context.json(NOT_FOUND_RESPONSE, 404);
+        return createProblemDetailsContextResponse(context, {
+          code: 'NOT_FOUND'
+        });
       }
 
       const notes = await dependencies.persistence.chartNotes.listForChart(userId, chartId);
@@ -85,7 +77,9 @@ export function registerVaultNoteRoutes(app: Hono, dependencies: ServerDependenc
       const userId = await findOwnedChartUserId(context, dependencies, chartId);
 
       if (userId === null) {
-        return context.json(NOT_FOUND_RESPONSE, 404);
+        return createProblemDetailsContextResponse(context, {
+          code: 'NOT_FOUND'
+        });
       }
 
       const request = await parseNoteContent(context);
@@ -120,7 +114,9 @@ export function registerVaultNoteRoutes(app: Hono, dependencies: ServerDependenc
       const userId = await findOwnedChartUserId(context, dependencies, chartId);
 
       if (userId === null) {
-        return context.json(NOT_FOUND_RESPONSE, 404);
+        return createProblemDetailsContextResponse(context, {
+          code: 'NOT_FOUND'
+        });
       }
 
       const request = await parseNoteContent(context);
@@ -140,7 +136,9 @@ export function registerVaultNoteRoutes(app: Hono, dependencies: ServerDependenc
       );
 
       if (!note) {
-        return context.json(NOT_FOUND_RESPONSE, 404);
+        return createProblemDetailsContextResponse(context, {
+          code: 'NOT_FOUND'
+        });
       }
 
       const response: UpdateChartNoteApiResponse = { note };
@@ -157,7 +155,9 @@ export function registerVaultNoteRoutes(app: Hono, dependencies: ServerDependenc
       const userId = await findOwnedChartUserId(context, dependencies, chartId);
 
       if (userId === null) {
-        return context.json(NOT_FOUND_RESPONSE, 404);
+        return createProblemDetailsContextResponse(context, {
+          code: 'NOT_FOUND'
+        });
       }
 
       const deleted = await dependencies.persistence.chartNotes.deleteById(
@@ -167,7 +167,9 @@ export function registerVaultNoteRoutes(app: Hono, dependencies: ServerDependenc
       );
 
       if (!deleted) {
-        return context.json(NOT_FOUND_RESPONSE, 404);
+        return createProblemDetailsContextResponse(context, {
+          code: 'NOT_FOUND'
+        });
       }
 
       const response: DeleteChartNoteApiResponse = { deleted: true };

@@ -4,6 +4,37 @@ import test from 'node:test';
 import { CHART_NOTE_MAXIMUM_CHARACTERS } from '../dist/app/validation/index.js';
 import { createHarness, request } from './support/vault-harness.mjs';
 
+const PROBLEM_TITLE_BY_STATUS = {
+  400: 'Bad Request',
+  401: 'Unauthorized',
+  403: 'Forbidden',
+  404: 'Not Found',
+  413: 'Payload Too Large',
+  415: 'Unsupported Media Type',
+  429: 'Too Many Requests',
+  500: 'Internal Server Error',
+  503: 'Service Unavailable'
+};
+
+async function assertProblemResponse(response, status, code) {
+  assert.equal(response.status, status);
+  assert.equal(
+    response.headers.get('Content-Type'),
+    'application/problem+json; charset=utf-8'
+  );
+  const payload = await response.json();
+  assert.deepEqual(payload, {
+    type: 'about:blank',
+    title: PROBLEM_TITLE_BY_STATUS[status],
+    status,
+    code
+  });
+  assert.equal('error' in payload, false);
+  assert.equal('message' in payload, false);
+  assert.equal('instance' in payload, false);
+  assert.equal('requestId' in payload, false);
+}
+
 test('metadata PATCH is owner-scoped, confirmed, normalized, and Engine-free', async () => {
   const harness = createHarness();
   const scientificSnapshot = structuredClone(harness.getChart());
@@ -13,7 +44,7 @@ test('metadata PATCH is owner-scoped, confirmed, normalized, and Engine-free', a
     userId: null,
     body: { displayName: 'Unauthenticated' }
   });
-  assert.equal(unauthenticatedResponse.status, 401);
+  await assertProblemResponse(unauthenticatedResponse, 401, 'UNAUTHORIZED');
 
   const response = await request(harness.app, '/api/vault/charts/chart-1', {
     method: 'PATCH',
@@ -36,7 +67,7 @@ test('metadata PATCH is owner-scoped, confirmed, normalized, and Engine-free', a
     method: 'PATCH',
     body: { displayName: 'Another name', userId: 'attacker-selected-owner' }
   });
-  assert.equal(callerOwnedFieldResponse.status, 400);
+  await assertProblemResponse(callerOwnedFieldResponse, 400, 'INVALID_REQUEST');
 
   const blankResponse = await request(harness.app, '/api/vault/charts/chart-1', {
     method: 'PATCH',
@@ -61,9 +92,27 @@ test('metadata PATCH is owner-scoped, confirmed, normalized, and Engine-free', a
     userId: 'other-user',
     body: { displayName: 'Not yours' }
   });
-  assert.equal(nonOwnerResponse.status, 404);
+  await assertProblemResponse(nonOwnerResponse, 404, 'NOT_FOUND');
   assert.equal(harness.getChart().displayName, 'Renamed chart');
   assert.equal(harness.calls.engine, 0);
+});
+
+test('Vault calculation failures remain provider-neutral 503 Problem Details', async () => {
+  const harness = createHarness();
+  const response = await request(harness.app, '/api/vault/charts', {
+    method: 'POST',
+    body: {
+      chart: harness.getChart().normalizedChartRequest,
+      displayName: 'Calculation failure',
+      category: 'SELF',
+      tags: [],
+      favorite: false
+    }
+  });
+
+  await assertProblemResponse(response, 503, 'CALCULATION_UNAVAILABLE');
+  assert.equal(harness.calls.engine, 1);
+  assert.equal(harness.getChart().displayName, 'Original chart');
 });
 
 test('notes support owner CRUD, normalization, bounded errors, and no Engine calls', async () => {
@@ -86,7 +135,7 @@ test('notes support owner CRUD, normalization, bounded errors, and no Engine cal
     method: 'POST',
     body: { content: '  ' }
   });
-  assert.equal(blankResponse.status, 400);
+  await assertProblemResponse(blankResponse, 400, 'INVALID_REQUEST');
 
   const longResponse = await request(harness.app, '/api/vault/charts/chart-1/notes', {
     method: 'POST',
@@ -114,14 +163,14 @@ test('notes support owner CRUD, normalization, bounded errors, and no Engine cal
   const crossOwnerReadResponse = await request(harness.app, '/api/vault/charts/chart-1/notes', {
     userId: 'other-user'
   });
-  assert.equal(crossOwnerReadResponse.status, 404);
+  await assertProblemResponse(crossOwnerReadResponse, 404, 'NOT_FOUND');
 
   const crossOwnerDeleteResponse = await request(
     harness.app,
     `/api/vault/charts/chart-1/notes/${noteId}`,
     { method: 'DELETE', userId: 'other-user' }
   );
-  assert.equal(crossOwnerDeleteResponse.status, 404);
+  await assertProblemResponse(crossOwnerDeleteResponse, 404, 'NOT_FOUND');
 
   const deleteResponse = await request(
     harness.app,
@@ -148,7 +197,7 @@ test('chart delete is owner-scoped, confirms the API result, and removes notes b
     method: 'DELETE',
     userId: 'other-user'
   });
-  assert.equal(nonOwnerResponse.status, 404);
+  await assertProblemResponse(nonOwnerResponse, 404, 'NOT_FOUND');
   assert.notEqual(harness.getChart(), null);
 
   const deleteResponse = await request(harness.app, '/api/vault/charts/chart-1', {

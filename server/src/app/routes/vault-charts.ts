@@ -8,30 +8,16 @@ import type {
   SaveVaultChartApiResponse,
   UpdateVaultChartMetadataApiRequest,
   UpdateVaultChartMetadataApiResponse,
-  VaultApiErrorResponse,
   VaultChartRecord
 } from '@natalnode/contracts';
 import { requireAuthentication } from '../auth/index.js';
 import type { ServerDependencies } from '../dependencies.js';
+import { createProblemDetailsContextResponse } from '../problem-details/context-response.js';
 import {
   isMetadataUpdate,
   isSaveVaultChartApiRequest,
   normalizeVaultChartDisplayName
 } from '../validation/index.js';
-
-const INVALID_REQUEST_RESPONSE: VaultApiErrorResponse = {
-  error: {
-    code: 'INVALID_REQUEST',
-    message: 'Invalid Vault chart request.'
-  }
-};
-
-const NOT_FOUND_RESPONSE: VaultApiErrorResponse = {
-  error: {
-    code: 'NOT_FOUND',
-    message: 'Vault chart not found.'
-  }
-};
 
 async function parseMetadataUpdate(context: Context): Promise<
   UpdateVaultChartMetadataApiRequest | Response
@@ -41,12 +27,16 @@ async function parseMetadataUpdate(context: Context): Promise<
   try {
     payload = await context.req.json();
   } catch (_error) {
-    return context.json(INVALID_REQUEST_RESPONSE, 400);
+    return createProblemDetailsContextResponse(context, {
+      code: 'INVALID_REQUEST'
+    });
   }
 
   return isMetadataUpdate(payload)
     ? payload
-    : context.json(INVALID_REQUEST_RESPONSE, 400);
+    : createProblemDetailsContextResponse(context, {
+        code: 'INVALID_REQUEST'
+      });
 }
 
 async function parseSaveVaultChartRequest(
@@ -57,12 +47,16 @@ async function parseSaveVaultChartRequest(
   try {
     payload = await context.req.json();
   } catch (_error) {
-    return context.json(INVALID_REQUEST_RESPONSE, 400);
+    return createProblemDetailsContextResponse(context, {
+      code: 'INVALID_REQUEST'
+    });
   }
 
   return isSaveVaultChartApiRequest(payload)
     ? payload
-    : context.json(INVALID_REQUEST_RESPONSE, 400);
+    : createProblemDetailsContextResponse(context, {
+        code: 'INVALID_REQUEST'
+      });
 }
 
 export function registerVaultChartRoutes(app: Hono, dependencies: ServerDependencies): void {
@@ -83,15 +77,9 @@ export function registerVaultChartRoutes(app: Hono, dependencies: ServerDependen
       try {
         canonicalChartResult = await dependencies.engineClient.calculateChart(request.chart);
       } catch (_error) {
-        return context.json(
-          {
-            error: {
-              code: 'CALCULATION_UNAVAILABLE',
-              message: 'Chart calculation is currently unavailable.'
-            }
-          } satisfies VaultApiErrorResponse,
-          503
-        );
+        return createProblemDetailsContextResponse(context, {
+          code: 'CALCULATION_UNAVAILABLE'
+        });
       }
 
       const timestamp = dependencies.clock.now();
@@ -142,7 +130,9 @@ export function registerVaultChartRoutes(app: Hono, dependencies: ServerDependen
       const chart = await dependencies.persistence.vaultCharts.findById(userId, chartId);
 
       if (!chart) {
-        return context.json(NOT_FOUND_RESPONSE, 404);
+        return createProblemDetailsContextResponse(context, {
+          code: 'NOT_FOUND'
+        });
       }
 
       const response: GetVaultChartApiResponse = { chart };
@@ -176,7 +166,9 @@ export function registerVaultChartRoutes(app: Hono, dependencies: ServerDependen
       );
 
       if (!chart) {
-        return context.json(NOT_FOUND_RESPONSE, 404);
+        return createProblemDetailsContextResponse(context, {
+          code: 'NOT_FOUND'
+        });
       }
 
       const response: UpdateVaultChartMetadataApiResponse = { chart };
@@ -194,7 +186,9 @@ export function registerVaultChartRoutes(app: Hono, dependencies: ServerDependen
       const deleted = await dependencies.persistence.vaultCharts.deleteById(userId, chartId);
 
       if (!deleted) {
-        return context.json(NOT_FOUND_RESPONSE, 404);
+        return createProblemDetailsContextResponse(context, {
+          code: 'NOT_FOUND'
+        });
       }
 
       const response: DeleteVaultChartApiResponse = { deleted: true };

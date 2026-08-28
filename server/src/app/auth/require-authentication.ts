@@ -1,19 +1,16 @@
 import type { Context, MiddlewareHandler } from 'hono';
 import type { AuthenticatedRequestEnv } from './authenticated-context.js';
 import type { RequestAuthenticator } from './request-authenticator.js';
-
-const UNAUTHORIZED_RESPONSE = {
-  error: {
-    code: 'UNAUTHORIZED',
-    message: 'Authentication is required.'
-  }
-} as const;
+import { createProblemDetailsContextResponse } from '../problem-details/context-response.js';
 
 export function requireAuthentication(
   authenticator: RequestAuthenticator,
   onUnauthenticated: (
     context: Context<AuthenticatedRequestEnv>
-  ) => Response = (context) => context.json(UNAUTHORIZED_RESPONSE, 401)
+  ) => Response = (context) =>
+    createProblemDetailsContextResponse(context, {
+      code: 'UNAUTHORIZED'
+    })
 ): MiddlewareHandler<AuthenticatedRequestEnv> {
   return async (context, next) => {
     const principal = await authenticator.authenticate(context.req.raw);

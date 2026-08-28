@@ -74,7 +74,11 @@ export function createApp(dependencies: ServerDependencies): Hono {
 
   app.onError((_error, context) => {
     logUnhandledApiError(context);
-    return context.json(INTERNAL_ERROR_RESPONSE, 500);
+    return isApiPath(context.req.path)
+      ? createProblemDetailsContextResponse(context, {
+          code: 'INTERNAL_ERROR'
+        })
+      : context.json(INTERNAL_ERROR_RESPONSE, 500);
   });
 
   return app;

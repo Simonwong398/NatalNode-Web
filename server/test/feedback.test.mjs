@@ -17,6 +17,17 @@ import { PostgresFeedbackSubmissionRepository } from '../dist/persistence/postgr
 const PUBLIC_WEB_ORIGIN = 'https://natalnode.test';
 const REPOSITORY_ROOT = new URL('../../', import.meta.url);
 const VALID_MESSAGE = 'A valid feedback message.';
+const PROBLEM_TITLE_BY_STATUS = {
+  400: 'Bad Request',
+  401: 'Unauthorized',
+  403: 'Forbidden',
+  404: 'Not Found',
+  413: 'Payload Too Large',
+  415: 'Unsupported Media Type',
+  429: 'Too Many Requests',
+  500: 'Internal Server Error',
+  503: 'Service Unavailable'
+};
 
 function createHarness({ failPersistence = false } = {}) {
   const submissions = [];
@@ -113,6 +124,25 @@ function postFeedback(app, {
   });
 }
 
+async function assertProblemResponse(response, status, code) {
+  assert.equal(response.status, status);
+  assert.equal(
+    response.headers.get('Content-Type'),
+    'application/problem+json; charset=utf-8'
+  );
+  const payload = await response.json();
+  assert.deepEqual(payload, {
+    type: 'about:blank',
+    title: PROBLEM_TITLE_BY_STATUS[status],
+    status,
+    code
+  });
+  assert.equal('error' in payload, false);
+  assert.equal('message' in payload, false);
+  assert.equal('instance' in payload, false);
+  assert.equal('requestId' in payload, false);
+}
+
 test('Feedback contract accepts exactly the four frozen categories', () => {
   assert.deepEqual(FEEDBACK_CATEGORIES, [
     'BUG',
@@ -197,13 +227,7 @@ test('POST /api/feedback independently requires authentication', async () => {
   const harness = createHarness();
   const response = await postFeedback(harness.app, { userId: null });
 
-  assert.equal(response.status, 401);
-  assert.deepEqual(await response.json(), {
-    error: {
-      code: 'UNAUTHORIZED',
-      message: 'Authentication is required.'
-    }
-  });
+  await assertProblemResponse(response, 401, 'UNAUTHORIZED');
   assert.equal(harness.submissions.length, 0);
 });
 
@@ -213,7 +237,7 @@ test('POST /api/feedback requires the exact configured Origin', async () => {
     origin: 'https://attacker.example'
   });
 
-  assert.equal(response.status, 403);
+  await assertProblemResponse(response, 403, 'FORBIDDEN');
   assert.equal(harness.submissions.length, 0);
 });
 
@@ -222,14 +246,14 @@ test('POST /api/feedback rejects wrong media type and malformed JSON', async () 
   const mediaTypeResponse = await postFeedback(mediaTypeHarness.app, {
     contentType: 'text/plain'
   });
-  assert.equal(mediaTypeResponse.status, 415);
+  await assertProblemResponse(mediaTypeResponse, 415, 'UNSUPPORTED_MEDIA_TYPE');
   assert.equal(mediaTypeHarness.submissions.length, 0);
 
   const malformedHarness = createHarness();
   const malformedResponse = await postFeedback(malformedHarness.app, {
     body: '{not-json'
   });
-  assert.equal(malformedResponse.status, 400);
+  await assertProblemResponse(malformedResponse, 400, 'INVALID_REQUEST');
   assert.equal(malformedHarness.submissions.length, 0);
 });
 
@@ -239,13 +263,7 @@ test('POST /api/feedback rejects more than 32 KiB before JSON parsing', async ()
     body: `{${'x'.repeat(32 * 1_024)}`
   });
 
-  assert.equal(response.status, 413);
-  assert.deepEqual(await response.json(), {
-    error: {
-      code: 'PAYLOAD_TOO_LARGE',
-      message: 'Feedback request is too large.'
-    }
-  });
+  await assertProblemResponse(response, 413, 'PAYLOAD_TOO_LARGE');
   assert.equal(harness.submissions.length, 0);
 });
 
@@ -277,12 +295,17 @@ test('Feedback persistence failure returns the bounded generic 500 response', as
   const responseText = await response.text();
 
   assert.equal(response.status, 500);
+  assert.equal(
+    response.headers.get('Content-Type'),
+    'application/problem+json; charset=utf-8'
+  );
   assert.deepEqual(JSON.parse(responseText), {
-    error: {
-      code: 'INTERNAL_ERROR',
-      message: 'An unexpected server error occurred.'
-    }
+    type: 'about:blank',
+    title: 'Internal Server Error',
+    status: 500,
+    code: 'INTERNAL_ERROR'
   });
+  assert.doesNotMatch(responseText, /"(?:error|message|instance|requestId)"/u);
   assert.doesNotMatch(responseText, /private database detail|valid feedback/iu);
 });
 
@@ -303,7 +326,7 @@ test('authenticated account throttle runs before payload parsing and is isolated
     userId: 'limited-user',
     edgeIp: '203.0.113.6'
   });
-  assert.equal(limitedResponse.status, 429);
+  await assertProblemResponse(limitedResponse, 429, 'RATE_LIMITED');
   assert.ok(Number(limitedResponse.headers.get('Retry-After')) >= 1);
 
   const otherUserResponse = await postFeedback(harness.app, {
@@ -329,7 +352,7 @@ test('Feedback edge throttle is integrated before authentication', async () => {
     userId: null,
     edgeIp: '198.51.100.20'
   });
-  assert.equal(limitedResponse.status, 429);
+  await assertProblemResponse(limitedResponse, 429, 'RATE_LIMITED');
   assert.equal(
     selectP0StagingRateLimitPolicy('POST', '/api/feedback'),
     P0_STAGING_RATE_LIMIT_POLICIES.feedbackSubmissionEdge

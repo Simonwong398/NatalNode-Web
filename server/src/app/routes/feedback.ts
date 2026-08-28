@@ -1,12 +1,12 @@
 import type { Context, Hono } from 'hono';
 import type {
   CreateFeedbackApiRequest,
-  CreateFeedbackApiResponse,
-  FeedbackApiErrorResponse
+  CreateFeedbackApiResponse
 } from '@natalnode/contracts';
 import type { FeedbackSubmissionRecord } from '../../persistence/index.js';
 import { requireAuthentication } from '../auth/index.js';
 import type { ServerDependencies } from '../dependencies.js';
+import { createProblemDetailsContextResponse } from '../problem-details/context-response.js';
 import {
   enforceFeedbackAccountRateLimit,
   type InMemoryP0StagingRateLimiter
@@ -14,27 +14,6 @@ import {
 import { normalizeCreateFeedbackApiRequest } from '../validation/index.js';
 
 export const FEEDBACK_REQUEST_MAXIMUM_BYTES = 32 * 1_024;
-
-const INVALID_REQUEST_RESPONSE: FeedbackApiErrorResponse = {
-  error: {
-    code: 'INVALID_REQUEST',
-    message: 'Invalid feedback request.'
-  }
-};
-
-const UNSUPPORTED_MEDIA_TYPE_RESPONSE: FeedbackApiErrorResponse = {
-  error: {
-    code: 'UNSUPPORTED_MEDIA_TYPE',
-    message: 'Feedback requests require application/json.'
-  }
-};
-
-const PAYLOAD_TOO_LARGE_RESPONSE: FeedbackApiErrorResponse = {
-  error: {
-    code: 'PAYLOAD_TOO_LARGE',
-    message: 'Feedback request is too large.'
-  }
-};
 
 type BoundedBodyReadResult =
   | { readonly outcome: 'read'; readonly bytes: Uint8Array }
@@ -119,17 +98,23 @@ async function parseFeedbackRequest(
   context: Context
 ): Promise<CreateFeedbackApiRequest | Response> {
   if (!isApplicationJson(context.req.raw)) {
-    return context.json(UNSUPPORTED_MEDIA_TYPE_RESPONSE, 415);
+    return createProblemDetailsContextResponse(context, {
+      code: 'UNSUPPORTED_MEDIA_TYPE'
+    });
   }
 
   const body = await readBoundedRequestBody(context.req.raw);
 
   if (body.outcome === 'too-large') {
-    return context.json(PAYLOAD_TOO_LARGE_RESPONSE, 413);
+    return createProblemDetailsContextResponse(context, {
+      code: 'PAYLOAD_TOO_LARGE'
+    });
   }
 
   if (body.outcome === 'invalid') {
-    return context.json(INVALID_REQUEST_RESPONSE, 400);
+    return createProblemDetailsContextResponse(context, {
+      code: 'INVALID_REQUEST'
+    });
   }
 
   let payload: unknown;
@@ -138,11 +123,15 @@ async function parseFeedbackRequest(
     const text = new TextDecoder('utf-8', { fatal: true }).decode(body.bytes);
     payload = JSON.parse(text) as unknown;
   } catch (_error) {
-    return context.json(INVALID_REQUEST_RESPONSE, 400);
+    return createProblemDetailsContextResponse(context, {
+      code: 'INVALID_REQUEST'
+    });
   }
 
   return normalizeCreateFeedbackApiRequest(payload)
-    ?? context.json(INVALID_REQUEST_RESPONSE, 400);
+    ?? createProblemDetailsContextResponse(context, {
+      code: 'INVALID_REQUEST'
+    });
 }
 
 export function registerFeedbackRoutes(

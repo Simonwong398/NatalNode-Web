@@ -1,7 +1,6 @@
 import type {
   SaveVaultChartApiRequest,
   SaveVaultChartApiResponse,
-  VaultApiErrorResponse,
   VaultChartCategory,
   VaultChartRecord
 } from '@natalnode/contracts';
@@ -62,13 +61,8 @@ function isSaveVaultChartApiResponse(
   return isRecord(value) && isVaultChartRecord(value.chart);
 }
 
-function isInvalidRequestResponse(value: unknown): value is VaultApiErrorResponse {
-  return (
-    isRecord(value) &&
-    isRecord(value.error) &&
-    value.error.code === 'INVALID_REQUEST' &&
-    typeof value.error.message === 'string'
-  );
+function isInvalidRequestProblem(value: unknown): boolean {
+  return isRecord(value) && value.code === 'INVALID_REQUEST';
 }
 
 /** Saves metadata plus the normalized input; the server recalculates all scientific output. */
@@ -103,7 +97,7 @@ export async function saveVaultChart(
     if (response.status === 400) {
       const payload: unknown = await response.json();
 
-      return isInvalidRequestResponse(payload)
+      return isInvalidRequestProblem(payload)
         ? { status: 'invalid-request' }
         : { status: 'failed' };
     }

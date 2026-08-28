@@ -67,13 +67,6 @@ export const P0_STAGING_RATE_LIMIT_POLICIES = {
 export const P0_STAGING_RATE_LIMIT_MAXIMUM_TRACKED_KEYS = 10_000;
 const EXPIRED_ENTRY_PRUNE_INTERVAL_MS = 60_000;
 
-const RATE_LIMITED_RESPONSE = {
-  error: {
-    code: 'RATE_LIMITED',
-    message: 'Too many requests. Please try again later.'
-  }
-} as const;
-
 interface RateLimitEntry {
   count: number;
   readonly resetAtMs: number;
@@ -278,7 +271,9 @@ export function enforceP0StagingRateLimits(
 
     if (!decision.allowed) {
       context.header('Retry-After', decision.retryAfterSeconds.toString());
-      return context.json(RATE_LIMITED_RESPONSE, 429);
+      return createProblemDetailsContextResponse(context, {
+        code: 'RATE_LIMITED'
+      });
     }
 
     await next();
@@ -297,7 +292,9 @@ export function enforceFeedbackAccountRateLimit(
 
     if (!decision.allowed) {
       context.header('Retry-After', decision.retryAfterSeconds.toString());
-      return context.json(RATE_LIMITED_RESPONSE, 429);
+      return createProblemDetailsContextResponse(context, {
+        code: 'RATE_LIMITED'
+      });
     }
 
     await next();

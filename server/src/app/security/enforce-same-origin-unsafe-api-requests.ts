@@ -1,13 +1,7 @@
 import type { MiddlewareHandler } from 'hono';
+import { createProblemDetailsContextResponse } from '../problem-details/context-response.js';
 
 const UNSAFE_METHODS = new Set(['POST', 'PATCH', 'DELETE']);
-
-const FORBIDDEN_ORIGIN_RESPONSE = {
-  error: {
-    code: 'FORBIDDEN',
-    message: 'Request origin is not allowed.'
-  }
-} as const;
 
 function isExactCanonicalOrigin(
   originHeader: string | null,
@@ -61,7 +55,9 @@ export function enforceSameOriginUnsafeApiRequests(
     const originHeader = context.req.raw.headers.get('origin');
 
     if (!isExactCanonicalOrigin(originHeader, expectedOrigin)) {
-      return context.json(FORBIDDEN_ORIGIN_RESPONSE, 403);
+      return createProblemDetailsContextResponse(context, {
+        code: 'FORBIDDEN'
+      });
     }
 
     await next();

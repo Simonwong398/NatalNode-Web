@@ -89,14 +89,20 @@ async function assertProblemResponse(response, status, code) {
   assert.match(response.headers.get('X-Request-Id') ?? '', /^[0-9a-f-]{36}$/u);
 
   const payload = await response.json();
+  const titleByStatus = {
+    400: 'Bad Request',
+    401: 'Unauthorized',
+    403: 'Forbidden',
+    404: 'Not Found',
+    413: 'Payload Too Large',
+    415: 'Unsupported Media Type',
+    429: 'Too Many Requests',
+    500: 'Internal Server Error',
+    503: 'Service Unavailable'
+  };
   assert.deepEqual(payload, {
     type: 'about:blank',
-    title:
-      status === 400
-        ? 'Bad Request'
-        : status === 404
-          ? 'Not Found'
-          : 'Service Unavailable',
+    title: titleByStatus[status],
     status,
     code
   });
@@ -104,6 +110,7 @@ async function assertProblemResponse(response, status, code) {
   assert.equal('message' in payload, false);
   assert.equal('instance' in payload, false);
   assert.equal('requestId' in payload, false);
+  return payload;
 }
 
 test('Chart invalid requests use canonical Problem Details', async () => {
@@ -181,42 +188,50 @@ test('API-only not-found responses use Problem Details and non-API responses rem
   );
 });
 
-test('shared global onError remains legacy until unmigrated clients move atomically', async () => {
+test('shared API onError normalizes unknown failures and preserves non-API fallback scope', async () => {
   const app = createAppHarness();
   app.get('/api/test/unhandled', () => {
     const error = new Error('private error message');
     error.cause = new Error('private cause');
     throw error;
   });
+  app.get('/website/test/unhandled', () => {
+    throw new Error('private page error');
+  });
 
   const response = await app.request('/api/test/unhandled');
-  assert.equal(response.status, 500);
-  assert.equal(response.headers.get('Content-Type'), 'application/json');
-  const responseText = await response.text();
-  assert.deepEqual(JSON.parse(responseText), {
+  const payload = await assertProblemResponse(response, 500, 'INTERNAL_ERROR');
+  assert.doesNotMatch(JSON.stringify(payload), /private error message|private cause/iu);
+
+  const nonApiErrorResponse = await app.request('/website/test/unhandled');
+  assert.equal(nonApiErrorResponse.status, 500);
+  assert.equal(nonApiErrorResponse.headers.get('Content-Type'), 'application/json');
+  assert.deepEqual(await nonApiErrorResponse.json(), {
     error: {
       code: 'INTERNAL_ERROR',
       message: 'An unexpected server error occurred.'
     }
   });
-  assert.doesNotMatch(responseText, /private/u);
 });
 
-test('Auth explicit errors remain legacy while Chart/Sky migrate independently', async () => {
+test('default authentication and explicit Auth errors use canonical Problem Details', async () => {
+  const unauthenticatedApp = createApp({
+    ...createDependencies(new MockEngineClient()),
+    authenticator: { async authenticate() { return null; } }
+  });
+  await assertProblemResponse(
+    await postJson(unauthenticatedApp, '/api/feedback', {}),
+    401,
+    'UNAUTHORIZED'
+  );
+
   const response = await postJson(
     createAppHarness(),
     '/api/auth/email/request',
     {}
   );
 
-  assert.equal(response.status, 400);
-  assert.equal(response.headers.get('Content-Type'), 'application/json');
-  assert.deepEqual(await response.json(), {
-    error: {
-      code: 'INVALID_REQUEST',
-      message: 'Invalid authentication request.'
-    }
-  });
+  await assertProblemResponse(response, 400, 'INVALID_REQUEST');
 });
 
 test('Chart success response remains the existing chart envelope', async () => {
