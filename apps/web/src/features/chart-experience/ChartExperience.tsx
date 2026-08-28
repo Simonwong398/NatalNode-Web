@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { BirthInputForm, type ResolvedBirthInputSelection } from '@/features/chart-input';
 import { ChartWorkspace } from '@/features/chart-workspace';
 import { engineClient } from '@/lib/engine-client';
@@ -11,7 +11,29 @@ export default function ChartExperience() {
   const [snapshot, setSnapshot] = useState<CalculatedChartSnapshot | null>(null);
   const [isCalculating, setIsCalculating] = useState(false);
   const [calculationError, setCalculationError] = useState<string | null>(null);
+  const [successfulCalculationSequence, setSuccessfulCalculationSequence] = useState(0);
   const calculationInFlightRef = useRef(false);
+  const handledResultTransitionRef = useRef(0);
+  const resultTargetRef = useRef<HTMLElement>(null);
+
+  useEffect(() => {
+    if (
+      successfulCalculationSequence === 0 ||
+      handledResultTransitionRef.current === successfulCalculationSequence
+    ) {
+      return;
+    }
+
+    const resultTarget = resultTargetRef.current;
+
+    if (!resultTarget) {
+      return;
+    }
+
+    handledResultTransitionRef.current = successfulCalculationSequence;
+    resultTarget.focus({ preventScroll: true });
+    resultTarget.scrollIntoView({ block: 'start' });
+  }, [successfulCalculationSequence]);
 
   const handleResolvedInput = async ({
     resolution,
@@ -31,6 +53,7 @@ export default function ChartExperience() {
       const result = await engineClient.calculateChart(request);
 
       setSnapshot({ request, result });
+      setSuccessfulCalculationSequence((current) => current + 1);
     } catch {
       setCalculationError(CALCULATION_ERROR);
     } finally {
@@ -94,7 +117,13 @@ export default function ChartExperience() {
         ) : null}
       </section>
 
-      {snapshot ? <ChartWorkspace snapshot={snapshot} /> : null}
+      {snapshot ? (
+        <ChartWorkspace
+          key={successfulCalculationSequence}
+          resultTargetRef={resultTargetRef}
+          snapshot={snapshot}
+        />
+      ) : null}
     </>
   );
 }

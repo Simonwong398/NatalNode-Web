@@ -1,4 +1,11 @@
-import { useId, useRef, useState, type KeyboardEvent, type ReactNode } from 'react';
+import {
+  useId,
+  useRef,
+  useState,
+  type KeyboardEvent,
+  type ReactNode,
+  type Ref
+} from 'react';
 import type { ChartResult } from '@natalnode/contracts';
 import { CalculationDetails } from '@/features/calculation-details';
 import { ChartRenderer } from '@/features/chart-renderer';
@@ -24,6 +31,7 @@ export type ChartWorkspaceViewProps = {
   chart: ChartResult;
   presentationPolicy: ChartPresentationPolicy;
   requestedHouseSystem: string;
+  resultTargetRef?: Ref<HTMLElement>;
   children?: ReactNode;
 };
 
@@ -32,6 +40,7 @@ export default function ChartWorkspaceView({
   chart,
   presentationPolicy,
   requestedHouseSystem,
+  resultTargetRef,
   children
 }: ChartWorkspaceViewProps) {
   const workspaceId = useId();
@@ -90,6 +99,8 @@ export default function ChartWorkspaceView({
     <section
       aria-labelledby={titleId}
       className="nn-chart-workspace nn-surface nn-surface--elevated mt-2 min-w-0 overflow-hidden"
+      ref={resultTargetRef}
+      tabIndex={resultTargetRef ? -1 : undefined}
     >
       <header className="nn-section-header border-b border-natal-border/70 p-5 sm:p-7 lg:flex lg:flex-row lg:items-end lg:justify-between">
         <div className="nn-section-header">

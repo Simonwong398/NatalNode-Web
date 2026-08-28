@@ -29,11 +29,19 @@ function assertActiveMode(scope, activeName) {
 }
 
 test('Chart is the default single active mode with contextual Save and compact chart facts', async () => {
-  await withResultWorkspace({}, async (scope) => {
+  const resultTargetRef = { current: null };
+
+  await withResultWorkspace({ resultTargetRef }, async (scope) => {
     assert.equal(scope.container.querySelectorAll('[role="tab"]').length, 3);
     assert.equal(scope.container.querySelector('[role="tablist"]').getAttribute('aria-orientation'), 'horizontal');
     assert.doesNotMatch(scope.container.querySelector('nav').className, /lg:hidden/u);
     assertActiveMode(scope, 'Chart');
+    assert.strictEqual(resultTargetRef.current, scope.container.querySelector('.nn-chart-workspace'));
+    assert.equal(resultTargetRef.current.tabIndex, -1);
+    assert.equal(
+      scope.document.getElementById(resultTargetRef.current.getAttribute('aria-labelledby')).textContent,
+      'Natal Chart'
+    );
     assert.match(scope.text(scope.panel('Chart')), /Chart renderer/u);
     assert.doesNotMatch(scope.text(scope.panel('Chart')), /Save this chart/u);
 

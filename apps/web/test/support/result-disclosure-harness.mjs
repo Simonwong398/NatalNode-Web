@@ -363,7 +363,8 @@ export async function withResultWorkspace(options = {}, exercise) {
           {
             chart,
             presentationPolicy,
-            requestedHouseSystem: chartRequest.houseSystem
+            requestedHouseSystem: chartRequest.houseSystem,
+            resultTargetRef: options.resultTargetRef
           },
           savePanel
         )
