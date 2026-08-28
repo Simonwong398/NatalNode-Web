@@ -186,6 +186,10 @@ class InMemoryAccountErasureClient {
     }
 
     if (normalized === 'COMMIT') {
+      if (this.pool.failCommit) {
+        throw new Error('forced commit failure');
+      }
+
       this.snapshot = null;
       return { rows: [] };
     }
@@ -222,14 +226,29 @@ class InMemoryAccountErasureClient {
           )
           .map((identity) => ({ provider_subject: identity.subject }));
 
-      if (this.pool.lateIdentityCommitted && userId === 'user-a') {
+      if (
+        userId === 'user-a' &&
+        (
+          this.pool.lateIdentityCommitted ||
+          (this.pool.identityMismatchEveryAttempt &&
+            this.identityQueryCount === 2)
+        )
+      ) {
         identities.push({ provider_subject: 'late@example.test' });
       }
 
       return {
-        rows: identities.sort((left, right) =>
-          left.provider_subject.localeCompare(right.provider_subject)
-        )
+        rows: identities.sort((left, right) => {
+          if (this.pool.reverseIdentityQueryOrder) {
+            return left.provider_subject < right.provider_subject
+              ? 1
+              : left.provider_subject > right.provider_subject
+                ? -1
+                : 0;
+          }
+
+          return left.provider_subject.localeCompare(right.provider_subject);
+        })
       };
     }
 
@@ -289,7 +308,12 @@ class InMemoryAccountErasureClient {
         (submission) => submission.userId !== userId
       );
 
-      return { rows: [{ user_id: userId }] };
+      return {
+        rows: Array.from(
+          { length: this.pool.deletedRootRowCount },
+          () => ({ user_id: userId })
+        )
+      };
     }
 
     throw new Error(`Unexpected SQL in account-erasure test: ${normalized}`);
@@ -303,11 +327,22 @@ class InMemoryAccountErasureClient {
 class InMemoryAccountErasurePool {
   constructor(
     state,
-    { failBeforeUserDelete = false, identityMismatchOnce = false } = {}
+    {
+      deletedRootRowCount = 1,
+      failBeforeUserDelete = false,
+      failCommit = false,
+      identityMismatchEveryAttempt = false,
+      identityMismatchOnce = false,
+      reverseIdentityQueryOrder = false
+    } = {}
   ) {
     this.state = structuredClone(state);
+    this.deletedRootRowCount = deletedRootRowCount;
     this.failBeforeUserDelete = failBeforeUserDelete;
+    this.failCommit = failCommit;
+    this.identityMismatchEveryAttempt = identityMismatchEveryAttempt;
     this.identityMismatchOnce = identityMismatchOnce;
+    this.reverseIdentityQueryOrder = reverseIdentityQueryOrder;
     this.lateIdentityCommitted = false;
     this.clients = [];
     this.releaseCount = 0;
@@ -350,7 +385,11 @@ test('DELETE /api/account requires authentication and exact configured Origin', 
 test('DELETE /api/account strictly validates media type, JSON, fields, and phrase', async () => {
   const invalidRequests = [
     { contentType: 'text/plain' },
+    { body: '' },
     { body: '{not-json' },
+    { body: 'null' },
+    { body: '[]' },
+    { body: '"DELETE"' },
     { body: JSON.stringify({}) },
     { body: JSON.stringify({ confirmation: 'delete' }) },
     { body: JSON.stringify({ confirmation: 'Delete' }) },
@@ -360,6 +399,24 @@ test('DELETE /api/account strictly validates media type, JSON, fields, and phras
       body: JSON.stringify({
         confirmation: 'DELETE',
         userId: 'browser-controlled-target'
+      })
+    },
+    {
+      body: JSON.stringify({
+        confirmation: 'DELETE',
+        accountId: 'browser-controlled-target'
+      })
+    },
+    {
+      body: JSON.stringify({
+        confirmation: 'DELETE',
+        email: 'attacker@example.test'
+      })
+    },
+    {
+      body: JSON.stringify({
+        confirmation: 'DELETE',
+        identityId: 'browser-controlled-target'
       })
     }
   ];
@@ -377,6 +434,31 @@ test('DELETE /api/account strictly validates media type, JSON, fields, and phras
         message: 'Invalid account deletion request.'
       }
     });
+    assert.equal(harness.eraseCalls.length, 0);
+    assert.equal(response.headers.get('Set-Cookie'), null);
+  }
+});
+
+test('DELETE /api/account accepts JSON media-type parameters and enforces UTF-8 and byte bounds', async () => {
+  const acceptedHarness = createRouteHarness();
+  const accepted = await deleteAccount(acceptedHarness.app, {
+    contentType: 'application/json; charset=utf-8'
+  });
+  assert.equal(accepted.status, 204);
+  assert.deepEqual(acceptedHarness.eraseCalls, ['user-a']);
+
+  const invalidBodies = [
+    new Uint8Array([0xc3, 0x28]),
+    'x'.repeat(1_025)
+  ];
+
+  for (const [index, body] of invalidBodies.entries()) {
+    const harness = createRouteHarness();
+    const response = await deleteAccount(harness.app, {
+      body,
+      edgeIp: `203.0.113.${80 + index}`
+    });
+    assert.equal(response.status, 400);
     assert.equal(harness.eraseCalls.length, 0);
     assert.equal(response.headers.get('Set-Cookie'), null);
   }
@@ -581,6 +663,95 @@ test('identity-set change rolls back and retries with the newly authoritative lo
   );
 });
 
+test('identity equality is independent of PostgreSQL result collation order', async () => {
+  const pool = new InMemoryAccountErasurePool(createGraphState(), {
+    reverseIdentityQueryOrder: true
+  });
+  const repository = new PostgresAccountErasureRepository(pool);
+
+  assert.deepEqual(
+    await repository.eraseAccount('user-a'),
+    { outcome: 'deleted' }
+  );
+  assert.equal(pool.clients.length, 1);
+  assert.equal(
+    pool.clients[0].calls.filter((call) => call.sql === 'ROLLBACK').length,
+    0
+  );
+});
+
+test('identity-set retry is finite and performs no deletion when every attempt changes', async () => {
+  const initialState = createGraphState();
+  const pool = new InMemoryAccountErasurePool(initialState, {
+    identityMismatchEveryAttempt: true
+  });
+  const repository = new PostgresAccountErasureRepository(pool);
+
+  await assert.rejects(
+    repository.eraseAccount('user-a'),
+    /identity set changed during erasure/u
+  );
+  assert.equal(pool.clients.length, 3);
+  assert.equal(pool.releaseCount, 3);
+  assert.deepEqual(pool.state, initialState);
+
+  for (const client of pool.clients) {
+    assert.equal(
+      client.calls.filter((call) => call.sql === 'ROLLBACK').length,
+      1
+    );
+    assert.equal(
+      client.calls.some((call) =>
+        call.sql.startsWith('DELETE FROM email_magic_link_challenges')
+      ),
+      false
+    );
+  }
+});
+
+test('root deletion must return exactly one row or the complete transaction rolls back', async () => {
+  const initialState = createGraphState();
+  const pool = new InMemoryAccountErasurePool(initialState, {
+    deletedRootRowCount: 2
+  });
+  const repository = new PostgresAccountErasureRepository(pool);
+
+  await assert.rejects(
+    repository.eraseAccount('user-a'),
+    /did not delete exactly one user root/u
+  );
+  assert.deepEqual(pool.state, initialState);
+  assert.equal(
+    pool.clients[0].calls.filter((call) => call.sql === 'ROLLBACK').length,
+    1
+  );
+  assert.equal(pool.releaseCount, 1);
+});
+
+test('COMMIT failure is surfaced without an unsafe automatic transaction retry', async () => {
+  const initialState = createGraphState();
+  const pool = new InMemoryAccountErasurePool(initialState, {
+    failCommit: true
+  });
+  const repository = new PostgresAccountErasureRepository(pool);
+
+  await assert.rejects(
+    repository.eraseAccount('user-a'),
+    /forced commit failure/u
+  );
+  assert.equal(pool.clients.length, 1);
+  assert.equal(pool.releaseCount, 1);
+  assert.deepEqual(pool.state, initialState);
+  assert.equal(
+    pool.clients[0].calls.filter((call) => call.sql === 'COMMIT').length,
+    1
+  );
+  assert.equal(
+    pool.clients[0].calls.filter((call) => call.sql === 'ROLLBACK').length,
+    1
+  );
+});
+
 test('migrations freeze all required account-root cascade relationships', async () => {
   const authVaultMigration = await readFile(
     new URL('server/db/migrations/0001_auth_vault_baseline.sql', REPOSITORY_ROOT),
@@ -588,6 +759,13 @@ test('migrations freeze all required account-root cascade relationships', async 
   );
   const authRuntimeMigration = await readFile(
     new URL('server/db/migrations/0002_auth_runtime.sql', REPOSITORY_ROOT),
+    'utf8'
+  );
+  const provisioningMigration = await readFile(
+    new URL(
+      'server/db/migrations/0003_auth_identity_provisioning_fk.sql',
+      REPOSITORY_ROOT
+    ),
     'utf8'
   );
   const feedbackMigration = await readFile(
@@ -598,6 +776,10 @@ test('migrations freeze all required account-root cascade relationships', async 
   assert.match(
     authVaultMigration,
     /auth_identities_user_fk[\s\S]*REFERENCES users \(user_id\)[\s\S]*ON DELETE CASCADE/u
+  );
+  assert.match(
+    provisioningMigration,
+    /auth_identities_user_fk[\s\S]*REFERENCES users \(user_id\)[\s\S]*ON DELETE CASCADE[\s\S]*DEFERRABLE INITIALLY DEFERRED/u
   );
   assert.match(
     authVaultMigration,

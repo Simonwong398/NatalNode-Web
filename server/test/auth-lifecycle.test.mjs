@@ -5,6 +5,7 @@ import { SessionRequestAuthenticator } from '../dist/app/auth/session-request-au
 import { completeEmailMagicLinkAuthentication } from '../dist/auth-runtime/email-magic-link-authentication.js';
 import { issueEmailMagicLinkChallenge } from '../dist/auth-runtime/email-magic-link.js';
 import { deriveAuthLifecycleLockKey } from '../dist/persistence/postgres/auth-lifecycle-lock.js';
+import { PostgresAuthSessionRepository } from '../dist/persistence/postgres/postgres-auth-session-repository.js';
 import { PostgresEmailMagicLinkAuthLifecycle } from '../dist/persistence/postgres/postgres-email-magic-link-auth-lifecycle.js';
 
 const NOW = '2026-08-27T12:00:00.000Z';
@@ -153,6 +154,45 @@ test('SessionRequestAuthenticator preserves immutable server-side session create
   assert.deepEqual(await authenticator.authenticate(request), {
     userId: 'user-existing',
     sessionCreatedAt: '2026-08-27T11:55:00.000Z'
+  });
+});
+
+test('PostgreSQL TIMESTAMPTZ Date values retain millisecond precision in the session principal chain', async () => {
+  const createdAt = new Date('2026-08-27T11:59:59.123Z');
+  const expiresAt = new Date(SESSION_EXPIRES_AT);
+  const authSessions = new PostgresAuthSessionRepository({
+    async query(_sql, params) {
+      assert.deepEqual(params, ['hash:session-secret', NOW]);
+      return {
+        rows: [{
+          session_token_hash: 'hash:session-secret',
+          user_id: 'user-existing',
+          created_at: createdAt,
+          expires_at: expiresAt
+        }]
+      };
+    }
+  });
+  const authenticator = new SessionRequestAuthenticator({
+    authSessions,
+    tokenHasher,
+    clock: {
+      now() {
+        return NOW;
+      }
+    },
+    cookiePolicy: {
+      name: 'nn_session',
+      secure: true
+    }
+  });
+  const request = new Request('https://natalnode.test/api/account', {
+    headers: { Cookie: 'nn_session=session-secret' }
+  });
+
+  assert.deepEqual(await authenticator.authenticate(request), {
+    userId: 'user-existing',
+    sessionCreatedAt: '2026-08-27T11:59:59.123Z'
   });
 });
 

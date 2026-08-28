@@ -3,7 +3,10 @@ import type {
   AccountErasureRepository,
   AccountErasureResult
 } from '../account-erasure-repository.js';
-import { acquireAuthLifecycleLocks } from './auth-lifecycle-lock.js';
+import {
+  acquireAuthLifecycleLocks,
+  sortNormalizedEmailsForAuthLifecycle
+} from './auth-lifecycle-lock.js';
 import { PostgresClientSqlExecutor } from './postgres-client-sql-executor.js';
 
 interface EmailIdentityRow {
@@ -133,7 +136,9 @@ export class PostgresAccountErasureRepository
         FIND_EMAIL_IDENTITIES_SQL,
         [userId]
       );
-      const authoritativeSubjects = identitySubjects(authoritativeIdentities.rows);
+      const authoritativeSubjects = sortNormalizedEmailsForAuthLifecycle(
+        identitySubjects(authoritativeIdentities.rows)
+      );
 
       if (!haveSameIdentitySubjects(candidateSubjects, authoritativeSubjects)) {
         throw new IdentitySetChangedError();
