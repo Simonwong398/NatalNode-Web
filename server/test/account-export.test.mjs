@@ -6,6 +6,7 @@ import { createApp } from '../dist/app/create-app.js';
 import {
   createAccountExportDeadline
 } from '../dist/app/account-export-lifecycle.js';
+import { classifyApiEndpointFamily } from '../dist/app/observability/api-request-observability.js';
 import { registerAccountExportRoutes } from '../dist/app/routes/account-export.js';
 import {
   P0_STAGING_RATE_LIMIT_POLICIES,
@@ -346,6 +347,207 @@ test('export recent-auth policy is export-named and uses the exact 600-second bo
     isRecentAccountExportAuthentication('not-a-timestamp', SERVER_NOW),
     false
   );
+  assert.equal(
+    classifyApiEndpointFamily('/api/account/export/prepare'),
+    'account.export.prepare'
+  );
+});
+
+test('account export prepare returns an advisory 204 without export resources', async () => {
+  const harness = createHarness({
+    snapshotFactory: () => {
+      throw new Error('prepare must not open an export snapshot');
+    }
+  });
+
+  assert.equal(
+    selectP0StagingRateLimitPolicy('POST', '/api/account/export/prepare'),
+    null
+  );
+
+  const response = await postExport(harness.app, {
+    path: '/api/account/export/prepare'
+  });
+
+  assert.equal(response.status, 204);
+  assert.equal(await response.text(), '');
+  assert.equal(response.headers.get('cache-control'), 'no-store');
+  assert.equal(response.headers.get('referrer-policy'), 'no-referrer');
+  assert.equal(response.headers.get('x-content-type-options'), 'nosniff');
+  assert.equal(response.headers.get('x-frame-options'), 'DENY');
+  assert.equal(response.headers.has('content-disposition'), false);
+  assert.match(response.headers.get('x-request-id') ?? '', /^[0-9a-f-]{36}$/u);
+  assert.equal(harness.openCalls.length, 0);
+  assert.equal(harness.snapshots.length, 0);
+
+  const directHarness = createHarness({
+    snapshotFactory: () => {
+      throw new Error('prepare must not open an export snapshot');
+    }
+  });
+  let capacityCalls = 0;
+  const directApp = new Hono();
+  registerAccountExportRoutes(
+    directApp,
+    directHarness.dependencies,
+    new InMemoryP0StagingRateLimiter(),
+    {
+      capacity: {
+        tryAcquire() {
+          capacityCalls += 1;
+          throw new Error('prepare must not acquire export capacity');
+        }
+      }
+    }
+  );
+
+  const directResponse = await postExport(directApp, {
+    path: '/api/account/export/prepare',
+    edgeIp: '203.0.113.102'
+  });
+  assert.equal(directResponse.status, 204);
+  assert.equal(capacityCalls, 0);
+  assert.equal(directHarness.openCalls.length, 0);
+});
+
+test('account export prepare uses canonical route-owned Problem Details', async () => {
+  const anonymousHarness = createHarness();
+  const anonymousResponse = await postExport(anonymousHarness.app, {
+    path: '/api/account/export/prepare',
+    userId: null
+  });
+  assert.equal(anonymousResponse.status, 401);
+  assert.equal(
+    anonymousResponse.headers.get('content-type'),
+    'application/problem+json; charset=utf-8'
+  );
+  assert.deepEqual(await anonymousResponse.json(), {
+    type: 'about:blank',
+    title: 'Unauthorized',
+    status: 401,
+    code: 'UNAUTHORIZED',
+    detail: 'Authentication is required.'
+  });
+
+  const staleHarness = createHarness({
+    sessionCreatedAt: '2026-08-27T11:59:59.998Z'
+  });
+  const staleResponse = await postExport(staleHarness.app, {
+    path: '/api/account/export/prepare'
+  });
+  assert.equal(staleResponse.status, 403);
+  assert.deepEqual(await staleResponse.json(), {
+    type: 'about:blank',
+    title: 'Forbidden',
+    status: 403,
+    code: 'RECENT_AUTHENTICATION_REQUIRED',
+    detail: 'Recent authentication is required.'
+  });
+
+  const invalidCases = [
+    { path: '/api/account/export/prepare?format=json' },
+    { path: '/api/account/export/prepare', body: 'unexpected body' },
+    {
+      path: '/api/account/export/prepare',
+      headers: new Headers({ 'Content-Length': '1' })
+    },
+    {
+      path: '/api/account/export/prepare',
+      headers: new Headers({ 'Content-Length': '00' })
+    },
+    {
+      path: '/api/account/export/prepare',
+      headers: new Headers({ 'Transfer-Encoding': 'chunked' })
+    }
+  ];
+
+  for (const [index, invalidCase] of invalidCases.entries()) {
+    const invalidHarness = createHarness();
+    const invalidResponse = await postExport(invalidHarness.app, {
+      ...invalidCase,
+      edgeIp: `203.0.113.${103 + index}`
+    });
+    assert.equal(invalidResponse.status, 400, invalidCase.path);
+    assert.deepEqual(await invalidResponse.json(), {
+      type: 'about:blank',
+      title: 'Bad Request',
+      status: 400,
+      code: 'INVALID_REQUEST',
+      detail: 'The request is invalid.'
+    });
+    assert.equal(invalidHarness.openCalls.length, 0);
+  }
+
+  const duplicateLengthHeaders = new Headers({ 'Content-Length': '0' });
+  duplicateLengthHeaders.append('Content-Length', '0');
+  const duplicateHarness = createHarness();
+  const duplicateResponse = await postExport(duplicateHarness.app, {
+    path: '/api/account/export/prepare',
+    headers: duplicateLengthHeaders,
+    edgeIp: '203.0.113.108'
+  });
+  assert.equal(duplicateResponse.status, 400);
+  assert.equal(duplicateHarness.openCalls.length, 0);
+});
+
+test('account export prepare has its own edge bucket and does not consume transfer attempts', async () => {
+  const prepareHarness = createHarness();
+
+  for (let attempt = 1; attempt <= 20; attempt += 1) {
+    const response = await postExport(prepareHarness.app, {
+      path: '/api/account/export/prepare',
+      edgeIp: '203.0.113.110'
+    });
+    assert.equal(response.status, 204);
+  }
+
+  const limitedPrepareResponse = await postExport(prepareHarness.app, {
+    path: '/api/account/export/prepare',
+    edgeIp: '203.0.113.110'
+  });
+  assert.equal(limitedPrepareResponse.status, 429);
+  assert.equal(
+    limitedPrepareResponse.headers.get('content-type'),
+    'application/problem+json; charset=utf-8'
+  );
+  assert.deepEqual(await limitedPrepareResponse.json(), {
+    type: 'about:blank',
+    title: 'Too Many Requests',
+    status: 429,
+    code: 'RATE_LIMITED',
+    detail: 'Too many requests. Please try again later.'
+  });
+  assert.ok(Number(limitedPrepareResponse.headers.get('retry-after')) >= 1);
+
+  const transferHarness = createHarness();
+  const prepareResponse = await postExport(transferHarness.app, {
+    path: '/api/account/export/prepare'
+  });
+  assert.equal(prepareResponse.status, 204);
+
+  for (let attempt = 1; attempt <= 5; attempt += 1) {
+    const response = await postExport(transferHarness.app, {
+      body: 'not empty',
+      userId: 'transfer-user',
+      edgeIp: `203.0.113.${120 + attempt}`
+    });
+    assert.equal(response.status, 400);
+  }
+
+  const limitedTransferResponse = await postExport(transferHarness.app, {
+    body: 'not empty',
+    userId: 'transfer-user',
+    edgeIp: '203.0.113.126'
+  });
+  assert.equal(limitedTransferResponse.status, 429);
+  assert.deepEqual(await limitedTransferResponse.json(), {
+    type: 'about:blank',
+    title: 'Too Many Requests',
+    status: 429,
+    code: 'RATE_LIMITED',
+    detail: 'Too many requests. Please try again later.'
+  });
+  assert.equal(transferHarness.openCalls.length, 0);
 });
 
 test('account export streams the approved envelope with safe attachment headers and commits before closing', async () => {
@@ -415,10 +617,11 @@ test('empty request framing, authentication, Origin, and recent-auth gates fail 
     });
     assert.equal(response.status, 400, invalidCase.path);
     assert.deepEqual(await response.json(), {
-      error: {
-        code: 'INVALID_REQUEST',
-        message: 'Invalid account export request.'
-      }
+      type: 'about:blank',
+      title: 'Bad Request',
+      status: 400,
+      code: 'INVALID_REQUEST',
+      detail: 'The request is invalid.'
     });
     assert.equal(harness.openCalls.length, 0);
   }
@@ -444,16 +647,24 @@ test('empty request framing, authentication, Origin, and recent-auth gates fail 
     userId: null
   });
   assert.equal(anonymousResponse.status, 401);
+  assert.deepEqual(await anonymousResponse.json(), {
+    type: 'about:blank',
+    title: 'Unauthorized',
+    status: 401,
+    code: 'UNAUTHORIZED',
+    detail: 'Authentication is required.'
+  });
   assert.equal(anonymousHarness.openCalls.length, 0);
 
   const staleHarness = createHarness({ sessionCreatedAt: '2026-08-27T11:59:59.998Z' });
   const staleResponse = await postExport(staleHarness.app);
   assert.equal(staleResponse.status, 403);
   assert.deepEqual(await staleResponse.json(), {
-    error: {
-      code: 'RECENT_AUTHENTICATION_REQUIRED',
-      message: 'Recent authentication is required.'
-    }
+    type: 'about:blank',
+    title: 'Forbidden',
+    status: 403,
+    code: 'RECENT_AUTHENTICATION_REQUIRED',
+    detail: 'Recent authentication is required.'
   });
   assert.equal(staleHarness.openCalls.length, 0);
 });
@@ -477,6 +688,13 @@ test('account export accepts a bodyless request without Content-Type and uses th
     edgeIp: '203.0.113.15'
   });
   assert.equal(missingTimeoutResponse.status, 500);
+  assert.deepEqual(await missingTimeoutResponse.json(), {
+    type: 'about:blank',
+    title: 'Internal Server Error',
+    status: 500,
+    code: 'INTERNAL_ERROR',
+    detail: 'An unexpected server error occurred.'
+  });
   assert.equal(missingTimeoutHarness.openCalls.length, 0);
 });
 
@@ -490,10 +708,11 @@ test('unsupported identity representation and missing account fail before attach
   assert.equal(unsupportedResponse.status, 500);
   assert.equal(unsupportedResponse.headers.has('content-disposition'), false);
   assert.deepEqual(await unsupportedResponse.json(), {
-    error: {
-      code: 'INTERNAL_ERROR',
-      message: 'An unexpected server error occurred.'
-    }
+    type: 'about:blank',
+    title: 'Internal Server Error',
+    status: 500,
+    code: 'INTERNAL_ERROR',
+    detail: 'An unexpected server error occurred.'
   });
 
   const missingHarness = createHarness({
@@ -505,10 +724,11 @@ test('unsupported identity representation and missing account fail before attach
   assert.equal(missingResponse.status, 401);
   assert.equal(missingResponse.headers.has('content-disposition'), false);
   assert.deepEqual(await missingResponse.json(), {
-    error: {
-      code: 'UNAUTHORIZED',
-      message: 'Authentication is required.'
-    }
+    type: 'about:blank',
+    title: 'Unauthorized',
+    status: 401,
+    code: 'UNAUTHORIZED',
+    detail: 'Authentication is required.'
   });
 });
 
@@ -531,6 +751,13 @@ test('account export account attempt throttle runs after authentication and befo
   });
   assert.equal(limitedResponse.status, 429);
   assert.ok(Number(limitedResponse.headers.get('retry-after')) >= 1);
+  assert.deepEqual(await limitedResponse.json(), {
+    type: 'about:blank',
+    title: 'Too Many Requests',
+    status: 429,
+    code: 'RATE_LIMITED',
+    detail: 'Too many requests. Please try again later.'
+  });
   assert.equal(harness.openCalls.length, 0);
 
   const otherUserResponse = await postExport(harness.app, {
@@ -564,6 +791,13 @@ test('active export capacity rejects a duplicate account before a second reposit
     edgeIp: '203.0.113.22'
   });
   assert.equal(secondResponse.status, 429);
+  assert.deepEqual(await secondResponse.json(), {
+    type: 'about:blank',
+    title: 'Too Many Requests',
+    status: 429,
+    code: 'RATE_LIMITED',
+    detail: 'Too many requests. Please try again later.'
+  });
   assert.equal(harness.openCalls.length, 1);
 
   identityGate.resolve({ items: [defaultIdentity()], nextCursor: null });
@@ -609,6 +843,13 @@ test('active export capacity is limited to two process-local transactions', asyn
     edgeIp: '203.0.113.33'
   });
   assert.equal(thirdResponse.status, 429);
+  assert.deepEqual(await thirdResponse.json(), {
+    type: 'about:blank',
+    title: 'Too Many Requests',
+    status: 429,
+    code: 'RATE_LIMITED',
+    detail: 'Too many requests. Please try again later.'
+  });
   assert.equal(harness.openCalls.length, 2);
 
   for (const userId of ['user-one', 'user-two']) {
@@ -784,9 +1025,10 @@ test('focused route registration can use a short test deadline without changing 
   });
   assert.equal(response.status, 500);
   assert.deepEqual(await response.json(), {
-    error: {
-      code: 'INTERNAL_ERROR',
-      message: 'An unexpected server error occurred.'
-    }
+    type: 'about:blank',
+    title: 'Internal Server Error',
+    status: 500,
+    code: 'INTERNAL_ERROR',
+    detail: 'An unexpected server error occurred.'
   });
 });

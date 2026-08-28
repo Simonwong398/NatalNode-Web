@@ -1,6 +1,7 @@
 import { createHmac, randomBytes } from 'node:crypto';
 import type { MiddlewareHandler } from 'hono';
 import type { AuthenticatedRequestEnv } from '../auth/authenticated-context.js';
+import { createProblemDetailsContextResponse } from '../problem-details/context-response.js';
 import { resolveRateLimitClientIdentity } from './trusted-edge-client-identity.js';
 
 export interface RateLimitPolicy {
@@ -38,6 +39,11 @@ export const P0_STAGING_RATE_LIMIT_POLICIES = {
   },
   accountExportEdge: {
     identifier: 'ACCOUNT_EXPORT_EDGE',
+    limit: 20,
+    windowMs: 10 * 60 * 1_000
+  },
+  accountExportPrepareEdge: {
+    identifier: 'ACCOUNT_EXPORT_PREPARE_EDGE',
     limit: 20,
     windowMs: 10 * 60 * 1_000
   },
@@ -310,7 +316,34 @@ export function enforceAccountExportAccountRateLimit(
 
     if (!decision.allowed) {
       context.header('Retry-After', decision.retryAfterSeconds.toString());
-      return context.json(RATE_LIMITED_RESPONSE, 429);
+      return createProblemDetailsContextResponse(context, {
+        code: 'RATE_LIMITED',
+        detailKey: 'RATE_LIMITED'
+      });
+    }
+
+    await next();
+  };
+}
+
+export function enforceAccountExportPrepareRateLimit(
+  limiter: InMemoryP0StagingRateLimiter
+): MiddlewareHandler {
+  return async (context, next) => {
+    const clientIdentity = resolveRateLimitClientIdentity(
+      context.req.raw.headers
+    );
+    const decision = limiter.attempt(
+      P0_STAGING_RATE_LIMIT_POLICIES.accountExportPrepareEdge,
+      clientIdentity
+    );
+
+    if (!decision.allowed) {
+      context.header('Retry-After', decision.retryAfterSeconds.toString());
+      return createProblemDetailsContextResponse(context, {
+        code: 'RATE_LIMITED',
+        detailKey: 'RATE_LIMITED'
+      });
     }
 
     await next();

@@ -44,36 +44,6 @@ function isAccountExportErrorCode(value: unknown): value is AccountExportErrorCo
   );
 }
 
-function clearResponseFrame(frame: HTMLIFrameElement): void {
-  try {
-    frame.contentDocument?.body?.replaceChildren();
-  } catch (_error) {
-    // The frame is same-origin by construction; stale content is non-authoritative.
-  }
-}
-
-function readErrorCode(frame: HTMLIFrameElement): AccountExportErrorCode | null {
-  try {
-    const text = frame.contentDocument?.body?.textContent?.trim();
-
-    if (!text) {
-      return null;
-    }
-
-    const payload: unknown = JSON.parse(text);
-
-    if (!isRecord(payload) || !isRecord(payload.error)) {
-      return null;
-    }
-
-    return isAccountExportErrorCode(payload.error.code)
-      ? payload.error.code
-      : null;
-  } catch (_error) {
-    return null;
-  }
-}
-
 function clearMessages(elements: AccountExportElements): void {
   elements.statusElement.hidden = true;
   elements.statusElement.textContent = '';
@@ -146,64 +116,126 @@ function handleErrorCode(
   showGenericFailure(elements);
 }
 
+interface PreparationResponse {
+  readonly status: number;
+  readonly code: AccountExportErrorCode | null;
+}
+
+async function prepareAccountExport(): Promise<PreparationResponse> {
+  const response = await fetch('/api/account/export/prepare', {
+    method: 'POST',
+    credentials: 'same-origin',
+    headers: {
+      Accept: 'application/problem+json'
+    }
+  });
+
+  if (response.status === 204) {
+    return { status: response.status, code: null };
+  }
+
+  let payload: unknown;
+
+  try {
+    payload = await response.json();
+  } catch (_error) {
+    payload = null;
+  }
+
+  return {
+    status: response.status,
+    code:
+      isRecord(payload) && isAccountExportErrorCode(payload.code)
+        ? payload.code
+        : null
+  };
+}
+
+function resolvePreparationErrorCode(
+  response: PreparationResponse
+): AccountExportErrorCode | null {
+  if (
+    response.code !== null &&
+    ((response.code === 'INVALID_REQUEST' && response.status === 400) ||
+      (response.code === 'UNAUTHORIZED' && response.status === 401) ||
+      (response.code === 'RECENT_AUTHENTICATION_REQUIRED' &&
+        response.status === 403) ||
+      (response.code === 'FORBIDDEN' && response.status === 403) ||
+      (response.code === 'RATE_LIMITED' && response.status === 429) ||
+      (response.code === 'INTERNAL_ERROR' && response.status === 500))
+  ) {
+    return response.code;
+  }
+
+  if (response.status === 400) {
+    return 'INVALID_REQUEST';
+  }
+
+  if (response.status === 401) {
+    return 'UNAUTHORIZED';
+  }
+
+  if (response.status === 429) {
+    return 'RATE_LIMITED';
+  }
+
+  return null;
+}
+
 /**
- * Connects the account export action to the server's native streamed attachment.
- * The form intentionally keeps the POST body empty; the hidden same-origin frame
- * lets bounded pre-stream JSON errors be handled without navigating the account page.
+ * Performs a readable eligibility check before handing the empty native form to
+ * the browser's attachment download machinery. The hidden frame is only the
+ * native transfer target; its response is never read by this page.
  */
 export function initializeAccountExport(elements: AccountExportElements): void {
   let isInitiating = false;
-  let awaitingResponse = false;
-
-  const handleFrameFailure = (code: AccountExportErrorCode | null): void => {
-    if (!awaitingResponse || code === null) {
-      return;
-    }
-
-    awaitingResponse = false;
-    isInitiating = false;
-    setPending(elements, false);
-    handleErrorCode(elements, code);
-  };
-
-  elements.responseFrame.addEventListener('load', () => {
-    handleFrameFailure(readErrorCode(elements.responseFrame));
-  });
-
-  elements.responseFrame.addEventListener('error', () => {
-    if (!awaitingResponse) {
-      return;
-    }
-
-    awaitingResponse = false;
-    isInitiating = false;
-    setPending(elements, false);
-    showGenericFailure(elements);
-  });
 
   elements.form.addEventListener('submit', (event) => {
+    event.preventDefault();
+
     if (isInitiating) {
-      event.preventDefault();
       return;
     }
 
     isInitiating = true;
-    awaitingResponse = true;
     clearMessages(elements);
-    clearResponseFrame(elements.responseFrame);
     setPending(elements, true);
     showPending(elements);
 
-    // Preserve the browser's native form submission, while blocking duplicate
-    // submit events raised in the same turn before the browser takes the request.
-    void Promise.resolve().then(() => {
-      if (!isInitiating) {
-        return;
-      }
+    void (async () => {
+      try {
+        const response = await prepareAccountExport();
 
-      isInitiating = false;
-      setPending(elements, false);
-      showStarted(elements);
-    });
+        if (response.status === 204) {
+          setPending(elements, false);
+          isInitiating = false;
+
+          try {
+            elements.form.submit();
+          } catch (_error) {
+            showGenericFailure(elements);
+            return;
+          }
+
+          showStarted(elements);
+          return;
+        }
+
+        isInitiating = false;
+        setPending(elements, false);
+        const code = resolvePreparationErrorCode(response);
+
+        if (code === null) {
+          showGenericFailure(elements);
+          return;
+        }
+
+        handleErrorCode(elements, code);
+      } catch (_error) {
+        isInitiating = false;
+        setPending(elements, false);
+        showGenericFailure(elements);
+      }
+    })();
   });
 }

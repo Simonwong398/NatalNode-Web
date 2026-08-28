@@ -15,6 +15,7 @@ type EndpointFamily =
   | 'auth.logout'
   | 'account.delete'
   | 'account.export'
+  | 'account.export.prepare'
   | 'feedback'
   | 'vault.charts'
   | 'vault.chart'
@@ -64,6 +65,7 @@ export function classifyApiEndpointFamily(pathname: string): EndpointFamily {
   if (pathname === '/api/auth/session') return 'auth.session';
   if (pathname === '/api/auth/logout') return 'auth.logout';
   if (pathname === '/api/account') return 'account.delete';
+  if (pathname === '/api/account/export/prepare') return 'account.export.prepare';
   if (pathname === '/api/account/export') return 'account.export';
   if (pathname === '/api/feedback') return 'feedback';
   if (pathname === '/api/vault/charts') return 'vault.charts';

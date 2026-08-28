@@ -1,10 +1,11 @@
-import type { Context, Hono } from 'hono';
+import type { Hono } from 'hono';
 import {
   isRecentAccountExportAuthentication
 } from '../../account/account-export-policy.js';
 import type { AccountDataExportSnapshot } from '../../persistence/index.js';
 import { requireAuthentication } from '../auth/index.js';
 import type { ServerDependencies } from '../dependencies.js';
+import { createProblemDetailsContextResponse } from '../problem-details/context-response.js';
 import {
   createAccountExportDeadline,
   awaitAccountExportOperation,
@@ -16,6 +17,7 @@ import {
 } from '../account-export-stream.js';
 import {
   enforceAccountExportAccountRateLimit,
+  enforceAccountExportPrepareRateLimit,
   type InMemoryP0StagingRateLimiter
 } from '../security/api-rate-limiting.js';
 import {
@@ -23,41 +25,6 @@ import {
   type AccountExportCapacityLease
 } from '../security/account-export-capacity.js';
 import { validateEmptyAccountExportRequest } from '../validation/account-export.js';
-
-const INVALID_REQUEST_RESPONSE = {
-  error: {
-    code: 'INVALID_REQUEST',
-    message: 'Invalid account export request.'
-  }
-} as const;
-
-const UNAUTHORIZED_RESPONSE = {
-  error: {
-    code: 'UNAUTHORIZED',
-    message: 'Authentication is required.'
-  }
-} as const;
-
-const RECENT_AUTHENTICATION_REQUIRED_RESPONSE = {
-  error: {
-    code: 'RECENT_AUTHENTICATION_REQUIRED',
-    message: 'Recent authentication is required.'
-  }
-} as const;
-
-const RATE_LIMITED_RESPONSE = {
-  error: {
-    code: 'RATE_LIMITED',
-    message: 'Too many requests. Please try again later.'
-  }
-} as const;
-
-const INTERNAL_ERROR_RESPONSE = {
-  error: {
-    code: 'INTERNAL_ERROR',
-    message: 'An unexpected server error occurred.'
-  }
-} as const;
 
 export interface AccountExportRouteOptions {
   readonly capacity?: InMemoryAccountExportCapacity;
@@ -123,8 +90,83 @@ export function registerAccountExportRoutes(
   const capacity = options.capacity ?? new InMemoryAccountExportCapacity();
 
   app.post(
+    '/api/account/export/prepare',
+    enforceAccountExportPrepareRateLimit(rateLimiter),
+    requireAuthentication(
+      dependencies.authenticator,
+      (context) =>
+        createProblemDetailsContextResponse(context, {
+          code: 'UNAUTHORIZED',
+          detailKey: 'AUTHENTICATION_REQUIRED'
+        })
+    ),
+    async (context) => {
+      const deadline = createAccountExportDeadline({
+        deadlineMs: options.lifecycleDeadlineMs,
+        monotonicNow: options.monotonicNow,
+        requestSignal: context.req.raw.signal
+      });
+
+      try {
+        const principal = context.get('authenticatedPrincipal');
+
+        if (
+          !isRecentAccountExportAuthentication(
+            principal.sessionCreatedAt,
+            dependencies.clock.now()
+          )
+        ) {
+          return createProblemDetailsContextResponse(context, {
+            code: 'RECENT_AUTHENTICATION_REQUIRED',
+            detailKey: 'RECENT_AUTHENTICATION_REQUIRED'
+          });
+        }
+
+        const requestValidation = await validateEmptyAccountExportRequest(
+          context.req.raw,
+          deadline.signal
+        );
+
+        if (
+          requestValidation.outcome === 'aborted' ||
+          deadline.signal.aborted ||
+          deadline.remainingMs() <= 0
+        ) {
+          return createProblemDetailsContextResponse(context, {
+            code: 'INTERNAL_ERROR',
+            detailKey: 'INTERNAL_ERROR'
+          });
+        }
+
+        if (requestValidation.outcome === 'invalid') {
+          return createProblemDetailsContextResponse(context, {
+            code: 'INVALID_REQUEST',
+            detailKey: 'INVALID_REQUEST'
+          });
+        }
+
+        return context.body(null, 204);
+      } catch (_error) {
+        return createProblemDetailsContextResponse(context, {
+          code: 'INTERNAL_ERROR',
+          detailKey: 'INTERNAL_ERROR'
+        });
+      } finally {
+        deadline.dispose();
+      }
+    }
+  );
+
+  app.post(
     '/api/account/export',
-    requireAuthentication(dependencies.authenticator),
+    requireAuthentication(
+      dependencies.authenticator,
+      (context) =>
+        createProblemDetailsContextResponse(context, {
+          code: 'UNAUTHORIZED',
+          detailKey: 'AUTHENTICATION_REQUIRED'
+        })
+    ),
     enforceAccountExportAccountRateLimit(rateLimiter),
     async (context) => {
       const deadline = createAccountExportDeadline({
@@ -181,7 +223,10 @@ export function registerAccountExportRoutes(
 
       const internalError = async (): Promise<Response> => {
         await cleanupFailure();
-        return context.json(INTERNAL_ERROR_RESPONSE, 500);
+        return createProblemDetailsContextResponse(context, {
+          code: 'INTERNAL_ERROR',
+          detailKey: 'INTERNAL_ERROR'
+        });
       };
 
       try {
@@ -194,7 +239,10 @@ export function registerAccountExportRoutes(
           )
         ) {
           deadline.dispose();
-          return context.json(RECENT_AUTHENTICATION_REQUIRED_RESPONSE, 403);
+          return createProblemDetailsContextResponse(context, {
+            code: 'RECENT_AUTHENTICATION_REQUIRED',
+            detailKey: 'RECENT_AUTHENTICATION_REQUIRED'
+          });
         }
 
         const requestValidation = await validateEmptyAccountExportRequest(
@@ -208,7 +256,10 @@ export function registerAccountExportRoutes(
 
         if (requestValidation.outcome === 'invalid') {
           deadline.dispose();
-          return context.json(INVALID_REQUEST_RESPONSE, 400);
+          return createProblemDetailsContextResponse(context, {
+            code: 'INVALID_REQUEST',
+            detailKey: 'INVALID_REQUEST'
+          });
         }
 
         if (deadline.signal.aborted || deadline.remainingMs() <= 0) {
@@ -223,7 +274,10 @@ export function registerAccountExportRoutes(
             'Retry-After',
             capacityDecision.retryAfterSeconds.toString()
           );
-          return context.json(RATE_LIMITED_RESPONSE, 429);
+          return createProblemDetailsContextResponse(context, {
+            code: 'RATE_LIMITED',
+            detailKey: 'RATE_LIMITED'
+          });
         }
 
         capacityLease = capacityDecision.lease;
@@ -256,7 +310,10 @@ export function registerAccountExportRoutes(
         if (opened.outcome === 'account-not-found') {
           releaseLease();
           deadline.dispose();
-          return context.json(UNAUTHORIZED_RESPONSE, 401);
+          return createProblemDetailsContextResponse(context, {
+            code: 'UNAUTHORIZED',
+            detailKey: 'AUTHENTICATION_REQUIRED'
+          });
         }
 
         const openedSnapshot = opened.snapshot;

@@ -5,7 +5,14 @@ import { Window } from 'happy-dom';
 
 import { initializeAccountExport } from '../dist/account-export-characterization/features/account/account-export.js';
 
-const GLOBAL_NAMES = ['window', 'document', 'HTMLElement', 'HTMLIFrameElement', 'Event'];
+const GLOBAL_NAMES = [
+  'window',
+  'document',
+  'HTMLElement',
+  'HTMLIFrameElement',
+  'Event',
+  'fetch'
+];
 const ORIGINAL_GLOBALS = new Map(
   GLOBAL_NAMES.map((name) => [name, Object.getOwnPropertyDescriptor(globalThis, name)])
 );
@@ -16,13 +23,14 @@ function restore(object, property, descriptor) {
   else delete object[property];
 }
 
-function installWindow(window) {
+function installWindow(window, fetchImpl) {
   const values = {
     window,
     document: window.document,
     HTMLElement: window.HTMLElement,
     HTMLIFrameElement: window.HTMLIFrameElement,
-    Event: window.Event
+    Event: window.Event,
+    fetch: fetchImpl
   };
 
   for (const name of GLOBAL_NAMES) {
@@ -39,13 +47,22 @@ async function settle() {
   await new Promise((resolve) => setImmediate(resolve));
 }
 
-async function withDom(exercise) {
+function createFetchResponse(status, payload) {
+  return {
+    status,
+    async json() {
+      return payload;
+    }
+  };
+}
+
+async function withDom(exercise, fetchImpl = async () => createFetchResponse(204)) {
   assert.equal(activeWindow, undefined, 'a previous test leaked its DOM window');
   const window = new Window({ url: 'https://example.test/account' });
   const replaceDescriptor = Object.getOwnPropertyDescriptor(window.location, 'replace');
   const replaceCalls = [];
 
-  installWindow(window);
+  installWindow(window, fetchImpl);
   activeWindow = window;
   Object.defineProperty(window.location, 'replace', {
     configurable: true,
@@ -104,13 +121,6 @@ function submit(elements) {
   return event;
 }
 
-function frameError(elements, code) {
-  elements.responseFrame.contentDocument.body.textContent = JSON.stringify({
-    error: { code, message: 'server detail is intentionally ignored' }
-  });
-  elements.responseFrame.dispatchEvent(new Event('load'));
-}
-
 afterEach(() => {
   assert.equal(activeWindow, undefined, 'test cleanup did not finish');
 });
@@ -128,7 +138,7 @@ describe('Account export page boundary', { concurrency: false }, () => {
     assert.doesNotMatch(page, /href=["'][^"']*export/u);
   });
 
-  test('uses a native POST contract with no account selector or client buffering', () => {
+  test('uses Stage 1 fetch and a native Stage 2 POST without account selectors or buffering', () => {
     const page = readFileSync(new URL('../src/pages/account.astro', import.meta.url), 'utf8');
     const feature = readFileSync(new URL('../src/features/account/account-export.ts', import.meta.url), 'utf8');
     const formMarkup = page.match(/<form[\s\S]*?data-account-export-form[\s\S]*?<\/form>/u)?.[0];
@@ -140,26 +150,45 @@ describe('Account export page boundary', { concurrency: false }, () => {
     assert.doesNotMatch(formMarkup, /(?:userId|accountId|ownerId|email|format|filename|timestamp)/u);
     assert.doesNotMatch(formMarkup, /<(?:input|select|textarea)\b/u);
     assert.doesNotMatch(formMarkup, /\?/u);
-    assert.doesNotMatch(feature, /fetch\s*\(/u);
+    assert.match(feature, /fetch\s*\(/u);
+    assert.match(feature, /\/api\/account\/export\/prepare/u);
     assert.doesNotMatch(feature, /\.blob\s*\(/u);
     assert.doesNotMatch(feature, /createObjectURL/u);
     assert.doesNotMatch(feature, /showSaveFilePicker/u);
     assert.doesNotMatch(feature, /sessionCreatedAt|600|cookie|returnTo|redirect/u);
-    assert.doesNotMatch(feature, /\/api\/account(?:["'`]|\b)/u);
+    assert.doesNotMatch(feature, /contentDocument|contentWindow|body\.textContent/u);
+    assert.doesNotMatch(feature, /JSON\.parse|payload\.error|responseFrame\.addEventListener/u);
+    assert.doesNotMatch(feature, /fetch\([\s\S]*\/api\/account\/export["'`]/u);
   });
 });
 
 describe('Account export interaction', { concurrency: false }, () => {
-  test('keeps the native request empty and prevents duplicate initiation in one turn', async () => {
+  test('fetches prepare without a body and submits the native transfer exactly once after 204', async () => {
+    const fetchCalls = [];
+    let resolveFetch;
+    const fetchPromise = new Promise((resolve) => {
+      resolveFetch = resolve;
+    });
+
     await withDom(async ({ document }) => {
       const elements = createAccountExportElements(document);
+      let nativeSubmitCalls = 0;
+      elements.form.submit = () => {
+        nativeSubmitCalls += 1;
+      };
       initializeAccountExport(elements);
 
       const firstEvent = submit(elements);
       const secondEvent = submit(elements);
 
-      assert.equal(firstEvent.defaultPrevented, false);
+      assert.equal(firstEvent.defaultPrevented, true);
       assert.equal(secondEvent.defaultPrevented, true);
+      assert.equal(fetchCalls.length, 1);
+      assert.equal(fetchCalls[0][0], '/api/account/export/prepare');
+      assert.equal(fetchCalls[0][1].method, 'POST');
+      assert.equal(fetchCalls[0][1].credentials, 'same-origin');
+      assert.equal(fetchCalls[0][1].headers.Accept, 'application/problem+json');
+      assert.equal('body' in fetchCalls[0][1], false);
       assert.equal(elements.form.method, 'post');
       assert.equal(elements.form.action, 'https://example.test/api/account/export');
       assert.equal(elements.form.target, 'account-export-response');
@@ -167,10 +196,15 @@ describe('Account export interaction', { concurrency: false }, () => {
       assert.equal(elements.form.getAttribute('aria-busy'), 'true');
       assert.equal(elements.submitButton.disabled, true);
 
+      resolveFetch(createFetchResponse(204));
       await settle();
+      assert.equal(nativeSubmitCalls, 1);
       assert.equal(elements.form.getAttribute('aria-busy'), 'false');
       assert.equal(elements.statusElement.hidden, false);
       assert.match(elements.statusElement.textContent, /request sent/u);
+    }, async (...args) => {
+      fetchCalls.push(args);
+      return fetchPromise;
     });
   });
 
@@ -179,14 +213,15 @@ describe('Account export interaction', { concurrency: false }, () => {
       const elements = createAccountExportElements(document);
       initializeAccountExport(elements);
       submit(elements);
-      frameError(elements, 'RECENT_AUTHENTICATION_REQUIRED');
       await settle();
 
       assert.equal(elements.reauthStatus.hidden, false);
       assert.strictEqual(document.activeElement, elements.reauthStatus);
       assert.equal(elements.reauthStatus.querySelector('a').getAttribute('href'), '/auth/sign-in');
       assert.deepEqual(replaceCalls, []);
-    });
+    }, async () => createFetchResponse(403, {
+      code: 'RECENT_AUTHENTICATION_REQUIRED'
+    }));
   });
 
   test('follows signed-out behavior for unauthorized export responses', async () => {
@@ -194,13 +229,12 @@ describe('Account export interaction', { concurrency: false }, () => {
       const elements = createAccountExportElements(document);
       initializeAccountExport(elements);
       submit(elements);
-      frameError(elements, 'UNAUTHORIZED');
       await settle();
 
       assert.equal(elements.accountContent.hidden, true);
       assert.deepEqual(replaceCalls, ['/auth/sign-in']);
       assert.equal(elements.errorStatus.hidden, true);
-    });
+    }, async () => createFetchResponse(401, { code: 'UNAUTHORIZED' }));
   });
 
   for (const [code, expected] of [
@@ -214,7 +248,6 @@ describe('Account export interaction', { concurrency: false }, () => {
         const elements = createAccountExportElements(document);
         initializeAccountExport(elements);
         submit(elements);
-        frameError(elements, code);
         await settle();
 
         assert.equal(elements.errorStatus.hidden, false);
@@ -223,37 +256,94 @@ describe('Account export interaction', { concurrency: false }, () => {
         assert.strictEqual(document.activeElement, elements.errorStatus);
         assert.equal(elements.accountContent.hidden, false);
         assert.equal(elements.submitButton.disabled, false);
-      });
+      }, async () => createFetchResponse(
+        code === 'RATE_LIMITED'
+          ? 429
+          : code === 'INVALID_REQUEST'
+            ? 400
+            : code === 'FORBIDDEN'
+              ? 403
+              : 500,
+        { code }
+      ));
     });
   }
+
+  test('nested legacy error data does not control the page', async () => {
+    await withDom(async ({ document }) => {
+      const elements = createAccountExportElements(document);
+      initializeAccountExport(elements);
+      submit(elements);
+      await settle();
+
+      assert.equal(elements.errorStatus.hidden, false);
+      assert.match(elements.errorStatus.textContent, /start your download/u);
+      assert.equal(elements.reauthStatus.hidden, true);
+      assert.equal(elements.submitButton.disabled, false);
+      assert.equal(elements.accountContent.hidden, false);
+    }, async () => createFetchResponse(500, {
+      error: { code: 'RECENT_AUTHENTICATION_REQUIRED' }
+    }));
+  });
+
+  test('a mismatched top-level code does not override the HTTP status', async () => {
+    await withDom(async ({ document }) => {
+      const elements = createAccountExportElements(document);
+      initializeAccountExport(elements);
+      submit(elements);
+      await settle();
+
+      assert.equal(elements.errorStatus.hidden, false);
+      assert.equal(elements.reauthStatus.hidden, true);
+      assert.match(elements.errorStatus.textContent, /start your download/u);
+    }, async () => createFetchResponse(500, {
+      code: 'RECENT_AUTHENTICATION_REQUIRED'
+    }));
+  });
 
   test('network failure reports no false completion and remains retryable', async () => {
     await withDom(async ({ document }) => {
       const elements = createAccountExportElements(document);
       initializeAccountExport(elements);
       submit(elements);
-      elements.responseFrame.dispatchEvent(new Event('error'));
       await settle();
 
       assert.equal(elements.errorStatus.hidden, false);
       assert.match(elements.errorStatus.textContent, /start your download/u);
       assert.doesNotMatch(elements.errorStatus.textContent, /completed|success/u);
       assert.equal(elements.submitButton.disabled, false);
-      assert.equal(elements.accountContent.hidden, false);
+    }, async () => {
+      throw new Error('network failure');
     });
   });
 
-  test('successful native handoff does not change account state or trigger navigation', async () => {
+  test('successful native handoff does not claim completion or stay pending', async () => {
+    const fetchCalls = [];
     await withDom(async ({ document, replaceCalls }) => {
       const elements = createAccountExportElements(document);
+      let nativeSubmitCalls = 0;
+      elements.form.submit = () => {
+        nativeSubmitCalls += 1;
+      };
       initializeAccountExport(elements);
       submit(elements);
       await settle();
 
+      assert.equal(nativeSubmitCalls, 1);
+      assert.equal(fetchCalls.length, 1);
       assert.equal(elements.accountContent.hidden, false);
       assert.equal(elements.errorStatus.hidden, true);
+      assert.equal(elements.submitButton.disabled, false);
+      assert.equal(elements.form.getAttribute('aria-busy'), 'false');
       assert.match(elements.statusElement.textContent, /request sent/u);
+      assert.doesNotMatch(elements.statusElement.textContent, /completed|success/u);
       assert.deepEqual(replaceCalls, []);
+
+      elements.responseFrame.dispatchEvent(new Event('load'));
+      assert.equal(nativeSubmitCalls, 1);
+    }, async (...args) => {
+      fetchCalls.push(args);
+      return createFetchResponse(204);
     });
   });
 });
