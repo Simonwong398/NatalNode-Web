@@ -73,6 +73,22 @@ auth_identities(provider = EMAIL_MAGIC_LINK)
 
 The second relationship is an Auth-lifecycle cleanup relationship, not a reason to expose challenge records.
 
+### Security / feasibility review notes
+
+WEB-PRIVACY-002A-R1 adversarially reviewed this contract against the current PostgreSQL pool/client ownership, Hono `4.13.4`, `@hono/node-server` `2.1.1`, Auth principal, exact-Origin, rate-limit, observability, Vault, Feedback, and account-erasure implementations.
+
+The review confirmed the export scope, secret exclusions, JSON format, owner authority, `REPEATABLE READ READ ONLY` direction, and export/deletion race semantics. It also found material implementation gaps in the original wording and hardens them below:
+
+- every deterministic security/representation check must finish before a streaming `200` response is constructed;
+- direct streaming is retained, but transaction lifetime and simultaneous active exports are now explicitly bounded;
+- Hono/Node backpressure and cancellation capabilities are source-verified, while live cancellation and connection-release behavior remain a WEB-PRIVACY-002D verification item;
+- read-only transaction completion must occur before the final JSON delimiters are emitted;
+- mid-stream errors are owned by the stream producer and must not reach Hono's default raw-error console path;
+- legacy/unexpected persisted JSONB is exported safely and completely rather than reinterpreted or silently omitted; and
+- generic request observability is not treated as proof that a streamed download completed.
+
+With these corrections, the source architecture is ready for WEB-PRIVACY-002B. Live PostgreSQL, HTTP-stream, browser-download, cancellation, and deployment-edge behavior are not represented as verified by this documentation review.
+
 ## 3. Account-linked export inventory
 
 Classification labels used throughout this contract:
@@ -192,15 +208,15 @@ The V1 `account` object contains:
 For the current Email Magic Link model, an identity contains:
 
 - `type: "EMAIL_MAGIC_LINK"`;
-- `email`: the normalized email already used as the identity subject;
+- `email`: the normalized email already used as the identity subject, produced by the current Auth boundary's `trim()` plus lowercase normalization;
 - `linkedAt`: the identity creation timestamp; and
 - `updatedAt`: the identity update timestamp.
 
-The normalized email is included because it is both user-meaningful and the current account's sign-in identity. It is sensitive personal data and receives the same no-log/no-cache handling as the rest of the export.
+The normalized email is included because it is both user-meaningful and the current account's sign-in identity. The original casing and surrounding whitespace are not persisted and therefore cannot be reconstructed for export. The normalized value is sensitive personal data and receives the same no-log/no-cache handling as the rest of the export.
 
 The public representation must not contain `user_id`, `identity_id`, or the generic storage name `provider_subject`. Future provider support must define an explicit presenter that exposes only meaningful, approved fields. It must never fall back to serializing an `auth_identities` row.
 
-The schema currently reserves `GOOGLE`, but Google Sign-In and an approved Google identity export presenter are not part of current P0 runtime. If future implementation encounters an unsupported identity provider, it must fail the complete export safely before success headers rather than silently omit the identity or dump its raw subject. Supporting that identity is a separately reviewed schema/policy change. `PROVIDER DECISION DEFERRED.`
+The schema currently reserves `GOOGLE`, but Google Sign-In and an approved Google identity export presenter are not part of current P0 runtime. Before constructing a success response, the export repository must query the snapshot for any identity whose provider lacks an approved presenter. If one exists, it must fail the complete export through the bounded internal-error path rather than silently omit the identity or dump its raw subject. A future identity-provider rollout must land its reviewed presenter and export-schema decision before it can persist that provider for users. This fail-closed preflight therefore prevents unsafe disclosure without making a correctly sequenced future rollout unexpectedly break export. `PROVIDER DECISION DEFERRED.`
 
 ## 8. Auth identities, sessions, and challenge secrets
 
@@ -268,7 +284,7 @@ All owner-linked private chart notes are included. Notes are nested under their 
 }
 ```
 
-Nesting preserves the chart relationship without exposing `note_id` or `chart_id`. The query must require both the authenticated `user_id` and owning `chart_id`; possession of a chart identifier alone is never sufficient authority.
+Nesting preserves the chart relationship without exposing `note_id` or `chart_id`. The query must require both `note.user_id = authenticated user` and an owning chart whose `charts.user_id = authenticated user`. Querying by `chart_id` alone, or by the note's `user_id` without verifying the chart owner, is insufficient because the current schema has no composite constraint proving that both owner columns match.
 
 Notes are ordered by `created_at` ascending, with `note_id` as a non-emitted deterministic tie-breaker. Note text must pass only through JSON serialization, never string interpolation into JSON framing.
 
@@ -309,6 +325,12 @@ The Website API/BFF must not call the Engine or a scientific provider during exp
 The only P0 format is UTF-8 JSON. The public shape is:
 
 ```ts
+type JsonPrimitive = null | boolean | number | string;
+type JsonValue =
+  | JsonPrimitive
+  | readonly JsonValue[]
+  | { readonly [key: string]: JsonValue };
+
 interface NatalNodeAccountDataExportV1 {
   readonly exportSchemaVersion: '1.0';
   readonly exportedAt: string;
@@ -333,8 +355,8 @@ interface AccountChartExportV1 {
   readonly category: string;
   readonly tags: readonly string[];
   readonly favorite: boolean;
-  readonly normalizedChartRequest: ChartRequest;
-  readonly canonicalChartResult: ChartResult;
+  readonly normalizedChartRequest: JsonValue;
+  readonly canonicalChartResult: JsonValue;
   readonly calculation: {
     readonly engineVersion: string;
     readonly chartSchemaVersion: string;
@@ -358,6 +380,10 @@ interface FeedbackExportV1 {
   readonly createdAt: string;
 }
 ```
+
+For records produced by the current application, `normalizedChartRequest` is expected to conform to `ChartRequest` and `canonicalChartResult` is expected to conform to `ChartResult`. The export authority, however, is the persisted JSONB snapshot—not whichever scientific parser happens to be current when the user downloads it.
+
+PostgreSQL JSONB is syntactically valid JSON. If a legacy or unexpected stored request/result no longer conforms to current runtime contracts, V1 exports that safe persisted JSON value without scientific validation, normalization, repair, or omission. The exporter must still serialize it through a standard JSON serializer. If any persisted field cannot be safely represented or serialized, the entire export fails; no record is silently dropped and no repair pipeline is introduced.
 
 An illustrative empty-account envelope is:
 
@@ -403,6 +429,8 @@ Version rules:
 - existing stored `ChartResult` values remain in their persisted scientific schema and are never upgraded merely because export schema changes; and
 - the implementation must test the envelope version independently from scientific contracts.
 
+A newly persisted account-owned application field does not automatically enter an existing export version. It remains intentionally omitted until a reviewed classification, explicit public presenter/schema field, compatibility decision, and focused coverage evolve this contract. Export code must select named fields and must never raw-spread a database row or generic persistence object. This forward-safe omission rule does not authorize omitting any field already approved by the current V1 inventory.
+
 JSON object member order is not semantic, but the writer should emit a stable order for readability and deterministic verification. Array ordering is defined below.
 
 ## 15. API contract
@@ -420,15 +448,36 @@ Request contract:
 - exact trusted Origin required through the existing unsafe-request policy;
 - no request body;
 - no query string;
+- `Content-Length` may be absent or exactly `0`; any other, duplicate, malformed, or non-zero value is invalid;
+- any `Transfer-Encoding` request header is invalid;
+- no `Content-Type` is required, and a present `Content-Type` does not authorize non-empty content;
 - no `userId`, `accountId`, `ownerId`, email, identity, export timestamp, format selector, or other account selector;
 - no Engine or provider input; and
 - repeated requests are independent read operations, not mutations.
 
-The route must reject any body, query parameter, or account-targeting input as `INVALID_REQUEST`. A bodyless `POST` keeps the request minimal, engages the repository's exact-Origin protection, and supports a native browser attachment response without inventing a CSRF token or download-job handshake.
+The route must reject any body byte, query component, body-framing ambiguity, or account-targeting input as `INVALID_REQUEST`. It rejects invalid framing headers before reading and otherwise reads the request stream only far enough to prove end-of-stream or detect the first unexpected byte. The 120-second monotonic lifecycle deadline begins before this stream validation, so a client cannot hold request validation open outside the endpoint deadline. A bodyless `POST` keeps the request minimal, engages the repository's exact-Origin protection, and supports a native browser attachment response without inventing a CSRF token or download-job handshake.
 
 `GET` is not selected because sensitive cross-site-triggerable downloads would not reliably pass through the existing exact-Origin policy for unsafe methods. No public/admin multi-account variant is part of V1.
 
 The endpoint returns the streamed JSON attachment on success. It creates no export record, job, token, database mutation, or audit row.
+
+### Pre-header gate
+
+The implementation must complete all deterministic checks that can choose a non-`200` response before constructing/returning the streaming success response or emitting attachment headers:
+
+1. apply API security headers and exact-Origin enforcement;
+2. apply the trusted-edge/client-identity rate-limit backstop;
+3. authenticate the session and derive the principal;
+4. apply the authenticated-account attempt limit;
+5. evaluate recent authentication from server timestamps;
+6. start the endpoint lifecycle deadline and validate the exactly empty body and exactly empty query component;
+7. acquire active-export capacity;
+8. check out one PostgreSQL client and begin the bounded read-only repeatable-read transaction;
+9. establish the snapshot and verify the `users` root for the principal;
+10. verify that every identity provider in the snapshot has the approved V1 presenter; and
+11. prepare/validate the account and identity representation needed to start the envelope.
+
+Origin, edge rate-limit, authentication, request validation, recent-auth, account rate-limit, capacity, missing-account, unsupported-identity, transaction-start, and initial database failures therefore return ordinary bounded JSON errors with no `Content-Disposition` attachment header. Failures discovered only while reading later chart/note/Feedback batches follow the mid-stream truncation rule.
 
 ## 16. Authentication and recent-auth policy
 
@@ -493,7 +542,19 @@ Rows are emitted in stable order:
 - notes within a chart: `created_at ASC`, then `note_id ASC` as a non-emitted tie-breaker; and
 - Feedback: `created_at ASC`, then `feedback_id ASC` as a non-emitted tie-breaker.
 
-The transaction commits after the complete stream is successfully produced. On repository, serialization, stream, timeout, or client-disconnect failure, it rolls back/releases the transaction and checked-out client. Read-only commit versus rollback has no product mutation semantics.
+Each keyset query must continue lexicographically after the previous internal cursor—for example, `(created_at, chart_id) > ($cursorCreatedAt, $cursorId)`—with the same ascending `ORDER BY` tuple and a bounded `LIMIT`. Equivalent predicates are acceptable. Timestamp-only cursors are prohibited because timestamps can collide. Because every query uses the same repeatable-read snapshot, concurrent inserts/updates/deletes cannot create duplicate, missing, or cross-time pages. Cursor IDs remain internal and never enter the JSON.
+
+Successful stream completion uses this order:
+
+1. emit the envelope and every selected value except the final JSON closing delimiters;
+2. execute `COMMIT` for the read-only transaction;
+3. release the checked-out client and active-export capacity;
+4. emit the fixed final delimiters that make the JSON document syntactically complete; and
+5. close the response stream normally.
+
+This ordering means a transaction-end failure cannot leave the browser with a syntactically complete export that the server simultaneously classified as failed. On repository, serialization, backpressure, timeout, or client-disconnect failure before commit, stop producing values, omit the final delimiters, roll back, and release resources. Read-only commit versus rollback has no product mutation semantics, but explicit `COMMIT` is the normal successful repository convention.
+
+Cleanup is idempotent and owned by one stream-lifecycle boundary. If `ROLLBACK` or transaction-state cleanup fails, the client must be released with an error/discarded rather than returned to the pool in uncertain transaction state. No path may leave a checked-out client idle in transaction.
 
 ## 19. Account-deletion race semantics
 
@@ -502,11 +563,13 @@ Export and `DELETE /api/account` remain independent operations. Export does not 
 The race rules are:
 
 - **Deletion commits before export establishes and verifies its snapshot:** the account root is absent. Export returns the bounded `401 UNAUTHORIZED` response and emits no export payload.
-- **Export establishes and verifies its repeatable-read snapshot before deletion commits:** export may finish the internally consistent pre-deletion snapshot it was already authorized to read. Concurrent deletion may proceed and commit; export takes no deletion lock and does not deliberately block it.
+- **Export establishes and verifies its repeatable-read snapshot before deletion commits:** export may finish the internally consistent pre-deletion snapshot it was already authorized to read. Concurrent deletion may proceed and commit; an ordinary PostgreSQL MVCC read does not take the account-erasure advisory lock or a row lock and does not require deletion to wait for export.
 - **Deletion and export overlap:** the repeatable-read snapshot prevents a partially deleted graph. Export observes either the authorized snapshot or no account, never a mixture assembled from independently timed reads.
 - **After either outcome:** export writes nothing, creates no tombstone, restores no row, extends no session, and cannot resurrect deleted data.
 
 A snapshot already being disclosed can outlive the database rows it represents. That is a consequence of a user-authorized read that began before deletion committed, not data resurrection. The downloaded file is then controlled by the user/browser, outside account erasure.
+
+The tradeoff is that PostgreSQL must retain row versions needed by the open snapshot until export ends. The active-export concurrency gate and hard transaction deadline below bound that vacuum/MVCC pressure; export must not add a separate erasure/export coordination service.
 
 ## 20. Response and download behavior
 
@@ -532,7 +595,9 @@ Rules:
 - No redirect, signed URL, CDN URL, public object-store URL, or downloadable export token is introduced.
 - No app-generated ZIP or alternate format is negotiated.
 
-The download is successful only when the complete, valid JSON document is delivered. A truncated stream is not a successful export.
+The server can establish response status and produce a complete document, but it cannot prove that a browser retained the file. Client-visible success requires the browser to receive and parse the complete valid JSON document. A truncated stream is not a successful export, even if HTTP status `200` was emitted before the failure.
+
+`Content-Security-Policy` is not added specifically for this non-rendered JSON attachment. The existing API security headers, attachment disposition, JSON content type, `nosniff`, exact Origin, authentication, and no-store boundary are the relevant controls.
 
 ## 21. Size, memory, and streaming strategy
 
@@ -560,26 +625,35 @@ Therefore, materializing the complete export object and one giant JSON string in
 
 V1 streams one UTF-8 JSON document from the read-only repeatable-read snapshot. It does not create a background job, queue, ZIP file, temporary public object, or new dependency.
 
+**Streaming verdict: KEEP STREAMING.** Whole-account materialization is not safe because collection counts and cumulative JSONB size are materially unbounded. Direct streaming is feasible in the installed runtime: Hono's streaming writer awaits a `TransformStream` writer, and the installed Node adapter pauses Web-stream reads when the Node response crosses its writable high-water mark until `drain`. The adapter also cancels the response reader when the outgoing response closes/errors; Hono exposes that cancellation through `StreamingApi.onAbort`.
+
+That source capability is necessary but not sufficient by itself. Hono's current streaming `write()` catches writer failures, and an asynchronous stream callback executes after the route has already returned its `Response`. The preferred implementation is therefore a small pull-driven native `ReadableStream`/async-iterator body whose `pull` advances at most one serialized chunk and whose `cancel` signals the shared producer cleanup. This preserves adapter backpressure while keeping error/cancel propagation explicit. Hono's helper may be used only if focused tests prove equivalent behavior through `onAbort` and explicit cancellation state. The producer must not rely on a rejected Hono helper `write()`, route-level `app.onError`, or Hono's default stream callback logging for cleanup or safe error handling.
+
 Implementation requirements:
 
 - write only fixed JSON structure/framing directly;
-- serialize every user-controlled or stored value with safe JSON serialization;
+- pass **every user-controlled value through a standard JSON serializer**; this includes email, names, categories, tags, birth/request JSON values, result JSON values, notes, and Feedback;
 - never interpolate note, Feedback, tag, email, birth, or chart content into raw JSON text;
 - read ordered rows in bounded keyset batches where collections may grow;
 - keep memory proportional to a bounded batch plus the largest single stored value, not the entire account;
-- respect stream backpressure;
-- cancel database work and release the checked-out client promptly when the browser disconnects;
-- apply bounded server/transaction execution time through deployment-appropriate configuration without changing export contents; and
+- await each stream write so downstream backpressure limits further database reads/serialization;
+- use one-row or byte-aware chart batches because one row contains complete JSONB snapshots; ordinary bounded row-count batches are acceptable for notes, identities, and Feedback;
+- stop scheduling new queries/serialization when the browser disconnects, then end the transaction and release the checked-out client;
+- bound pool checkout with the existing PostgreSQL `connectionTimeoutMillis`/`DATABASE_CONNECTION_TIMEOUT_MS` configuration, set to a positive value shorter than the endpoint deadline; do not begin checkout unless the remaining deadline exceeds that configured timeout, and if an additional application race can lose first, attach cleanup that immediately releases any client delivered afterward;
+- bound an in-flight PostgreSQL query with transaction-local `statement_timeout`, because the current `pg` query interface does not accept the response cancellation signal;
+- use a transaction-local `idle_in_transaction_session_timeout` as a database backstop, while treating the application lifecycle as the primary cleanup owner; and
 - avoid `Content-Length` precomputation that would require a second full pass or whole-payload buffering.
 
-The batch size and infrastructure timeout are implementation tuning values for WEB-PRIVACY-002B, not product schema. A technical timeout must produce a bounded failure; it must not silently omit later records and call the file complete.
+The P0 application deadline is **120 seconds**, measured with a monotonic server clock from immediately before empty-request stream validation until final stream completion or cleanup. It includes request-stream validation, pool wait, preflight, all snapshot queries, serialization, downstream backpressure waits, transaction end, and cleanup. `statement_timeout` and `idle_in_transaction_session_timeout` must be finite and configured not to outlive the remaining application deadline. The exact batch sizes and shorter per-statement timeout are WEB-PRIVACY-002B tuning values, not export schema. Timeout produces a bounded pre-header failure or a truncated mid-stream failure; it must never silently omit records and call the file complete.
 
 No arbitrary retention/delete limit or account-content cap is invented for export. A future hard response cap would make “full account export” incomplete and therefore requires separate product/privacy/security approval and an explicit user-visible failure contract.
 
 ### Stream failure semantics
 
 - Before success headers begin, failures use the bounded JSON error envelope.
-- After streaming begins, the server aborts the response and rolls back/releases the read transaction. It must not append an error object into the export or close a syntactically valid but incomplete document.
+- After streaming begins, any internal error, deadline, or cancellation stops production, omits the fixed final delimiters, and ends the transport as a truncated/invalid JSON document. It must not append an error object, attempt a second response, or synthesize a syntactically complete partial export.
+- The stream producer catches raw errors before they reach framework default logging, emits at most a bounded non-sensitive failure event, and performs idempotent cleanup.
+- A cancellation callback may initiate cleanup, but the producer's shared `finally`/cleanup promise remains authoritative so asynchronous abort subscribers cannot race a second rollback/release.
 - The future browser UX must treat a network/truncated download as failed and allow a user-initiated retry.
 - No idempotency key is required because the endpoint is read-only and creates no server state.
 
@@ -590,7 +664,17 @@ WEB-PRIVACY-002B must add a focused account-export rate-limit policy using the e
 - at most **5 started export attempts per authenticated account per 10 minutes**; and
 - the existing trusted-edge/client-identity backstop remains applicable before authentication.
 
-The account key must be internal and must not be logged. Rate limiting is resource protection, not authorization, and process-local rate state is not treated as a security authority.
+Attempt rate limiting alone does not bound simultaneous long-lived snapshots. P0 also requires a simple process-local active-export gate:
+
+- at most **2 active export transactions per server process**;
+- at most **1 active export per authenticated account per server process**;
+- active-capacity rejection occurs before PostgreSQL checkout and returns bounded `429 RATE_LIMITED` with `Retry-After`;
+- the account key is an ephemeral process-local HMAC-derived value, not a raw logged/persisted identifier;
+- the gate is released exactly once on pre-header failure, normal completion, timeout, cancellation, or cleanup failure;
+- runtime configuration must provide a PostgreSQL pool maximum of at least **4**, preserving at least two pool slots for ordinary application work while both export slots are occupied; and
+- the existing PostgreSQL connection-timeout setting must be positive and shorter than the endpoint deadline, and checkout must not begin when less time remains, so a queued checkout cannot outlive lifecycle cleanup.
+
+No distributed lock or database export-state row is introduced. In a multi-process deployment, each process enforces its own active cap; the trusted-edge and account attempt limits remain the cross-request abuse backstops. Rate limiting and concurrency gating are resource protection, never account authority.
 
 ## 22. Bounded error model
 
@@ -600,13 +684,14 @@ Before response streaming begins, the endpoint uses the current bounded error-en
 | --- | --- | --- |
 | 400 | `INVALID_REQUEST` | The request contained a body, query string, selector, or otherwise violated the empty request contract |
 | 401 | `UNAUTHORIZED` | Authentication is missing/invalid/expired, or the account root is absent when the snapshot is verified |
+| 403 | `FORBIDDEN` | Exact trusted-Origin enforcement failed before route execution |
 | 403 | `RECENT_AUTHENTICATION_REQUIRED` | The server-derived session creation time is older than the export policy permits |
-| 429 | `RATE_LIMITED` | A bounded export resource limit was reached |
-| 500 | `INTERNAL_ERROR` | Export could not safely begin or complete before streaming started |
+| 429 | `RATE_LIMITED` | Edge/account attempt limits or active-export capacity were reached |
+| 500 | `INTERNAL_ERROR` | Export could not safely begin, including database/preflight failure or an unsupported identity presenter |
 
 Errors must not disclose SQL, row counts, database topology, account existence for a browser-selected target, secret values, internal identifiers, or which specific collection failed.
 
-Once a `200` stream has begun, HTTP status cannot be replaced reliably. A later failure aborts the stream. The implementation must never generate a valid-looking partial JSON success document.
+Once a `200` stream has begun, HTTP status cannot be replaced reliably. A later failure truncates the stream without final delimiters; no second JSON error response is attempted. The implementation must never generate a valid-looking partial JSON success document.
 
 The task does not introduce RFC 9457, a repository-wide error redesign, export job polling, or a persisted retry token.
 
@@ -635,6 +720,10 @@ Logs, traces, metrics labels, analytics, and error reports must not contain:
 - database query results or SQL errors.
 
 The JSON response must never be logged. P0 adds no persistent “export requested” audit table. Privacy-access auditing is separate governance work and must not be smuggled into implementation.
+
+The current Hono request middleware records `api.request.completed` when the route returns its `Response`, before a streaming body necessarily finishes. For this endpoint that record means **response initiated with the recorded HTTP status**, not “the browser received a complete export.” It must not be used as a data-rights completion audit or success proof.
+
+Errors raised inside the asynchronous stream producer do not reliably pass through `app.onError`. The producer must catch them, avoid framework/default `console.error(error)` paths, and emit at most a bounded non-sensitive stream outcome such as `completed`, `cancelled`, `timed-out`, or `failed`. Raw error objects, messages, stacks, causes, SQL, and query parameters must not be serialized into operational output.
 
 ## 24. Caching and privacy headers
 
@@ -673,6 +762,13 @@ Future implementation must preserve all of these invariants:
 15. A repeatable-read snapshot prevents a partially deleted or cross-time relationship graph.
 16. Stream failures cannot masquerade as complete success.
 17. Export cannot restore, recreate, or resurrect deleted data.
+18. Every deterministic origin, request, Auth, rate/capacity, account-root, identity-presenter, and transaction check completes before success headers.
+19. Keyset cursors use timestamp plus internal-ID tie-breakers inside one snapshot; cursor IDs are never emitted.
+20. At most two export transactions are active per process and at most one per account/process.
+21. A 120-second monotonic deadline, bounded pool checkout, and database-local timeouts bound request-stream validation, snapshot lifetime, queries, backpressure, and cleanup; a late checkout can never leak its client.
+22. Cancellation stops new work and always ends/discards the transaction client; no connection remains idle in transaction.
+23. Successful `COMMIT` and client release occur before the final JSON delimiters are emitted.
+24. Stream errors are caught inside the producer and never enter raw framework logging.
 
 ## 26. Privacy invariants
 
@@ -720,11 +816,13 @@ The Account UI may neutrally suggest downloading data before deletion. It must n
 
 - Add the export envelope types and safe serializers.
 - Add the dedicated pool-owned repeatable-read, read-only export repository.
-- Add bounded keyset streaming for the account graph.
+- Add bounded tuple-keyset streaming for the account graph, with one-row/byte-aware chart batches.
 - Add `POST /api/account/export` with empty-request validation.
 - Reuse exact-Origin, session authentication, server time, bounded errors, security headers, and observability boundaries.
-- Add an export-named 600-second recent-auth policy and focused rate limit.
-- Add focused unit/integration tests for schema, completeness, secret exclusion, cross-account isolation, safe user text, consistency, deletion races, stream failures, and headers.
+- Add an export-named 600-second recent-auth policy, trusted-edge/account attempt limits, and the two-global/one-account process-local active gate.
+- Add the 120-second lifecycle deadline, transaction-local statement/idle timeouts, cancellation signal, idempotent transaction cleanup, and poisoned-client discard behavior.
+- Validate all pre-header gates before constructing the stream; commit before emitting the final JSON delimiters.
+- Add focused unit/integration tests for schema, completeness, secret exclusion, cross-account isolation, safe Unicode/user text, legacy JSONB, unsupported identities, tuple-keyset collisions, consistency, deletion races, backpressure, cancellation, deadline, pool-checkout timeout/late resolution, pool-capacity rejection, cleanup, stream failures, and headers.
 - Do not add UI, migrations, providers, Engine calls, queues, archives, or dependencies without a separately approved need.
 
 ### WEB-PRIVACY-002C — `/account` download UX
@@ -738,8 +836,10 @@ The Account UI may neutrally suggest downloading data before deletion. It must n
 
 - Verify against real PostgreSQL with multiple charts, notes, and Feedback.
 - Verify live session/recent-auth behavior and cross-account isolation.
-- Verify native browser download, filename, headers, cancellation, truncation failure, and bounded memory behavior.
-- Verify account-deletion races with the existing erasure transaction.
+- Verify repeatable-read behavior during concurrent chart/note/Feedback mutations and account deletion.
+- Verify large JSONB streaming, tuple-keyset collision behavior, backpressure, the 120-second deadline, and bounded process memory.
+- Verify native browser attachment handling, filename, cancellation, invalid truncation on failure, no-store behavior through the actual edge, and no second response after headers.
+- Verify every completion/cancellation/failure path ends the PostgreSQL transaction, releases or discards the client, and releases active-export capacity.
 
 None of these phases is implemented by WEB-PRIVACY-002A.
 
@@ -754,6 +854,7 @@ None of these phases is implemented by WEB-PRIVACY-002A.
 | Future provider identities | Require an explicit reviewed user-safe presenter; never dump `provider_subject` | Provider subjects may be opaque, sensitive, or misleading | Yes, for that future identity type only | Security/privacy/product; `PROVIDER DECISION DEFERRED` |
 | Third-party processor, backup, and legal disclosures | Keep operational logs/backups outside this direct download; describe them only in separately approved policy material | Avoids false completeness/retention claims and avoids exposing infrastructure | No for server implementation; may be a separate launch-policy gate | Privacy/legal/product, when concrete processors and policy text are reviewed |
 | Hard total export-size cap | Do not add an arbitrary cap in V1; stream in bounded batches and fail explicitly on technical timeout | A silent/truncated cap conflicts with full-account semantics; current total account volume is not hard-bounded | No | Security/operations must review any future hard cap with product/privacy |
+| Direct-stream resource controls | 120-second deadline; two active exports/process; one/account/process; PostgreSQL pool maximum at least four; positive connection timeout shorter than the endpoint deadline | Bounds connection starvation, late-checkout leaks, long MVCC snapshots, slow clients, and concurrent heap pressure without deleting or omitting user data | No | Security/operations may lower concurrency or timeout only through a reviewed contract change |
 
 This register isolates decisions without inventing legal conclusions. Review of this technical contract is the next gate before runtime implementation.
 
@@ -784,5 +885,36 @@ The following implementations are explicitly prohibited:
 - **U.** Sending a syntactically valid partial export after a stream failure.
 - **V.** Adding mock login or bypassing recent authentication for local convenience.
 - **W.** Expanding into scheduled Auth cleanup, retention enforcement, privacy-access auditing, RFC 9457 migration, ChartResult caching, observability redesign, Google Sign-In, Vault duplicate, Privacy/Terms copy, staging, or deployment.
+- **X.** Returning the streaming response before all deterministic pre-header gates and identity-presenter checks finish.
+- **Y.** Using timestamp-only keyset pagination or emitting internal cursor IDs.
+- **Z.** Emitting the final JSON delimiters before the read-only transaction commits and its client is safely released.
+- **AA.** Holding an export transaction without the 120-second deadline, database timeout backstops, and active-export gate.
+- **AB.** Relying on Hono's swallowed stream-write errors, generic `app.onError`, or raw default console logging for cancellation/error cleanup.
+- **AC.** Continuing database reads or serialization after response cancellation.
+- **AD.** Returning a PostgreSQL client to the pool when rollback/transaction state is uncertain.
+- **AE.** Silently omitting malformed, legacy, or future account-owned fields, or raw-spreading newly added database columns into the public export.
 
 This document authorizes no runtime source, test, migration, package, lockfile, deployment, provider, legal-copy, or Account UI change.
+
+## 31. Source verification, live verification, and readiness
+
+### Source / architecture verified
+
+- the current migrations contain the complete audited account-linked graph;
+- all approved V1 source fields exist and all current credential/security fields remain excluded;
+- PostgreSQL `REPEATABLE READ READ ONLY` provides one coherent MVCC snapshot for account, identity, chart, note, and Feedback reads;
+- the existing pool runtime can own a dedicated checked-out-client repository like account erasure;
+- the existing pool environment/configuration boundary supports a finite `connectionTimeoutMillis` for both queued checkout and new connections;
+- current Hono/Node source provides awaited Web-stream backpressure, Node writable `drain` handling, response-reader cancellation, and Hono abort notification;
+- exact-Origin middleware covers `POST` and precedes route execution;
+- `AuthenticatedPrincipal.sessionCreatedAt` and the server clock support the frozen recent-auth policy;
+- the existing process-local HMAC limiter can support account attempt keys without persisting or logging raw user IDs; and
+- export requires no write, migration, Engine call, provider dependency, archive dependency, or account-erasure redesign.
+
+### Live PostgreSQL / HTTP stream not yet verified
+
+WEB-PRIVACY-002A-R1 did not run a database, HTTP server, browser, test suite, or deployment. WEB-PRIVACY-002D must verify the actual repeatable-read snapshot, large JSONB behavior, backpressure, cancellation propagation, query timeout, transaction/client cleanup, active-gate cleanup, export/delete overlap, browser attachment handling, and edge no-store behavior. Those live checks do not block source implementation in WEB-PRIVACY-002B; they block any claim that runtime/deployment behavior is operationally verified.
+
+### Readiness decision
+
+**WEB-PRIVACY-002B READY.** The hardened contract is secure and realistically implementable in the current Hono/PostgreSQL architecture. No unresolved policy, schema migration, provider decision, or missing runtime capability blocks the bounded server implementation.
