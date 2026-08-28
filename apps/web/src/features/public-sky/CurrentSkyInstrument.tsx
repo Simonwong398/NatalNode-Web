@@ -156,20 +156,20 @@ function SkyHighlights({ snapshot, compact = false }: { snapshot: SkySnapshotRes
   const retrogradeBodies = snapshot.bodyPositions.filter((body) => body.motionState === 'RETROGRADE');
 
   return (
-    <section aria-labelledby="current-sky-highlights" className={`rounded-[var(--nn-radius-large)] border border-natal-border/70 bg-natal-night/25 ${compact ? 'p-3' : 'p-4'}`}>
+    <section aria-labelledby="current-sky-highlights" className={`rounded-[var(--nn-radius-large)] border border-natal-border/70 bg-natal-night/25 ${compact ? 'p-2 sm:p-3' : 'p-4'}`}>
       <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
         <h3 className="nn-type-card-title" id="current-sky-highlights">Sky highlights</h3>
         <span className="nn-type-metadata">Supplied facts</span>
       </div>
-      <ul className={`${compact ? 'mt-2 space-y-1.5' : 'mt-3 space-y-2'} nn-type-body-small`}>
+      <ul className={`${compact ? 'mt-1.5 space-y-1 sm:mt-2 sm:space-y-1.5' : 'mt-3 space-y-2'} nn-type-body-small`}>
         {highlightedAspects.map((aspect, index) => (
-          <li className="flex items-start gap-2" key={`${aspect.firstBodyId}-${aspect.secondBodyId}-${index}`}>
+          <li className={`${compact && index > 0 ? 'hidden sm:flex' : 'flex'} items-start gap-2`} key={`${aspect.firstBodyId}-${aspect.secondBodyId}-${index}`}>
             <span aria-hidden="true" className="shrink-0 text-natal-accent">{getBodyGlyph(aspect.firstBodyId)} {getAspectGlyph(aspect.aspectType)} {getBodyGlyph(aspect.secondBodyId)}</span>
             <span>{formatAspect(aspect)}</span>
           </li>
         ))}
         {retrogradeBodies.length > 0 ? (
-          <li className="flex items-start gap-2">
+          <li className={`${compact && highlightedAspects.length > 0 ? 'hidden sm:flex' : 'flex'} items-start gap-2`}>
             <span aria-hidden="true" className="shrink-0 text-natal-accent">R</span>
             <span>{retrogradeBodies.length} {retrogradeBodies.length === 1 ? 'body' : 'bodies'} marked retrograde</span>
           </li>
@@ -182,19 +182,9 @@ function SkyHighlights({ snapshot, compact = false }: { snapshot: SkySnapshotRes
 
 function DevelopmentDisclosure({ snapshot, compact = false }: { snapshot: SkySnapshotResult; compact?: boolean }) {
   if (compact) {
-    const warningText = snapshot.warnings.map((warning) => warning.message);
-    const hasProductionAstronomyWarning = snapshot.warnings.some(
-      (warning) => warning.code === 'NOT_PRODUCTION_ASTRONOMY' || warning.message === 'NOT PRODUCTION ASTRONOMY'
-    );
-    const disclosureText = [
-      'DEVELOPMENT FIXTURE',
-      ...warningText,
-      hasProductionAstronomyWarning ? null : 'NOT PRODUCTION ASTRONOMY'
-    ].filter((value): value is string => Boolean(value)).join(' · ');
-
     return (
-      <p className="nn-type-metadata" data-development-fixture="true">
-        {disclosureText}
+      <p className="nn-type-metadata text-[0.6875rem] leading-4 sm:text-xs sm:leading-5" data-development-fixture="true">
+        DEVELOPMENT FIXTURE · NOT PRODUCTION ASTRONOMY
       </p>
     );
   }
@@ -230,11 +220,11 @@ function SnapshotReadout({ snapshot, compact = false }: { snapshot: SkySnapshotR
 
 function CompactSkyInstrument({ snapshot }: { snapshot: SkySnapshotResult }) {
   return (
-    <div className="grid gap-4">
-      <div className="min-w-0 rounded-[var(--nn-radius-large)] border border-natal-border/70 bg-natal-night/30 p-2 shadow-[var(--nn-shadow-low)] sm:p-3">
+    <div className="grid gap-3 sm:gap-4">
+      <div className="min-w-0 rounded-[var(--nn-radius-large)] border border-natal-border/70 bg-natal-night/30 p-2 shadow-[var(--nn-shadow-low)] sm:p-3 lg:p-4">
         <SkyWheel snapshot={snapshot} />
       </div>
-      <div className="space-y-4">
+      <div className="space-y-2 sm:space-y-4">
         <SnapshotReadout compact snapshot={snapshot} />
         <SkyHighlights compact snapshot={snapshot} />
         <DevelopmentDisclosure compact snapshot={snapshot} />

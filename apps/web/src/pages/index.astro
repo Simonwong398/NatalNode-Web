@@ -15,7 +15,18 @@ const seo = {
 ---
 
 <SiteLayout seo={seo} mode="observatory">
-  <main class="nn-container nn-container--calculate nn-calculate-page flex min-h-screen flex-col pb-12 pt-10 sm:pt-14">
+  <main class:list={[
+    'nn-container',
+    'nn-container--calculate',
+    'nn-calculate-page',
+    'flex',
+    'min-h-screen',
+    'flex-col',
+    'pb-12',
+    'pt-10',
+    'sm:pt-14',
+    isCurrentSkyPreviewAvailable ? 'max-w-[78rem]' : null
+  ]}>
     <header class="nn-section-header">
       <p class="nn-eyebrow">Calculate</p>
       <h1 class="nn-type-page-title max-w-2xl">Create your birth chart</h1>
