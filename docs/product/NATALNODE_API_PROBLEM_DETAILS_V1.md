@@ -13,6 +13,17 @@ HTTP error boundary. It does not claim that the current runtime already emits
 RFC 9457 responses. The current runtime remains on its bounded legacy JSON
 envelope until a later, coordinated implementation sequence is approved.
 
+### WEB-API-001B3B-R1 account-export delivery amendment
+
+The account-export browser boundary is revised to use a two-stage protocol:
+`POST /api/account/export/prepare` is a bounded same-origin fetch that returns
+advisory `204 No Content` or readable route-owned Problem Details, followed by
+the existing native empty-form `POST /api/account/export` for the attachment.
+The hidden iframe is a transfer target only; its body is never an error reader.
+This amendment preserves `X-Frame-Options: DENY`, native streaming, and the
+canonical `application/problem+json` media type. Runtime implementation is
+deferred to `WEB-API-001B3B-R2`.
+
 ## 1. Purpose and scope
 
 The P0 readiness checkpoint identifies a repository-wide API error-contract gap:
@@ -151,7 +162,8 @@ type must not loosen that decision.
 | Vault chart notes | 400 `INVALID_REQUEST`; 401 `UNAUTHORIZED`; 404 `NOT_FOUND`; unexpected 500 | Chart-note-specific invalid/not-found copy; generic internal copy | Existing note success envelopes are unchanged |
 | Private Feedback | 400 `INVALID_REQUEST`; 401 `UNAUTHORIZED`; 413 `PAYLOAD_TOO_LARGE`; 415 `UNSUPPORTED_MEDIA_TYPE`; 429 `RATE_LIMITED`; unexpected 500 | Feedback-specific bounded copy; rate limit uses `Retry-After` | 201 `{ submitted: true }` is unchanged |
 | Account deletion | 400 `INVALID_REQUEST`; 401 `UNAUTHORIZED`; 403 `RECENT_AUTHENTICATION_REQUIRED`; 429 `RATE_LIMITED`; 500 `INTERNAL_ERROR` | Account-deletion-specific invalid copy; generic auth; recent-auth copy; generic internal copy | 204 empty response and cookie expiry are unchanged |
-| Account export before stream start | 400 `INVALID_REQUEST`; 401 `UNAUTHORIZED`; 403 `FORBIDDEN` or `RECENT_AUTHENTICATION_REQUIRED`; 429 `RATE_LIMITED`; 500 `INTERNAL_ERROR` | Export-specific bounded copy; no attachment header on pre-stream failure | Must remain compatible with hidden iframe/native POST |
+| Account export negotiation (`POST /api/account/export/prepare`) | 400 `INVALID_REQUEST`; 401 `UNAUTHORIZED`; 403 `FORBIDDEN` or `RECENT_AUTHENTICATION_REQUIRED`; 429 `RATE_LIMITED`; 500 `INTERNAL_ERROR` | Export-specific bounded Problem Details; no attachment header; top-level page may read status and top-level `code` through fetch | `204 No Content` is advisory eligibility only; no snapshot, permit, token, capacity reservation, or export payload |
+| Account export transfer before stream start (`POST /api/account/export`) | 400 `INVALID_REQUEST`; 401 `UNAUTHORIZED`; 403 `FORBIDDEN` or `RECENT_AUTHENTICATION_REQUIRED`; 429 `RATE_LIMITED`; 500 `INTERNAL_ERROR` | Export-specific bounded Problem Details; no attachment header on pre-stream failure | Native empty-form/hidden-iframe transfer target; parent does not read or parse the body |
 | Account export after 200 stream starts | No replacement HTTP response is possible | No second JSON/error response | Producer closes/truncates incomplete JSON; it never appends Problem Details |
 
 Current messages are static route-level copy, not a public promise that raw
@@ -582,14 +594,22 @@ turn an Origin failure into route execution or a successful response.
 
 ## 21. Streaming-response exception
 
-`POST /api/account/export` has a deliberate exception to normal Problem
-Details handling.
+Account export has two deliberately different browser-facing boundaries.
 
-Before the successful attachment response begins, validation, Origin,
-authentication, recent-authentication, rate-limit, capacity, configuration,
-snapshot, and initial database failures may return a normal Problem Details
-response. They must not include the successful export's `Content-Disposition`
-attachment header.
+`POST /api/account/export/prepare` is a normal bounded API request. Its
+route-owned validation, Origin, authentication, recent-authentication,
+prepare-rate-limit, and internal failures return canonical Problem Details;
+its `204 No Content` success has no attachment header and is only advisory
+eligibility. It does not start the export snapshot or reserve capacity.
+
+`POST /api/account/export` remains the native attachment transfer. Before the
+successful attachment response begins, its validation, Origin,
+authentication, recent-authentication, transfer-rate-limit, capacity,
+configuration, snapshot, and initial database failures may return canonical
+Problem Details. They must not include the successful export's
+`Content-Disposition` attachment header. The native hidden iframe is a
+transfer target only, so the initiating page does not rely on reading those
+pre-stream errors.
 
 After the `200` streaming headers have started:
 
@@ -601,19 +621,17 @@ After the `200` streaming headers have started:
   so an incomplete export cannot look like a valid complete export.
 
 The stream producer remains responsible for catching failures before they
-reach framework-default raw logging and for performing idempotent cleanup. The
-request-completion record for this endpoint means “response initiated with the
-recorded status,” not “the browser received a complete export.”
+reach framework-default raw logging and for performing idempotent cleanup. A
+`204` completion record for the prepare endpoint means “negotiation response
+initiated.” A transfer-endpoint completion record means “response initiated
+with the recorded status,” not “the browser received a complete export.”
 
 ## 22. Account-export client compatibility
 
-The current export UX uses a hidden same-origin iframe and native POST so a
-download can begin without requiring fetch/blob conversion. The migration must
-preserve that UX.
-
-The route and `apps/web/src/features/account/account-export.ts` must be
-migrated as one focused boundary. The future parser must read the canonical
-Problem Details object and branch on its top-level `code` for:
+The future Account client must use a two-stage flow. For Stage 1 it sends a
+bounded same-origin `fetch` `POST` to `/api/account/export/prepare` with an
+empty body and, optionally, `Accept: application/problem+json`. It may branch
+on the response status and the top-level Problem Details `code` for:
 
 - `UNAUTHORIZED`;
 - `RECENT_AUTHENTICATION_REQUIRED`;
@@ -621,32 +639,29 @@ Problem Details object and branch on its top-level `code` for:
 - `RATE_LIMITED`; and
 - `INTERNAL_ERROR`.
 
-It may use the response status as a first filter, but it must not require
-`title`, `detail`, or the legacy `error` wrapper. It must be able to inspect a
-JSON Problem Details body returned through the iframe/native POST mechanism.
+The Stage 1 parser must not require `title`, `detail`, or the legacy `error`
+wrapper. A `204 No Content` response starts Stage 2 by submitting the existing
+native empty form to `/api/account/export` with the hidden iframe as its
+target. The iframe is a transfer target only: the parent page must never read
+or parse its body, including a canonical Problem Details body, and must not
+use iframe load as proof of download completion.
 
-The current source reader uses
-`frame.contentDocument?.body?.textContent?.trim()` followed by `JSON.parse`.
-That is mechanically compatible with a textual JSON response and does not
-depend on the legacy `error` member after the parser is updated. Source review
-alone cannot prove how every supported browser navigates a hidden iframe for
-`application/problem+json`, however. The existing `/api/*` security headers
-also include `X-Frame-Options: DENY`, so source review cannot prove that a
-pre-stream error body remains visible to the same-origin frame under actual
-browser enforcement. `WEB-API-001B3` must therefore include a focused
-same-origin browser verification covering the real security headers: a
-pre-stream Problem Details response without `Content-Disposition` must remain
-readable through the frame body, its top-level `code` must be parseable, and a
-successful export must still download. If a browser treats the response as a
-download or otherwise makes the body opaque, resolve that bounded
-route/client boundary without weakening anti-framing security and without
-converting the export UX to fetch/blob.
+The route and `apps/web/src/features/account/account-export.ts` must be
+migrated as one focused boundary. The migration must not use fetch/blob for
+the export payload, create a reusable URL or token, add a second public
+envelope, or make UI branches on `title`, `detail`, localized copy, iframe
+body text, or `200` alone. Stage 2 pre-stream failures remain canonical on the
+wire where the route owns the response, but the initiating page presents only
+generic transfer-start/error semantics for them.
 
-The export migration does not introduce a fetch/blob conversion, reusable
-export URL, client-side export cache, or second public envelope. If a
-deployment topology requires a temporary old-server/new-client overlap, any
-legacy reader tolerance must be an explicitly bounded cutover detail with a
-removal point; it is not the V1 contract.
+`WEB-API-001B3B-R1` performed the bounded browser feasibility check that was
+previously missing from source review. In the selected Chromium-based browser,
+a native POST reached the fixture server, but a pre-stream
+`application/problem+json` response remained an empty/unreadable iframe
+navigation under `X-Frame-Options: DENY`. A readable `text/html` control
+required removing anti-framing protection, which is not an acceptable fix.
+The result retires the single-request iframe error-reader assumption and does
+not authorize weakening `X-Frame-Options: DENY`.
 
 Mid-stream truncation remains a transport outcome, not a parseable Problem
 Details response.
@@ -673,7 +688,7 @@ part of this documentation task.
 | Browser file | Current dependency | Required migration boundary |
 | --- | --- | --- |
 | `apps/web/src/features/account/account-deletion.ts` | Parses `payload.error.code` for recent-auth 403 | Read top-level Problem Details `code`; keep status and 204 semantics |
-| `apps/web/src/features/account/account-export.ts` | Hidden iframe parser reads `payload.error.code` | Read `application/problem+json` top-level `code`; preserve native POST UX |
+| `apps/web/src/features/account/account-export.ts` | Hidden iframe parser reads `payload.error.code` | Read Stage 1 `application/problem+json` top-level `code` through fetch; submit native Stage 2 POST after `204`; never read the iframe body |
 | `apps/web/src/features/vault/save-vault-chart.ts` | Parses 400 `payload.error.code` and `payload.error.message` | Branch on status + top-level `code`; use local UI copy rather than API detail |
 | `apps/web/src/features/vault/vault-management-client.ts` | Mostly status-based 400/401/404 handling | Verify status + code compatibility; success parsing stays unchanged |
 | `apps/web/src/features/vault/vault-charts.ts` | Status-based 401/404/non-200 handling | Verify status + code compatibility; success parsing stays unchanged |
@@ -696,20 +711,24 @@ Content-Type: application/problem+json; charset=utf-8
 ```
 
 This applies whenever a normal API error response can be produced, including
-known route errors, middleware rejections, not-found responses, and central
-internal errors. The implementation may use the installed framework's exact
-charset serialization convention only if it remains semantically equivalent
-to this frozen media type.
+known route errors, middleware rejections, not-found responses, central
+internal errors, Stage 1 negotiation errors, and Stage 2 pre-stream transfer
+errors. The implementation may use the installed framework's exact charset
+serialization convention only if it remains semantically equivalent to this
+frozen media type.
 
 Successful JSON responses remain `application/json` and keep their existing
 body shapes. A success response must not be relabeled as Problem Details.
 
 An account export that has begun streaming retains its attachment content type;
-it is not converted to Problem Details after headers begin.
+it is not converted to Problem Details after headers begin. The successful
+Stage 1 response is `204 No Content`; it is not relabeled as an attachment or
+Problem Details document.
 
 ## 26. Cache policy
 
-All `/api/*` Problem Details responses use:
+All `/api/*` Problem Details responses, including both account-export stages,
+use:
 
 ```http
 Cache-Control: no-store
@@ -738,6 +757,11 @@ X-Frame-Options: DENY
 `Cache-Control: no-store` is part of the cache policy above. The migration must
 reuse the existing header helper and must not create a second set of security
 header constants or a route-specific bypass.
+
+`X-Frame-Options: DENY` remains in force for account-export negotiation errors,
+transfer errors, and the native transfer response. The top-level page reads
+only Stage 1 through fetch; the Stage 2 iframe is not an error-reader
+exception.
 
 ## 28. Request ID and correlation decision
 
@@ -889,9 +913,28 @@ remain provider-neutral.
 
 ### `WEB-API-001B3` — Auth/account privacy boundaries and clients
 
-Migrate Auth, account deletion, and account export pre-stream failures together
-with their first-party browser readers. Preserve anti-enumeration, recent-auth,
-native POST/iframe export, 204 deletion, and stream truncation behavior.
+This boundary is split into the following focused slices:
+
+- `WEB-API-001B3A` migrates the Auth and account-deletion error boundaries;
+- `WEB-API-001B3B-R1` freezes this documentation-only revision of account-export
+  delivery and Problem Details handling; and
+- `WEB-API-001B3B-R2` implements the revised two-stage protocol and its
+  first-party browser boundary.
+
+The account-export implementation must preserve anti-enumeration, recent-auth,
+native POST/iframe transfer, 204 deletion, and stream truncation behavior. The
+R1 slice does not modify runtime code or clients.
+
+### `WEB-API-001B3B-R2` — Browser-compatible account-export implementation
+
+Implement `POST /api/account/export/prepare` as a bounded advisory negotiation
+endpoint with canonical Problem Details errors and `204 No Content` success;
+then start the existing native empty-form `POST /api/account/export` transfer.
+Update the Account client to parse only Stage 1 status/top-level `code`, submit
+Stage 2 after `204`, and never read or parse the hidden iframe body. Preserve
+the existing streaming payload, full Stage 2 revalidation, rate/capacity
+semantics, `X-Frame-Options: DENY`, no-store headers, and post-header
+truncation. Add only focused route/client tests for this boundary.
 
 ### `WEB-API-001B4` — Vault/Feedback and remaining API boundaries
 
@@ -926,6 +969,14 @@ Long-lived dual envelopes are prohibited. A temporary compatibility reader is
   a removal point; it is not a reason to keep server output in both shapes.
 
 No API version is introduced solely to migrate the error envelope.
+
+For account export, the atomic boundary is the pair of Stage 1 negotiation and
+Stage 2 transfer behavior: the first-party client reads canonical Problem
+Details only from the bounded Stage 1 fetch, then submits the native Stage 2
+form after `204`. The Stage 2 hidden iframe has no response-body reader. There
+is no permanent dual reader, fetch/blob payload fallback, reusable URL, permit,
+or token. This preserves native attachment streaming while keeping error
+classification in a browser-compatible API response.
 
 ## 36. Type-URI and public documentation boundary
 
@@ -990,8 +1041,14 @@ not a broad test framework. At minimum, verify:
 ### Client and stream compatibility
 
 - account deletion still handles 204, 401, and recent-auth 403 correctly;
-- account export's hidden iframe/native POST can read pre-stream Problem
-  Details codes without fetch/blob conversion;
+- account export Stage 1 fetch reads route-owned pre-stream Problem Details
+  status and top-level `code`, including unauthorized, recent-auth, invalid,
+  rate-limit, and internal outcomes;
+- account export Stage 1 returns `204 No Content` without an attachment, body,
+  permit, token, snapshot, or capacity reservation;
+- account export Stage 2 submits the native empty form/hidden iframe without
+  reading or parsing the iframe body;
+- the export payload remains native streaming with no fetch/blob conversion;
 - export pre-stream failures carry no attachment header; and
 - post-stream failures truncate/close without appending JSON or Problem
   Details.
@@ -1040,7 +1097,15 @@ The following are explicitly prohibited during migration:
 - exposing provider, Engine, astronomy, deployment, SQL, credentials, or
   filesystem information;
 - returning a second response or appending JSON after export streaming starts;
-- converting the export UX to fetch/blob or introducing reusable export URLs;
+- using the Stage 2 hidden iframe as a Problem Details reader;
+- treating the Stage 1 `204` as authorization, a transfer guarantee, a permit,
+  or a capacity reservation;
+- charging one normal prepare-plus-transfer action twice to the account
+  transfer-attempt quota;
+- relabeling Problem Details as `text/html` or weakening `X-Frame-Options:
+  DENY` to make iframe parsing work;
+- converting the export payload UX to fetch/blob or introducing reusable
+  export URLs;
 - repositories or domain code constructing Hono responses;
 - introducing a large cloning, validation, logging, networking, or dependency
   framework for this contract; or
@@ -1065,6 +1130,16 @@ The only intended repository change is this document:
 docs/product/NATALNODE_API_PROBLEM_DETAILS_V1.md
 ```
 
+For `WEB-API-001B3B-R1`, the companion account-export contract revision is the
+only additional permitted repository change:
+
+```text
+docs/product/NATALNODE_ACCOUNT_DATA_EXPORT_V1.md
+```
+
+No production source, client, test, dependency, migration, or lockfile change
+is authorized by that revision.
+
 No test suite, typecheck, build, install, or runtime migration is part of this
 task. The permitted validation is documentation-scope Git validation only.
 
@@ -1080,7 +1155,8 @@ The contract is ready for a focused implementation review because it defines:
 - the account-export streaming exception;
 - first-party browser migration boundaries;
 - B1's no-global-handler/no-route-migration boundary;
-- the focused browser verification required for native iframe export errors;
+- the accepted browser-feasibility result that retires the native iframe
+  Problem Details reader assumption without weakening `X-Frame-Options: DENY`;
 - cache, security-header, request-ID, and observability rules;
 - domain-to-HTTP ownership;
 - bounded migration slices and future focused tests; and
@@ -1094,6 +1170,13 @@ WEB-API-001B1 READY
 
 This means ready for a human/technical contract review before implementation,
 not permission to begin that implementation in this task.
+
+The account-export delivery revision is ready for its next bounded runtime
+implementation review:
+
+```text
+WEB-API-001B3B-R2 READY
+```
 
 ## 42. Approval boundary
 
@@ -1110,5 +1193,12 @@ The next action is:
 REVIEW WEB-API-001A CONTRACT BEFORE IMPLEMENTATION.
 ```
 
+For the account-export revision, the next action is:
+
+```text
+WEB-API-001B3B-R2 — Implement Browser-Compatible Two-Stage Account Export Delivery and Problem Details Migration
+```
+
 Do not begin `WEB-API-001B1` from this task without the required review and a
-new implementation request.
+new implementation request. Do not begin `WEB-API-001B4` from the account
+export revision.

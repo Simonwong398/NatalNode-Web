@@ -7,6 +7,17 @@
 
 This document freezes the P0 technical contract for **Download my data** / **Export my data**. It is an application-data disclosure contract, not legal copy, a database-dump specification, or an implementation.
 
+### WEB-API-001B3B-R1 delivery revision
+
+The browser delivery contract below supersedes the earlier single-request
+assumption that a hidden iframe could both initiate the native attachment and
+reliably expose pre-stream Problem Details to the parent page. A bounded
+same-origin negotiation request now handles user-actionable preflight errors;
+the existing native streaming request remains the attachment transfer target.
+The negotiation response is advisory only and creates no capability, permit,
+reservation, export snapshot, or persistent state. Runtime implementation is
+deferred to `WEB-API-001B3B-R2`.
+
 The fixed trust boundary remains:
 
 ```text
@@ -435,10 +446,58 @@ JSON object member order is not semantic, but the writer should emit a stable or
 
 ## 15. API contract
 
-The P0 endpoint is:
+Account export uses a two-stage browser delivery protocol. The stages have
+different jobs and neither stage introduces a reusable export URL or a second
+public payload format.
+
+### Stage 1: bounded negotiation
+
+The negotiation endpoint is:
 
 ```http
-POST /api/account/export
+POST /api/account/export/prepare
+```
+
+This is a bounded, same-origin request made by the Account page with `fetch`.
+It is an **advisory eligibility/preflight check only**. A successful response
+does not authorize, reserve, or guarantee a later transfer. It creates no
+export snapshot, PostgreSQL transaction, active-export capacity lease,
+permit, token, export record, job, audit row, or other persistent state.
+
+Stage 1 checks:
+
+1. exact trusted-Origin enforcement;
+2. the separate prepare edge/client rate-limit bucket;
+3. session authentication and server-derived principal;
+4. server-derived recent authentication; and
+5. the exactly empty request framing and query contract.
+
+It does not verify the account root, identity presenters, export
+representation, PostgreSQL capacity, or export snapshot. Those checks belong
+to Stage 2 and can fail after a successful negotiation.
+
+Eligible Stage 1 response:
+
+```http
+HTTP/1.1 204 No Content
+Cache-Control: no-store
+Referrer-Policy: no-referrer
+X-Content-Type-Options: nosniff
+X-Frame-Options: DENY
+```
+
+The response has no body, `Content-Disposition`, account data, permit, token,
+or completion claim. Route-owned Stage 1 failures use the canonical bounded
+Problem Details contract for `400 INVALID_REQUEST`, `401 UNAUTHORIZED`,
+`403 RECENT_AUTHENTICATION_REQUIRED` (and other applicable `403`), `429
+RATE_LIMITED`, or `500 INTERNAL_ERROR`. Shared Origin/edge middleware may
+retain its existing rejection representation during migration; the first-party
+client must not depend on those shared middleware bodies.
+
+The prepare request uses the same empty-request shape as the transfer:
+
+```http
+POST /api/account/export/prepare
 ```
 
 Request contract:
@@ -451,24 +510,59 @@ Request contract:
 - `Content-Length` may be absent or exactly `0`; any other, duplicate, malformed, or non-zero value is invalid;
 - any `Transfer-Encoding` request header is invalid;
 - no `Content-Type` is required, and a present `Content-Type` does not authorize non-empty content;
+- `Accept: application/problem+json` may be sent by the bounded fetch client;
 - no `userId`, `accountId`, `ownerId`, email, identity, export timestamp, format selector, or other account selector;
 - no Engine or provider input; and
 - repeated requests are independent read operations, not mutations.
 
-The route must reject any body byte, query component, body-framing ambiguity, or account-targeting input as `INVALID_REQUEST`. It rejects invalid framing headers before reading and otherwise reads the request stream only far enough to prove end-of-stream or detect the first unexpected byte. The 120-second monotonic lifecycle deadline begins before this stream validation, so a client cannot hold request validation open outside the endpoint deadline. A bodyless `POST` keeps the request minimal, engages the repository's exact-Origin protection, and supports a native browser attachment response without inventing a CSRF token or download-job handshake.
+The prepare route must reject any body byte, query component, body-framing
+ambiguity, or account-targeting input as `INVALID_REQUEST`. Its request
+handling is independently bounded and does not hold any export resource while
+the client is waiting for the response.
+
+### Stage 2: native transfer
+
+The transfer endpoint remains:
+
+```http
+POST /api/account/export
+```
+
+After Stage 1 returns `204`, the page submits a native empty `POST` form to a
+hidden iframe. The iframe is a **transfer target only**. The parent page must
+never read or parse its body, and must not treat iframe load as proof that the
+download completed. Stage 2 may also be called directly: Stage 1 is advisory
+and creates no capability or evidence that Stage 2 must accept.
+
+Stage 2 independently performs all authoritative work: exact Origin and
+transfer edge checks, authentication, the authenticated-account transfer
+attempt limit, recent authentication, empty-request validation, active export
+capacity, the pool-owned read-only repeatable-read snapshot, account-root
+verification, identity-presenter verification, and the account/identity
+representation checks required before attachment headers.
+
+The native form uses the same request framing as Stage 1 but sends no custom
+headers. It has no body, query string, account selector, Engine input, or
+provider input. Invalid framing is rejected before the stream is started. The
+Stage 2 lifecycle deadline begins before body validation and covers the full
+stream, backpressure, transaction end, and cleanup as defined below.
 
 `GET` is not selected because sensitive cross-site-triggerable downloads would not reliably pass through the existing exact-Origin policy for unsafe methods. No public/admin multi-account variant is part of V1.
 
-The endpoint returns the streamed JSON attachment on success. It creates no export record, job, token, database mutation, or audit row.
+Stage 2 returns the streamed JSON attachment on success. Across both stages,
+the protocol creates no export record, job, token, database mutation, or audit
+row.
 
-### Pre-header gate
+### Stage 2 pre-header gate
 
-The implementation must complete all deterministic checks that can choose a non-`200` response before constructing/returning the streaming success response or emitting attachment headers:
+The Stage 2 implementation must complete all deterministic checks that can
+choose a non-`200` response before constructing/returning the streaming
+success response or emitting attachment headers:
 
 1. apply API security headers and exact-Origin enforcement;
-2. apply the trusted-edge/client-identity rate-limit backstop;
+2. apply the trusted-edge/client-identity transfer rate-limit backstop;
 3. authenticate the session and derive the principal;
-4. apply the authenticated-account attempt limit;
+4. apply the authenticated-account transfer-attempt limit;
 5. evaluate recent authentication from server timestamps;
 6. start the endpoint lifecycle deadline and validate the exactly empty body and exactly empty query component;
 7. acquire active-export capacity;
@@ -477,17 +571,26 @@ The implementation must complete all deterministic checks that can choose a non-
 10. verify that every identity provider in the snapshot has the approved V1 presenter; and
 11. prepare/validate the account and identity representation needed to start the envelope.
 
-Origin, edge rate-limit, authentication, request validation, recent-auth, account rate-limit, capacity, missing-account, unsupported-identity, transaction-start, and initial database failures therefore return ordinary bounded JSON errors with no `Content-Disposition` attachment header. Failures discovered only while reading later chart/note/Feedback batches follow the mid-stream truncation rule.
+Stage 1 route-owned failures and Stage 2 pre-stream failures return bounded
+Problem Details with no `Content-Disposition` attachment header. The Stage 2
+native iframe is not an error API: the page does not rely on being able to read
+those errors. Failures discovered only while reading later chart/note/Feedback
+batches follow the mid-stream truncation rule.
 
 ## 16. Authentication and recent-auth policy
 
 ### Valid session
 
-The existing server-side session authenticator is mandatory. The request target comes from `AuthenticatedPrincipal.userId`, never browser data. Missing, invalid, expired, or no-longer-account-backed sessions produce the existing bounded unauthorized behavior.
+The existing server-side session authenticator is mandatory for both stages.
+The request target comes from `AuthenticatedPrincipal.userId`, never browser
+data. Missing, invalid, expired, or no-longer-account-backed sessions produce
+the bounded unauthorized behavior. Stage 1 authentication is only an
+eligibility signal; Stage 2 authenticates again and is authoritative for the
+transfer.
 
 ### Recent authentication decision
 
-V1 **requires recent authentication**.
+V1 **requires recent authentication at both stages**.
 
 This is an independent export risk decision, not an automatic inheritance from deletion. The export contains the normalized sign-in email, complete persisted birth inputs, chart snapshots, private notes, and private Feedback. A stolen but otherwise valid long-lived session would expose the account's concentrated sensitive data in one response. That benefit outweighs the limited passwordless re-authentication cost for this infrequent action.
 
@@ -495,19 +598,27 @@ The implementation may reuse the current immutable, server-derived `Authenticate
 
 The approved export maximum age is **600 seconds**. It is intentionally the same duration as the current deletion policy after independent evaluation, but export must have an export-named policy boundary rather than importing deletion semantics by accident. A shared generic recent-auth evaluator is acceptable; a deletion-specific policy constant is not the export contract.
 
-If recent authentication is too old, return `403 RECENT_AUTHENTICATION_REQUIRED`. Re-authentication must use the real Auth flow. This contract does not authorize mock login, virtual authentication, or a local bypass.
+If recent authentication is too old, either stage returns
+`403 RECENT_AUTHENTICATION_REQUIRED`. Stage 1 does not reserve the recent-auth
+decision, so Stage 2 must re-evaluate it immediately before export work.
+Re-authentication must use the real Auth flow. This contract does not authorize
+mock login, virtual authentication, or a local bypass.
 
 ## 17. Authorization and account isolation
 
-Authorization invariants for every read:
+Authorization invariants for every stage and read:
 
 1. Authenticate the request.
 2. Evaluate recent authentication from server timestamps.
-3. Begin the export snapshot.
-4. Verify the account root for `principal.userId` inside that snapshot.
-5. Root identity, chart, note, and Feedback reads in that same `userId`.
-6. Require both owner and parent-chart predicates for note reads.
-7. Use internal IDs only inside the repository for joins, pagination, and tie-breaking.
+3. Stage 1 performs no account-target selection beyond deriving the principal;
+   it does not open an export snapshot.
+4. Stage 2 begins the export snapshot and verifies the account root for
+   `principal.userId` inside that snapshot.
+5. Stage 2 roots identity, chart, note, and Feedback reads in that same
+   `userId`.
+6. Stage 2 requires both owner and parent-chart predicates for note reads.
+7. Use internal IDs only inside the repository for joins, pagination, and
+   tie-breaking.
 8. Emit no data from rows that are not proven to belong to that principal.
 
 The browser cannot choose an account. An email from a cookie-independent request value is not authority. A chart or note identifier alone is not authority. The normal user endpoint has no admin mode.
@@ -516,7 +627,11 @@ Focused implementation tests must prove that User A cannot receive User B accoun
 
 ## 18. Snapshot and transaction model
 
-V1 uses one dedicated, pool-owned account-export repository that owns one checked-out PostgreSQL client and one transaction for the complete export.
+Stage 1 opens no PostgreSQL transaction and checks out no export repository
+client. It holds no snapshot while the browser transitions to Stage 2.
+
+Stage 2 uses one dedicated, pool-owned account-export repository that owns one
+checked-out PostgreSQL client and one transaction for the complete export.
 
 The transaction is:
 
@@ -562,6 +677,10 @@ Export and `DELETE /api/account` remain independent operations. Export does not 
 
 The race rules are:
 
+- **Stage 1 succeeds and deletion commits before Stage 2 establishes its
+  snapshot:** Stage 1 held no account snapshot or resource lease. Stage 2
+  revalidates the principal and account root, observes the missing root, and
+  returns bounded `401 UNAUTHORIZED` without an export payload.
 - **Deletion commits before export establishes and verifies its snapshot:** the account root is absent. Export returns the bounded `401 UNAUTHORIZED` response and emits no export payload.
 - **Export establishes and verifies its repeatable-read snapshot before deletion commits:** export may finish the internally consistent pre-deletion snapshot it was already authorized to read. Concurrent deletion may proceed and commit; an ordinary PostgreSQL MVCC read does not take the account-erasure advisory lock or a row lock and does not require deletion to wait for export.
 - **Deletion and export overlap:** the repeatable-read snapshot prevents a partially deleted graph. Export observes either the authorized snapshot or no account, never a mixture assembled from independently timed reads.
@@ -573,7 +692,21 @@ The tradeoff is that PostgreSQL must retain row versions needed by the open snap
 
 ## 20. Response and download behavior
 
-Successful response:
+Successful Stage 1 response:
+
+```http
+HTTP/1.1 204 No Content
+Cache-Control: no-store
+Referrer-Policy: no-referrer
+X-Content-Type-Options: nosniff
+X-Frame-Options: DENY
+```
+
+It has no body, attachment header, account data, token, permit, or completion
+claim. It only signals that the Account page may start the native Stage 2
+transfer; Stage 2 remains authoritative.
+
+Successful Stage 2 response:
 
 ```http
 HTTP/1.1 200 OK
@@ -585,7 +718,7 @@ X-Content-Type-Options: nosniff
 X-Frame-Options: DENY
 ```
 
-Rules:
+Stage 2 rules:
 
 - `YYYY-MM-DD` is the UTC date component of the server-generated `exportedAt` value.
 - The filename is ASCII, deterministic, and server-controlled.
@@ -595,7 +728,12 @@ Rules:
 - No redirect, signed URL, CDN URL, public object-store URL, or downloadable export token is introduced.
 - No app-generated ZIP or alternate format is negotiated.
 
-The server can establish response status and produce a complete document, but it cannot prove that a browser retained the file. Client-visible success requires the browser to receive and parse the complete valid JSON document. A truncated stream is not a successful export, even if HTTP status `200` was emitted before the failure.
+The server can establish response status and produce a complete document, but
+it cannot prove that a browser retained the file. A transfer is complete only
+when the browser receives the complete valid JSON document; a truncated stream
+is not a successful export, even if HTTP status `200` was emitted before the
+failure. The initiating page does not read the hidden iframe body and therefore
+must not claim download completion from iframe load or the `200` status alone.
 
 `Content-Security-Policy` is not added specifically for this non-rendered JSON attachment. The existing API security headers, attachment disposition, JSON content type, `nosniff`, exact Origin, authentication, and no-store boundary are the relevant controls.
 
@@ -623,7 +761,12 @@ Therefore, materializing the complete export object and one giant JSON string in
 
 ### Approved direct-stream strategy
 
-V1 streams one UTF-8 JSON document from the read-only repeatable-read snapshot. It does not create a background job, queue, ZIP file, temporary public object, or new dependency.
+Stage 1 is not a stream and has no snapshot, capacity lease, serialization
+work, or export payload. It is a bounded eligibility response only.
+
+Stage 2 streams one UTF-8 JSON document from the read-only repeatable-read
+snapshot. It does not create a background job, queue, ZIP file, temporary
+public object, or new dependency.
 
 **Streaming verdict: KEEP STREAMING.** Whole-account materialization is not safe because collection counts and cumulative JSONB size are materially unbounded. Direct streaming is feasible in the installed runtime: Hono's streaming writer awaits a `TransformStream` writer, and the installed Node adapter pauses Web-stream reads when the Node response crosses its writable high-water mark until `drain`. The adapter also cancels the response reader when the outgoing response closes/errors; Hono exposes that cancellation through `StreamingApi.onAbort`.
 
@@ -650,7 +793,9 @@ No arbitrary retention/delete limit or account-content cap is invented for expor
 
 ### Stream failure semantics
 
-- Before success headers begin, failures use the bounded JSON error envelope.
+- Before Stage 2 success headers begin, failures use bounded Problem Details;
+  Stage 1 route-owned failures use the same canonical error contract through
+  the normal fetch response.
 - After streaming begins, any internal error, deadline, or cancellation stops production, omits the fixed final delimiters, and ends the transport as a truncated/invalid JSON document. It must not append an error object, attempt a second response, or synthesize a syntactically complete partial export.
 - The stream producer catches raw errors before they reach framework default logging, emits at most a bounded non-sensitive failure event, and performs idempotent cleanup.
 - A cancellation callback may initiate cleanup, but the producer's shared `finally`/cleanup promise remains authoritative so asynchronous abort subscribers cannot race a second rollback/release.
@@ -659,12 +804,25 @@ No arbitrary retention/delete limit or account-content cap is invented for expor
 
 ### Resource-abuse boundary
 
-WEB-PRIVACY-002B must add a focused account-export rate-limit policy using the existing bounded P0 rate-limit architecture:
+The two stages use distinct rate-limit semantics within the existing bounded
+P0 rate-limit architecture:
 
-- at most **5 started export attempts per authenticated account per 10 minutes**; and
-- the existing trusted-edge/client-identity backstop remains applicable before authentication.
+- Stage 1 uses a separate prepare edge/client-identity bucket, initially at
+  most **20 prepare requests per 10 minutes** per trusted-edge/client identity.
+  A prepare request does not consume an authenticated-account transfer
+  attempt and does not reserve capacity.
+- Stage 2 retains the transfer edge/client-identity backstop and allows at
+  most **5 started transfer attempts per authenticated account per 10 minutes**.
+  One Stage 2 request counts as one transfer attempt whether or not it was
+  preceded by Stage 1; a normal click is not charged twice to the same account
+  export quota.
+- Shared edge/origin middleware may reject before a route-owned Problem Details
+  response is selected. The first-party client must not depend on those shared
+  response bodies.
 
-Attempt rate limiting alone does not bound simultaneous long-lived snapshots. P0 also requires a simple process-local active-export gate:
+Attempt rate limiting alone does not bound simultaneous long-lived snapshots.
+P0 therefore requires a simple process-local active-export gate for Stage 2
+only:
 
 - at most **2 active export transactions per server process**;
 - at most **1 active export per authenticated account per server process**;
@@ -674,32 +832,63 @@ Attempt rate limiting alone does not bound simultaneous long-lived snapshots. P0
 - runtime configuration must provide a PostgreSQL pool maximum of at least **4**, preserving at least two pool slots for ordinary application work while both export slots are occupied; and
 - the existing PostgreSQL connection-timeout setting must be positive and shorter than the endpoint deadline, and checkout must not begin when less time remains, so a queued checkout cannot outlive lifecycle cleanup.
 
-No distributed lock or database export-state row is introduced. In a multi-process deployment, each process enforces its own active cap; the trusted-edge and account attempt limits remain the cross-request abuse backstops. Rate limiting and concurrency gating are resource protection, never account authority.
+No distributed lock, permit, token, or database export-state row is
+introduced. In a multi-process deployment, each process enforces its own
+active cap; the trusted-edge and account attempt limits remain the
+cross-request abuse backstops. Stage 2 is authoritative on whichever process
+receives it. Rate limiting and concurrency gating are resource protection,
+never account authority.
 
 ## 22. Bounded error model
 
-Before response streaming begins, the endpoint uses the current bounded error-envelope style:
+Stage 1 is the user-actionable error channel. Its route-owned failures use
+canonical Problem Details that the top-level Account page can read through its
+bounded `fetch` request:
 
 | HTTP | Code | Meaning |
 | --- | --- | --- |
-| 400 | `INVALID_REQUEST` | The request contained a body, query string, selector, or otherwise violated the empty request contract |
-| 401 | `UNAUTHORIZED` | Authentication is missing/invalid/expired, or the account root is absent when the snapshot is verified |
-| 403 | `FORBIDDEN` | Exact trusted-Origin enforcement failed before route execution |
+| 400 | `INVALID_REQUEST` | The prepare request contained a body, query string, selector, or otherwise violated the empty request contract |
+| 401 | `UNAUTHORIZED` | Authentication is missing, invalid, expired, or no longer account-backed |
+| 403 | `FORBIDDEN` | Exact trusted-Origin enforcement failed before route execution, when owned by the route |
 | 403 | `RECENT_AUTHENTICATION_REQUIRED` | The server-derived session creation time is older than the export policy permits |
-| 429 | `RATE_LIMITED` | Edge/account attempt limits or active-export capacity were reached |
-| 500 | `INTERNAL_ERROR` | Export could not safely begin, including database/preflight failure or an unsupported identity presenter |
+| 429 | `RATE_LIMITED` | The prepare edge limit or another route-owned negotiation limit was reached |
+| 500 | `INTERNAL_ERROR` | Negotiation could not safely complete without exposing internal details |
+
+Stage 2 uses the same canonical Problem Details contract for route-owned
+pre-stream failures, including:
+
+| HTTP | Code | Meaning |
+| --- | --- | --- |
+| 400 | `INVALID_REQUEST` | The transfer request violated the empty request contract |
+| 401 | `UNAUTHORIZED` | Authentication is missing/invalid/expired, or the account root is absent when the snapshot is verified |
+| 403 | `FORBIDDEN` | Exact trusted-Origin enforcement failed before route execution, when owned by the route |
+| 403 | `RECENT_AUTHENTICATION_REQUIRED` | The server-derived session creation time is older than the export policy permits |
+| 429 | `RATE_LIMITED` | Transfer edge/account attempt limits or active-export capacity were reached |
+| 500 | `INTERNAL_ERROR` | Export could not safely begin, including snapshot/preflight failure or an unsupported identity presenter |
 
 Errors must not disclose SQL, row counts, database topology, account existence for a browser-selected target, secret values, internal identifiers, or which specific collection failed.
 
-Once a `200` stream has begun, HTTP status cannot be replaced reliably. A later failure truncates the stream without final delimiters; no second JSON error response is attempted. The implementation must never generate a valid-looking partial JSON success document.
+The Stage 1 client may classify only the bounded status/top-level `code` it
+receives from its fetch response. It must not require `title`, `detail`, or a
+legacy nested `error` member. Stage 2 errors may be canonical on the wire, but
+the native hidden iframe is a transfer target and the initiating page does not
+read or parse its body; its UI therefore uses generic transfer-start/error
+semantics rather than pretending to classify the response.
 
-The task does not introduce RFC 9457, a repository-wide error redesign, export job polling, or a persisted retry token.
+Once the Stage 2 `200` stream has begun, HTTP status cannot be replaced
+reliably. A later failure truncates the stream without final delimiters; no
+second JSON error response is attempted. The implementation must never
+generate a valid-looking partial JSON success document.
+
+The revised protocol does not introduce export job polling, a permit, a
+persisted retry token, a second payload envelope, or a repository-wide error
+redesign beyond the separately frozen Problem Details migration.
 
 ## 23. Logging and observability policy
 
 Allowed operational fields are limited to:
 
-- bounded event/endpoint family such as `account.export`;
+- bounded event/endpoint family `account.export.prepare` or `account.export`;
 - request ID;
 - HTTP status/outcome family;
 - duration; and
@@ -721,25 +910,37 @@ Logs, traces, metrics labels, analytics, and error reports must not contain:
 
 The JSON response must never be logged. P0 adds no persistent “export requested” audit table. Privacy-access auditing is separate governance work and must not be smuggled into implementation.
 
-The current Hono request middleware records `api.request.completed` when the route returns its `Response`, before a streaming body necessarily finishes. For this endpoint that record means **response initiated with the recorded HTTP status**, not “the browser received a complete export.” It must not be used as a data-rights completion audit or success proof.
+The current Hono request middleware records `api.request.completed` when the
+route returns its `Response`, before a streaming body necessarily finishes.
+For Stage 1, `204` means **negotiation response initiated**, not transfer
+authorization or download success. For Stage 2, the record means **transfer
+response initiated with the recorded HTTP status**, not “the browser received
+a complete export.” Neither event is a data-rights completion audit or success
+proof.
 
 Errors raised inside the asynchronous stream producer do not reliably pass through `app.onError`. The producer must catch them, avoid framework/default `console.error(error)` paths, and emit at most a bounded non-sensitive stream outcome such as `completed`, `cancelled`, `timed-out`, or `failed`. Raw error objects, messages, stacks, causes, SQL, and query parameters must not be serialized into operational output.
 
 ## 24. Caching and privacy headers
 
-Account export responses are sensitive personalized data.
+Both account-export stages concern sensitive personalized data or access to its
+delivery.
 
 V1 freezes:
 
 - **NO SHARED CACHE**;
-- `Cache-Control: no-store` on success and error responses through the existing API security-header middleware;
+- `Cache-Control: no-store` on Stage 1 and Stage 2 success and error responses through the existing API security-header middleware;
 - no browser/application export cache;
 - no CDN, reverse-proxy, service-worker, or object-store caching of the payload;
 - no ChartResult scientific cache involvement;
 - no Redis; and
 - no export URL that remains reusable after the request.
 
-The existing `Referrer-Policy: no-referrer`, `X-Content-Type-Options: nosniff`, and `X-Frame-Options: DENY` headers remain in force. TLS and the normal same-origin session-cookie controls remain mandatory deployment assumptions; this document does not redesign them.
+The existing `Referrer-Policy: no-referrer`, `X-Content-Type-Options:
+nosniff`, and `X-Frame-Options: DENY` headers remain in force for both stages.
+The top-level page uses fetch for Stage 1, so no framing exception is needed;
+the Stage 2 iframe is only a transfer target. TLS and the normal same-origin
+session-cookie controls remain mandatory deployment assumptions; this document
+does not redesign them.
 
 ## 25. Security invariants
 
@@ -762,13 +963,16 @@ Future implementation must preserve all of these invariants:
 15. A repeatable-read snapshot prevents a partially deleted or cross-time relationship graph.
 16. Stream failures cannot masquerade as complete success.
 17. Export cannot restore, recreate, or resurrect deleted data.
-18. Every deterministic origin, request, Auth, rate/capacity, account-root, identity-presenter, and transaction check completes before success headers.
+18. Stage 1 has no snapshot, capacity lease, permit, or success guarantee; Stage 2 independently completes every deterministic origin, request, Auth, rate/capacity, account-root, identity-presenter, and transaction check before success headers.
 19. Keyset cursors use timestamp plus internal-ID tie-breakers inside one snapshot; cursor IDs are never emitted.
 20. At most two export transactions are active per process and at most one per account/process.
 21. A 120-second monotonic deadline, bounded pool checkout, and database-local timeouts bound request-stream validation, snapshot lifetime, queries, backpressure, and cleanup; a late checkout can never leak its client.
 22. Cancellation stops new work and always ends/discards the transaction client; no connection remains idle in transaction.
 23. Successful `COMMIT` and client release occur before the final JSON delimiters are emitted.
 24. Stream errors are caught inside the producer and never enter raw framework logging.
+25. The Stage 2 hidden iframe is never used as a Problem Details reader, and
+    the page never claims transfer completion from its load event or `200`
+    status alone.
 
 ## 26. Privacy invariants
 
@@ -800,10 +1004,19 @@ The control belongs alongside account-management capabilities but visually separ
 
 UX requirements:
 
-- one explicit user action starts the download;
+- one explicit user action starts the bounded Stage 1 negotiation;
+- a successful Stage 1 `204` starts the native Stage 2 form submission to the
+  hidden iframe;
+- Stage 1 `401`, `403`, `400`, and route-owned `429` responses can be mapped by
+  the top-level page using status plus top-level Problem Details `code`;
+- Stage 2 remains a native transfer target and its iframe body is never read;
+- the UI may say negotiating, starting, initiated, failed, or retryable, but
+  must not claim that a download completed from the `204`, iframe load, or
+  `200` status alone;
 - the real authenticated/re-authenticated flow is used;
 - current page semantics and accessible status/error handling are preserved;
-- a successful operation downloads the JSON file;
+- a successful transfer delivers the JSON file through the native browser
+  download path;
 - a failed/truncated operation is presented as failed and can be retried by the user;
 - the browser should use a native streaming download path where practical rather than retaining a second complete payload in JavaScript memory; and
 - export does not sign the user out or change account data.
@@ -812,14 +1025,35 @@ The Account UI may neutrally suggest downloading data before deletion. It must n
 
 ## 28. Bounded implementation phases
 
+### WEB-API-001B3B-R2 — Browser-compatible two-stage delivery and Problem Details migration
+
+This is the next bounded implementation slice for the revised delivery
+contract. It should:
+
+- add `POST /api/account/export/prepare` as a bounded same-origin negotiation
+  endpoint returning `204` on advisory eligibility only;
+- add the top-level Account-page fetch client for Stage 1 Problem Details
+  status/code handling;
+- retain `POST /api/account/export` as the native empty-form streaming transfer
+  and revalidate every authoritative Stage 2 gate;
+- remove the hidden-iframe body/error parser and never use fetch/blob for the
+  export payload;
+- keep Stage 1 stateless, with no permit, token, export snapshot, capacity
+  lease, or persistent state; and
+- add focused route/client tests for the two stages, TOCTOU/deletion races,
+  rate semantics, native transfer behavior, and post-header truncation.
+
+It must not begin live PostgreSQL/browser/deployment verification, add a
+provider or Engine integration, or expand into `WEB-API-001B4`.
+
 ### WEB-PRIVACY-002B — Server implementation and focused security tests
 
 - Add the export envelope types and safe serializers.
 - Add the dedicated pool-owned repeatable-read, read-only export repository.
 - Add bounded tuple-keyset streaming for the account graph, with one-row/byte-aware chart batches.
-- Add `POST /api/account/export` with empty-request validation.
+- Add the authoritative Stage 2 `POST /api/account/export` with empty-request validation and native streaming.
 - Reuse exact-Origin, session authentication, server time, bounded errors, security headers, and observability boundaries.
-- Add an export-named 600-second recent-auth policy, trusted-edge/account attempt limits, and the two-global/one-account process-local active gate.
+- Add an export-named 600-second recent-auth policy, the separate prepare and transfer edge limits, the transfer account-attempt limit, and the two-global/one-account process-local active gate for Stage 2.
 - Add the 120-second lifecycle deadline, transaction-local statement/idle timeouts, cancellation signal, idempotent transaction cleanup, and poisoned-client discard behavior.
 - Validate all pre-header gates before constructing the stream; commit before emitting the final JSON delimiters.
 - Add focused unit/integration tests for schema, completeness, secret exclusion, cross-account isolation, safe Unicode/user text, legacy JSONB, unsupported identities, tuple-keyset collisions, consistency, deletion races, backpressure, cancellation, deadline, pool-checkout timeout/late resolution, pool-capacity rejection, cleanup, stream failures, and headers.
@@ -828,7 +1062,7 @@ The Account UI may neutrally suggest downloading data before deletion. It must n
 ### WEB-PRIVACY-002C — `/account` download UX
 
 - Add **Your data / Download your data** outside Danger Zone.
-- Handle start, recent-auth-required, bounded error, interrupted download, and success states.
+- Start with Stage 1 fetch negotiation, then submit the native Stage 2 transfer; handle recent-auth-required, bounded negotiation errors, interrupted transfer, and generic transfer-start states without claiming download completion.
 - Preserve deletion as an independent optional action.
 - Use real Auth only; no mock login or virtual authentication.
 
@@ -855,6 +1089,7 @@ None of these phases is implemented by WEB-PRIVACY-002A.
 | Third-party processor, backup, and legal disclosures | Keep operational logs/backups outside this direct download; describe them only in separately approved policy material | Avoids false completeness/retention claims and avoids exposing infrastructure | No for server implementation; may be a separate launch-policy gate | Privacy/legal/product, when concrete processors and policy text are reviewed |
 | Hard total export-size cap | Do not add an arbitrary cap in V1; stream in bounded batches and fail explicitly on technical timeout | A silent/truncated cap conflicts with full-account semantics; current total account volume is not hard-bounded | No | Security/operations must review any future hard cap with product/privacy |
 | Direct-stream resource controls | 120-second deadline; two active exports/process; one/account/process; PostgreSQL pool maximum at least four; positive connection timeout shorter than the endpoint deadline | Bounds connection starvation, late-checkout leaks, long MVCC snapshots, slow clients, and concurrent heap pressure without deleting or omitting user data | No | Security/operations may lower concurrency or timeout only through a reviewed contract change |
+| Browser delivery protocol | Stage 1 advisory `POST /api/account/export/prepare` with fetch and `204`; Stage 2 native empty-form `POST /api/account/export` to a hidden iframe; no permit or persistent state | Makes user-actionable Problem Details browser-readable while preserving native streaming and X-Frame-Options `DENY`; Stage 2 remains authoritative | No, once R1 is reviewed | Security/privacy/product; implementation is `WEB-API-001B3B-R2` |
 
 This register isolates decisions without inventing legal conclusions. Review of this technical contract is the next gate before runtime implementation.
 
@@ -893,6 +1128,10 @@ The following implementations are explicitly prohibited:
 - **AC.** Continuing database reads or serialization after response cancellation.
 - **AD.** Returning a PostgreSQL client to the pool when rollback/transaction state is uncertain.
 - **AE.** Silently omitting malformed, legacy, or future account-owned fields, or raw-spreading newly added database columns into the public export.
+- **AF.** Reusing the Stage 2 hidden-iframe response body as the Account page's Problem Details API.
+- **AG.** Treating a Stage 1 `204` as authorization, a transfer guarantee, a permit, or a capacity reservation.
+- **AH.** Charging a normal prepare-plus-transfer click twice to the same account export-attempt quota.
+- **AI.** Relabeling Problem Details as `text/html` or weakening global `X-Frame-Options: DENY` to make an iframe parser work.
 
 This document authorizes no runtime source, test, migration, package, lockfile, deployment, provider, legal-copy, or Account UI change.
 
@@ -911,10 +1150,36 @@ This document authorizes no runtime source, test, migration, package, lockfile, 
 - the existing process-local HMAC limiter can support account attempt keys without persisting or logging raw user IDs; and
 - export requires no write, migration, Engine call, provider dependency, archive dependency, or account-erasure redesign.
 
+### Browser feasibility boundary
+
+`WEB-API-001B3B-R1` accepted the focused browser result that invalidates the
+earlier single-request error-reader assumption. In the selected Chromium-based
+browser (Chrome 151 user agent), a native POST reached the temporary same-origin
+fixture server. A pre-stream `application/problem+json` response remained an
+unreadable/empty iframe navigation under `X-Frame-Options: DENY`; changing the
+control to `SAMEORIGIN` did not make that Problem Details body readable. A
+`text/html` control was readable only when anti-framing was removed, while
+`text/html` plus `DENY` was blocked. This is evidence for the delivery contract,
+not production deployment verification. It confirms that the security header
+must not be weakened and that Stage 1 must carry actionable error handling.
+
 ### Live PostgreSQL / HTTP stream not yet verified
 
-WEB-PRIVACY-002A-R1 did not run a database, HTTP server, browser, test suite, or deployment. WEB-PRIVACY-002D must verify the actual repeatable-read snapshot, large JSONB behavior, backpressure, cancellation propagation, query timeout, transaction/client cleanup, active-gate cleanup, export/delete overlap, browser attachment handling, and edge no-store behavior. Those live checks do not block source implementation in WEB-PRIVACY-002B; they block any claim that runtime/deployment behavior is operationally verified.
+`WEB-API-001B3B-R1` did not run production PostgreSQL or the repository HTTP
+server. `WEB-PRIVACY-002D` must verify the actual repeatable-read snapshot,
+large JSONB behavior, backpressure, cancellation propagation, query timeout,
+transaction/client cleanup, active-gate cleanup, export/delete overlap,
+browser attachment handling across supported browsers, and edge no-store
+behavior. Those live checks remain a separate verification boundary; they do
+not authorize changing the delivery contract or weakening anti-framing
+security.
 
 ### Readiness decision
 
-**WEB-PRIVACY-002B READY.** The hardened contract is secure and realistically implementable in the current Hono/PostgreSQL architecture. No unresolved policy, schema migration, provider decision, or missing runtime capability blocks the bounded server implementation.
+The prior single-request hidden-iframe Problem Details assumption is retired.
+The revised two-stage protocol is ready for the bounded runtime implementation
+review, while runtime and deployment behavior remain deferred.
+
+```text
+WEB-API-001B3B-R2 READY
+```
