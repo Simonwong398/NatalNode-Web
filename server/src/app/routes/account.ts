@@ -3,30 +3,10 @@ import { isRecentAuthentication } from '../../account/account-deletion-policy.js
 import { serializeClearedSessionCookie } from '../../auth-runtime/index.js';
 import { requireAuthentication } from '../auth/index.js';
 import type { ServerDependencies } from '../dependencies.js';
+import { createProblemDetailsContextResponse } from '../problem-details/context-response.js';
 import { isAccountDeletionApiRequest } from '../validation/account-deletion.js';
 
 export const ACCOUNT_DELETION_REQUEST_MAXIMUM_BYTES = 1_024;
-
-const INVALID_REQUEST_RESPONSE = {
-  error: {
-    code: 'INVALID_REQUEST',
-    message: 'Invalid account deletion request.'
-  }
-} as const;
-
-const UNAUTHORIZED_RESPONSE = {
-  error: {
-    code: 'UNAUTHORIZED',
-    message: 'Authentication is required.'
-  }
-} as const;
-
-const RECENT_AUTHENTICATION_REQUIRED_RESPONSE = {
-  error: {
-    code: 'RECENT_AUTHENTICATION_REQUIRED',
-    message: 'Recent authentication is required.'
-  }
-} as const;
 
 type BoundedBodyReadResult =
   | { readonly outcome: 'read'; readonly bytes: Uint8Array }
@@ -116,13 +96,17 @@ async function parseAccountDeletionRequest(
   context: Context
 ): Promise<{ readonly confirmation: 'DELETE' } | Response> {
   if (!isApplicationJson(context.req.raw)) {
-    return context.json(INVALID_REQUEST_RESPONSE, 400);
+    return createProblemDetailsContextResponse(context, {
+      code: 'INVALID_REQUEST'
+    });
   }
 
   const body = await readBoundedRequestBody(context.req.raw);
 
   if (body.outcome !== 'read') {
-    return context.json(INVALID_REQUEST_RESPONSE, 400);
+    return createProblemDetailsContextResponse(context, {
+      code: 'INVALID_REQUEST'
+    });
   }
 
   let payload: unknown;
@@ -131,12 +115,16 @@ async function parseAccountDeletionRequest(
     const text = new TextDecoder('utf-8', { fatal: true }).decode(body.bytes);
     payload = JSON.parse(text) as unknown;
   } catch (_error) {
-    return context.json(INVALID_REQUEST_RESPONSE, 400);
+    return createProblemDetailsContextResponse(context, {
+      code: 'INVALID_REQUEST'
+    });
   }
 
   return isAccountDeletionApiRequest(payload)
     ? payload
-    : context.json(INVALID_REQUEST_RESPONSE, 400);
+    : createProblemDetailsContextResponse(context, {
+        code: 'INVALID_REQUEST'
+      });
 }
 
 export function registerAccountRoutes(
@@ -145,7 +133,13 @@ export function registerAccountRoutes(
 ): void {
   app.delete(
     '/api/account',
-    requireAuthentication(dependencies.authenticator),
+    requireAuthentication(
+      dependencies.authenticator,
+      (context) =>
+        createProblemDetailsContextResponse(context, {
+          code: 'UNAUTHORIZED'
+        })
+    ),
     async (context) => {
       const request = await parseAccountDeletionRequest(context);
 
@@ -161,15 +155,25 @@ export function registerAccountRoutes(
           dependencies.clock.now()
         )
       ) {
-        return context.json(RECENT_AUTHENTICATION_REQUIRED_RESPONSE, 403);
+        return createProblemDetailsContextResponse(context, {
+          code: 'RECENT_AUTHENTICATION_REQUIRED'
+        });
       }
 
-      const result = await dependencies.accountErasure.eraseAccount(
-        principal.userId
-      );
+      try {
+        const result = await dependencies.accountErasure.eraseAccount(
+          principal.userId
+        );
 
-      if (result.outcome === 'account-not-found') {
-        return context.json(UNAUTHORIZED_RESPONSE, 401);
+        if (result.outcome === 'account-not-found') {
+          return createProblemDetailsContextResponse(context, {
+            code: 'UNAUTHORIZED'
+          });
+        }
+      } catch (_error) {
+        return createProblemDetailsContextResponse(context, {
+          code: 'INTERNAL_ERROR'
+        });
       }
 
       context.header(

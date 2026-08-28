@@ -343,10 +343,10 @@ describe('account deletion request and response handling', { concurrency: false 
       const { calls, elements } = await initializeAuthenticatedAccount(
         document,
         jsonResponse({
-          error: {
-            code: 'RECENT_AUTHENTICATION_REQUIRED',
-            message: 'Recent authentication is required.'
-          }
+          type: 'about:blank',
+          title: 'Forbidden',
+          status: 403,
+          code: 'RECENT_AUTHENTICATION_REQUIRED'
         }, 403)
       );
       elements.openButton.click();
@@ -368,7 +368,31 @@ describe('account deletion request and response handling', { concurrency: false 
     await withDom(async ({ document }) => {
       const { elements } = await initializeAuthenticatedAccount(
         document,
-        jsonResponse({ error: { code: 'FORBIDDEN', message: 'Forbidden.' } }, 403)
+        jsonResponse({
+          type: 'about:blank',
+          title: 'Forbidden',
+          status: 403,
+          code: 'FORBIDDEN'
+        }, 403)
+      );
+      elements.openButton.click();
+      input(elements, 'DELETE');
+      submit(elements);
+      await settle();
+
+      assert.equal(elements.reauthStatus.hidden, true);
+      assert.equal(elements.errorStatus.hidden, false);
+      assert.match(elements.errorStatus.textContent, /No successful deletion was confirmed/u);
+    });
+  });
+
+  test('legacy nested error codes no longer control the reauthentication branch', async () => {
+    await withDom(async ({ document }) => {
+      const { elements } = await initializeAuthenticatedAccount(
+        document,
+        jsonResponse({
+          error: { code: 'RECENT_AUTHENTICATION_REQUIRED' }
+        }, 403)
       );
       elements.openButton.click();
       input(elements, 'DELETE');

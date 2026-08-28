@@ -35,11 +35,7 @@ function isCurrentSessionResponse(value: unknown): value is CurrentSessionApiRes
 }
 
 function isRecentAuthenticationRequiredResponse(value: unknown): boolean {
-  return (
-    isRecord(value) &&
-    isRecord(value.error) &&
-    value.error.code === 'RECENT_AUTHENTICATION_REQUIRED'
-  );
+  return isRecord(value) && value.code === 'RECENT_AUTHENTICATION_REQUIRED';
 }
 
 function setSessionError(elements: AccountDeletionElements): void {

@@ -1,6 +1,5 @@
 import type { Context, Hono } from 'hono';
 import type {
-  AuthApiErrorResponse,
   CompleteEmailMagicLinkApiRequest,
   CompleteEmailMagicLinkApiResponse,
   RequestEmailMagicLinkApiRequest,
@@ -12,24 +11,11 @@ import {
   serializeSessionCookie
 } from '../../auth-runtime/index.js';
 import type { ServerDependencies } from '../dependencies.js';
+import { createProblemDetailsContextResponse } from '../problem-details/context-response.js';
 import {
   isCompleteEmailMagicLinkApiRequest,
   isRequestEmailMagicLinkApiRequest
 } from '../validation/auth-email.js';
-
-const INVALID_REQUEST_RESPONSE: AuthApiErrorResponse = {
-  error: {
-    code: 'INVALID_REQUEST',
-    message: 'Invalid authentication request.'
-  }
-};
-
-const INVALID_MAGIC_LINK_RESPONSE: AuthApiErrorResponse = {
-  error: {
-    code: 'UNAUTHORIZED',
-    message: 'The sign-in link is invalid or has expired.'
-  }
-};
 
 function markAuthenticationResponse(context: Context): void {
   context.header('Cache-Control', 'no-store');
@@ -43,12 +29,16 @@ async function parseRequestEmailMagicLinkRequest(
   try {
     payload = await context.req.json();
   } catch (_error) {
-    return context.json(INVALID_REQUEST_RESPONSE, 400);
+    return createProblemDetailsContextResponse(context, {
+      code: 'INVALID_REQUEST'
+    });
   }
 
   return isRequestEmailMagicLinkApiRequest(payload)
     ? payload
-    : context.json(INVALID_REQUEST_RESPONSE, 400);
+    : createProblemDetailsContextResponse(context, {
+        code: 'INVALID_REQUEST'
+      });
 }
 
 async function parseCompleteEmailMagicLinkRequest(
@@ -59,12 +49,16 @@ async function parseCompleteEmailMagicLinkRequest(
   try {
     payload = await context.req.json();
   } catch (_error) {
-    return context.json(INVALID_REQUEST_RESPONSE, 400);
+    return createProblemDetailsContextResponse(context, {
+      code: 'INVALID_REQUEST'
+    });
   }
 
   return isCompleteEmailMagicLinkApiRequest(payload)
     ? payload
-    : context.json(INVALID_REQUEST_RESPONSE, 400);
+    : createProblemDetailsContextResponse(context, {
+        code: 'INVALID_REQUEST'
+      });
 }
 
 async function requestEmailMagicLink(
@@ -126,7 +120,9 @@ async function completeEmailMagicLink(
   });
 
   if (completed === null) {
-    return context.json(INVALID_MAGIC_LINK_RESPONSE, 401);
+    return createProblemDetailsContextResponse(context, {
+      code: 'UNAUTHORIZED'
+    });
   }
 
   const sessionCookie = serializeSessionCookie(

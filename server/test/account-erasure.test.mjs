@@ -372,6 +372,16 @@ test('DELETE /api/account requires authentication and exact configured Origin', 
     userId: null
   });
   assert.equal(unauthenticated.status, 401);
+  assert.equal(
+    unauthenticated.headers.get('Content-Type'),
+    'application/problem+json; charset=utf-8'
+  );
+  assert.deepEqual(await unauthenticated.json(), {
+    type: 'about:blank',
+    title: 'Unauthorized',
+    status: 401,
+    code: 'UNAUTHORIZED'
+  });
   assert.equal(unauthenticatedHarness.eraseCalls.length, 0);
 
   const crossOriginHarness = createRouteHarness();
@@ -429,10 +439,10 @@ test('DELETE /api/account strictly validates media type, JSON, fields, and phras
     });
     assert.equal(response.status, 400);
     assert.deepEqual(await response.json(), {
-      error: {
-        code: 'INVALID_REQUEST',
-        message: 'Invalid account deletion request.'
-      }
+      type: 'about:blank',
+      title: 'Bad Request',
+      status: 400,
+      code: 'INVALID_REQUEST'
     });
     assert.equal(harness.eraseCalls.length, 0);
     assert.equal(response.headers.get('Set-Cookie'), null);
@@ -478,10 +488,10 @@ test('exactly 600 seconds is accepted and 600 seconds plus 1 ms is rejected', as
   });
   assert.equal(rejected.status, 403);
   assert.deepEqual(await rejected.json(), {
-    error: {
-      code: 'RECENT_AUTHENTICATION_REQUIRED',
-      message: 'Recent authentication is required.'
-    }
+    type: 'about:blank',
+    title: 'Forbidden',
+    status: 403,
+    code: 'RECENT_AUTHENTICATION_REQUIRED'
   });
   assert.equal(rejectedHarness.eraseCalls.length, 0);
   assert.equal(rejected.headers.get('Set-Cookie'), null);
@@ -506,6 +516,12 @@ test('successful deletion returns empty 204, then clears the cookie and invalida
     edgeIp: '203.0.113.21'
   });
   assert.equal(retryResponse.status, 401);
+  assert.deepEqual(await retryResponse.json(), {
+    type: 'about:blank',
+    title: 'Unauthorized',
+    status: 401,
+    code: 'UNAUTHORIZED'
+  });
   assert.equal(retryResponse.headers.get('Set-Cookie'), null);
   assert.deepEqual(harness.eraseCalls, ['user-a']);
 });
@@ -517,10 +533,10 @@ test('database failure is bounded and never emits deletion-success cookie semant
 
   assert.equal(response.status, 500);
   assert.deepEqual(JSON.parse(responseText), {
-    error: {
-      code: 'INTERNAL_ERROR',
-      message: 'An unexpected server error occurred.'
-    }
+    type: 'about:blank',
+    title: 'Internal Server Error',
+    status: 500,
+    code: 'INTERNAL_ERROR'
   });
   assert.doesNotMatch(responseText, /private database detail/iu);
   assert.equal(response.headers.get('Set-Cookie'), null);
@@ -531,6 +547,12 @@ test('an unexpectedly missing authenticated root returns bounded 401 without a s
   const response = await deleteAccount(harness.app);
 
   assert.equal(response.status, 401);
+  assert.deepEqual(await response.json(), {
+    type: 'about:blank',
+    title: 'Unauthorized',
+    status: 401,
+    code: 'UNAUTHORIZED'
+  });
   assert.equal(response.headers.get('Set-Cookie'), null);
   assert.deepEqual(harness.eraseCalls, ['user-a']);
 });
