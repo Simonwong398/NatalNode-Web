@@ -35,6 +35,7 @@ export default function CalculationDetails({
   requestedHouseSystem
 }: CalculationDetailsProps) {
   const detailsId = useId();
+  const titleId = `${detailsId}-title`;
   const researchTitleId = `${detailsId}-research-title`;
   const warningsTitleId = `${detailsId}-warnings-title`;
   const isResearchConfiguration = chart.calculationStatus === 'INCOMPLETE_RESEARCH';
@@ -48,12 +49,15 @@ export default function CalculationDetails({
     : 'Requested House System';
 
   return (
-    <details className="nn-surface nn-surface--elevated overflow-hidden">
-      <summary className="nn-type-label cursor-pointer px-5 py-4 outline-none sm:px-7">
+    <section
+      aria-labelledby={titleId}
+      className="nn-surface nn-surface--elevated overflow-hidden"
+    >
+      <h3 className="nn-type-section-title px-5 pt-5 sm:px-7" id={titleId}>
         Calculation Details
-      </summary>
+      </h3>
 
-      <div className="grid min-w-0 gap-5 border-t border-natal-border/50 px-5 pb-6 pt-5 sm:px-7 sm:grid-cols-2">
+      <div className="mt-5 grid min-w-0 gap-5 border-t border-natal-border/50 px-5 pb-6 pt-5 sm:px-7 sm:grid-cols-2">
         <dl className="grid min-w-0 gap-3 text-sm">
           <DetailRow label="Engine Version" value={chart.engineVersion} />
           <DetailRow label="Chart Schema" value={chart.schemaVersion} />
@@ -80,9 +84,9 @@ export default function CalculationDetails({
             aria-labelledby={researchTitleId}
             className="nn-notice nn-notice--research min-w-0 flex-col"
           >
-            <h3 className="nn-type-label" id={researchTitleId}>
+            <h4 className="nn-type-label" id={researchTitleId}>
               Research configuration
-            </h3>
+            </h4>
             <dl className="mt-3 grid min-w-0 gap-2">
               <DetailRow label="Calculation Status" value="Research configuration" />
               <DetailRow label="Astronomy Configuration" value="Unavailable" />
@@ -95,9 +99,9 @@ export default function CalculationDetails({
         ) : null}
 
         <section aria-labelledby={warningsTitleId} className="min-w-0 sm:col-span-2">
-          <h3 className="nn-type-label" id={warningsTitleId}>
+          <h4 className="nn-type-label" id={warningsTitleId}>
             Warnings
-          </h3>
+          </h4>
           {chart.warnings.length === 0 ? (
             <p className="nn-type-body-small mt-2">None</p>
           ) : (
@@ -120,6 +124,6 @@ export default function CalculationDetails({
           )}
         </section>
       </div>
-    </details>
+    </section>
   );
 }

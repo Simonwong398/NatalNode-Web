@@ -6,15 +6,15 @@ import { InterpretationPanel } from '@/features/interpretation';
 import type { ChartPresentationPolicy } from './chart-presentation-policy';
 import AstrologicalNotation from './AstrologicalNotation';
 
-type WorkspaceSection = 'chart' | 'interpretation' | 'details';
+type ResultMode = 'chart' | 'interpretation' | 'details';
 
-const WORKSPACE_SECTIONS: readonly WorkspaceSection[] = [
+const RESULT_MODES: readonly ResultMode[] = [
   'chart',
   'interpretation',
   'details'
 ];
 
-const WORKSPACE_SECTION_LABELS: Record<WorkspaceSection, string> = {
+const RESULT_MODE_LABELS: Record<ResultMode, string> = {
   chart: 'Chart',
   interpretation: 'Interpretation',
   details: 'Details'
@@ -37,12 +37,12 @@ export default function ChartWorkspaceView({
   const workspaceId = useId();
   const titleId = `${workspaceId}-title`;
   const wheelTitleId = `${workspaceId}-wheel-title`;
-  const tabRefs = useRef<Record<WorkspaceSection, HTMLButtonElement | null>>({
+  const tabRefs = useRef<Record<ResultMode, HTMLButtonElement | null>>({
     chart: null,
     interpretation: null,
     details: null
   });
-  const [activeSection, setActiveSection] = useState<WorkspaceSection>('chart');
+  const [activeMode, setActiveMode] = useState<ResultMode>('chart');
   const isResearchConfiguration = chart.calculationStatus === 'INCOMPLETE_RESEARCH';
 
   const sectionIds = {
@@ -57,21 +57,21 @@ export default function ChartWorkspaceView({
     details: `${workspaceId}-details-tab`
   } as const;
 
-  const handleSectionKeyDown = (
+  const handleModeKeyDown = (
     event: KeyboardEvent<HTMLButtonElement>,
-    section: WorkspaceSection
+    mode: ResultMode
   ) => {
-    const currentIndex = WORKSPACE_SECTIONS.indexOf(section);
+    const currentIndex = RESULT_MODES.indexOf(mode);
     let nextIndex: number | null = null;
 
-    if (event.key === 'ArrowRight' || event.key === 'ArrowDown') {
-      nextIndex = (currentIndex + 1) % WORKSPACE_SECTIONS.length;
-    } else if (event.key === 'ArrowLeft' || event.key === 'ArrowUp') {
-      nextIndex = (currentIndex - 1 + WORKSPACE_SECTIONS.length) % WORKSPACE_SECTIONS.length;
+    if (event.key === 'ArrowRight') {
+      nextIndex = (currentIndex + 1) % RESULT_MODES.length;
+    } else if (event.key === 'ArrowLeft') {
+      nextIndex = (currentIndex - 1 + RESULT_MODES.length) % RESULT_MODES.length;
     } else if (event.key === 'Home') {
       nextIndex = 0;
     } else if (event.key === 'End') {
-      nextIndex = WORKSPACE_SECTIONS.length - 1;
+      nextIndex = RESULT_MODES.length - 1;
     }
 
     if (nextIndex === null) {
@@ -79,13 +79,10 @@ export default function ChartWorkspaceView({
     }
 
     event.preventDefault();
-    const nextSection = WORKSPACE_SECTIONS[nextIndex];
-    setActiveSection(nextSection);
-    tabRefs.current[nextSection]?.focus();
+    const nextMode = RESULT_MODES[nextIndex];
+    setActiveMode(nextMode);
+    tabRefs.current[nextMode]?.focus();
   };
-
-  const panelVisibility = (section: WorkspaceSection) =>
-    activeSection === section ? 'block' : 'hidden lg:block';
 
   return (
     <section
@@ -128,44 +125,50 @@ export default function ChartWorkspaceView({
 
       <nav
         aria-label="Chart workspace sections"
-        className="nn-surface mx-5 mt-5 p-1 sm:mx-7 lg:hidden"
+        className="nn-surface mx-5 mt-5 p-1 sm:mx-7"
       >
-        <div aria-label="Chart workspace sections" role="tablist" className="grid grid-cols-3 gap-1">
-          {WORKSPACE_SECTIONS.map((section) => {
-            const isActive = activeSection === section;
+        <div
+          aria-label="Chart workspace sections"
+          aria-orientation="horizontal"
+          className="grid grid-cols-3 gap-1"
+          role="tablist"
+        >
+          {RESULT_MODES.map((mode) => {
+            const isActive = activeMode === mode;
 
             return (
               <button
-                aria-controls={sectionIds[section]}
+                aria-controls={sectionIds[mode]}
                 aria-selected={isActive}
                 className={`nn-button min-h-11 px-3 text-center text-xs sm:text-sm ${
                   isActive ? 'nn-button--secondary' : 'nn-button--quiet'
                 }`}
-                id={tabIds[section]}
-                key={section}
-                onClick={() => setActiveSection(section)}
-                onKeyDown={(event) => handleSectionKeyDown(event, section)}
+                id={tabIds[mode]}
+                key={mode}
+                onClick={() => setActiveMode(mode)}
+                onKeyDown={(event) => handleModeKeyDown(event, mode)}
                 ref={(element) => {
-                  tabRefs.current[section] = element;
+                  tabRefs.current[mode] = element;
                 }}
                 role="tab"
                 tabIndex={isActive ? 0 : -1}
                 type="button"
               >
-                {WORKSPACE_SECTION_LABELS[section]}
+                {RESULT_MODE_LABELS[mode]}
               </button>
             );
           })}
         </div>
       </nav>
 
-      <div className="grid min-w-0 gap-4 p-5 sm:p-7 lg:grid-cols-[minmax(0,1.6fr)_minmax(18rem,1fr)] lg:gap-6">
+      <div className="grid min-w-0 gap-4 p-5 sm:p-7 lg:gap-6">
         <div
           aria-labelledby={tabIds.chart}
-          className={`min-w-0 lg:col-start-1 lg:row-start-1 ${panelVisibility('chart')}`}
+          className="min-w-0"
+          hidden={activeMode !== 'chart'}
           id={sectionIds.chart}
           role="tabpanel"
-          tabIndex={0}
+          tabIndex={activeMode === 'chart' ? 0 : undefined}
         >
           <section
             aria-labelledby={wheelTitleId}
@@ -184,28 +187,26 @@ export default function ChartWorkspaceView({
           </section>
         </div>
 
-        {children ? (
-          <div className="min-w-0 lg:col-start-1 lg:row-start-2">
-            {children}
-          </div>
-        ) : null}
+        {children ? <div className="min-w-0">{children}</div> : null}
 
         <div
           aria-labelledby={tabIds.interpretation}
-          className={`min-w-0 lg:col-start-2 lg:row-start-1 ${panelVisibility('interpretation')}`}
+          className="min-w-0"
+          hidden={activeMode !== 'interpretation'}
           id={sectionIds.interpretation}
           role="tabpanel"
-          tabIndex={0}
+          tabIndex={activeMode === 'interpretation' ? 0 : undefined}
         >
           <InterpretationPanel chart={chart} presentationPolicy={presentationPolicy} />
         </div>
 
         <div
           aria-labelledby={tabIds.details}
-          className={`min-w-0 lg:col-span-2 lg:col-start-1 ${panelVisibility('details')}`}
+          className="min-w-0"
+          hidden={activeMode !== 'details'}
           id={sectionIds.details}
           role="tabpanel"
-          tabIndex={0}
+          tabIndex={activeMode === 'details' ? 0 : undefined}
         >
           <CalculationDetails
             chart={chart}
