@@ -2,6 +2,14 @@ export type {
   AccountErasureRepository,
   AccountErasureResult
 } from './account-erasure-repository.js';
+export type {
+  AccountDataExportChartPageItem,
+  AccountDataExportCursor,
+  AccountDataExportPage,
+  AccountDataExportRepository,
+  AccountDataExportSnapshot,
+  AccountDataExportSnapshotOpenResult
+} from './account-data-export-repository.js';
 export type { AuthSessionRepository } from './auth-session-repository.js';
 export type { AuthIdentityRepository } from './auth-identity-repository.js';
 export type {

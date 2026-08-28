@@ -8,6 +8,42 @@ export type {
 } from './app/auth/index.js';
 export { SessionRequestAuthenticator } from './app/auth/index.js';
 
+export {
+  ACCOUNT_DATA_EXPORT_SCHEMA_VERSION,
+  assertAccountDataExportJsonValue,
+  presentAccountDataExportAccount,
+  presentAccountDataExportChart,
+  presentAccountDataExportChartMetadata,
+  presentAccountDataExportFeedback,
+  presentAccountDataExportIdentity,
+  presentAccountDataExportNote,
+  UnsupportedAccountDataExportIdentityError,
+  UnsafeAccountDataExportValueError
+} from './account/account-data-export.js';
+export type {
+  AccountChartExportV1,
+  AccountDataExportAccount,
+  AccountDataExportAccountMetadata,
+  AccountDataExportAccountPresentationSource,
+  AccountDataExportChart,
+  AccountDataExportChartCalculation,
+  AccountDataExportChartMetadata,
+  AccountDataExportChartPresentationSource,
+  AccountDataExportFeedback,
+  AccountDataExportFeedbackPresentationSource,
+  AccountDataExportIdentity,
+  AccountDataExportIdentityPresentationSource,
+  AccountDataExportNote,
+  AccountDataExportNotePresentationSource,
+  AccountDataExportV1,
+  ChartNoteExportV1,
+  EmailMagicLinkExportIdentityV1,
+  FeedbackExportV1,
+  JsonPrimitive,
+  JsonValue,
+  NatalNodeAccountDataExportV1
+} from './account/account-data-export.js';
+
 export type {
   AuthenticationExpirationPolicy,
   AuthSessionRecord,
@@ -81,6 +117,12 @@ export type {
 export type {
   AccountErasureRepository,
   AccountErasureResult,
+  AccountDataExportChartPageItem,
+  AccountDataExportCursor,
+  AccountDataExportPage,
+  AccountDataExportRepository,
+  AccountDataExportSnapshot,
+  AccountDataExportSnapshotOpenResult,
   AuthSessionRepository,
   AuthIdentityRepository,
   AuthIdentityProvisioningInput,
@@ -100,6 +142,7 @@ export type {
 export type { SqlExecutor, SqlQueryResult } from './db/index.js';
 export {
   createPostgresPersistence,
+  PostgresAccountDataExportRepository,
   PostgresAccountErasureRepository,
   PostgresAuthSessionRepository,
   PostgresAuthIdentityRepository,
