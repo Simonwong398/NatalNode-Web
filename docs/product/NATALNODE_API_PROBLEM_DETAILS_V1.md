@@ -316,6 +316,17 @@ as `Invalid chart request.` and `Too many requests. Please try again later.`
 are candidates for explicit migration allow-lists; their existence does not
 authorize copying arbitrary `message` values.
 
+### Central enforcement decision
+
+The B1 helper must freeze the safer option: production callers provide either
+no detail or a finite, centrally registered detail key/literal. The helper must
+not expose an unconstrained `detail: string` input that route code could fill
+from an exception or request value. Each registered key maps to one reviewed
+static string, and the central helper enforces the 256-character maximum as a
+defense-in-depth invariant. An arbitrary string under 256 characters is not
+automatically approved. Any direct literal escape hatch used only by focused
+tests must remain non-production and must still be bounded and sanitized.
+
 The following are always prohibited in `detail`:
 
 - raw `Error.message`, stack, cause, or framework diagnostics;
@@ -540,6 +551,12 @@ remain authoritative.
 Ordinary public Astro page 404 handling is explicitly outside this contract.
 This document does not turn an HTML page fallback into a JSON error response.
 
+The safest later routing boundary is an API-only not-found handler or an
+explicit `/api` sub-application. If a Hono app is ever shared with a public
+page adapter, the not-found normalization must be guarded by the API pathname
+before producing `application/problem+json`; it must not globally replace page
+404 handling with JSON.
+
 ## 20. Origin, CSRF-relevant, and security middleware behavior
 
 The current exact-Origin middleware runs for unsafe API methods and rejects
@@ -558,6 +575,10 @@ protocol is introduced by this contract.
 
 Problem Details responses continue through the existing `/api/*` security
 headers. No competing header framework is permitted.
+
+If Problem Details serialization itself fails while handling an Origin
+rejection, the request must remain rejected. Serialization failure must never
+turn an Origin failure into route execution or a successful response.
 
 ## 21. Streaming-response exception
 
@@ -603,6 +624,23 @@ Problem Details object and branch on its top-level `code` for:
 It may use the response status as a first filter, but it must not require
 `title`, `detail`, or the legacy `error` wrapper. It must be able to inspect a
 JSON Problem Details body returned through the iframe/native POST mechanism.
+
+The current source reader uses
+`frame.contentDocument?.body?.textContent?.trim()` followed by `JSON.parse`.
+That is mechanically compatible with a textual JSON response and does not
+depend on the legacy `error` member after the parser is updated. Source review
+alone cannot prove how every supported browser navigates a hidden iframe for
+`application/problem+json`, however. The existing `/api/*` security headers
+also include `X-Frame-Options: DENY`, so source review cannot prove that a
+pre-stream error body remains visible to the same-origin frame under actual
+browser enforcement. `WEB-API-001B3` must therefore include a focused
+same-origin browser verification covering the real security headers: a
+pre-stream Problem Details response without `Content-Disposition` must remain
+readable through the frame body, its top-level `code` must be parseable, and a
+successful export must still download. If a browser treats the response as a
+download or otherwise makes the body opaque, resolve that bounded
+route/client boundary without weakening anti-framing security and without
+converting the export UX to fetch/blob.
 
 The export migration does not introduce a fetch/blob conversion, reusable
 export URL, client-side export cache, or second public envelope. If a
@@ -832,6 +870,17 @@ helper, header behavior, and focused tests. Do not silently migrate every
 feature route in this slice. The helper must support the current code table,
 the no-store/security headers, and the raw-error invariant.
 
+B1 is infrastructure-only. It must not wire a new Problem Details handler into
+`createApp`, `app.onError`, or `app.notFound`, and it must not replace any
+production route's current `context.json` response. Its expected production
+route behavior change is **none**. B1 may test the mapper/helper directly with
+focused unit tests (and test-only values), but it must not add a production
+fixture route, change a Web client, introduce a migration, or add a dependency.
+
+B1 must also enforce the central detail-key/static-literal rule and the
+256-character bound. The first global/general error-boundary wiring belongs to
+B2, where it can be reviewed together with the API-only 404 boundary.
+
 ### `WEB-API-001B2` — general boundary and Chart/BFF
 
 Migrate the general API not-found/internal boundaries and Chart/Sky calculation
@@ -894,6 +943,17 @@ for errors.
 The future implementation should add focused tests at the affected boundaries,
 not a broad test framework. At minimum, verify:
 
+### B1-only infrastructure checks
+
+- the mapper/helper can be tested directly without constructing the production
+  app or changing any route response;
+- only an omitted detail or centrally registered static detail key/literal is
+  accepted by the production helper;
+- the 256-character detail bound is enforced centrally;
+- an arbitrary exception/request string cannot enter `detail`; and
+- B1 does not wire `app.onError`, `app.notFound`, Auth, Account, Chart, Sky,
+  Vault, Feedback, or any Web client.
+
 ### Shape and headers
 
 - every normal API error has `Content-Type: application/problem+json` with the
@@ -943,9 +1003,11 @@ The following are intentionally recorded rather than guessed:
 1. **Public typed `type` URIs:** no deployed documentation endpoint exists;
    V1 therefore uses `about:blank`. A later documentation decision may change
    this.
-2. **Safe `detail` allow-list:** current route constants are candidates, but
-   the implementation slice must review final product copy and enforce the
-   256-character bound rather than copying legacy messages generically.
+2. **Safe `detail` entries:** the production helper interface is frozen to
+   centrally registered static detail keys/literals plus omission; the exact
+   reviewed copy entries remain implementation work, and the 256-character
+   bound must be enforced centrally rather than copying legacy messages
+   generically.
 3. **Future Engine distinctions:** the current BFF does not distinguish
    timeout, unavailable, invalid response, provider, and scientific errors.
    Any new public code/status requires a separate approved decision.
@@ -1017,6 +1079,8 @@ The contract is ready for a focused implementation review because it defines:
 - validation, rate-limit, internal, BFF, 404, Origin, and security behavior;
 - the account-export streaming exception;
 - first-party browser migration boundaries;
+- B1's no-global-handler/no-route-migration boundary;
+- the focused browser verification required for native iframe export errors;
 - cache, security-header, request-ID, and observability rules;
 - domain-to-HTTP ownership;
 - bounded migration slices and future focused tests; and
