@@ -627,8 +627,18 @@ Focused implementation tests must prove that User A cannot receive User B accoun
 
 ## 18. Snapshot and transaction model
 
-Stage 1 opens no PostgreSQL transaction and checks out no export repository
-client. It holds no snapshot while the browser transitions to Stage 2.
+Stage 1 may perform the existing bounded Auth persistence work required to
+authenticate the session. In the current runtime, that is a short-lived
+pool-backed lookup of the active `auth_sessions` row; it supplies the
+server-derived `userId`, `createdAt`, and `expiresAt` values used to construct
+the authenticated principal. This ordinary Auth access is allowed and is not
+an Account Export transfer resource.
+
+Stage 1 opens no Account Export snapshot or export transaction, does not hold a
+dedicated PostgreSQL client across the browser round trip, and holds no export
+resource while the browser transitions to Stage 2. It does not acquire an
+active-export capacity lease, serialize export data, or persist negotiation
+state.
 
 Stage 2 uses one dedicated, pool-owned account-export repository that owns one
 checked-out PostgreSQL client and one transaction for the complete export.
@@ -1146,6 +1156,13 @@ This document authorizes no runtime source, test, migration, package, lockfile, 
 - the existing pool environment/configuration boundary supports a finite `connectionTimeoutMillis` for both queued checkout and new connections;
 - current Hono/Node source provides awaited Web-stream backpressure, Node writable `drain` handling, response-reader cancellation, and Hono abort notification;
 - exact-Origin middleware covers `POST` and precedes route execution;
+- `SessionRequestAuthenticator` hashes the configured session cookie and uses
+  the pool-backed `PostgresAuthSessionRepository.findActiveByTokenHash` lookup;
+  that lookup returns the server-persisted `userId`, `createdAt`, and
+  `expiresAt` values used to construct the principal;
+- `requireAuthentication` stores that principal in the request context, and
+  the export recent-auth policy compares its immutable `sessionCreatedAt` with
+  the server clock;
 - `AuthenticatedPrincipal.sessionCreatedAt` and the server clock support the frozen recent-auth policy;
 - the existing process-local HMAC limiter can support account attempt keys without persisting or logging raw user IDs; and
 - export requires no write, migration, Engine call, provider dependency, archive dependency, or account-erasure redesign.
