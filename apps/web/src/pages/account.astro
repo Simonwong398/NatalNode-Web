@@ -44,7 +44,76 @@ const seo: SeoMetadata = {
 
       <div class="max-w-2xl" data-account-content hidden>
         <section
-          class="account-danger-surface p-6 sm:p-8"
+          class="nn-surface nn-surface--elevated p-6 sm:p-8"
+          data-account-export
+          aria-labelledby="account-export-title"
+        >
+          <p class="nn-eyebrow">Your data</p>
+          <h2 class="nn-type-section-title mt-3" id="account-export-title">
+            Download your data
+          </h2>
+          <p class="nn-type-body-small mt-3 max-w-xl" id="account-export-description">
+            Download a JSON copy of your NatalNode account data, including saved chart data
+            and account-owned content. Downloading does not change or delete your account,
+            and export is optional. You do not need to download your data before deleting
+            your account.
+          </p>
+
+          <form
+            class="mt-6"
+            data-account-export-form
+            method="post"
+            action="/api/account/export"
+            target="account-export-response"
+            aria-busy="false"
+          >
+            <button
+              class="nn-button nn-button--primary"
+              data-account-export-submit
+              type="submit"
+              aria-describedby="account-export-description account-export-status"
+            >
+              Download your data
+            </button>
+            <p
+              class="nn-status mt-4"
+              data-account-export-status
+              id="account-export-status"
+              role="status"
+              aria-live="polite"
+              hidden
+            ></p>
+            <p
+              class="nn-notice nn-notice--error mt-4"
+              data-account-export-error
+              id="account-export-error"
+              role="alert"
+              tabindex="-1"
+              hidden
+            ></p>
+            <section
+              class="nn-notice nn-notice--error mt-4 flex-col"
+              data-account-export-reauth
+              role="alert"
+              aria-labelledby="account-export-reauth-title"
+              tabindex="-1"
+              hidden
+            >
+              <h3 class="font-semibold text-[var(--nn-text-primary)]" id="account-export-reauth-title">
+                Re-authentication required
+              </h3>
+              <p>
+                For security, sign in again before downloading your account data.
+              </p>
+              <a class="nn-button nn-button--secondary self-start" href="/auth/sign-in">
+                Sign in again
+              </a>
+            </section>
+          </form>
+        </section>
+
+        <section
+          class="account-danger-surface mt-8 p-6 sm:p-8"
           aria-labelledby="account-danger-title"
         >
           <p class="nn-eyebrow">Danger zone</p>
@@ -160,11 +229,21 @@ const seo: SeoMetadata = {
           </section>
         </section>
       </div>
+
+      <iframe
+        name="account-export-response"
+        data-account-export-response
+        title=""
+        aria-hidden="true"
+        tabindex="-1"
+        hidden
+      ></iframe>
     </section>
   </main>
 </SiteLayout>
 
 <script>
+  import { initializeAccountExport } from '@/features/account/account-export';
   import { initializeAccountDeletion } from '@/features/account/account-deletion';
 
   const root = document.querySelector<HTMLElement>('[data-account-page]');
@@ -180,6 +259,12 @@ const seo: SeoMetadata = {
   const pendingStatus = root?.querySelector<HTMLElement>('[data-account-delete-pending]');
   const errorStatus = root?.querySelector<HTMLElement>('[data-account-delete-error]');
   const reauthStatus = root?.querySelector<HTMLElement>('[data-account-reauth]');
+  const exportForm = root?.querySelector<HTMLFormElement>('[data-account-export-form]');
+  const exportSubmitButton = root?.querySelector<HTMLButtonElement>('[data-account-export-submit]');
+  const exportStatus = root?.querySelector<HTMLElement>('[data-account-export-status]');
+  const exportError = root?.querySelector<HTMLElement>('[data-account-export-error]');
+  const exportReauthStatus = root?.querySelector<HTMLElement>('[data-account-export-reauth]');
+  const exportResponseFrame = root?.querySelector<HTMLIFrameElement>('[data-account-export-response]');
 
   if (
     root && loading && sessionError && accountContent && openButton &&
@@ -200,6 +285,21 @@ const seo: SeoMetadata = {
       pendingStatus,
       errorStatus,
       reauthStatus
+    });
+  }
+
+  if (
+    accountContent && exportForm && exportSubmitButton && exportStatus &&
+    exportError && exportReauthStatus && exportResponseFrame
+  ) {
+    initializeAccountExport({
+      accountContent,
+      form: exportForm,
+      submitButton: exportSubmitButton,
+      statusElement: exportStatus,
+      errorStatus: exportError,
+      reauthStatus: exportReauthStatus,
+      responseFrame: exportResponseFrame
     });
   }
 </script>
