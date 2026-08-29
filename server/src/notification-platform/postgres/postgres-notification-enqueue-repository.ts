@@ -66,6 +66,7 @@ interface NotificationDeliveryRow {
   readonly created_at: Date | string;
   readonly updated_at: Date | string;
   readonly last_attempt_at: Date | string | null;
+  readonly first_attempt_at: Date | string | null;
   readonly delivered_at: Date | string | null;
   readonly terminal_at: Date | string | null;
 }
@@ -131,6 +132,7 @@ const FIND_DELIVERIES_BY_INTENT_SQL = `
     created_at,
     updated_at,
     last_attempt_at,
+    first_attempt_at,
     delivered_at,
     terminal_at
   FROM notification_deliveries
@@ -202,10 +204,11 @@ const INSERT_DELIVERY_SQL = `
     created_at,
     updated_at,
     last_attempt_at,
+    first_attempt_at,
     delivered_at,
     terminal_at
   )
-  VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16)`;
+  VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17)`;
 
 function toTimestampString(value: Date | string): string {
   return value instanceof Date ? value.toISOString() : value;
@@ -356,6 +359,7 @@ function mapDeliveryRow(row: NotificationDeliveryRow): NotificationDeliveryRecor
     createdAt: toTimestampString(row.created_at),
     updatedAt: toTimestampString(row.updated_at),
     lastAttemptAt: toNullableTimestampString(row.last_attempt_at),
+    firstAttemptAt: toNullableTimestampString(row.first_attempt_at),
     deliveredAt: toNullableTimestampString(row.delivered_at),
     terminalAt: toNullableTimestampString(row.terminal_at)
   });
@@ -539,6 +543,7 @@ export class PostgresNotificationEnqueueRepository
           createdAt,
           updatedAt: createdAt,
           lastAttemptAt: null,
+          firstAttemptAt: null,
           deliveredAt: null,
           terminalAt: null
         });
@@ -560,6 +565,7 @@ export class PostgresNotificationEnqueueRepository
           delivery.createdAt,
           delivery.updatedAt,
           delivery.lastAttemptAt,
+          delivery.firstAttemptAt,
           delivery.deliveredAt,
           delivery.terminalAt
         ]);

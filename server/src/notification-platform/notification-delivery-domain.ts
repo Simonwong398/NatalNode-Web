@@ -95,6 +95,7 @@ export interface NotificationDeliveryRecord {
   readonly createdAt: string;
   readonly updatedAt: string;
   readonly lastAttemptAt: string | null;
+  readonly firstAttemptAt: string | null;
   readonly deliveredAt: string | null;
   readonly terminalAt: string | null;
 }
@@ -238,6 +239,7 @@ export function createNotificationDeliveryRecord(input: {
   readonly createdAt: string;
   readonly updatedAt: string;
   readonly lastAttemptAt: string | null;
+  readonly firstAttemptAt: string | null;
   readonly deliveredAt: string | null;
   readonly terminalAt: string | null;
 }): NotificationDeliveryRecord {
@@ -285,6 +287,10 @@ export function createNotificationDeliveryRecord(input: {
     input.lastAttemptAt === null
       ? null
       : assertServerTimestamp(input.lastAttemptAt, 'lastAttemptAt');
+  const firstAttemptAt =
+    input.firstAttemptAt === null
+      ? null
+      : assertServerTimestamp(input.firstAttemptAt, 'firstAttemptAt');
   const deliveredAt =
     input.deliveredAt === null
       ? null
@@ -301,6 +307,10 @@ export function createNotificationDeliveryRecord(input: {
   }
   if (input.state === 'PENDING' && input.attemptCount !== 0) {
     throw new Error('Pending notification delivery attempt count is invalid.');
+  }
+
+  if ((input.attemptCount === 0) !== (firstAttemptAt === null)) {
+    throw new Error('Notification delivery first attempt timestamp is invalid.');
   }
 
   const isProcessing = input.state === 'PROCESSING';
@@ -335,6 +345,13 @@ export function createNotificationDeliveryRecord(input: {
     updatedAt,
     'Notification delivery timestamps are invalid.'
   );
+  if (firstAttemptAt !== null) {
+    assertTimestampOrder(
+      createdAt,
+      firstAttemptAt,
+      'Notification delivery first attempt timestamp is invalid.'
+    );
+  }
 
   return Object.freeze({
     deliveryId,
@@ -351,6 +368,7 @@ export function createNotificationDeliveryRecord(input: {
     createdAt,
     updatedAt,
     lastAttemptAt,
+    firstAttemptAt,
     deliveredAt,
     terminalAt
   });

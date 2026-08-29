@@ -344,8 +344,9 @@ class FakePoolClient {
         created_at: params[11],
         updated_at: params[12],
         last_attempt_at: params[13],
-        delivered_at: params[14],
-        terminal_at: params[15]
+        first_attempt_at: params[14],
+        delivered_at: params[15],
+        terminal_at: params[16]
       };
       this.state.deliveries.set(delivery.delivery_id, delivery);
       return { rows: [] };

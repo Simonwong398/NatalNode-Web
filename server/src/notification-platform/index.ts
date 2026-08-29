@@ -52,6 +52,31 @@ export type {
   NotificationNotEnqueuedReason
 } from './notification-delivery-domain.js';
 
+export {
+  NotificationDeliveryWorker,
+  boundedRetryAfterSeconds,
+  createUnavailableNotificationDeliveryEligibility,
+  isRetryableTransportOutcome,
+  notificationRetryDelaySeconds,
+  NOTIFICATION_DELIVERY_ATTEMPT_TIMEOUT_MILLISECONDS,
+  NOTIFICATION_DELIVERY_CLAIM_BATCH_SIZE,
+  NOTIFICATION_DELIVERY_LEASE_SECONDS,
+  NOTIFICATION_DELIVERY_MAX_ATTEMPTS,
+  NOTIFICATION_DELIVERY_RETRY_DELAYS_SECONDS,
+  NOTIFICATION_RETRY_AFTER_MAXIMUM_SECONDS
+} from './notification-delivery-worker.js';
+export type {
+  CurrentNotificationDeliveryEligibility,
+  CurrentNotificationDeliveryEligibilityInput,
+  NotificationDeliveryClaim,
+  NotificationDeliveryPersistedState,
+  NotificationDeliveryProcessingResult,
+  NotificationDeliverySkipReason,
+  NotificationDeliveryWorkerDependencies,
+  NotificationDeliveryWorkerRepository,
+  NotificationDeliveryWorkerRunResult
+} from './notification-delivery-worker.js';
+
 export type {
   NotificationEnqueuePersistenceInput,
   NotificationEnqueueRepository,
@@ -150,5 +175,6 @@ export type {
 export {
   PostgresNotificationPreferenceRepository,
   PostgresNotificationEnqueueRepository,
+  PostgresNotificationDeliveryWorkerRepository,
   PostgresPushSubscriptionRepository
 } from './postgres/index.js';

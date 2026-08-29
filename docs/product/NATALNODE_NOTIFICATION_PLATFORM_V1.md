@@ -2,7 +2,7 @@
 
 | Field | Value |
 |---|---|
-| Status | **PASS / CONTRACT AMENDMENT CLOSED / APPROVED TECHNICAL CONTRACT / B3 IMPLEMENTED LOCALLY / B4A FROZEN / B4B1 IMPLEMENTED LOCALLY / B4B2 IMPLEMENTED LOCALLY / SECURITY REVIEW REQUIRED / B4B3-B4B4 IMPLEMENTATION DEFERRED / LIVE WEB PUSH DELIVERY NOT IMPLEMENTED** |
+| Status | **PASS / CONTRACT AMENDMENT CLOSED / APPROVED TECHNICAL CONTRACT / B3 IMPLEMENTED LOCALLY / B4A FROZEN / B4B1 IMPLEMENTED LOCALLY / B4B2 IMPLEMENTED LOCALLY / B4B3 IMPLEMENTED LOCALLY / CONCURRENCY & SECURITY REVIEW REQUIRED / B4B4 DEFERRED / LIVE WEB PUSH DELIVERY NOT IMPLEMENTED** |
 | Task | `WEB-NOTIFY-001B4A-R1` |
 | Reviewed baseline | `9d188bbe491d5f4038e49fe920cacd720c9a8d33` (`docs: define web push delivery contract`) |
 | Date | 2026-08-29 |
@@ -1050,7 +1050,9 @@ PostgreSQL row locking with `FOR UPDATE SKIP LOCKED`. It selects due
 - a newly generated opaque `claim_token`;
 - `claim_expires_at = now() + 2 minutes`;
 - `attempt_count = attempt_count + 1`; and
-- the corresponding update/attempt timestamps.
+- the corresponding update/attempt timestamps. The additive delivery field
+  `first_attempt_at` is set exactly once on the first claim and remains the
+  durable anchor for the 24-hour retry horizon.
 
 The adapter attempt has a local timeout no longer than `30 seconds`, leaving a
 bounded lease-recovery margin. Completion updates must match both
@@ -1084,12 +1086,13 @@ The preferred PostgreSQL row-lock modes are:
 
     owner users row                 FOR KEY SHARE
     channel/category preference     FOR SHARE
-    target PushSubscription         FOR SHARE
+    target PushSubscription         FOR UPDATE
     claimed delivery                FOR UPDATE
 
 `FOR KEY SHARE` on the owner conflicts with the existing account-erasure
 transaction's `FOR UPDATE` root lock. `FOR SHARE` on a preference row conflicts
-with its status-changing `UPDATE`, and `FOR SHARE` on a PushSubscription row
+with its status-changing `UPDATE`, and `FOR UPDATE` on a PushSubscription row
+provides the strong target lock required for exact-target invalidation and
 conflicts with its hard `DELETE` and status-changing `UPDATE`. The delivery row
 uses `FOR UPDATE` so the worker can validate `PROCESSING` state and
 `claim_token`, then persist the attempt outcome without allowing another claim
@@ -1279,7 +1282,7 @@ removed with that root:
 To close the race between a worker and successful deletion, the final-send
 transaction uses the exact lock order and preferred modes in section 25.4:
 owner `users` `FOR KEY SHARE`, then the channel and category preference rows
-`FOR SHARE`, then the target `PushSubscription` `FOR SHARE`, and finally the
+`FOR SHARE`, then the target `PushSubscription` `FOR UPDATE`, and finally the
 claimed delivery `FOR UPDATE`. It holds that bounded transaction through the
 transport attempt and its state update. The existing erasure transaction's
 `FOR UPDATE` root lock therefore either wins first (the worker observes no
@@ -1535,8 +1538,8 @@ The first usable foundation is limited to:
 It excludes inbox/history, arbitrary test messages, a general messaging bus,
 astrology trigger semantics, paid plan logic, provider-specific UI, and live
 delivery. B4A freezes the delivery contract only; B4B1 now provides the local
-persistence and enqueue foundation, while B4B3-B4B4 remain deferred until
-their separately authorized slices and gates exist.
+persistence and enqueue foundation, while B4B4 remains deferred until its
+separately authorized validation gate exists.
 
 ## 44. Implementation-readiness matrix
 
@@ -1551,7 +1554,7 @@ approval.
 | Permission UX/settings UI | `IMPLEMENTED LOCALLY / PRODUCT-OWNER VISUAL RE-ACCEPTANCE REQUIRED` | Account Notifications UI uses explicit user gestures and all supported/denied/unavailable states |
 | Service worker | `IMPLEMENTED LOCALLY / PRODUCT-OWNER VISUAL RE-ACCEPTANCE REQUIRED` | Root-hosted narrow push/click worker; no fetch/cache/offline or public-development fake |
 | Web Push adapter | `IMPLEMENTED LOCALLY / SECURITY REVIEW REQUIRED` | Provider-neutral `web-push` protocol seam, complete server-only VAPID readiness, bounded outcomes, and redaction; no live send route |
-| Durable outbox/worker | `IMPLEMENTED LOCALLY / SECURITY REVIEW REQUIRED` | B4B1 migration, repository, and typed enqueue foundation; worker executable, deployment invocation, and live acceptance remain deferred |
+| Durable outbox/worker | `IMPLEMENTED LOCALLY / CONCURRENCY & SECURITY REVIEW REQUIRED` | B4B1 persistence plus B4B3 bounded worker claim/recovery/final-send implementation; deployment invocation and live acceptance remain deferred |
 | Entitlement integration | `FUTURE SUBSCRIPTION-GATED` | Approved product/billing entitlement source required |
 | Astrology alert producers | `ENGINE/TRIGGER-GATED` | Separate source-grounded trigger/scientific contract required |
 | Notification retention/enforcement | `POLICY-GATED / OPERATIONS-GATED` | Durations, owners, exceptions, backup/restore, deletion, scheduler |
@@ -1605,8 +1608,13 @@ Current implementation status:
   provider-neutral `WebPushTransport`, per-call VAPID configuration/readiness,
   P-256 public/private match validation, bounded protocol outcomes, and
   redaction. No worker or live send route exists.
-- `WEB-NOTIFY-001B4B3` — **NOT STARTED**: worker claim/recovery, bounded
-  retry/backoff, final-gate revalidation, and subscription invalidation.
+- `WEB-NOTIFY-001B4B3` — **IMPLEMENTED LOCALLY / CONCURRENCY & SECURITY
+  REVIEW REQUIRED**: separate bounded consumer worker/executable, due-row
+  claim and two-minute lease fencing, expired-claim recovery, bounded retry
+  scheduling, final authority serialization, current preference/eligibility
+  revalidation, existing `WebPushTransport` invocation, delivery persistence,
+  and exact-target subscription invalidation. No B4B4 live acceptance is
+  included.
 - `WEB-NOTIFY-001B4B4` — **NOT STARTED**: bounded integration validation and
   local live-delivery acceptance only when legitimate developer-owned
   configuration exists.
@@ -1687,10 +1695,16 @@ Service Worker, or live-send route is introduced.
 
 ### `WEB-NOTIFY-001B4B3` — Worker, retry, and invalidation
 
-**NOT STARTED.** Implement the separate worker/executable, atomic claim/lease
-recovery, final eligibility gate, bounded retry schedule, terminal handling,
-and target-only PushSubscription invalidation. Do not add Developer
-notifications or new astrology trigger semantics.
+**IMPLEMENTED LOCALLY / CONCURRENCY & SECURITY REVIEW REQUIRED.** This slice
+adds the separate bounded consumer worker/executable, atomic due-row
+claim/lease fencing, additive `first_attempt_at` persistence for the exact
+24-hour retry horizon, expired-claim recovery, deterministic retry/backoff,
+final-send lock ordering and authority revalidation, existing
+`WebPushTransport` invocation, bounded delivery-state persistence, graceful
+shutdown, and exact-target-only invalidation. The current eligibility source
+remains a required server-internal dependency and the executable fails closed
+when it is unavailable. No Developer notifications, new astrology trigger
+semantics, live provider acceptance, or B4B4 implementation is included.
 
 ### `WEB-NOTIFY-001B4B4` — Bounded integration validation
 
@@ -1842,7 +1856,7 @@ unrelated source inspection are intentionally not run.
     Delivery guarantee                  = BOUNDED BEST-EFFORT / AT-LEAST-ONCE-STYLE; NOT EXACTLY ONCE
     Billing/subscription implementation = DEFERRED
     Astrology trigger implementation    = DEFERRED
-    Runtime implementation             = B3 LOCAL BROWSER FOUNDATION; B4B1 LOCAL PERSISTENCE/ENQUEUE FOUNDATION; B4B2 LOCAL VAPID/TRANSPORT FOUNDATION; B4B3-B4B4 DEFERRED; LIVE DELIVERY NOT IMPLEMENTED
+    Runtime implementation             = B3 LOCAL BROWSER FOUNDATION; B4B1 LOCAL PERSISTENCE/ENQUEUE FOUNDATION; B4B2 LOCAL VAPID/TRANSPORT FOUNDATION; B4B3 LOCAL WORKER FOUNDATION; B4B4 DEFERRED; LIVE DELIVERY NOT IMPLEMENTED
     Live/deployment acceptance          = PRODUCT-OWNER VISUAL RE-ACCEPTANCE REQUIRED / LIVE EXTERNAL GATES OPEN
     Historical P0 status               = PRESERVED; NEW SCOPE AFTER WEB-P0-READY-003
     WEB-P0-POLICY-001A                 = NOT EXECUTED / DEFERRED
@@ -1850,12 +1864,13 @@ unrelated source inspection are intentionally not run.
     WEB-NOTIFY-001B4A                  = APPROVED TECHNICAL CONTRACT / IMPLEMENTATION DEFERRED
     WEB-NOTIFY-001B4B1               = IMPLEMENTED LOCALLY / SECURITY REVIEW REQUIRED
     WEB-NOTIFY-001B4B2               = IMPLEMENTED LOCALLY / SECURITY REVIEW REQUIRED
-    WEB-NOTIFY-001B4B3/B4B4         = NOT STARTED
+    WEB-NOTIFY-001B4B3               = IMPLEMENTED LOCALLY / CONCURRENCY & SECURITY REVIEW REQUIRED
+    WEB-NOTIFY-001B4B4               = NOT STARTED
 
-The B3 foundation, B4B1 persistence/enqueue boundary, and B4B2
-VAPID/transport foundation are complete locally at their respective
-implementation boundaries, while B4A remains complete at the contract
-boundary and B4B3-B4B4 remain deferred. No automatic browser permission is
-requested, no notification is sent, no private secret is configured, and no
-subscription/payment/provider decision or live delivery acceptance is implied
-by this document.
+The B3 foundation, B4B1 persistence/enqueue boundary, B4B2 VAPID/transport
+foundation, and B4B3 bounded worker boundary are complete locally at their
+respective implementation boundaries, while B4A remains complete at the
+contract boundary and B4B4 remains deferred. No automatic browser permission
+is requested, no live external notification is sent by local validation, no
+private secret is configured by this document, and no subscription/payment/
+provider decision or live delivery acceptance is implied by this document.
