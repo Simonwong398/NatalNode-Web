@@ -21,9 +21,11 @@ const EXPECTED_STATUS_BY_CODE = {
   NOT_FOUND: 404,
   PAYLOAD_TOO_LARGE: 413,
   UNSUPPORTED_MEDIA_TYPE: 415,
+  PUSH_SUBSCRIPTION_UNAVAILABLE: 409,
   RATE_LIMITED: 429,
   INTERNAL_ERROR: 500,
-  CALCULATION_UNAVAILABLE: 503
+  CALCULATION_UNAVAILABLE: 503,
+  NOTIFICATION_UNAVAILABLE: 503
 };
 
 const EXPECTED_TITLE_BY_STATUS = {
@@ -33,6 +35,7 @@ const EXPECTED_TITLE_BY_STATUS = {
   404: 'Not Found',
   413: 'Payload Too Large',
   415: 'Unsupported Media Type',
+  409: 'Conflict',
   429: 'Too Many Requests',
   500: 'Internal Server Error',
   503: 'Service Unavailable'

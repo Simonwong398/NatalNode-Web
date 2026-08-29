@@ -98,6 +98,38 @@ export const ACCOUNT_DATA_EXPORT_FEEDBACK_SQL = `
   ORDER BY created_at ASC, feedback_id ASC
   LIMIT $4`;
 
+export const ACCOUNT_DATA_EXPORT_NOTIFICATION_CHANNEL_PREFERENCES_SQL = `
+  SELECT
+    channel,
+    enabled,
+    created_at,
+    updated_at
+  FROM notification_channel_preferences
+  WHERE user_id = $1
+  ORDER BY channel ASC`;
+
+export const ACCOUNT_DATA_EXPORT_NOTIFICATION_CATEGORY_PREFERENCES_SQL = `
+  SELECT
+    category,
+    enabled,
+    created_at,
+    updated_at
+  FROM notification_category_preferences
+  WHERE user_id = $1
+  ORDER BY category ASC`;
+
+export const ACCOUNT_DATA_EXPORT_PUSH_SUBSCRIPTIONS_SQL = `
+  SELECT
+    subscription_id,
+    status,
+    created_at,
+    updated_at,
+    last_success_at,
+    invalidated_at
+  FROM push_subscriptions
+  WHERE user_id = $1
+  ORDER BY created_at ASC, subscription_id ASC`;
+
 export interface AccountDataExportUserRow {
   readonly user_id: string;
   readonly created_at: Date | string;
@@ -148,4 +180,27 @@ export interface AccountDataExportFeedbackRow {
   readonly category: string;
   readonly message: string;
   readonly created_at: Date | string;
+}
+
+export interface AccountDataExportNotificationChannelPreferenceRow {
+  readonly channel: 'WEB_PUSH';
+  readonly enabled: boolean;
+  readonly created_at: Date | string;
+  readonly updated_at: Date | string;
+}
+
+export interface AccountDataExportNotificationCategoryPreferenceRow {
+  readonly category: 'ACCOUNT' | 'SYSTEM' | 'ASTROLOGY_ALERT';
+  readonly enabled: boolean;
+  readonly created_at: Date | string;
+  readonly updated_at: Date | string;
+}
+
+export interface AccountDataExportPushSubscriptionRow {
+  readonly subscription_id: string;
+  readonly status: 'ACTIVE' | 'INVALIDATED';
+  readonly created_at: Date | string;
+  readonly updated_at: Date | string;
+  readonly last_success_at: Date | string | null;
+  readonly invalidated_at: Date | string | null;
 }

@@ -10,6 +10,7 @@ export type ProblemStatus =
   | 404
   | 413
   | 415
+  | 409
   | 429
   | 500
   | 503;
@@ -22,9 +23,11 @@ export type ProblemCode =
   | 'NOT_FOUND'
   | 'PAYLOAD_TOO_LARGE'
   | 'UNSUPPORTED_MEDIA_TYPE'
+  | 'PUSH_SUBSCRIPTION_UNAVAILABLE'
   | 'RATE_LIMITED'
   | 'INTERNAL_ERROR'
-  | 'CALCULATION_UNAVAILABLE';
+  | 'CALCULATION_UNAVAILABLE'
+  | 'NOTIFICATION_UNAVAILABLE';
 
 export type ProblemDetailKey =
   | 'INVALID_REQUEST'
@@ -35,6 +38,8 @@ export type ProblemDetailKey =
   | 'NOT_FOUND'
   | 'PAYLOAD_TOO_LARGE'
   | 'UNSUPPORTED_MEDIA_TYPE'
+  | 'PUSH_SUBSCRIPTION_UNAVAILABLE'
+  | 'NOTIFICATION_UNAVAILABLE'
   | 'RATE_LIMITED'
   | 'INTERNAL_ERROR'
   | 'CALCULATION_UNAVAILABLE';
@@ -47,9 +52,11 @@ const PROBLEM_STATUS_BY_CODE_INTERNAL = {
   NOT_FOUND: 404,
   PAYLOAD_TOO_LARGE: 413,
   UNSUPPORTED_MEDIA_TYPE: 415,
+  PUSH_SUBSCRIPTION_UNAVAILABLE: 409,
   RATE_LIMITED: 429,
   INTERNAL_ERROR: 500,
-  CALCULATION_UNAVAILABLE: 503
+  CALCULATION_UNAVAILABLE: 503,
+  NOTIFICATION_UNAVAILABLE: 503
 } as const satisfies Readonly<Record<ProblemCode, ProblemStatus>>;
 
 export const PROBLEM_STATUS_BY_CODE = Object.freeze(
@@ -63,6 +70,7 @@ const PROBLEM_TITLE_BY_STATUS_INTERNAL = {
   404: 'Not Found',
   413: 'Payload Too Large',
   415: 'Unsupported Media Type',
+  409: 'Conflict',
   429: 'Too Many Requests',
   500: 'Internal Server Error',
   503: 'Service Unavailable'
@@ -84,9 +92,12 @@ const PROBLEM_DETAIL_REGISTRY = {
   NOT_FOUND: 'The requested resource was not found.',
   PAYLOAD_TOO_LARGE: 'The request is too large.',
   UNSUPPORTED_MEDIA_TYPE: 'The request media type is not supported.',
+  PUSH_SUBSCRIPTION_UNAVAILABLE:
+    'This browser notification subscription is unavailable for this account.',
   RATE_LIMITED: 'Too many requests. Please try again later.',
   INTERNAL_ERROR: 'An unexpected server error occurred.',
-  CALCULATION_UNAVAILABLE: 'Calculation is currently unavailable.'
+  CALCULATION_UNAVAILABLE: 'Calculation is currently unavailable.',
+  NOTIFICATION_UNAVAILABLE: 'Notification settings are currently unavailable.'
 } as const satisfies Readonly<Record<ProblemDetailKey, string>>;
 
 export const PROBLEM_DETAIL_BY_KEY = Object.freeze(PROBLEM_DETAIL_REGISTRY);
@@ -99,9 +110,11 @@ const DETAIL_KEYS_BY_CODE = {
   NOT_FOUND: ['NOT_FOUND'],
   PAYLOAD_TOO_LARGE: ['PAYLOAD_TOO_LARGE'],
   UNSUPPORTED_MEDIA_TYPE: ['UNSUPPORTED_MEDIA_TYPE'],
+  PUSH_SUBSCRIPTION_UNAVAILABLE: ['PUSH_SUBSCRIPTION_UNAVAILABLE'],
   RATE_LIMITED: ['RATE_LIMITED'],
   INTERNAL_ERROR: ['INTERNAL_ERROR'],
-  CALCULATION_UNAVAILABLE: ['CALCULATION_UNAVAILABLE']
+  CALCULATION_UNAVAILABLE: ['CALCULATION_UNAVAILABLE'],
+  NOTIFICATION_UNAVAILABLE: ['NOTIFICATION_UNAVAILABLE']
 } as const satisfies Readonly<Record<ProblemCode, readonly ProblemDetailKey[]>>;
 
 type ProblemDetailKeyForCode<Code extends ProblemCode> =

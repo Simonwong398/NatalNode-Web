@@ -96,6 +96,29 @@ function createSnapshot(options = {}) {
     message: 'Feedback with "quotes" and unicode 星',
     createdAt: '2026-08-27T03:00:00.000Z'
   }];
+  const notificationData = options.notificationData ?? {
+    channelPreferences: [{
+      channel: 'WEB_PUSH',
+      enabled: true,
+      createdAt: '2026-08-27T04:00:00.000Z',
+      updatedAt: '2026-08-27T04:00:00.000Z'
+    }],
+    categoryPreferences: [{
+      category: 'ACCOUNT',
+      enabled: false,
+      createdAt: '2026-08-27T04:01:00.000Z',
+      updatedAt: '2026-08-27T04:01:00.000Z'
+    }],
+    pushSubscriptions: [{
+      subscriptionId: 'subscription-a',
+      channel: 'WEB_PUSH',
+      status: 'ACTIVE',
+      createdAt: '2026-08-27T04:02:00.000Z',
+      updatedAt: '2026-08-27T04:02:00.000Z',
+      lastSuccessAt: null,
+      invalidatedAt: null
+    }]
+  };
   let commits = 0;
   let rollbacks = 0;
 
@@ -148,6 +171,14 @@ function createSnapshot(options = {}) {
         items: feedback,
         nextCursor: null
       };
+    },
+    async listNotifications() {
+      events.push('notifications:initial');
+      if (options.failNotifications) {
+        throw new Error('private notification query failure');
+      }
+
+      return notificationData;
     },
     async commit() {
       commits += 1;
@@ -575,7 +606,7 @@ test('account export streams the approved envelope with safe attachment headers 
   const body = await response.text();
   const exportValue = JSON.parse(body);
 
-  assert.equal(exportValue.exportSchemaVersion, '1.0');
+  assert.equal(exportValue.exportSchemaVersion, '1.1');
   assert.equal(exportValue.exportedAt, SERVER_NOW);
   assert.deepEqual(exportValue.account.identities, [defaultIdentity()]);
   assert.equal(exportValue.account.createdAt, '2026-08-01T00:00:00.000Z');
@@ -591,6 +622,32 @@ test('account export streams the approved envelope with safe attachment headers 
     message: 'Feedback with "quotes" and unicode 星',
     createdAt: '2026-08-27T03:00:00.000Z'
   }]);
+  assert.deepEqual(exportValue.notifications, {
+    channelPreferences: [{
+      channel: 'WEB_PUSH',
+      enabled: true,
+      createdAt: '2026-08-27T04:00:00.000Z',
+      updatedAt: '2026-08-27T04:00:00.000Z'
+    }],
+    categoryPreferences: [{
+      category: 'ACCOUNT',
+      enabled: false,
+      createdAt: '2026-08-27T04:01:00.000Z',
+      updatedAt: '2026-08-27T04:01:00.000Z'
+    }],
+    pushSubscriptions: [{
+      subscriptionId: 'subscription-a',
+      channel: 'WEB_PUSH',
+      status: 'ACTIVE',
+      createdAt: '2026-08-27T04:02:00.000Z',
+      updatedAt: '2026-08-27T04:02:00.000Z',
+      lastSuccessAt: null,
+      invalidatedAt: null
+    }]
+  });
+  assert.equal(body.includes('endpoint'), false);
+  assert.equal(body.includes('p256dh'), false);
+  assert.equal(body.includes('auth'), false);
   assert.equal(body.includes('user-a'), false);
   assert.equal(body.includes('chart-id'), false);
 
@@ -598,6 +655,30 @@ test('account export streams the approved envelope with safe attachment headers 
   assert.equal(snapshot.commits, 1);
   assert.equal(snapshot.rollbacks, 0);
   assert.equal(snapshot.events.at(-1), 'commit');
+});
+
+test('account export preserves an explicit empty notification state', async () => {
+  const harness = createHarness({
+    snapshotFactory: () => createSnapshot({
+      notificationData: {
+        channelPreferences: [],
+        categoryPreferences: [],
+        pushSubscriptions: []
+      }
+    })
+  });
+
+  const response = await postExport(harness.app, { edgeIp: '198.51.100.81' });
+  assert.equal(response.status, 200);
+  const exportValue = JSON.parse(await response.text());
+
+  assert.deepEqual(exportValue.notifications, {
+    channelPreferences: [],
+    categoryPreferences: [],
+    pushSubscriptions: []
+  });
+  assert.equal(Object.prototype.hasOwnProperty.call(exportValue.notifications, 'channel'), false);
+  assert.equal(Object.prototype.hasOwnProperty.call(exportValue.notifications, 'enabled'), false);
 });
 
 test('empty request framing, authentication, Origin, and recent-auth gates fail before checkout', async () => {
@@ -903,6 +984,7 @@ test('snapshot pagination is consumed in order and commit failure prevents final
   assert.deepEqual(exportValue.account.identities, [defaultIdentity(), secondIdentity]);
   assert.deepEqual(harness.snapshots[0].events, [
     'identities:initial',
+    'notifications:initial',
     'identities:identity-next',
     'charts:initial',
     'feedback:initial',

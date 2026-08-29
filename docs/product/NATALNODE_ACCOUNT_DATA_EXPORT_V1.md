@@ -7,6 +7,14 @@
 
 This document freezes the P0 technical contract for **Download my data** / **Export my data**. It is an application-data disclosure contract, not legal copy, a database-dump specification, or an implementation.
 
+### WEB-NOTIFY-001B2 additive notification metadata amendment
+
+The account-owned Consumer notification state introduced by
+`WEB-NOTIFY-001B2` is included as a privacy-minimized top-level `notifications`
+section. The amendment contains only safe preference and subscription
+metadata, remains owner-scoped inside the existing repeatable-read snapshot,
+and never exports push endpoints, endpoint hashes, or browser push keys.
+
 ### WEB-API-001B3B-R1 delivery revision
 
 The browser delivery contract below supersedes the earlier single-request
@@ -62,6 +70,7 @@ Observed current state:
 - `chart_notes` belongs to both a chart and a user, and both links participate in owner isolation.
 - `email_magic_link_challenges` is linked by normalized email rather than `user_id`; account erasure resolves owned Email Magic Link subjects and removes matching challenge rows in the erasure transaction.
 - account erasure is already a dedicated, pool-owned PostgreSQL transaction boundary. Export must remain compatible with that graph but must not modify it.
+- the existing Consumer notification persistence foundation is linked to `users.user_id` and is included in export only through the reviewed safe metadata projection below.
 - the authenticated principal is server-derived and contains immutable `userId` and `sessionCreatedAt` values.
 - unsafe API requests already have an exact-Origin boundary.
 - current API security headers already establish `Cache-Control: no-store`, `Referrer-Policy: no-referrer`, `X-Content-Type-Options: nosniff`, and `X-Frame-Options: DENY`.
@@ -119,8 +128,11 @@ Classification labels used throughout this contract:
 | Saved chart | `charts` | `user_id -> users.user_id` | Primary Vault content: naming, organization, birth input, saved calculation snapshot, and provenance | `chart_id`, `user_id` are internal keys; birth data is sensitive payload | A/B | One object in `charts[]`, with notes nested under it | None |
 | Chart note | `chart_notes` | `chart_id -> charts.chart_id` and `user_id -> users.user_id` | Private user-authored content associated with a saved chart | `note_id`, `chart_id`, `user_id` are internal keys | A/B | Nested in owning chart's `notes[]` with content and timestamps | None |
 | Private Feedback | `feedback_submissions` | `user_id -> users.user_id` | User-submitted private Feedback content | `feedback_id`, `user_id` are internal keys | A/B | One object in top-level `feedback[]` | None |
+| Consumer notification state | `notification_channel_preferences`, `notification_category_preferences`, `push_subscriptions` | `user_id -> users.user_id` | Account notification choices and safe subscription lifecycle metadata | `subscription_id`, endpoint, endpoint hash, `p256dh`, `auth`, `user_id` | A/B with credential fields C | Safe objects in top-level `notifications` collections; invalidated history may be retained as safe metadata | WEB-NOTIFY-001B2 |
 
-No other account-linked persisted domain is present in the current migrations. In particular, the repository has no current subscription, billing, Google Sign-In implementation or Google-safe export presenter, AI-usage, export-job, export-audit, or provider-owned scientific record to add to V1.
+No other account-linked persisted domain is in scope for this export. Billing,
+Google-safe identity presentation, AI usage, export jobs, export audit, and
+provider-owned scientific records remain outside this contract.
 
 ## 4. Export classification matrix
 
@@ -165,6 +177,8 @@ V1 includes exactly these current domains:
 6. Each chart's stored Engine, chart-schema, astronomy-configuration, and provenance references.
 7. Every private note owned by the account and associated with an exported chart.
 8. Every owner-linked private Feedback submission.
+9. The account's safe Consumer notification preferences and PushSubscription
+   lifecycle metadata, without browser push credentials.
 
 The export reads stored facts only. It does not calculate, enrich, repair, normalize again, refresh, reinterpret, or fetch data from another service.
 
@@ -315,6 +329,41 @@ Every Feedback submission linked to the authenticated account is included as:
 
 The existing Feedback persistence surface is create-only. Future implementation must add a focused owner-scoped export read inside the account-export repository; it must not broaden the public Feedback API or add standalone Feedback history UI as part of server export work.
 
+### WEB-NOTIFY-001B2 Consumer notification metadata
+
+The additive top-level export section is shaped as:
+
+```json
+{
+  "notifications": {
+    "channelPreferences": [
+      { "channel": "WEB_PUSH", "enabled": true, "createdAt": "...", "updatedAt": "..." }
+    ],
+    "categoryPreferences": [
+      { "category": "ACCOUNT", "enabled": false, "createdAt": "...", "updatedAt": "..." }
+    ],
+    "pushSubscriptions": [
+      {
+        "subscriptionId": "server-owned-id",
+        "channel": "WEB_PUSH",
+        "status": "ACTIVE",
+        "createdAt": "...",
+        "updatedAt": "...",
+        "lastSuccessAt": null,
+        "invalidatedAt": null
+      }
+    ]
+  }
+}
+```
+
+The export includes only the authenticated account's rows. Empty collections
+remain empty arrays. `endpoint`, `endpointHash`, `p256dh`, and `auth` are never
+selected by the export projection and never appear in the exported response.
+The ordinary notification state API remains active-only; export may include
+safe retained invalidated history because it is lifecycle metadata, not a
+transport credential.
+
 ## 12. Guest, Public Sky, and scientific boundaries
 
 ### Guest data
@@ -343,7 +392,7 @@ type JsonValue =
   | { readonly [key: string]: JsonValue };
 
 interface NatalNodeAccountDataExportV1 {
-  readonly exportSchemaVersion: '1.0';
+  readonly exportSchemaVersion: '1.1';
   readonly exportedAt: string;
   readonly account: {
     readonly createdAt: string;
@@ -352,6 +401,7 @@ interface NatalNodeAccountDataExportV1 {
   };
   readonly charts: readonly AccountChartExportV1[];
   readonly feedback: readonly FeedbackExportV1[];
+  readonly notifications: NotificationsExportV1;
 }
 
 interface EmailMagicLinkExportIdentityV1 {
@@ -390,6 +440,36 @@ interface FeedbackExportV1 {
   readonly message: string;
   readonly createdAt: string;
 }
+
+interface NotificationsExportV1 {
+  readonly channelPreferences: readonly NotificationChannelPreferenceExportV1[];
+  readonly categoryPreferences: readonly NotificationCategoryPreferenceExportV1[];
+  readonly pushSubscriptions: readonly NotificationPushSubscriptionExportV1[];
+}
+
+interface NotificationChannelPreferenceExportV1 {
+  readonly channel: 'WEB_PUSH';
+  readonly enabled: boolean;
+  readonly createdAt: string;
+  readonly updatedAt: string;
+}
+
+interface NotificationCategoryPreferenceExportV1 {
+  readonly category: 'ACCOUNT' | 'SYSTEM' | 'ASTROLOGY_ALERT';
+  readonly enabled: boolean;
+  readonly createdAt: string;
+  readonly updatedAt: string;
+}
+
+interface NotificationPushSubscriptionExportV1 {
+  readonly subscriptionId: string;
+  readonly channel: 'WEB_PUSH';
+  readonly status: 'ACTIVE' | 'INVALIDATED';
+  readonly createdAt: string;
+  readonly updatedAt: string;
+  readonly lastSuccessAt: string | null;
+  readonly invalidatedAt: string | null;
+}
 ```
 
 For records produced by the current application, `normalizedChartRequest` is expected to conform to `ChartRequest` and `canonicalChartResult` is expected to conform to `ChartResult`. The export authority, however, is the persisted JSONB snapshot—not whichever scientific parser happens to be current when the user downloads it.
@@ -400,7 +480,7 @@ An illustrative empty-account envelope is:
 
 ```json
 {
-  "exportSchemaVersion": "1.0",
+  "exportSchemaVersion": "1.1",
   "exportedAt": "2026-08-27T12:00:00.000Z",
   "account": {
     "createdAt": "2026-08-01T12:00:00.000Z",
@@ -415,7 +495,12 @@ An illustrative empty-account envelope is:
     ]
   },
   "charts": [],
-  "feedback": []
+  "feedback": [],
+  "notifications": {
+    "channelPreferences": [],
+    "categoryPreferences": [],
+    "pushSubscriptions": []
+  }
 }
 ```
 
@@ -425,7 +510,9 @@ The top-level names are product-domain names, not raw table names. Data is not d
 
 ## 14. Export schema versioning
 
-`exportSchemaVersion` identifies the NatalNode account-export envelope. V1 is the exact string `"1.0"`.
+`exportSchemaVersion` identifies the NatalNode account-export envelope. The
+current additive V1.1 representation is the exact string `"1.1"`; it preserves
+all V1.0 fields and adds the reviewed top-level `notifications` section.
 
 This is distinct from:
 
@@ -434,7 +521,7 @@ This is distinct from:
 
 Version rules:
 
-- compatible additive fields may advance the minor version after contract review;
+- compatible additive fields may advance the minor version after contract review; the Consumer notification metadata amendment advances V1 from `1.0` to `1.1`;
 - removal, renaming, meaning changes, incompatible type changes, or nesting changes require a major version;
 - a future identity type requires an explicit export presenter and a reviewed schema change;
 - existing stored `ChartResult` values remain in their persisted scientific schema and are never upgraded merely because export schema changes; and

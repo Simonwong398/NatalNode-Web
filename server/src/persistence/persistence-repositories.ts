@@ -6,6 +6,10 @@ import type { EmailMagicLinkChallengeRepository } from './email-magic-link-chall
 import type { FeedbackSubmissionRepository } from './feedback-submission-repository.js';
 import type { UserRepository } from './user-repository.js';
 import type { VaultChartRepository } from './vault-chart-repository.js';
+import type {
+  NotificationPreferenceRepository,
+  PushSubscriptionRepository
+} from '../notification-platform/repositories.js';
 
 export interface PersistenceRepositories {
   readonly users: UserRepository;
@@ -16,4 +20,6 @@ export interface PersistenceRepositories {
   readonly feedbackSubmissions: FeedbackSubmissionRepository;
   readonly vaultCharts: VaultChartRepository;
   readonly chartNotes: ChartNoteRepository;
+  readonly notificationPreferences: NotificationPreferenceRepository;
+  readonly pushSubscriptions: PushSubscriptionRepository;
 }

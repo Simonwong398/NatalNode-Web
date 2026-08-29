@@ -19,6 +19,7 @@ import type {
 import type { RequestAuthenticator } from './auth/index.js';
 import type { ChartCalculationService } from './cache/cached-chart-calculator.js';
 import type { Clock, IdGenerator } from './creation-boundaries.js';
+import type { NotificationAccountService } from '../notification-platform/notification-account-service.js';
 
 export interface ServerDependencies {
   readonly publicWebOrigin: string;
@@ -32,6 +33,8 @@ export interface ServerDependencies {
   readonly engineClient: EngineClient;
   readonly chartCalculator: ChartCalculationService;
   readonly clock: Clock;
+  /** Omitted by public-development so authenticated notification use fails closed. */
+  readonly notificationAccountService?: NotificationAccountService;
   readonly secureTokenGenerator: SecureTokenGenerator;
   readonly tokenHasher: TokenHasher;
   readonly authenticationExpirationPolicy: AuthenticationExpirationPolicy;

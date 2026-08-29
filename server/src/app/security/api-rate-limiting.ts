@@ -57,6 +57,16 @@ export const P0_STAGING_RATE_LIMIT_POLICIES = {
     limit: 5,
     windowMs: 10 * 60 * 1_000
   },
+  notificationMutationEdge: {
+    identifier: 'NOTIFICATION_MUTATION_EDGE',
+    limit: 60,
+    windowMs: 10 * 60 * 1_000
+  },
+  notificationMutationAccount: {
+    identifier: 'NOTIFICATION_MUTATION_ACCOUNT',
+    limit: 60,
+    windowMs: 10 * 60 * 1_000
+  },
   vaultMutation: {
     identifier: 'VAULT_MUTATION',
     limit: 60,
@@ -221,6 +231,30 @@ function isVaultMutation(method: string, pathname: string): boolean {
   return false;
 }
 
+function isNotificationMutation(method: string, pathname: string): boolean {
+  if (
+    method === 'PUT' &&
+    (pathname === '/api/account/notifications/preferences/channel' ||
+      pathname === '/api/account/notifications/preferences/category')
+  ) {
+    return true;
+  }
+
+  if (
+    method === 'POST' &&
+    pathname === '/api/account/notifications/web-push/subscriptions'
+  ) {
+    return true;
+  }
+
+  return (
+    method === 'DELETE' &&
+    /^\/api\/account\/notifications\/web-push\/subscriptions\/[^/]+$/u.test(
+      pathname
+    )
+  );
+}
+
 export function selectP0StagingRateLimitPolicy(
   method: string,
   pathname: string
@@ -255,6 +289,10 @@ export function selectP0StagingRateLimitPolicy(
 
   if (method === 'DELETE' && pathname === '/api/account') {
     return P0_STAGING_RATE_LIMIT_POLICIES.accountDeletion;
+  }
+
+  if (isNotificationMutation(method, pathname)) {
+    return P0_STAGING_RATE_LIMIT_POLICIES.notificationMutationEdge;
   }
 
   return isVaultMutation(method, pathname)
@@ -345,6 +383,28 @@ export function enforceAccountExportPrepareRateLimit(
     const decision = limiter.attempt(
       P0_STAGING_RATE_LIMIT_POLICIES.accountExportPrepareEdge,
       clientIdentity
+    );
+
+    if (!decision.allowed) {
+      context.header('Retry-After', decision.retryAfterSeconds.toString());
+      return createProblemDetailsContextResponse(context, {
+        code: 'RATE_LIMITED',
+        detailKey: 'RATE_LIMITED'
+      });
+    }
+
+    await next();
+  };
+}
+
+export function enforceNotificationMutationRateLimit(
+  limiter: InMemoryP0StagingRateLimiter
+): MiddlewareHandler<AuthenticatedRequestEnv> {
+  return async (context, next) => {
+    const principal = context.get('authenticatedPrincipal');
+    const decision = limiter.attempt(
+      P0_STAGING_RATE_LIMIT_POLICIES.notificationMutationAccount,
+      principal.userId
     );
 
     if (!decision.allowed) {

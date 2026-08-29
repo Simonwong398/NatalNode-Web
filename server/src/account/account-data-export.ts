@@ -1,5 +1,5 @@
 /** The versioned envelope used by the account-export boundary. */
-export const ACCOUNT_DATA_EXPORT_SCHEMA_VERSION = '1.0' as const;
+export const ACCOUNT_DATA_EXPORT_SCHEMA_VERSION = '1.1' as const;
 
 export type JsonPrimitive = null | boolean | number | string;
 
@@ -70,12 +70,43 @@ export interface AccountDataExportFeedback {
   readonly createdAt: string;
 }
 
+export interface AccountDataExportNotificationChannelPreference {
+  readonly channel: 'WEB_PUSH';
+  readonly enabled: boolean;
+  readonly createdAt: string;
+  readonly updatedAt: string;
+}
+
+export interface AccountDataExportNotificationCategoryPreference {
+  readonly category: 'ACCOUNT' | 'SYSTEM' | 'ASTROLOGY_ALERT';
+  readonly enabled: boolean;
+  readonly createdAt: string;
+  readonly updatedAt: string;
+}
+
+export interface AccountDataExportNotificationPushSubscription {
+  readonly subscriptionId: string;
+  readonly channel: 'WEB_PUSH';
+  readonly status: 'ACTIVE' | 'INVALIDATED';
+  readonly createdAt: string;
+  readonly updatedAt: string;
+  readonly lastSuccessAt: string | null;
+  readonly invalidatedAt: string | null;
+}
+
+export interface AccountDataExportNotifications {
+  readonly channelPreferences: readonly AccountDataExportNotificationChannelPreference[];
+  readonly categoryPreferences: readonly AccountDataExportNotificationCategoryPreference[];
+  readonly pushSubscriptions: readonly AccountDataExportNotificationPushSubscription[];
+}
+
 export interface AccountDataExportV1 {
   readonly exportSchemaVersion: typeof ACCOUNT_DATA_EXPORT_SCHEMA_VERSION;
   readonly exportedAt: string;
   readonly account: AccountDataExportAccount;
   readonly charts: readonly AccountDataExportChart[];
   readonly feedback: readonly AccountDataExportFeedback[];
+  readonly notifications: AccountDataExportNotifications;
 }
 
 /**
@@ -124,6 +155,12 @@ export interface AccountDataExportFeedbackPresentationSource {
   readonly category: string;
   readonly message: string;
   readonly createdAt: string;
+}
+
+export interface AccountDataExportNotificationsPresentationSource {
+  readonly channelPreferences: readonly AccountDataExportNotificationChannelPreference[];
+  readonly categoryPreferences: readonly AccountDataExportNotificationCategoryPreference[];
+  readonly pushSubscriptions: readonly AccountDataExportNotificationPushSubscription[];
 }
 
 export class UnsupportedAccountDataExportIdentityError extends Error {
@@ -354,6 +391,34 @@ export function presentAccountDataExportFeedback(
   };
 }
 
+export function presentAccountDataExportNotifications(
+  source: AccountDataExportNotificationsPresentationSource
+): AccountDataExportNotifications {
+  return {
+    channelPreferences: source.channelPreferences.map((preference) => ({
+      channel: preference.channel,
+      enabled: preference.enabled,
+      createdAt: preference.createdAt,
+      updatedAt: preference.updatedAt
+    })),
+    categoryPreferences: source.categoryPreferences.map((preference) => ({
+      category: preference.category,
+      enabled: preference.enabled,
+      createdAt: preference.createdAt,
+      updatedAt: preference.updatedAt
+    })),
+    pushSubscriptions: source.pushSubscriptions.map((subscription) => ({
+      subscriptionId: subscription.subscriptionId,
+      channel: subscription.channel,
+      status: subscription.status,
+      createdAt: subscription.createdAt,
+      updatedAt: subscription.updatedAt,
+      lastSuccessAt: subscription.lastSuccessAt,
+      invalidatedAt: subscription.invalidatedAt
+    }))
+  };
+}
+
 /** Names used by the product contract remain available at this boundary. */
 export type NatalNodeAccountDataExportV1 = AccountDataExportV1;
 export type EmailMagicLinkExportIdentityV1 = AccountDataExportEmailMagicLinkIdentity;
@@ -361,3 +426,10 @@ export type GoogleExportIdentityV1 = AccountDataExportGoogleIdentity;
 export type AccountChartExportV1 = AccountDataExportChart;
 export type ChartNoteExportV1 = AccountDataExportNote;
 export type FeedbackExportV1 = AccountDataExportFeedback;
+export type NotificationChannelPreferenceExportV1 =
+  AccountDataExportNotificationChannelPreference;
+export type NotificationCategoryPreferenceExportV1 =
+  AccountDataExportNotificationCategoryPreference;
+export type NotificationPushSubscriptionExportV1 =
+  AccountDataExportNotificationPushSubscription;
+export type NotificationsExportV1 = AccountDataExportNotifications;

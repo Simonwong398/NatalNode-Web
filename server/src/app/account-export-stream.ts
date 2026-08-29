@@ -3,7 +3,8 @@ import {
   type AccountDataExportChartMetadata,
   type AccountDataExportFeedback,
   type AccountDataExportIdentity,
-  type AccountDataExportNote
+  type AccountDataExportNote,
+  type AccountDataExportNotifications
 } from '../account/account-data-export.js';
 import type {
   AccountDataExportCursor,
@@ -17,6 +18,7 @@ const STREAM_STOPPED_ERROR = new Error('Account export stream stopped.');
 export interface AccountExportStreamOptions {
   readonly snapshot: AccountDataExportSnapshot;
   readonly initialIdentityPage: AccountDataExportPage<AccountDataExportIdentity>;
+  readonly initialNotificationData: AccountDataExportNotifications;
   readonly exportedAt: string;
   readonly signal: AbortSignal;
   readonly onSuccess: () => Promise<void>;
@@ -38,7 +40,8 @@ export function serializeAccountExportValue(value: unknown): string {
 export function validateAccountExportInitialRepresentation(
   snapshot: AccountDataExportSnapshot,
   initialIdentityPage: AccountDataExportPage<AccountDataExportIdentity>,
-  exportedAt: string
+  exportedAt: string,
+  notificationData: AccountDataExportNotifications
 ): void {
   serializeAccountExportValue(ACCOUNT_DATA_EXPORT_SCHEMA_VERSION);
   serializeAccountExportValue(exportedAt);
@@ -48,6 +51,8 @@ export function validateAccountExportInitialRepresentation(
   for (const identity of initialIdentityPage.items) {
     serializeAccountExportValue(identity);
   }
+
+  serializeAccountExportValue(notificationData);
 }
 
 function assertStreamActive(signal: AbortSignal): void {
@@ -197,7 +202,11 @@ async function* accountExportChunks(
   assertStreamActive(signal);
   await options.onSuccess();
   assertStreamActive(signal);
-  yield ']}';
+  yield (
+    '],"notifications":' +
+    serialize(options.initialNotificationData) +
+    '}'
+  );
 }
 
 export function createAccountExportStream(

@@ -74,6 +74,79 @@ function createState() {
         message: 'B private feedback.',
         created_at: '2026-08-27T04:00:00.000Z'
       }
+    ],
+    notification_channel_preferences: [
+      {
+        user_id: USER_A,
+        channel: 'WEB_PUSH',
+        enabled: true,
+        created_at: '2026-08-27T07:00:00.000Z',
+        updated_at: '2026-08-27T07:00:00.000Z'
+      },
+      {
+        user_id: USER_B,
+        channel: 'WEB_PUSH',
+        enabled: false,
+        created_at: '2026-08-27T07:00:00.000Z',
+        updated_at: '2026-08-27T07:00:00.000Z'
+      }
+    ],
+    notification_category_preferences: [
+      {
+        user_id: USER_A,
+        category: 'ACCOUNT',
+        enabled: false,
+        created_at: '2026-08-27T07:01:00.000Z',
+        updated_at: '2026-08-27T07:01:00.000Z'
+      },
+      {
+        user_id: USER_B,
+        category: 'SYSTEM',
+        enabled: true,
+        created_at: '2026-08-27T07:01:00.000Z',
+        updated_at: '2026-08-27T07:01:00.000Z'
+      }
+    ],
+    push_subscriptions: [
+      {
+        subscription_id: 'subscription-a-active',
+        user_id: USER_A,
+        endpoint: 'https://push.example.test/a-active',
+        endpoint_hash: 'a'.repeat(64),
+        p256dh: 'synthetic-p256dh-a',
+        auth: 'synthetic-auth-a',
+        created_at: '2026-08-27T07:02:00.000Z',
+        updated_at: '2026-08-27T07:02:00.000Z',
+        last_success_at: null,
+        status: 'ACTIVE',
+        invalidated_at: null
+      },
+      {
+        subscription_id: 'subscription-a-invalidated',
+        user_id: USER_A,
+        endpoint: 'https://push.example.test/a-invalidated',
+        endpoint_hash: 'b'.repeat(64),
+        p256dh: 'synthetic-p256dh-b',
+        auth: 'synthetic-auth-b',
+        created_at: '2026-08-27T07:03:00.000Z',
+        updated_at: '2026-08-27T07:04:00.000Z',
+        last_success_at: '2026-08-27T07:03:30.000Z',
+        status: 'INVALIDATED',
+        invalidated_at: '2026-08-27T07:04:00.000Z'
+      },
+      {
+        subscription_id: 'subscription-b',
+        user_id: USER_B,
+        endpoint: 'https://push.example.test/b',
+        endpoint_hash: 'c'.repeat(64),
+        p256dh: 'synthetic-p256dh-c',
+        auth: 'synthetic-auth-c',
+        created_at: '2026-08-27T07:05:00.000Z',
+        updated_at: '2026-08-27T07:05:00.000Z',
+        last_success_at: null,
+        status: 'ACTIVE',
+        invalidated_at: null
+      }
     ]
   };
 }
@@ -255,6 +328,53 @@ class FakeClient {
       const rows = this.snapshot.feedback.filter((row) => row.user_id === copiedParams[0]);
       return {
         rows: sortedPage(rows, copiedParams[1], copiedParams[2], 'feedback_id', copiedParams[3])
+      };
+    }
+
+    if (normalized.includes('FROM NOTIFICATION_CHANNEL_PREFERENCES')) {
+      return {
+        rows: this.snapshot.notification_channel_preferences
+          .filter((row) => row.user_id === copiedParams[0])
+          .sort((left, right) => left.channel.localeCompare(right.channel))
+          .map((row) => ({
+            channel: row.channel,
+            enabled: row.enabled,
+            created_at: row.created_at,
+            updated_at: row.updated_at
+          }))
+      };
+    }
+
+    if (normalized.includes('FROM NOTIFICATION_CATEGORY_PREFERENCES')) {
+      return {
+        rows: this.snapshot.notification_category_preferences
+          .filter((row) => row.user_id === copiedParams[0])
+          .sort((left, right) => left.category.localeCompare(right.category))
+          .map((row) => ({
+            category: row.category,
+            enabled: row.enabled,
+            created_at: row.created_at,
+            updated_at: row.updated_at
+          }))
+      };
+    }
+
+    if (normalized.includes('FROM PUSH_SUBSCRIPTIONS')) {
+      return {
+        rows: this.snapshot.push_subscriptions
+          .filter((row) => row.user_id === copiedParams[0])
+          .sort((left, right) =>
+            left.created_at.localeCompare(right.created_at) ||
+            left.subscription_id.localeCompare(right.subscription_id)
+          )
+          .map((row) => ({
+            subscription_id: row.subscription_id,
+            status: row.status,
+            created_at: row.created_at,
+            updated_at: row.updated_at,
+            last_success_at: row.last_success_at,
+            invalidated_at: row.invalidated_at
+          }))
       };
     }
 
@@ -455,12 +575,46 @@ test('account root, identity, chart, note, and feedback reads are strictly scope
     createdAt: '2026-08-27T03:00:00.000Z'
   }]);
 
+  const notifications = await snapshot.listNotifications();
+  assert.deepEqual(notifications, {
+    channelPreferences: [{
+      channel: 'WEB_PUSH',
+      enabled: true,
+      createdAt: '2026-08-27T07:00:00.000Z',
+      updatedAt: '2026-08-27T07:00:00.000Z'
+    }],
+    categoryPreferences: [{
+      category: 'ACCOUNT',
+      enabled: false,
+      createdAt: '2026-08-27T07:01:00.000Z',
+      updatedAt: '2026-08-27T07:01:00.000Z'
+    }],
+    pushSubscriptions: [{
+      subscriptionId: 'subscription-a-active',
+      channel: 'WEB_PUSH',
+      status: 'ACTIVE',
+      createdAt: '2026-08-27T07:02:00.000Z',
+      updatedAt: '2026-08-27T07:02:00.000Z',
+      lastSuccessAt: null,
+      invalidatedAt: null
+    }, {
+      subscriptionId: 'subscription-a-invalidated',
+      channel: 'WEB_PUSH',
+      status: 'INVALIDATED',
+      createdAt: '2026-08-27T07:03:00.000Z',
+      updatedAt: '2026-08-27T07:04:00.000Z',
+      lastSuccessAt: '2026-08-27T07:03:30.000Z',
+      invalidatedAt: '2026-08-27T07:04:00.000Z'
+    }]
+  });
+
   const serialized = JSON.stringify({
     account: snapshot.account,
     identities: identities.items,
     chart: charts.items[0].chart,
     notes: notes.items,
-    feedback: feedback.items
+    feedback: feedback.items,
+    notifications
   });
   for (const internalId of [
     'user-a',
@@ -472,9 +626,18 @@ test('account root, identity, chart, note, and feedback reads are strictly scope
     'note-a-own',
     'note-b-own',
     'feedback-a',
-    'feedback-b'
+    'feedback-b',
+    'subscription-b'
   ]) {
     assert.equal(serialized.includes(internalId), false, internalId);
+  }
+  for (const sensitiveValue of [
+    'https://push.example.test/a-active',
+    'synthetic-p256dh-a',
+    'synthetic-auth-a',
+    'a'.repeat(64)
+  ]) {
+    assert.equal(serialized.includes(sensitiveValue), false, sensitiveValue);
   }
 
   await commitSnapshot(snapshot);

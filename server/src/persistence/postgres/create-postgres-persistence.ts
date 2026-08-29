@@ -8,6 +8,8 @@ import { PostgresEmailMagicLinkChallengeRepository } from './postgres-email-magi
 import { PostgresFeedbackSubmissionRepository } from './postgres-feedback-submission-repository.js';
 import { PostgresUserRepository } from './postgres-user-repository.js';
 import { PostgresVaultChartRepository } from './postgres-vault-chart-repository.js';
+import { PostgresNotificationPreferenceRepository } from '../../notification-platform/postgres/postgres-notification-preference-repository.js';
+import { PostgresPushSubscriptionRepository } from '../../notification-platform/postgres/postgres-push-subscription-repository.js';
 
 export function createPostgresPersistence(executor: SqlExecutor): PersistenceRepositories {
   return {
@@ -18,6 +20,10 @@ export function createPostgresPersistence(executor: SqlExecutor): PersistenceRep
     emailMagicLinkChallenges: new PostgresEmailMagicLinkChallengeRepository(executor),
     feedbackSubmissions: new PostgresFeedbackSubmissionRepository(executor),
     vaultCharts: new PostgresVaultChartRepository(executor),
-    chartNotes: new PostgresChartNoteRepository(executor)
+    chartNotes: new PostgresChartNoteRepository(executor),
+    notificationPreferences: new PostgresNotificationPreferenceRepository(
+      executor
+    ),
+    pushSubscriptions: new PostgresPushSubscriptionRepository(executor)
   };
 }

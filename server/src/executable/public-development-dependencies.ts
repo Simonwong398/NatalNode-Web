@@ -7,7 +7,9 @@ import type {
   EmailMagicLinkAuthLifecycle,
   EmailMagicLinkChallengeRepository,
   FeedbackSubmissionRepository,
+  NotificationPreferenceRepository,
   PersistenceRepositories,
+  PushSubscriptionRepository,
   UserRepository,
   VaultChartRepository
 } from '../persistence/index.js';
@@ -166,6 +168,24 @@ function createUnavailableChartNoteRepository(): ChartNoteRepository {
   };
 }
 
+function createUnavailableNotificationPreferenceRepository(): NotificationPreferenceRepository {
+  return {
+    findChannelPreference: unavailableAsync,
+    findCategoryPreference: unavailableAsync,
+    setChannelPreference: unavailableAsync,
+    setCategoryPreference: unavailableAsync
+  };
+}
+
+function createUnavailablePushSubscriptionRepository(): PushSubscriptionRepository {
+  return {
+    register: unavailableAsync,
+    listActiveForOwner: unavailableAsync,
+    removeForOwner: unavailableAsync,
+    invalidate: unavailableAsync
+  };
+}
+
 /**
  * Provides no persistence substitute: public routes never need these methods,
  * and every protected or unsupported operation fails closed if it is reached.
@@ -181,7 +201,9 @@ function createPublicDevelopmentPersistenceRepositories(): PersistenceRepositori
       createUnavailableEmailMagicLinkChallengeRepository(),
     feedbackSubmissions: createUnavailableFeedbackSubmissionRepository(),
     vaultCharts: createUnavailableVaultChartRepository(),
-    chartNotes: createUnavailableChartNoteRepository()
+    chartNotes: createUnavailableChartNoteRepository(),
+    notificationPreferences: createUnavailableNotificationPreferenceRepository(),
+    pushSubscriptions: createUnavailablePushSubscriptionRepository()
   };
 }
 

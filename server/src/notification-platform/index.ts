@@ -57,6 +57,14 @@ export type {
 } from './repositories.js';
 
 export {
+  NotificationAccountService
+} from './notification-account-service.js';
+export type {
+  NotificationAccountServiceDependencies,
+  RegisterNotificationPushSubscriptionResult
+} from './notification-account-service.js';
+
+export {
   PostgresNotificationPreferenceRepository,
   PostgresPushSubscriptionRepository
 } from './postgres/index.js';

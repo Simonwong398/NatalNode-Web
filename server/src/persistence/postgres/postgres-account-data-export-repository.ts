@@ -5,6 +5,7 @@ import {
   presentAccountDataExportFeedback,
   presentAccountDataExportIdentity,
   presentAccountDataExportNote,
+  presentAccountDataExportNotifications,
   UnsupportedAccountDataExportIdentityError
 } from '../../account/account-data-export.js';
 import type {
@@ -12,7 +13,8 @@ import type {
   AccountDataExportChartMetadata,
   AccountDataExportFeedback,
   AccountDataExportIdentity,
-  AccountDataExportNote
+  AccountDataExportNote,
+  AccountDataExportNotifications
 } from '../../account/account-data-export.js';
 import { PostgresClientSqlExecutor } from './postgres-client-sql-executor.js';
 import type {
@@ -21,7 +23,10 @@ import type {
   AccountDataExportIdentityRow,
   AccountDataExportNoteRow,
   AccountDataExportProviderRow,
-  AccountDataExportUserRow
+  AccountDataExportUserRow,
+  AccountDataExportNotificationCategoryPreferenceRow,
+  AccountDataExportNotificationChannelPreferenceRow,
+  AccountDataExportPushSubscriptionRow
 } from './account-data-export-queries.js';
 import {
   ACCOUNT_DATA_EXPORT_ACCOUNT_SQL,
@@ -33,6 +38,9 @@ import {
   ACCOUNT_DATA_EXPORT_IDENTITIES_SQL,
   ACCOUNT_DATA_EXPORT_IDENTITY_PROVIDERS_SQL,
   ACCOUNT_DATA_EXPORT_NOTES_SQL,
+  ACCOUNT_DATA_EXPORT_NOTIFICATION_CATEGORY_PREFERENCES_SQL,
+  ACCOUNT_DATA_EXPORT_NOTIFICATION_CHANNEL_PREFERENCES_SQL,
+  ACCOUNT_DATA_EXPORT_PUSH_SUBSCRIPTIONS_SQL,
   ACCOUNT_DATA_EXPORT_ROLLBACK_SQL,
   ACCOUNT_DATA_EXPORT_STATEMENT_TIMEOUT_SQL
 } from './account-data-export-queries.js';
@@ -95,6 +103,10 @@ function decodeCursor(cursor?: AccountDataExportCursor): CursorPosition | null {
 
 function toTimestampString(value: Date | string): string {
   return value instanceof Date ? value.toISOString() : value;
+}
+
+function toNullableTimestampString(value: Date | string | null): string | null {
+  return value === null ? null : toTimestampString(value);
 }
 
 function cursorParams(cursor: CursorPosition | null): readonly unknown[] {
@@ -416,6 +428,50 @@ class PostgresAccountDataExportSnapshot implements AccountDataExportSnapshot {
           }),
         (row) => row.feedback_id
       );
+    });
+  }
+
+  public listNotifications(): Promise<AccountDataExportNotifications> {
+    return this.read(async () => {
+      const channelResult =
+        await this.executor.query<AccountDataExportNotificationChannelPreferenceRow>(
+          ACCOUNT_DATA_EXPORT_NOTIFICATION_CHANNEL_PREFERENCES_SQL,
+          [this.userId]
+        );
+      const categoryResult =
+        await this.executor.query<AccountDataExportNotificationCategoryPreferenceRow>(
+          ACCOUNT_DATA_EXPORT_NOTIFICATION_CATEGORY_PREFERENCES_SQL,
+          [this.userId]
+        );
+      const subscriptionResult =
+        await this.executor.query<AccountDataExportPushSubscriptionRow>(
+          ACCOUNT_DATA_EXPORT_PUSH_SUBSCRIPTIONS_SQL,
+          [this.userId]
+        );
+
+      return presentAccountDataExportNotifications({
+        channelPreferences: channelResult.rows.map((row) => ({
+          channel: row.channel,
+          enabled: row.enabled,
+          createdAt: toTimestampString(row.created_at),
+          updatedAt: toTimestampString(row.updated_at)
+        })),
+        categoryPreferences: categoryResult.rows.map((row) => ({
+          category: row.category,
+          enabled: row.enabled,
+          createdAt: toTimestampString(row.created_at),
+          updatedAt: toTimestampString(row.updated_at)
+        })),
+        pushSubscriptions: subscriptionResult.rows.map((row) => ({
+          subscriptionId: row.subscription_id,
+          channel: 'WEB_PUSH',
+          status: row.status,
+          createdAt: toTimestampString(row.created_at),
+          updatedAt: toTimestampString(row.updated_at),
+          lastSuccessAt: toNullableTimestampString(row.last_success_at),
+          invalidatedAt: toNullableTimestampString(row.invalidated_at)
+        }))
+      });
     });
   }
 

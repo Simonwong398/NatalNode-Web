@@ -2,9 +2,9 @@
 
 | Field | Value |
 |---|---|
-| Status | **APPROVED TECHNICAL CONTRACT / SUBSCRIPTION FOUNDATION / IMPLEMENTATION DEFERRED** |
-| Task | `WEB-NOTIFY-001A` |
-| Reviewed baseline | `2efe11955000e14783953f1d18af0b26885302f3` (`docs: reconcile p0 readiness after google auth`) |
+| Status | **APPROVED TECHNICAL CONTRACT / B2 IMPLEMENTED LOCALLY / DELIVERY DEFERRED** |
+| Task | `WEB-NOTIFY-001B2` |
+| Reviewed baseline | `6fb0029b9a18e11a5df2fdc4ded0f32044e006f5` (`docs: separate consumer and developer notifications`) |
 | Date | 2026-08-29 |
 | Scope | Provider-neutral notification platform and future subscription foundation |
 | Initial channel | Web Push, standards-based and provider-neutral |
@@ -13,11 +13,13 @@
 
 This document freezes the technical/product boundary for the NatalNode
 notification platform. It does not authorize notification delivery, browser
-push, payments, a service worker, a worker, a scheduler, a provider, or any
-Developer operational-notification implementation. The separately recorded B1
-slice is limited to a local Consumer/account-owned persistence foundation. This
-is an implementation handoff and product foundation contract, not a legal
-notice, retention schedule, billing decision, or production-readiness claim.
+permission UX, a service worker, a worker, a scheduler, a provider, payments,
+or any Developer operational-notification implementation. B1 remains the local
+Consumer/account-owned persistence foundation; B2 adds only the authenticated
+Consumer Web Push registration, removal, preference, and safe-export API
+boundary. This is an implementation handoff and product foundation contract,
+not a legal notice, retention schedule, billing decision, or production-
+readiness claim.
 
 The platform deliberately separates:
 
@@ -105,7 +107,8 @@ Current findings relevant to notifications:
   but no notification settings surface.
 - Account Export is a bounded repeatable-read stream with no server archive.
   Account Deletion is an authenticated active-database transaction with
-  owner-linked cascades. Neither currently includes notification records.
+  owner-linked cascades. B2 adds only safe, owner-scoped notification metadata
+  to the export; raw PushSubscription credentials remain excluded.
 - Persistence uses typed repositories, PostgreSQL adapters, and numbered
   migrations. Runtime dependencies are composed at the bootstrap/executable
   boundary, not through global mutable state.
@@ -119,10 +122,11 @@ Current findings relevant to notifications:
 - Operational observability has one canonical bounded request-completion record.
   It is separate from Privacy Access Audit and excludes account, chart,
   credential, endpoint, and user-content data.
-- The committed B1 foundation provides only typed Consumer notification
-  primitives, owner-scoped preferences, and account-owned PushSubscription
-  persistence. No notification route/runtime, VAPID, service-worker push,
-  browser permission, delivery worker, notification scheduler, or Developer
+- The committed B1 foundation provides typed Consumer notification primitives,
+  owner-scoped preferences, and account-owned PushSubscription persistence. B2
+  now provides only authenticated account routes, safe metadata presentation,
+  and safe Account Export projection. No VAPID, service-worker push, browser
+  permission, delivery worker, notification scheduler, or Developer
   operational-notification infrastructure exists. The only scheduler-like
   boundary is the short-lived Auth lifecycle maintenance executable; it is not
   notification infrastructure.
@@ -270,10 +274,10 @@ Future Developer organization/member semantics may require separate
 reassignment or organization-level operational-history decisions and are not
 resolved here.
 
-No B1 notification export implementation is added. Future Consumer safe
-preference metadata and future Developer operational membership or
-configuration may have different export semantics. No Developer export rule
-is frozen here.
+B2 adds only safe Consumer preference and PushSubscription metadata to Account
+Export. Raw endpoint and credential fields are excluded. Future Developer
+operational membership or configuration may have different export semantics;
+no Developer export rule is frozen here.
 
 No numeric retention duration is selected. Developer operational notification
 history may have different retention requirements from Consumer preference and
@@ -1050,7 +1054,7 @@ approval.
 |---|---|---|
 | Typed categories, intent, preferences | `IMPLEMENTED LOCALLY / CONSUMER ACCOUNT-OWNED FOUNDATION` | Focused provider-neutral domain; no billing or astrology types invented |
 | Owner-bound PushSubscription persistence | `IMPLEMENTED LOCALLY / CONSUMER ACCOUNT-OWNED FOUNDATION` | Typed repository/migration slice; sensitive fields and account ownership fixed here |
-| Registration/unsubscribe API boundary | `LOCAL IMPLEMENTATION READY` after persistence contract | Auth principal, same-origin, validation, future notification rate limits |
+| Registration/unsubscribe API boundary | `IMPLEMENTED LOCALLY / CONSUMER AUTHENTICATED API` | Auth principal, same-origin, bounded validation, account-key rate limiting, safe metadata |
 | Permission UX/settings UI | `LOCAL IMPLEMENTATION READY / LIVE-EXTERNAL-GATED` | Local browser code possible; real permission/Push API needs HTTPS/live acceptance |
 | Service worker | `LOCAL IMPLEMENTATION READY / LIVE-EXTERNAL-GATED` | Narrow handler later; no current worker or public-development fake |
 | Web Push adapter | `OPERATIONS-GATED / PROVIDER-DEPENDENT` | Library/provider decision, credentials, error mapping, operations |
@@ -1078,8 +1082,10 @@ Current implementation status:
   browser registration, and delivery remain deferred.
 - `WEB-NOTIFY-001B1-R1` — **NOT STARTED**: focused ownership, concurrency, and
   sensitive-credential persistence review.
-- `WEB-NOTIFY-001B2` — **NOT STARTED**: Consumer authenticated Web Push
-  registration/removal APIs.
+- `WEB-NOTIFY-001B2` — **IMPLEMENTED LOCALLY / CONSUMER AUTHENTICATED WEB
+  PUSH / PREFERENCE API**: authenticated account routes, owner-scoped
+  registration/removal, safe metadata responses, and privacy-safe Account
+  Export projection. Browser permission and delivery remain deferred.
 - Developer operational notification domain — **CONTRACT REQUIRED BEFORE
   IMPLEMENTATION** after Subscription/Entitlement and Developer Organization
   architecture are frozen.
@@ -1093,9 +1099,11 @@ billing plans, astrology trigger types, or delivery provider.
 
 ### `WEB-NOTIFY-001B2` — Registration/removal APIs and ownership security
 
-Implement authenticated, same-origin, rate-limited registration/replacement,
-unsubscribe, and preference mutations. Enforce principal-derived ownership and
-the cross-account rule. Do not add a service worker or transport yet.
+This slice is implemented locally as the Consumer authenticated Web Push /
+preference API. It provides same-origin, rate-limited registration/replacement,
+unsubscribe, preference mutations, and safe Account Export metadata while
+enforcing principal-derived ownership and the cross-account rule. It adds no
+service worker or transport.
 
 ### `WEB-NOTIFY-001B3` — Service worker, permission UX, and settings
 
@@ -1189,10 +1197,11 @@ recommended policy checkpoint.
 
 ## 49. Recommended next action
 
-After the local foundation implementation, the next single technical action is:
+After the local Consumer API implementation, the next single technical action
+is:
 
-**`WEB-NOTIFY-001B1-R1` — Focused PushSubscription ownership, concurrency, and
-sensitive-credential persistence review.**
+**`WEB-NOTIFY-001B2-R1` — Focused Consumer Notification API Authorization / CSRF
+/ Credential-Exposure Review.**
 
 This action must remain bounded, provider-neutral, and free of billing,
 astrology-trigger, service-worker, transport, or live credential work unless
@@ -1242,7 +1251,7 @@ provider calls are intentionally not run.
     Provider/library selection          = DEFERRED
     Billing/subscription implementation = DEFERRED
     Astrology trigger implementation    = DEFERRED
-    Runtime implementation              = DEFERRED
+    Runtime implementation              = B2 CONSUMER API LOCAL; DELIVERY DEFERRED
     Live/deployment acceptance          = EXTERNAL-GATED
     Historical P0 status                = PRESERVED; NEW SCOPE AFTER WEB-P0-READY-003
     WEB-P0-POLICY-001A                  = NOT EXECUTED / DEFERRED

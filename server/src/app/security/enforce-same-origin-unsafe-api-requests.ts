@@ -1,7 +1,7 @@
 import type { MiddlewareHandler } from 'hono';
 import { createProblemDetailsContextResponse } from '../problem-details/context-response.js';
 
-const UNSAFE_METHODS = new Set(['POST', 'PATCH', 'DELETE']);
+const UNSAFE_METHODS = new Set(['POST', 'PUT', 'PATCH', 'DELETE']);
 
 function isExactCanonicalOrigin(
   originHeader: string | null,

@@ -20,6 +20,7 @@ export type EndpointFamily =
   | 'account.delete'
   | 'account.export'
   | 'account.export.prepare'
+  | 'account.notifications'
   | 'feedback'
   | 'vault.charts'
   | 'vault.chart'
@@ -97,6 +98,12 @@ export function classifyApiEndpointFamily(pathname: string): EndpointFamily {
   if (pathname === '/api/account') return 'account.delete';
   if (pathname === '/api/account/export/prepare') return 'account.export.prepare';
   if (pathname === '/api/account/export') return 'account.export';
+  if (
+    pathname === '/api/account/notifications' ||
+    pathname.startsWith('/api/account/notifications/')
+  ) {
+    return 'account.notifications';
+  }
   if (pathname === '/api/feedback') return 'feedback';
   if (pathname === '/api/vault/charts') return 'vault.charts';
   if (/^\/api\/vault\/charts\/[^/]+\/duplicate$/u.test(pathname)) {

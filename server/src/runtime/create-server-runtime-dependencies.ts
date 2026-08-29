@@ -18,6 +18,7 @@ import type { ServerRuntimeBindings } from './server-runtime-bindings.js';
 import type { ServerRuntimeConfig } from './server-runtime-config.js';
 import { NodeIdGenerator } from './node-id-generator.js';
 import { SystemClock } from './system-clock.js';
+import { NotificationAccountService } from '../notification-platform/notification-account-service.js';
 
 function assertValidTtl(seconds: number, name: string): void {
   if (!Number.isFinite(seconds) || !Number.isInteger(seconds) || seconds <= 0) {
@@ -63,6 +64,12 @@ export function createServerRuntimeDependencies(
   assertValidSessionCookiePolicy(sessionCookiePolicy);
 
   const persistence = createPostgresPersistence(bindings.sqlExecutor);
+  const notificationAccountService = new NotificationAccountService({
+    notificationPreferences: persistence.notificationPreferences,
+    pushSubscriptions: persistence.pushSubscriptions,
+    idGenerator,
+    clock
+  });
   const authenticator = new SessionRequestAuthenticator({
     authSessions: persistence.authSessions,
     tokenHasher,
@@ -91,6 +98,7 @@ export function createServerRuntimeDependencies(
     engineClient: bindings.engineClient,
     chartCalculator,
     clock,
+    notificationAccountService,
     secureTokenGenerator,
     tokenHasher,
     authenticationExpirationPolicy,

@@ -328,10 +328,20 @@ export function registerAccountExportRoutes(
           return internalError();
         }
 
+        const initialNotificationData = await awaitAccountExportOperation(
+          () => openedSnapshot.listNotifications(),
+          deadline.signal
+        );
+
+        if (deadline.signal.aborted || deadline.remainingMs() <= 0) {
+          return internalError();
+        }
+
         validateAccountExportInitialRepresentation(
           snapshot,
           initialIdentityPage,
-          exportedAt
+          exportedAt,
+          initialNotificationData
         );
 
         if (deadline.signal.aborted) {
@@ -342,6 +352,7 @@ export function registerAccountExportRoutes(
         const body = createAccountExportStream({
           snapshot,
           initialIdentityPage,
+          initialNotificationData,
           exportedAt,
           signal: deadline.signal,
           onSuccess: cleanupSuccess,

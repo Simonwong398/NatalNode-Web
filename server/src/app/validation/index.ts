@@ -35,3 +35,10 @@ export {
   normalizeCreateFeedbackApiRequest,
   normalizeFeedbackMessage
 } from './feedback.js';
+export {
+  NOTIFICATION_REQUEST_MAXIMUM_BYTES,
+  isNotificationCategoryPreferenceApiRequest,
+  isNotificationChannelPreferenceApiRequest,
+  isRegisterPushSubscriptionApiRequest,
+  readBoundedNotificationJson
+} from './notifications.js';

@@ -17,6 +17,7 @@ export {
   presentAccountDataExportFeedback,
   presentAccountDataExportIdentity,
   presentAccountDataExportNote,
+  presentAccountDataExportNotifications,
   UnsupportedAccountDataExportIdentityError,
   UnsafeAccountDataExportValueError
 } from './account/account-data-export.js';
@@ -37,6 +38,11 @@ export type {
   AccountDataExportIdentityPresentationSource,
   AccountDataExportNote,
   AccountDataExportNotePresentationSource,
+  AccountDataExportNotificationCategoryPreference,
+  AccountDataExportNotificationChannelPreference,
+  AccountDataExportNotificationPushSubscription,
+  AccountDataExportNotifications,
+  AccountDataExportNotificationsPresentationSource,
   AccountDataExportV1,
   ChartNoteExportV1,
   EmailMagicLinkExportIdentityV1,
@@ -44,7 +50,11 @@ export type {
   FeedbackExportV1,
   JsonPrimitive,
   JsonValue,
-  NatalNodeAccountDataExportV1
+  NatalNodeAccountDataExportV1,
+  NotificationCategoryPreferenceExportV1,
+  NotificationChannelPreferenceExportV1,
+  NotificationPushSubscriptionExportV1,
+  NotificationsExportV1
 } from './account/account-data-export.js';
 
 export type {
@@ -190,6 +200,9 @@ export type {
   PrivacyAccessAuditOutcome,
   PrivacyAccessAuditRepository,
   PrivacyAccessAuditResourceCategory,
+  NotificationPreferenceRepository,
+  PushSubscriptionRepository,
+  RegisterPushSubscriptionResult,
   PersistenceRepositories,
   UserRepository,
   VaultChartMetadataUpdate,

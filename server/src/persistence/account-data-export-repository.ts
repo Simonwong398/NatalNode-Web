@@ -3,7 +3,8 @@ import type {
   AccountDataExportChartMetadata,
   AccountDataExportFeedback,
   AccountDataExportIdentity,
-  AccountDataExportNote
+  AccountDataExportNote,
+  AccountDataExportNotifications
 } from '../account/account-data-export.js';
 
 declare const accountDataExportCursorBrand: unique symbol;
@@ -36,6 +37,7 @@ export interface AccountDataExportSnapshot {
   listFeedback(
     cursor?: AccountDataExportCursor
   ): Promise<AccountDataExportPage<AccountDataExportFeedback>>;
+  listNotifications(): Promise<AccountDataExportNotifications>;
   commit(): Promise<void>;
   rollback(): Promise<void>;
 }

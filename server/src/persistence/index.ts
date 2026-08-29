@@ -59,6 +59,11 @@ export type {
   PrivacyAccessAuditResourceCategory
 } from './privacy-access-audit-repository.js';
 export type { PersistenceRepositories } from './persistence-repositories.js';
+export type {
+  NotificationPreferenceRepository,
+  PushSubscriptionRepository,
+  RegisterPushSubscriptionResult
+} from '../notification-platform/repositories.js';
 export type { VaultChartRepository } from './vault-chart-repository.js';
 export type { UserRepository } from './user-repository.js';
 export type { ChartNoteContentUpdate, VaultChartMetadataUpdate } from './types.js';
