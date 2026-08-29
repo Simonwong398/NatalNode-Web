@@ -2,11 +2,11 @@
 
 | Field | Value |
 |---|---|
-| Status | **APPROVED TECHNICAL CONTRACT / B3 IMPLEMENTED LOCALLY / PRODUCT-OWNER VISUAL RE-ACCEPTANCE REQUIRED / LIVE WEB PUSH DELIVERY NOT IMPLEMENTED** |
-| Task | `WEB-NOTIFY-001B3` |
-| Reviewed baseline | `ce3a46400b704022a4456f92ac9ba82876e80246` (`fix: harden consumer notification APIs`) |
+| Status | **APPROVED TECHNICAL CONTRACT / B3 IMPLEMENTED LOCALLY / B4A FROZEN / IMPLEMENTATION DEFERRED / LIVE WEB PUSH DELIVERY NOT IMPLEMENTED** |
+| Task | `WEB-NOTIFY-001B4A` |
+| Reviewed baseline | `e4d435d0846ad5a8027ddb4cdf754eeb7365e780` (`fix: harden consumer web push settings`) |
 | Date | 2026-08-29 |
-| Scope | Provider-neutral notification platform and future subscription foundation |
+| Scope | Consumer Web Push delivery, durable outbox, retry, and VAPID contract |
 | Initial channel | Web Push, standards-based and provider-neutral |
 | Production astronomy/provider | `PROVIDER DECISION DEFERRED` |
 | Deployment | `PAUSED` / future external gates remain open |
@@ -18,11 +18,13 @@ registration, removal, preference, and safe-export API boundary; B3 adds only
 the local Account Notifications settings surface, explicit permission flow,
 dedicated Service Worker, browser subscription choreography, server-owned
 public-key capability, bounded payload/click handling, and safe account
-switching behavior. Live Web Push delivery, private VAPID credentials,
-provider selection, workers, schedulers, payments, and Developer operational-
-notification implementation remain outside this slice. This is an
-implementation handoff and product foundation contract, not a legal notice,
-retention schedule, billing decision, or production-readiness claim.
+switching behavior. B4A now freezes the Consumer delivery, outbox, retry,
+fan-out, transport, and server-only VAPID contract, but adds no implementation.
+Private VAPID credentials, provider/library selection, workers, schedulers,
+migrations, live delivery, payments, and Developer operational-notification
+implementation remain deferred. This is an implementation handoff and product
+foundation contract, not a legal notice, retention schedule, billing decision,
+or production-readiness claim.
 
 The platform deliberately separates:
 
@@ -52,7 +54,7 @@ provider-neutral delivery boundary:
 - user-initiated Web Push permission UX;
 - a bounded service-worker responsibility;
 - privacy-minimized payload and lock-screen behavior;
-- durable outbox/delivery direction and bounded delivery state;
+- durable outbox/delivery contract and bounded delivery state;
 - deduplication, retry, invalid-subscription, and abuse boundaries;
 - interaction with Auth, Account Settings, Account Export, Account Deletion,
   retention, Privacy Access Audit, and operational observability;
@@ -132,8 +134,9 @@ Current findings relevant to notifications:
   explicit user-gesture permission flow, root-scoped Service Worker, browser
   registration/removal choreography, server-owned public capability, and
   bounded click/payload policy. No private VAPID, provider, delivery worker,
-  scheduler, or Developer operational-notification infrastructure exists. The
-  only scheduler-like boundary is the short-lived Auth lifecycle maintenance
+  durable outbox, scheduler, or Developer operational-notification
+  infrastructure exists. B4A freezes their future boundary only. The only
+  scheduler-like boundary is the short-lived Auth lifecycle maintenance
   executable; it is not notification infrastructure.
 - The Web application is a static Astro artifact with React islands. B3 adds
   one narrow root-hosted notification Service Worker; it does not add a
@@ -329,7 +332,7 @@ This contract does not authorize:
 - a general queue, messaging bus, PWA/offline rewrite, or large localization
   framework; or
 - runtime source, tests, migrations, dependencies, deployment configuration,
-  P1/P2/P3 features, or unrelated UI in `001A`.
+  P1/P2/P3 features, or unrelated UI in `WEB-NOTIFY-001B4A`.
 
 ## 5. Architecture
 
@@ -408,7 +411,7 @@ The registry rules are:
 
 - category is bounded and versioned by application code or approved contract;
 - each category may have a finite set of server-owned types;
-- `ASTROLOGY_ALERT` is reserved only; `001A` freezes no astrology alert,
+- `ASTROLOGY_ALERT` is reserved only; `B4A` freezes no astrology alert,
   transit event, aspect meaning, timing rule, or scientific trigger;
 - no type is active merely because its category exists;
 - activation requires a source-grounded product decision, server-owned
@@ -460,12 +463,18 @@ The platform does not freeze `FREE`, `PRO`, `PREMIUM`, or any other plan.
 No price, plan, subscription table, checkout, webhook, or billing provider is
 selected. `Notification Platform != Billing Platform`.
 
-Delivery generally requires:
+For proactive Consumer Web Push, B4A freezes the following fail-closed gate:
 
-    eligible by product policy
-    AND enabled by owner preference
-    AND channel supported/granted
-    AND owner-bound active channel subscription exists
+    trusted eligibility answer = true
+    AND owner channel preference = true
+    AND owner category preference = true
+    AND at least one ACTIVE owner-bound PushSubscription exists
+
+All four conditions are required at planning time. The worker revalidates the
+owner, preferences, eligibility hook, and target subscription immediately
+before transport. `null` is not an opt-in and is not silently converted to
+either boolean value. Browser permission is capability state; an owner-bound
+ACTIVE subscription is the server-side delivery prerequisite.
 
 ## 10. User preference model
 
@@ -481,12 +490,18 @@ A conceptual shape is:
     preferences[account].categories[boundedCategory].enabled
 
 The B1 Consumer implementation uses normalized account-scoped persistence for
-these two preference classes. Preferences are resolved from the authenticated
-owner, and opt-in is the default direction. A disabled global channel or
-category prevents delivery even when entitled. Do not add quiet hours,
-device-fingerprint, birth-timezone, or speculative flags without a concrete
-requirement. Broader Developer policy and channel preferences require their
-own future contract.
+these two preference classes. Each preference has three effective states:
+
+- `null`: no explicit preference is stored; the UI presents `Not set`;
+- `false`: explicitly Off; and
+- `true`: explicitly On.
+
+For proactive delivery, only `true` satisfies the channel/category gates.
+`null` and `false` both prevent enqueue/send. No hidden default opt-in is
+created, and `ACCOUNT` or `SYSTEM` is not treated as implicitly mandatory.
+Do not add quiet hours, device-fingerprint, birth-timezone, or speculative
+flags without a concrete requirement. Broader Developer policy and channel
+preferences require their own future contract.
 
 If local-time scheduling is later required, it needs a separate user
 delivery-timezone contract and must not reuse a birth-chart timezone.
@@ -503,22 +518,47 @@ selected by this contract.
 
 ## 12. Web Push transport boundary
 
-The channel adapter must call a narrow provider-neutral boundary:
+The channel adapter must call a narrow provider-neutral boundary. B4A freezes
+the conceptual shape; it is server-internal and is not a public API:
 
     interface WebPushTransport {
-      send(input: WebPushSendInput): Promise<WebPushSendOutcome>;
+      send(input: {
+        readonly subscription: {
+          readonly endpoint: string;
+          readonly p256dh: string;
+          readonly auth: string;
+        };
+        readonly payload: WebPushPayloadV1;
+      }): Promise<WebPushTransportOutcome>;
     }
 
-The future boundary must:
+The adapter is constructed with the already-validated server-only VAPID
+configuration. A single attempt receives only the endpoint credentials and the
+immutable bounded payload required for one Web Push send. It does not receive
+an account ID, birth data, chart data, preference state, entitlement state,
+raw event data, or an arbitrary provider payload.
 
-- accept only a server-generated bounded message and server-side subscription
-  material needed by Web Push;
-- return bounded outcomes, including invalid/expired classification where known;
-- sanitize remote/provider errors before they reach the domain, logs, storage,
-  or user-facing responses;
-- isolate protocol/vendor/library details inside the adapter; and
-- remain independent from Stripe, Firebase, Google services, hosting provider,
-  Web Push vendor, and specific npm library.
+The bounded outcome classes are:
+
+| Outcome | Meaning at the transport boundary | Delivery handling |
+|---|---|---|
+| `ACCEPTED` | The upstream protocol accepted the send request | Mark this target `DELIVERED`; this is not proof of display/read |
+| `SUBSCRIPTION_INVALID` | Endpoint-specific evidence says the subscription is gone, expired, or its subscription credentials are invalid | Invalidate only that ACTIVE PushSubscription and stop this target |
+| `THROTTLED` | Upstream asks the sender to slow down | Retry within the bounded policy |
+| `TRANSIENT_UPSTREAM` | Bounded upstream/server failure with no invalid-subscription proof | Retry within the bounded policy |
+| `TIMEOUT_AMBIGUOUS` | The attempt outcome is unknown after the local timeout | Retry as at-least-once-style work; a duplicate is possible |
+| `PAYLOAD_INVALID` | The locally generated payload failed the adapter boundary | Mark terminal; do not invalidate the subscription |
+| `CONFIGURATION_UNAVAILABLE` | The server-only VAPID configuration is absent, malformed, or mismatched | Worker is not ready; do not send or invalidate |
+| `PERMANENT_FAILURE` | A bounded non-subscription failure cannot succeed by retry | Mark terminal; do not invalidate |
+
+The adapter must map protocol/library details into these classes, preserve no
+raw response body, and never promote transport-specific errors into public API
+errors. `SUBSCRIPTION_INVALID` may be returned for 404/410-style endpoint
+expiration and for 401/403-style subscription rejection only when the adapter
+can attribute the evidence to that subscription; a sender-wide VAPID failure
+is configuration/permanent failure instead. The boundary remains independent
+from Stripe, Firebase, Google services, hosting providers, Web Push vendors,
+and any specific npm library.
 
 No dependency is added now. Future selection criteria are standards support,
 VAPID, payload encryption, Node/ESM compatibility, minimal dependency surface,
@@ -572,11 +612,61 @@ credentials. They must not appear in:
 The browser may receive only public material required by the standards-based
 subscription flow. VAPID/private signing/authentication material is server-only:
 never commit, return, log, store in a notification record, or expose it to the
-service worker. `001A` creates no keys, secrets, or environment variables.
+service worker. `B4A` creates no keys, secrets, or environment variables.
 
 At-rest protection, database grants, backups, and rotation are later
 security/operations/deployment decisions. They must not be replaced by a fake
 local success state.
+
+### 14.1 B4A private VAPID boundary
+
+Live Web Push delivery requires a complete server-only configuration. The
+conceptual runtime names are:
+
+| Configuration | Required meaning | Exposure |
+|---|---|---|
+| `NATALNODE_WEB_PUSH_VAPID_PUBLIC_KEY` | Existing canonical base64url-encoded uncompressed P-256 public key (65 decoded bytes, `0x04` prefix) | May contribute to the browser capability response |
+| `NATALNODE_WEB_PUSH_VAPID_PRIVATE_KEY` | New conceptual server configuration: canonical base64url-encoded P-256 private scalar (32 decoded bytes) | Server secret only |
+| `NATALNODE_WEB_PUSH_VAPID_SUBJECT` | RFC 8292 subject/contact URI, bounded and validated as an approved `https:` or `mailto:` URI without credentials, query, or fragment | Server configuration only; never logged |
+
+The names above define the future configuration boundary; B4A does not add
+environment variables or a secret store integration. The public and private
+keys are one pair: startup/readiness validation must derive the uncompressed
+public point from the private scalar and compare its canonical encoding with
+`NATALNODE_WEB_PUSH_VAPID_PUBLIC_KEY`. Length checks alone are insufficient.
+The private scalar must be a valid non-zero P-256 scalar, and all three values
+must be present together for delivery readiness. There is no generated,
+fallback, or fake private key.
+
+Delivery readiness has two fail-closed outcomes:
+
+- `UNCONFIGURED`: no complete delivery configuration is supplied; and
+- `INVALID_CONFIGURATION`: a supplied value is malformed, incomplete, or the
+  public/private relationship does not match.
+
+When a delivery worker is started, either outcome makes the worker unready and
+prevents it from claiming or sending jobs. A runtime serving ordinary API
+traffic may continue with delivery unavailable, but it must not claim live
+delivery readiness. Configuration failures are reported only as a bounded
+operational code; secret values, key material, subject values, parse details,
+and library/provider errors are redacted. A later implementation may choose a
+deployment-specific readiness endpoint, but it must not expose the private
+configuration or turn a public capability response into a secret-bearing
+diagnostic.
+
+The existing public `webPushCapability.configured` field keeps its B3 meaning:
+it reports only that the browser application-server public key is structurally
+valid. B4A does not change that public API or require private delivery config
+for browser capability. Complete private configuration is represented by a
+separate server-internal delivery-readiness boundary. Thus a browser may see
+a usable public key while the delivery worker remains unavailable; the
+planner/worker must fail closed in that state.
+
+Private VAPID material must remain in approved server secret configuration and
+must never enter API responses, rendered HTML, browser bundles, the Service
+Worker, database rows, Account Export, logs, metrics, traces, ordinary
+observability, or Privacy Access Audit events. Hosted push providers and
+provider-managed VAPID keys are not selected.
 
 ## 15. Subscription ownership and CSRF boundary
 
@@ -683,6 +773,11 @@ or expose credentials.
 The payload validator fails closed on unknown types, unexpected fields,
 oversized values, malformed paths, and missing required fields.
 
+B4A does not change this browser boundary. A delivery record may contain only
+the server-owned V1 payload that the existing worker accepts; the worker does
+not receive a template key, delivery state, attempt diagnostics, endpoint, or
+VAPID material.
+
 ## 21. Notification-click/navigation policy
 
 A notification action may navigate only to a server-generated or explicitly
@@ -707,7 +802,21 @@ Content is server-generated from bounded templates, not arbitrary user text.
 Full ChartRequest, ChartResult, planetary positions, signs, houses, aspects,
 interpretation, birth data, account details, email, provider responses, and
 sensitive event data are not sent merely because push exists. Payloads contain
-no endpoint, keys, VAPID material, or provider credential.
+no endpoint, keys, VAPID material, or provider credential. The normative
+delivery payload is the existing Service Worker-compatible shape:
+
+    {
+      version: 1,
+      title: string,       // non-empty, at most 80 Unicode characters
+      body: string,        // non-empty, at most 160 Unicode characters
+      path?: string        // approved same-origin path, at most 256 characters
+    }
+
+The path is optional in the durable representation and falls back to `/` only
+through the existing worker policy. Unknown keys, control characters, unsafe
+paths, and oversized values are rejected before persistence. This is a
+lock-screen-safe content budget, not permission to include personal chart or
+birth information.
 
 Data needed only after opening a protected page is fetched through the normal
 authenticated application boundary. Lock screens/shared devices make minimized
@@ -718,6 +827,17 @@ content the default; richer content needs later product/privacy approval.
 Production dispatch is server-authoritative. Callers may request a bounded type
 or create an approved intent, but may not submit arbitrary title, body,
 navigation URL/path, or provider payload.
+
+Each active type is backed by an application-owned template registry identified
+by a bounded `templateKey` and integer `templateVersion`. The registry accepts
+only a type-specific, server-generated bounded reference and renders the V1
+payload before the enqueue transaction. B4A chooses to persist that immutable
+rendered safe payload together with the template identity. Retries therefore
+reuse exactly the same content even if application templates later change,
+and no private event variables need to be reloaded or retained for retry.
+Template identity is diagnostic metadata, not browser content. `ASTROLOGY_ALERT`
+has no active template or trigger in this task; no astrology notification
+content is invented.
 
 The server-owned type/template boundary prevents push-spam relay behavior and
 allows future localization without coupling transports to English text.
@@ -735,163 +855,359 @@ Intent creation and delivery scheduling are separate:
         -> planner evaluates deliverAt and current gates
         -> outbox records an attemptable delivery
 
-`deliverAt` is an optional server-side planning value. No cron, cloud
-scheduler, database scheduler, queue vendor, or worker fleet is selected.
-Future scheduler invocation is operations-owned and requires bounded retries,
-idempotent claiming, multi-instance safety as applicable, and failure
-observability.
+`deliverAt` is an optional server-side planning value. It is not a user
+timezone, a browser timestamp, or a delivery promise. B4A freezes no cron,
+cloud scheduler, database scheduler, queue vendor, or deployment topology.
+Whatever later invokes the worker is operations-owned and must preserve the
+bounded claiming, retry, multi-instance safety, and observability rules below.
 
 No quiet hours or user-local schedule is defined. Birth-chart timezone is never
 a generic notification delivery timezone.
 
 ## 25. Durable outbox and delivery model
 
-Preferred direction:
+`WEB-NOTIFY-001B4A` freezes a two-level PostgreSQL-owned model. One durable
+logical `notification_intents` row represents the server-owned Consumer event;
+one `notification_deliveries` row represents one attempted destination
+subscription. The delivery rows are the outbox jobs. B4A does not create either
+table or change migration `0008_notification_persistence_foundation.sql`.
 
-    application transaction
-        -> durable Notification Intent / Delivery record
-        -> asynchronous delivery worker
-        -> channel adapter
-        -> Web Push transport
+The transaction boundary is:
 
-A focused PostgreSQL delivery/outbox entity may follow typed repository and
-numbered migration conventions. This document does not choose table name, SQL,
-queue, scheduler, or worker topology.
+    trusted trigger
+        -> typed intent/enqueue service
+        -> eligibility + preference + ACTIVE-subscription gate
+        -> render and validate immutable safe payload
+        -> insert one intent and one delivery per ACTIVE subscription
+        -> commit
+        -> separate worker claims delivery rows
+        -> final owner/preference/subscription revalidation
+        -> WebPushTransport
 
-Minimal bounded lifecycle:
+If any planning gate is false, null, unavailable, or has no ACTIVE owner-bound
+subscription, the enqueue operation creates no intent or delivery rows and
+returns a bounded not-enqueued result. A later subscription does not replay an
+old event unless a separate product policy explicitly requests that behavior.
 
-    PENDING -> PROCESSING -> DELIVERED
-                        -> FAILED
-                        -> CANCELLED
+### 25.1 Proposed future PostgreSQL migration shape
 
-Semantics:
+The following is the implementation contract, not executable SQL. Names may
+follow repository conventions, but the invariants may not be weakened.
 
-- `PENDING` is attemptable after gates pass;
-- `PROCESSING` is a bounded claim, not proof of delivery;
-- `DELIVERED` means transport accepted the bounded send at its server boundary,
-  not that a person read it;
-- `FAILED` is a bounded terminal or retryable outcome, never raw provider
-  exception text; and
-- `CANCELLED` prevents a pending delivery when a valid lifecycle decision
-  requires cancellation.
+`notification_intents` is proposed with:
 
-Retry bookkeeping is separate from user-visible meaning. An in-app inbox is
-not required for the initial foundation.
+| Field | Contract |
+|---|---|
+| `intent_id` | Opaque server-generated primary identifier |
+| `owner_id` | Consumer account owner; `NOT NULL`, foreign key to `users(user_id)` with `ON DELETE CASCADE` |
+| `category` | `ACCOUNT`, `SYSTEM`, or `ASTROLOGY_ALERT` only |
+| `channel` | `WEB_PUSH` only in this Consumer slice |
+| `notification_type_key` | Server-owned bounded registry key; never an arbitrary client string |
+| `template_key`, `template_version` | Server-owned template identity, immutable for this intent |
+| `payload_version`, `payload_json` | Immutable validated V1 safe payload; no credentials or raw event data |
+| `dedupe_key` | Nullable bounded typed event identity supplied by a trusted producer |
+| `deliver_at` | Server-side planning timestamp; no user timezone semantics |
+| `created_at`, `updated_at`, `completed_at` | Creation/update timestamps; `completed_at` is set only when all child deliveries are terminal |
 
-## 26. Deduplication and idempotency
+`notification_deliveries` is proposed with:
 
-Future triggers may repeat. The platform requires:
+| Field | Contract |
+|---|---|
+| `delivery_id` | Opaque server-generated primary identifier and the job identity |
+| `intent_id` | `NOT NULL` foreign key to `notification_intents(intent_id)` with `ON DELETE CASCADE` |
+| `owner_id` | `NOT NULL` foreign key to `users(user_id)` with `ON DELETE CASCADE`; must match the intent owner and subscription owner |
+| `subscription_id` | `NOT NULL` foreign key to `push_subscriptions(subscription_id)` with `ON DELETE CASCADE` |
+| `state` | `PENDING`, `RETRYABLE`, `PROCESSING`, `DELIVERED`, `DEAD`, or `CANCELLED` |
+| `attempt_count` | Non-negative bounded integer, maximum `5`; incremented when a claim starts an attempt |
+| `next_attempt_at` | Due timestamp for `PENDING`/`RETRYABLE` work |
+| `claim_token`, `claim_expires_at` | Nullable opaque worker lease fields; required together only for `PROCESSING` |
+| `last_failure_class` | Finite sanitized failure class, never a raw provider/exception value |
+| `cancel_reason` | Finite bounded reason only when `CANCELLED` |
+| `created_at`, `updated_at`, `last_attempt_at` | Lifecycle timestamps |
+| `delivered_at`, `terminal_at` | Completion timestamp for `DELIVERED` or terminal state |
 
-- a server-created `intentId` for each logical intent;
-- a bounded server-side `dedupeKey` under an approved event contract when
-  repeated evaluation represents the same logical event;
-- no unbounded equivalent pending deliveries for the same recipient/type scope;
-- retries reuse existing intent/delivery identity.
+The delivery row references the immutable payload through `intent_id`; it does
+not duplicate or store `endpoint`, `endpoint_hash`, `p256dh`, `auth`, VAPID
+material, or a provider token. The worker joins the current ACTIVE
+PushSubscription record at delivery time. The owner and subscription checks
+are repeated at send time so an old delivery row cannot select a credential
+from another account.
 
-The key must not encode an invented transit formula, raw chart data, endpoint,
-browser key, or provider message ID. No astrology-specific formula is defined.
-Exactly-once browser display is not claimed.
+The future migration must enforce, at minimum:
 
-## 27. Retry model
+- foreign keys and `ON DELETE CASCADE` from account-owned intent/delivery state;
+- bounded checks for category, channel, state, attempt count, timestamp order,
+  claim-field shape, and terminal-field shape;
+- an exact-payload application boundary plus database JSONB size/key checks
+  sufficient to prevent an unbounded record;
+- a partial unique index on
+  `(owner_id, category, channel, notification_type_key, dedupe_key)` where
+  `dedupe_key IS NOT NULL`;
+- an index on `(next_attempt_at, delivery_id)` for `PENDING`/`RETRYABLE`
+  rows;
+- an index on `(claim_expires_at, delivery_id)` for expired `PROCESSING`
+  rows; and
+- owner/state and subscription/state indexes for account erasure, preference
+  revalidation, invalidation, and bounded cleanup.
 
-Retries require bounded attempts, backoff, conditional/idempotent transitions,
-no infinite loop, no retry after known invalid/expired subscription, no retry of
-permanently ineligible or disabled deliveries, and bounded outcomes.
+No generic queue, Redis dependency, message bus, or provider-specific table is
+introduced. The existing B1 `push_subscriptions` schema remains the credential
+repository and is not rewritten by B4A.
 
-No numeric retry count, delay, SLA, or provider-specific response mapping is
-frozen. Temporary transport failure must be distinct from invalid subscription,
-and raw remote errors must not be serialized.
+### 25.2 Outbox state machine
 
-## 28. Invalid subscription handling
+`PENDING` means never-attempted due work. `RETRYABLE` means a prior bounded
+attempt may be tried again at `next_attempt_at`. `PROCESSING` means an active
+worker lease, not successful delivery. `DELIVERED` means the transport
+accepted the send at its server boundary. `DEAD` is terminal work that cannot
+be retried under the policy. `CANCELLED` is terminal work intentionally made
+non-sendable before successful completion, such as a disabled gate or an
+invalidated target.
 
-When transport establishes expired, gone, or invalid subscription:
+Legal transitions are:
 
-1. mark that owner-bound record `INVALIDATED` or equivalent;
-2. stop repeated delivery attempts to it;
-3. record only a bounded internal outcome; and
-4. allow later authenticated owner re-subscription through explicit UX.
+    PENDING    -> PROCESSING | CANCELLED
+    RETRYABLE  -> PROCESSING | CANCELLED
+    PROCESSING -> DELIVERED | RETRYABLE | DEAD | CANCELLED
+    PROCESSING --expired lease--> RETRYABLE | DEAD
 
-Invalidation does not delete unrelated preferences, transfer the endpoint,
-reveal provider text, or erase the account.
+`DELIVERED`, `DEAD`, and `CANCELLED` have no outgoing transitions. A lease
+recovery transition uses the same bounded attempt policy; it does not create a
+second delivery identity. `CANCELLED` is deliberately limited to lifecycle or
+target invalidation decisions, not used to hide a retryable transport failure.
 
-## 29. Rate-limit and abuse boundary
+### 25.3 PostgreSQL claim and lease protocol
 
-Future implementation defines bounded controls for subscription
-registration/re-registration/removal, preference mutations, intent/dispatch
-creation, and any internal diagnostic operation.
+The worker claims a bounded batch, at most `50` rows per transaction, using
+PostgreSQL row locking with `FOR UPDATE SKIP LOCKED`. It selects due
+`PENDING`/`RETRYABLE` rows and expired `PROCESSING` rows in deterministic
+`next_attempt_at, delivery_id` order, then atomically sets:
 
-Controls use authenticated owner or the existing trusted edge/client boundary as
-appropriate, keep credentials out of logs, and prevent notification floods.
-Exact limits are not invented; existing P0 staging limits are not a production
-delivery SLA.
+- `state = PROCESSING`;
+- a newly generated opaque `claim_token`;
+- `claim_expires_at = now() + 2 minutes`;
+- `attempt_count = attempt_count + 1`; and
+- the corresponding update/attempt timestamps.
 
-There is no public arbitrary-push endpoint. A browser cannot supply recipient,
-title, body, URL, payload, or provider target to make NatalNode send a message.
+The adapter attempt has a local timeout no longer than `30 seconds`, leaving a
+bounded lease-recovery margin. Completion updates must match both
+`delivery_id` and `claim_token`; a stale worker cannot overwrite a newer
+claim. The worker never logs or returns the claim token. A worker that exits
+without completing leaves a lease for recovery; recovery returns it to
+`RETRYABLE` when attempts remain or to `DEAD` at the attempt limit. No two
+workers intentionally process the same actively leased row. A transport
+timeout or crash can still produce a duplicate at the protocol boundary, as
+described below.
+
+## 26. Fan-out, deduplication, and delivery semantics
+
+B4A chooses fan-out model **A: one account-level intent expands into one
+delivery row per ACTIVE PushSubscription** in the enqueue transaction.
+
+This model is selected because it provides:
+
+- retry isolation: one failing device does not delay another device;
+- explicit multiple-device behavior: each active subscription receives its own
+  bounded attempt and state;
+- targeted invalidation: a gone endpoint invalidates only its own subscription;
+- row-level concurrency control through `SKIP LOCKED` and one lease per target;
+- per-target bounded outcome/latency observability without exposing credentials;
+- direct account and subscription deletion semantics through foreign keys; and
+- a maintainable path to another channel without embedding fan-out inside a
+  provider-specific send call.
+
+The fan-out snapshot is taken after all enqueue gates pass. A subscription
+registered later does not receive that existing intent. If one device returns a
+known invalid-subscription result, only its delivery row is cancelled after
+that subscription is invalidated; other rows continue. Partial multi-device
+success is therefore expected and unambiguous: an intent is complete when all
+of its delivery rows are terminal, and its outcome may be partial internally.
+There is no delete-all-device behavior and no automatic transfer to another
+account.
+
+Deduplication is supplied by the trusted server-side trigger/enqueue boundary.
+For event types that can be evaluated repeatedly, it supplies a stable opaque
+typed `dedupe_key`; the key is scoped by owner, category, channel, and
+notification type. The partial unique index described above applies for the
+whole time the intent row exists, including delivered, dead, and cancelled
+rows. A duplicate enqueue returns the existing logical intent/result and does
+not render a new payload or create new delivery rows. If policy-approved
+retention later deletes the old row, a later enqueue is a new lifecycle and
+must use the then-current event identity. No raw event data, chart data,
+endpoint, browser key, or provider message ID is a dedupe key.
+
+Internal enqueue and claim transitions are idempotent within the database
+identity. End-to-end browser delivery is not exactly once: Web Push transport
+acceptance followed by a timeout, process crash, or lost completion update may
+cause a later retry and a duplicate user-visible notification. The intended
+guarantee is bounded best-effort, at-least-once-style transport with internal
+duplicate suppression where possible. Idempotency ends at the transport
+boundary; it does not claim browser display, OS delivery, or human read state.
+
+## 27. Retry and backoff model
+
+B4A freezes a simple bounded policy:
+
+- maximum delivery attempts: `5` total, including the first attempt;
+- no random jitter; the schedule is deterministic and bounded;
+- after attempt 1, retry after `60` seconds;
+- after attempt 2, retry after `300` seconds;
+- after attempt 3, retry after `1,800` seconds; and
+- after attempt 4, retry after `7,200` seconds; a retryable failure on attempt
+  5 transitions to `DEAD`.
+
+No retry is scheduled later than `24 hours` after the first attempt. If the
+calculated next attempt would exceed that horizon, the row becomes `DEAD`.
+`Retry-After` may be honored only when it parses to a bounded non-negative
+delay; it is capped at `3,600` seconds and cannot extend the 24-hour horizon.
+The effective delay is the greater of the policy delay and the capped valid
+`Retry-After`, subject to the horizon. Invalid or oversized `Retry-After` is
+ignored.
+
+Only `THROTTLED`, `TRANSIENT_UPSTREAM`, and `TIMEOUT_AMBIGUOUS` outcomes are
+retryable. Known invalid/expired subscriptions, malformed local payloads,
+permanent non-subscription failures, and permanently disabled/ineligible work
+are not retried. Missing or malformed VAPID configuration is an operational
+readiness failure: the worker does not claim new work and does not fabricate a
+successful attempt. There is no infinite retry and no delivery SLA claim.
+
+## 28. Failure taxonomy and subscription invalidation
+
+The transport adapter maps protocol/library details to the following bounded
+classes and never exposes the raw remote response:
+
+| Class | Examples | Delivery row | PushSubscription |
+|---|---|---|---|
+| `ACCEPTED` | Upstream accepted the send request | `DELIVERED` | Remains `ACTIVE`; update success timestamp only if justified |
+| `SUBSCRIPTION_INVALID` | 404/410 gone/expired endpoint, or endpoint-specific proof of invalid subscription credentials | `CANCELLED` with bounded invalidation reason | Conditional `ACTIVE -> INVALIDATED` for that subscription only |
+| `THROTTLED` | 429 or an explicit bounded throttling response | `RETRYABLE` under backoff | Remains `ACTIVE` |
+| `TRANSIENT_UPSTREAM` | Bounded 5xx/upstream service failure | `RETRYABLE` or `DEAD` at limit | Remains `ACTIVE` |
+| `TIMEOUT_AMBIGUOUS` | Local timeout or lost response with unknown acceptance | `RETRYABLE` or `DEAD` at limit | Remains `ACTIVE` |
+| `CONFIGURATION_UNAVAILABLE` | Missing, malformed, or mismatched server-only VAPID config | No claim/send; readiness remains unavailable | Remains `ACTIVE` |
+| `PAYLOAD_INVALID` | Locally generated payload fails exact V1 validation | `DEAD` | Remains `ACTIVE` |
+| `PERMANENT_FAILURE` | Bounded non-subscription failure that cannot succeed by retry | `DEAD` | Remains `ACTIVE` |
+
+401/403-style results are `SUBSCRIPTION_INVALID` only when the adapter can
+attribute the evidence to the endpoint/subscription. A sender-wide VAPID
+authorization or key mismatch is `CONFIGURATION_UNAVAILABLE` or a bounded
+permanent configuration failure and must not invalidate every subscription.
+No transport failure automatically invalidates a subscription. Invalidation
+sets only the affected account-owned row to `INVALIDATED`, prevents future
+delivery attempts to it, leaves other devices and preferences unchanged, and
+allows later explicit authenticated re-subscription to create or refresh a
+valid owner-bound record.
+
+## 29. Internal enqueue and worker boundary
+
+Future product code calls an internal typed boundary conceptually equivalent to:
+
+    enqueueConsumerNotification(input: {
+      ownerId: ServerResolvedOwner;
+      category: 'ACCOUNT' | 'SYSTEM' | 'ASTROLOGY_ALERT';
+      notificationType: ServerOwnedNotificationType;
+      dedupeKey: ServerOwnedDedupeIdentity;
+      deliverAt?: ServerTimestamp;
+      reference?: BoundedServerReference;
+    }): Promise<BoundedEnqueueResult>
+
+The owner, type, dedupe identity, reference, eligibility answer, and content
+come from trusted server/application boundaries. An authenticated user API is
+never an arbitrary-send interface and accepts no free-form title, body, path,
+target account, endpoint, browser subscription, provider payload, or test-send
+instruction. B4A adds no `/api/notifications/send`, test-push, admin-send, or
+Developer-send endpoint. It also adds no astrology trigger semantics.
+
+The enqueue transaction evaluates the future eligibility hook, the exact
+`true` channel/category preferences, and the current ACTIVE subscriptions for
+the same owner. It renders the server-owned template, validates the safe V1
+payload, writes the intent and per-subscription delivery rows, and commits all
+of them together. Preference values of `null` or `false`, unavailable
+eligibility, and an empty active-subscription set produce no durable proactive
+Web Push work.
+
+Delivery is performed by a separate server-side worker/executable. The API
+request/response process never performs live product notification delivery
+synchronously. The worker discovers due rows through the indexes above, claims
+at most 50 rows atomically, performs final account/eligibility/preference/
+subscription checks, calls `WebPushTransport`, and records only the bounded
+outcome. It stops claiming new work during graceful shutdown, allows each
+already-started bounded attempt to finish, and leaves any uncommitted lease
+for normal expiry recovery. Local execution must remain possible later, but no
+cloud scheduler, hosted queue, or Railway-specific worker topology is frozen.
 
 ## 30. Account Deletion interaction
 
-Future account deletion removes application-owned:
+Account deletion remains the hard privacy boundary. The existing PostgreSQL
+erasure transaction locks the `users` root and deletes it; B4 future tables
+must use account ownership/cascades so the following active-database rows are
+removed with that root:
 
-- active PushSubscriptions;
+- active and invalidated PushSubscriptions;
 - notification preferences;
-- pending intents/delivery jobs; and
-- other pending application-owned notification state introduced later.
+- notification intents;
+- pending, retryable, claimed, delivered, dead, or cancelled delivery rows;
+- any future account-owned delivery-attempt rows; and
+- no separate account-owned delivery archive.
 
-Ownership remains principal-derived. Deletion cannot claim synchronous erasure
-from browser/system surfaces, provider history, hosting logs, backups, or a
-notification already displayed on a lock screen.
+To close the race between a worker and successful deletion, the final
+pre-send transaction must acquire a share lock on the owner `users` row, verify
+the owner and ACTIVE subscription, and hold that bounded transaction through
+the transport attempt and its state update. The existing erasure transaction's
+`FOR UPDATE` root lock therefore either wins first (the worker observes no
+owner and sends nothing) or waits until the bounded send transaction finishes
+(the send began before deletion could successfully commit). Future preference
+mutation and subscription-removal implementations must use the same owner/
+subscription lock ordering for their final-gate race. A stale or deleted
+owner cannot be reselected from a delivery row.
 
-Delivered operational history, if retained, follows separate approved retention
-and erasure policy. No duration or deletion exception is invented. Notification
-records require a coordinated successor update to the account-erasure contract.
-
-The B1 account cascade covers the current Consumer preferences and
-PushSubscriptions. Future Developer organization/member semantics may require
-separate reassignment or organization-level operational-history decisions and
-are not resolved here.
+This is a concurrency ordering guarantee for the active database, not a claim
+that a browser can retract a notification already accepted/displayed before
+deletion. Provider history, operating-system notification surfaces, host logs,
+backups, and external platform copies remain outside the transaction. No
+notification is intentionally sent after successful account deletion, and no
+backup-retention policy is invented here. Future Developer organization/member
+semantics remain separate.
 
 ## 31. Account Export interaction
 
-If approved, Account Export may include privacy-minimized Consumer metadata:
+B4A adds no user-facing durable product data to Account Export. The current
+export remains the bounded repeatable-read snapshot and may continue to include
+only the existing safe Consumer notification metadata: channel/category
+preferences and safe PushSubscription status/timestamps.
 
-- channel type, such as Web Push;
-- bounded enabled/disabled state;
-- createdAt/updatedAt where justified;
-- invalidated state where useful and safe; and
-- bounded category preferences.
+Account Export must continue to exclude endpoint, endpoint hash, `p256dh`,
+`auth`, browser subscription JSON, private/public VAPID secret material,
+template payloads, delivery rows, attempt counts, claim/lease data, failure
+diagnostics, raw transport responses, and another account's state. No
+delivery history or internal outbox state is exported merely because it is
+durable. A future user-visible notification history would require its own
+product, export, deletion, and retention contract.
 
-It must not include raw endpoint, `p256dh`, `auth`, VAPID material,
-browser subscription JSON, provider responses, sensitive notification history,
-or another account's state. The current no-archive export boundary is unchanged.
+## 32. Retention classification
 
-Future Developer operational membership or configuration may require a
-separate export decision; this contract does not resolve it.
+`notification_intents` and `notification_deliveries` are account-scoped
+operational delivery records whose purpose is bounded delivery processing and
+diagnostics. Active/invalidated PushSubscriptions and preferences retain their
+existing Consumer classification. Pending/retryable rows are kept only while
+needed for bounded delivery correctness; delivered, dead, and cancelled rows
+become deletable after their approved operational purpose ends. Cleanup may be
+deferred until the policy value is available.
 
-## 32. Retention questions
-
-Before durable implementation, coordinated retention policy must decide scope,
-owner, duration, exceptions, deletion/backup behavior for:
-
-- active and invalidated subscriptions;
-- preferences;
-- pending intents and delivery jobs;
-- delivery-attempt history;
-- delivered history, if retained; and
-- provider/platform copies and backup/restore reconciliation.
-
-No duration is selected. This document does not modify
-`NATALNODE_DATA_RETENTION_V1.md` or turn technical expiry/invalid state into
-retention. Notification persistence requires a coordinated retention update.
-
-Developer operational notification history may require a different retention
-owner, duration, or deletion treatment from Consumer PushSubscription and
-preference state. Those decisions require the separate Developer contract.
+The exact duration, owner, exceptions, backup behavior, and deletion treatment
+remain `POLICY REQUIRED` under `NATALNODE_DATA_RETENTION_V1.md`. No numeric
+retention period, hidden permanent-retention default, or backup erasure rule is
+introduced by B4A. Retry correctness must not depend on indefinite retention;
+the unique dedupe lifetime is only the lifetime of the active database record.
+Account deletion remains immediate active-database cascade erasure as above.
+Provider/platform copies and operational sinks require their own approved
+retention/operations treatment. Developer operational history is not covered
+by this Consumer contract.
 
 ## 33. Privacy Access Audit interaction
 
-Ordinary owner registration, replacement, unsubscribe, preference changes,
-delivery attempts, and safe settings views are product operations, not
-privileged non-owner access. They are not added to
+Ordinary owner registration, preference changes, enqueue planning, delivery
+claims, transport attempts, invalidation, and safe settings views are product
+operations, not privileged non-owner access. They are not added to
 `PrivacyAccessAuditRepository` merely because endpoint credentials are
 sensitive.
 
@@ -899,33 +1215,37 @@ A future authorized staff/service surface reading, exporting, deleting, or
 reviewing another account's notification data must use the separate Privacy
 Access Audit contract: server-derived actor/subject, bounded
 category/action/outcome, append-only handling, and approved fail-closed
-behavior. No role or privileged surface is created here.
+behavior. No role, break-glass flow, or privileged notification-data surface
+is created here.
 
 ## 34. Operational observability and provider errors
 
-Notification request routes may use the existing canonical bounded
-`api.request.completed` boundary. Future delivery operations may expose only
-bounded internal metadata such as:
+Worker and delivery observability may expose only a fixed, privacy-minimized
+record with fields such as:
 
-- channel (`WEB_PUSH`);
-- bounded notification category/type;
-- bounded delivery outcome/state;
-- duration; and
-- a permitted server request/job correlation value.
+- `channel = WEB_PUSH`;
+- bounded Consumer category and server-owned type key;
+- bounded outcome/state class;
+- attempt number within `1..5`;
+- duration/latency bucket or bounded integer;
+- retry scheduled yes/no; and
+- subscription invalidated yes/no.
 
-Never emit endpoint, keys, VAPID material, provider credentials, email,
-user/account ID, chart ID, birth data, location, timezone, full title/body,
-ChartRequest, ChartResult, interpretation, payload, URL/query, raw provider
-response, raw exception/stack/SQL, retry secrets, arbitrary labels, or dynamic
-event names.
+An opaque internal job/request correlation value may be used only when needed
+for operations and must not be an account or endpoint identifier. Do not emit
+endpoint, endpoint hash, `p256dh`, `auth`, VAPID material, provider
+credentials, email, user/account ID, chart ID, birth data, location, timezone,
+full title/body, payload, template variables, ChartRequest, ChartResult,
+interpretation, URL/query, claim token, raw provider response, raw
+exception/stack/SQL, retry secrets, arbitrary labels, or dynamic event names.
 
-Provider errors map to bounded internal classes. Raw remote responses are not
-persisted, logged, returned, or used as notification content. Delivery
-observability does not prove a user saw a notification.
-
-Developer organization names, API keys, quota details, billing identifiers,
-and security-sensitive operational data require a separately approved bounded
-observability contract before entering notification telemetry.
+Transport errors map to the bounded classes in section 28. Raw remote
+responses are not persisted, logged, returned, or reused as notification
+content. Configuration errors reveal only a finite readiness/outcome code.
+Delivery observability does not prove a user saw a notification and remains
+separate from Privacy Access Audit. Developer organization names, API keys,
+quota details, billing identifiers, and security-sensitive operational data
+require a separately approved Developer observability contract.
 
 ## 35. User notification-settings direction
 
@@ -940,7 +1260,7 @@ subscription exists without revealing credentials, and a truthful eligibility
 explanation.
 
 It must not show raw credentials, invent plan names, claim permission can be
-overridden, or become a large dashboard. No UI is built in `001A`; the current
+overridden, or become a large dashboard. No UI is built in `B4A`; the current
 Account page remains unchanged.
 
 ## 36. In-app notification center status
@@ -995,6 +1315,15 @@ It must not fabricate permission, PushSubscription, delivery, entitlement, or
 an astrology trigger. Existing Calculate, Learn, Auth, Vault, and other flows
 remain independent of notification availability.
 
+Authenticated local development may later exercise real delivery when a
+developer supplies legitimate local PostgreSQL, browser, Service Worker,
+complete VAPID configuration, and other required runtime inputs. That mode
+must use the same real ownership, payload, worker, and transport boundaries;
+it must not fabricate a PushSubscription, private VAPID key, transport result,
+or delivery success. No `DATABASE_URL`, mail credential, VAPID private key,
+local credential, or `.env` secret is committed. Any live local acceptance is
+deferred to B4B4 and must use explicit developer-owned configuration.
+
 ## 40. Deployment and live requirements
 
 Live Web Push requires external/deployment gates for:
@@ -1013,7 +1342,7 @@ Live Web Push requires external/deployment gates for:
 
 Current deployment remains one-origin static Astro plus API, with deployment
 paused and production hosting/provider choices distinct from this contract.
-`001A` configures none of these gates.
+`B4A` configures none of these gates.
 
 ## 41. Provider-selection status
 
@@ -1027,7 +1356,7 @@ feature flags must not enter website/domain behavior.
 
 ## 42. Dependency-selection status
 
-No dependency is added by `001A`. Future selection evaluates protocol and
+No dependency is added by `B4A`. Future selection evaluates protocol and
 payload-encryption support, VAPID, Node/ESM compatibility, minimal transitive
 surface, bounded sanitizable errors, active maintenance/security posture, and
 deployment compatibility.
@@ -1045,12 +1374,14 @@ The first usable foundation is limited to:
 - one provider-neutral Web Push channel;
 - bounded type/category registry;
 - narrow entitlement hook with no billing implementation;
-- durable outbox direction with bounded states/retries; and
+- a frozen durable outbox/fan-out/claim/retry/transport contract with no
+  runtime implementation; and
 - privacy-minimized content and account lifecycle interaction.
 
 It excludes inbox/history, arbitrary test messages, a general messaging bus,
-astrology trigger semantics, paid plan logic, and provider-specific UI. Each
-item remains deferred until its separately authorized slice and gates exist.
+astrology trigger semantics, paid plan logic, provider-specific UI, and live
+delivery. B4A freezes the delivery contract only; each implementation item
+remains deferred until its separately authorized slice and gates exist.
 
 ## 44. Implementation-readiness matrix
 
@@ -1064,12 +1395,12 @@ approval.
 | Registration/unsubscribe API boundary | `IMPLEMENTED LOCALLY / CONSUMER AUTHENTICATED API` | Auth principal, same-origin, bounded validation, account-key rate limiting, safe metadata |
 | Permission UX/settings UI | `IMPLEMENTED LOCALLY / PRODUCT-OWNER VISUAL RE-ACCEPTANCE REQUIRED` | Account Notifications UI uses explicit user gestures and all supported/denied/unavailable states |
 | Service worker | `IMPLEMENTED LOCALLY / PRODUCT-OWNER VISUAL RE-ACCEPTANCE REQUIRED` | Root-hosted narrow push/click worker; no fetch/cache/offline or public-development fake |
-| Web Push adapter | `OPERATIONS-GATED / PROVIDER-DEPENDENT` | Library/provider decision, credentials, error mapping, operations |
-| Durable outbox/worker | `OPERATIONS-GATED` | Persistence, worker/scheduler ownership, claiming, retry, deployment |
+| Web Push adapter | `CONTRACT FROZEN / IMPLEMENTATION DEFERRED` | Provider/library and complete server-only VAPID configuration remain operational gates |
+| Durable outbox/worker | `CONTRACT FROZEN / IMPLEMENTATION DEFERRED` | Future migration, repository, worker executable, deployment invocation, and live acceptance |
 | Entitlement integration | `FUTURE SUBSCRIPTION-GATED` | Approved product/billing entitlement source required |
 | Astrology alert producers | `ENGINE/TRIGGER-GATED` | Separate source-grounded trigger/scientific contract required |
 | Notification retention/enforcement | `POLICY-GATED / OPERATIONS-GATED` | Durations, owners, exceptions, backup/restore, deletion, scheduler |
-| Account deletion/export integration | `POLICY-GATED` | Coordinated successor amendments to existing contracts required |
+| Account deletion/export integration | `CONTRACT COMPATIBILITY FROZEN / IMPLEMENTATION DEFERRED` | Future tables must use the documented account cascades and preserve the unchanged safe export |
 | Privileged notification-data review | `POLICY-GATED / DEFERRED` | No role/surface exists; use separate audit contract later |
 | Live browser/HTTPS/provider acceptance | `LIVE-EXTERNAL-GATED` | Deployment, credentials, browser matrix, provider behavior |
 
@@ -1079,7 +1410,7 @@ trigger, and live gates must not be hidden in local code.
 
 ## 45. Future implementation slices
 
-These are bounded candidates and are not executed by `WEB-NOTIFY-001A`:
+These are bounded candidates and are not executed by `WEB-NOTIFY-001B4A`:
 
 Current implementation status:
 
@@ -1099,8 +1430,21 @@ Current implementation status:
   registration/removal choreography, safe public-key capability, bounded
   payload/click handling, and conflict-safe account switching. No server
   delivery or private VAPID credential is implemented.
-- `WEB-NOTIFY-001B4` — **NOT STARTED**: outbox, delivery worker, Web Push
-  adapter, private VAPID operations, and live delivery remain deferred.
+- `WEB-NOTIFY-001B4A` — **APPROVED TECHNICAL CONTRACT / IMPLEMENTATION
+  DEFERRED**: Consumer delivery, outbox, fan-out, claim/lease, retry,
+  invalidation, payload/template, transport, private VAPID, deletion/export,
+  retention, and observability boundaries are frozen in this amendment. No
+  runtime, migration, dependency, worker, or live-delivery implementation is
+  included.
+- `WEB-NOTIFY-001B4B1` — **NOT STARTED**: persistence/repository, future
+  migration, and typed internal enqueue foundation.
+- `WEB-NOTIFY-001B4B2` — **NOT STARTED**: provider-neutral `WebPushTransport`
+  implementation and server-only VAPID configuration/readiness.
+- `WEB-NOTIFY-001B4B3` — **NOT STARTED**: worker claim/recovery, bounded
+  retry/backoff, final-gate revalidation, and subscription invalidation.
+- `WEB-NOTIFY-001B4B4` — **NOT STARTED**: bounded integration validation and
+  local live-delivery acceptance only when legitimate developer-owned
+  configuration exists.
 - Developer operational notification domain — **CONTRACT REQUIRED BEFORE
   IMPLEMENTATION** after Subscription/Entitlement and Developer Organization
   architecture are frozen.
@@ -1133,11 +1477,45 @@ behavior, and uses a generic fallback for invalid payloads. No automatic
 permission prompt, private VAPID credential, server delivery, provider, or
 public-development fake is included. **PRODUCT-OWNER VISUAL RE-ACCEPTANCE REQUIRED.**
 
-### `WEB-NOTIFY-001B4` — Outbox, worker, and Web Push adapter
+### `WEB-NOTIFY-001B4A` — Consumer Web Push delivery contract
 
-**NOT STARTED.** Implement delivery records, bounded claiming, retries/backoff,
-invalidation, server-owned templates, and an isolated standards-based adapter
-only after operations/provider/credential decisions. No arbitrary dispatch API.
+**APPROVED TECHNICAL CONTRACT / IMPLEMENTATION DEFERRED.** This documentation
+slice freezes the two-table account-owned outbox/fan-out model, bounded state
+machine and PostgreSQL claim lease, best-effort delivery semantics, immutable
+server-rendered payload, server-only VAPID boundary, provider-neutral transport
+outcomes, failure classification, retry schedule, worker/enqueue separation,
+account deletion/export/retention/observability rules, and future migration
+shape. It creates no runtime code, dependency, migration, secret, worker, or
+send endpoint.
+
+### `WEB-NOTIFY-001B4B1` — Persistence and enqueue foundation
+
+**NOT STARTED.** Implement only the documented PostgreSQL tables, repositories,
+typed server-internal enqueue transaction, eligibility/preference gates,
+server-owned template rendering, immutable payload persistence, dedupe
+constraint, and account-deletion-compatible foreign keys. Do not implement
+transport or live delivery in this slice.
+
+### `WEB-NOTIFY-001B4B2` — WebPushTransport and VAPID configuration
+
+**NOT STARTED.** Implement the provider-neutral transport adapter, complete
+server-only VAPID validation/readiness, bounded protocol outcome mapping, and
+secret redaction. Do not add a hosted provider, arbitrary send API, or worker
+claim loop.
+
+### `WEB-NOTIFY-001B4B3` — Worker, retry, and invalidation
+
+**NOT STARTED.** Implement the separate worker/executable, atomic claim/lease
+recovery, final eligibility gate, bounded retry schedule, terminal handling,
+and target-only PushSubscription invalidation. Do not add Developer
+notifications or new astrology trigger semantics.
+
+### `WEB-NOTIFY-001B4B4` — Bounded integration validation
+
+**NOT STARTED.** Validate the implemented boundary, account lifecycle, privacy
+and observability exclusions, concurrency/retry behavior, and local live Web
+Push only when explicit legitimate configuration and browser acceptance gates
+exist. No production deployment or hosted-provider decision is implied.
 
 ### `WEB-NOTIFY-001C` — Focused security/privacy/reliability review
 
@@ -1175,23 +1553,26 @@ The following remain open and receive no invented defaults:
 
 1. active notification types, especially astrology/transit semantics;
 2. entitlement policy, plan names, paid UX, and billing source;
-3. preference schema and locale/delivery-timezone policy;
+3. future preference expansion, locale, quiet-hours, and delivery-timezone
+   policy;
 4. production service-worker cache scope and static deployment details beyond
    the narrow B3 root-hosted worker;
-5. Web Push library/provider and browser compatibility;
-6. VAPID ownership, storage, rotation, and secret operations;
-7. subscription encryption-at-rest, grants, and backup access;
-8. exact API routes, validation, rate-limit values, and conflict responses;
-9. durable table/migration shape, worker topology, scheduler, and claim lease;
-10. retry counts, backoff, provider outcome mapping, and delivery SLA;
-11. templates, localization source, and safe content lengths;
-12. deletion/export treatment for every persisted notification field;
-13. retention durations/owners for subscriptions, jobs, attempts, and history;
-14. privileged-data roles, audit review, and break-glass behavior;
-15. any non-deceptive public-development fixture policy;
-16. HTTPS/live browser/provider acceptance and production gates; and
-17. any change to the historical P0 checkpoint or deferred P0 decision packet;
-18. the Developer operational notification domain, including organization and
+5. Web Push library/provider choice, browser compatibility, and deployment
+   compatibility;
+6. VAPID secret-store ownership, storage, rotation, grants, and backup access
+   operations (the server-only configuration shape is frozen above);
+7. exact future API route validation/rate-limit values and conflict responses
+   outside the internal B4 boundary;
+8. worker invocation/scheduler deployment topology and operational SLOs;
+9. template registry contents, localization source, and any future payload
+   budget change;
+10. retention durations/owners, cleanup execution, provider copies, and
+    backup/restore treatment;
+11. privileged-data roles, audit review, and break-glass behavior;
+12. any non-deceptive public-development fixture policy;
+13. HTTPS/live browser/provider acceptance and production gates; and
+14. any change to the historical P0 checkpoint or deferred P0 decision packet;
+15. the Developer operational notification domain, including organization and
     project context, member recipient resolution, authorization, channels,
     mandatory/default policy, lifecycle, export/privacy, retention, and
     operational ownership.
@@ -1220,53 +1601,48 @@ recommended policy checkpoint.
 
 ## 49. Recommended next action
 
-After this local browser foundation, the next required action is:
+After this B4A contract freeze, the next single implementation action is:
 
-**`PRODUCT-OWNER VISUAL RE-ACCEPTANCE` — review desktop and mobile Account
-Notifications states, including default, denied, and connected states only
-when legitimately available.**
+**`WEB-NOTIFY-001B4B1` — implement the documented PostgreSQL persistence,
+repository, and typed internal enqueue foundation only.**
 
-This is a visual/product gate for the local B3 surface. It does not authorize
-B4 delivery, private VAPID credentials, a provider, an inbox, billing,
-astrology-trigger work, or Developer operational notifications. Do not execute
-`WEB-NOTIFY-001B4` automatically.
+B4B1 must not begin WebPushTransport, private VAPID operations, worker
+claiming, live delivery, billing, astrology-trigger work, or Developer
+operational notifications. Product-owner visual re-acceptance of B3 remains a
+separate gate and is not silently replaced by this contract.
 
 ## 50. Runtime-source, dependency, and migration integrity
 
-`WEB-NOTIFY-001B3` is a local browser-foundation implementation. Its completion
-boundary is:
+`WEB-NOTIFY-001B4A` is a documentation-only delivery-contract freeze. Its
+completion boundary is:
 
-- additive server-owned public-key capability and notification response type;
-- Account Notifications UI and browser orchestration only;
-- one root-hosted static Service Worker with push/click handlers only;
-- focused characterization tests without a new test framework;
-- no new package dependency or lockfile change;
-- no database migration or schema change;
-- no delivery worker, scheduler, provider, private VAPID credential, or
-  server-side push send;
-- no EngineClient, HTTP, astronomy, chart, Auth, Vault, BFF, or unrelated page
+- no runtime source under `apps/web` or `server/src` changed;
+- no package source, test, migration, package manifest, lockfile, Service
+  Worker, environment file, or database changed;
+- no outbox/delivery rows, worker, scheduler, transport, provider, private
+  VAPID secret, or server-side push send implemented;
+- no public arbitrary-send endpoint or Developer notification behavior;
+- no EngineClient, HTTP, astronomy, chart, Auth, Vault, BFF, or unrelated
   implementation change; and
 - no access to or modification of `C:\\NatalNode`.
 
-The existing B1/B2 persistence and API contracts remain additive-compatible;
-Account Export, Account Deletion, Privacy Access Audit, and historical P0
-documentation are not reopened by B3.
+The existing B1/B2/B3 persistence, API, browser, and public capability
+contracts remain additive-compatible. Account Export, Account Deletion,
+Privacy Access Audit, retention policy, and historical P0 documentation are
+not modified by B4A; this document records the compatibility requirements for
+their future B4 implementation.
 
 ## 51. Validation boundary
 
-This implementation uses only focused notification tests, source checks,
-workspace checks/builds, the static worker artifact check, and:
+This is documentation-only. Validation is limited to:
 
-- `npm run check`;
-- focused browser and Service Worker characterization tests;
-- focused server capability and notification-route tests;
-- `npm run build:server` because server runtime configuration changed;
-- `npm run build` because the Astro application changed; and
-- `git diff --check`, `git diff --stat`, `git diff --name-status`, and
-  `git status --short`.
+- `git diff --check`;
+- `git diff --cached --check` before commit; and
+- inspection of the staged documentation diff plus `git status --short`.
 
-Broad unrelated suites, database/migration commands, live Web Push delivery,
-provider calls, and browser permission automation are intentionally not run.
+Tests, `npm run check`, builds, dependency installation, database/migration
+commands, dev servers, browser automation, live Web Push, provider calls, and
+unrelated source inspection are intentionally not run.
 
 ## 52. Freeze conclusion
 
@@ -1277,18 +1653,22 @@ provider calls, and browser permission automation are intentionally not run.
     Subscription ownership             = AUTHENTICATED ACCOUNT / ONE ACTIVE OWNER
     Permission UX                      = EXPLICIT USER GESTURE ONLY
     Payload privacy                    = MINIMIZED / LOCK-SCREEN SAFE BY DEFAULT
-    Delivery architecture              = DURABLE OUTBOX + ASYNCHRONOUS WORKER DIRECTION
+    Delivery architecture              = TWO-TABLE PER-SUBSCRIPTION FAN-OUT + ASYNCHRONOUS WORKER / CONTRACT FROZEN
     In-app notification center         = DEFERRED / NOT REQUIRED FOR INITIAL FOUNDATION
-    Provider/library selection          = DEFERRED
+    Provider/library selection          = DEFERRED BEHIND WebPushTransport
+    VAPID delivery readiness             = SERVER-ONLY COMPLETE PUBLIC/PRIVATE/SUBJECT CONFIG; PUBLIC CAPABILITY SEMANTICS PRESERVED
+    Delivery guarantee                  = BOUNDED BEST-EFFORT / AT-LEAST-ONCE-STYLE; NOT EXACTLY ONCE
     Billing/subscription implementation = DEFERRED
     Astrology trigger implementation    = DEFERRED
-    Runtime implementation             = B3 LOCAL BROWSER FOUNDATION; LIVE DELIVERY NOT IMPLEMENTED
+    Runtime implementation             = B3 LOCAL BROWSER FOUNDATION; B4A CONTRACT ONLY; LIVE DELIVERY NOT IMPLEMENTED
     Live/deployment acceptance          = PRODUCT-OWNER VISUAL RE-ACCEPTANCE REQUIRED / LIVE EXTERNAL GATES OPEN
     Historical P0 status               = PRESERVED; NEW SCOPE AFTER WEB-P0-READY-003
     WEB-P0-POLICY-001A                 = NOT EXECUTED / DEFERRED
-    WEB-NOTIFY-001B4                   = NOT STARTED
+    WEB-NOTIFY-001B4A                  = APPROVED TECHNICAL CONTRACT / IMPLEMENTATION DEFERRED
+    WEB-NOTIFY-001B4B1/B4B2/B4B3/B4B4  = NOT STARTED
 
-The B3 foundation is complete locally at the implementation boundary. No
-automatic browser permission is requested, no notification is sent, and no
+The B3 foundation is complete locally at its implementation boundary and B4A
+is complete at the contract boundary only. No automatic browser permission is
+requested, no notification is sent, no private secret is configured, and no
 subscription/payment/provider decision or live delivery acceptance is implied
 by this document.
