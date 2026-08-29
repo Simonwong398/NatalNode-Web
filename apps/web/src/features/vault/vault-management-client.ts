@@ -8,6 +8,7 @@ import {
   isCreateChartNoteApiResponse,
   isDeleteChartResponse,
   isDeleteNoteResponse,
+  isDuplicateVaultChartApiResponse,
   isListChartNotesApiResponse,
   isUpdateChartNoteApiResponse,
   isUpdateVaultChartMetadataApiResponse
@@ -22,6 +23,10 @@ type VaultRequestFailure =
   | { readonly status: 'failed' };
 
 export type UpdateVaultChartResult =
+  | { readonly status: 'success'; readonly chart: VaultChartRecord }
+  | VaultRequestFailure;
+
+export type DuplicateVaultChartResult =
   | { readonly status: 'success'; readonly chart: VaultChartRecord }
   | VaultRequestFailure;
 
@@ -97,6 +102,37 @@ export async function updateVaultChartMetadata(
     const payload: unknown = await response.json();
 
     return isUpdateVaultChartMetadataApiResponse(payload)
+      ? { status: 'success', chart: payload.chart }
+      : { status: 'failed' };
+  } catch (_error) {
+    return { status: 'failed' };
+  }
+}
+
+export async function duplicateVaultChart(
+  chartId: string,
+  signal?: AbortSignal
+): Promise<DuplicateVaultChartResult> {
+  try {
+    const response = await fetch(
+      `${VAULT_CHARTS_ENDPOINT}/${encodeURIComponent(chartId)}/duplicate`,
+      {
+        method: 'POST',
+        headers: { Accept: 'application/json' },
+        credentials: 'same-origin',
+        cache: 'no-store',
+        signal
+      }
+    );
+    const failure = readFailureOrContinue(response, 201);
+
+    if (failure) {
+      return failure;
+    }
+
+    const payload: unknown = await response.json();
+
+    return isDuplicateVaultChartApiResponse(payload)
       ? { status: 'success', chart: payload.chart }
       : { status: 'failed' };
   } catch (_error) {

@@ -13,6 +13,10 @@ export interface SaveVaultChartApiResponse {
   readonly chart: VaultChartRecord;
 }
 
+export interface DuplicateVaultChartApiResponse {
+  readonly chart: VaultChartRecord;
+}
+
 export interface ListVaultChartsApiResponse {
   readonly charts: readonly VaultChartRecord[];
 }

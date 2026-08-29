@@ -206,6 +206,10 @@ function isVaultMutation(method: string, pathname: string): boolean {
     return method === 'PATCH' || method === 'DELETE';
   }
 
+  if (/^\/api\/vault\/charts\/[^/]+\/duplicate$/u.test(pathname)) {
+    return method === 'POST';
+  }
+
   if (/^\/api\/vault\/charts\/[^/]+\/notes$/u.test(pathname)) {
     return method === 'POST';
   }

@@ -1,6 +1,7 @@
 import type { Context, Hono } from 'hono';
 import type {
   DeleteVaultChartApiResponse,
+  DuplicateVaultChartApiResponse,
   GetVaultChartApiResponse,
   ListVaultChartsApiResponse,
   ChartResult,
@@ -142,6 +143,64 @@ export function registerVaultChartRoutes(app: Hono, dependencies: ServerDependen
 
       const response: GetVaultChartApiResponse = { chart };
       return context.json(response);
+    }
+  );
+
+  app.post(
+    '/api/vault/charts/:chartId/duplicate',
+    requireAuthentication(dependencies.authenticator),
+    async (context) => {
+      const principal = context.get('authenticatedPrincipal');
+      const userId = principal.userId;
+      const sourceChartId = context.req.param('chartId');
+      const sourceChart = await dependencies.persistence.vaultCharts.findById(
+        userId,
+        sourceChartId
+      );
+
+      if (!sourceChart) {
+        return createProblemDetailsContextResponse(context, {
+          code: 'NOT_FOUND'
+        });
+      }
+
+      let canonicalChartResult: ChartResult;
+
+      try {
+        const outcome =
+          await dependencies.chartCalculator.calculateChartWithOutcome(
+            sourceChart.normalizedChartRequest
+          );
+        context.set('calculationObservability', outcome.observability);
+        canonicalChartResult = outcome.chart;
+      } catch (_error) {
+        return createProblemDetailsContextResponse(context, {
+          code: 'CALCULATION_UNAVAILABLE'
+        });
+      }
+
+      const timestamp = dependencies.clock.now();
+      const duplicate: VaultChartRecord = {
+        chartId: dependencies.idGenerator.generate(),
+        userId,
+        displayName: sourceChart.displayName,
+        category: sourceChart.category,
+        tags: [...sourceChart.tags],
+        favorite: sourceChart.favorite,
+        normalizedChartRequest: sourceChart.normalizedChartRequest,
+        canonicalChartResult,
+        engineVersion: canonicalChartResult.engineVersion,
+        chartSchemaVersion: canonicalChartResult.schemaVersion,
+        astronomyConfigurationId: canonicalChartResult.metadata.astronomyConfigurationId,
+        provenanceEnvelopeId: canonicalChartResult.metadata.provenanceEnvelopeId,
+        createdAt: timestamp,
+        updatedAt: timestamp
+      };
+
+      await dependencies.persistence.vaultCharts.create(duplicate);
+
+      const response: DuplicateVaultChartApiResponse = { chart: duplicate };
+      return context.json(response, 201);
     }
   );
 

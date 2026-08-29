@@ -3,6 +3,7 @@ import type {
   CreateChartNoteApiResponse,
   DeleteChartNoteApiResponse,
   DeleteVaultChartApiResponse,
+  DuplicateVaultChartApiResponse,
   ListChartNotesApiResponse,
   UpdateChartNoteApiResponse,
   UpdateVaultChartMetadataApiResponse,
@@ -62,6 +63,12 @@ function isChartNoteRecord(value: unknown): value is ChartNoteRecord {
 export function isUpdateVaultChartMetadataApiResponse(
   value: unknown
 ): value is UpdateVaultChartMetadataApiResponse {
+  return isRecord(value) && isVaultChartRecord(value.chart);
+}
+
+export function isDuplicateVaultChartApiResponse(
+  value: unknown
+): value is DuplicateVaultChartApiResponse {
   return isRecord(value) && isVaultChartRecord(value.chart);
 }
 

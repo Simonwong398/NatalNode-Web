@@ -36,6 +36,10 @@ function chartUrl(chart) {
   return `/api/vault/charts/${encodeURIComponent(chart.chartId)}`;
 }
 
+function duplicateUrl(chart) {
+  return `${chartUrl(chart)}/duplicate`;
+}
+
 function notesUrl(chart) {
   return `${chartUrl(chart)}/notes`;
 }
@@ -92,6 +96,7 @@ test('initial render exposes the prop boundary, workspace, management regions, a
     assert.equal(scope.roles('alert').length, 0);
     assert.equal(scope.control('Add a note').disabled, true);
     assert.equal(scope.button('Add note').disabled, true);
+    assert.equal(scope.button('Duplicate chart').disabled, false);
     assert.equal(scope.button('Delete chart').disabled, false);
     assert.equal(scope.fetch.calls.length, 1);
     assert.equal(scope.fetch.calls[0].init.signal.aborted, false);
@@ -140,7 +145,11 @@ test('notes load distinguishes not-found from generic transport and malformed-pa
       scope.fetch.enqueue('GET', notesUrl(scope.chart), response);
       await scope.mount();
       await scope.flush();
-      assert.strictEqual(scope.role('alert', message).parentElement, scope.container.firstElementChild.querySelector('section'));
+      const notesSection = [...scope.container.querySelectorAll('section')].find((section) =>
+        [...section.querySelectorAll('h3')].some((heading) => scope.text(heading) === 'Notes')
+      );
+      assert.ok(notesSection);
+      assert.strictEqual(scope.role('alert', message).parentElement, notesSection);
       assert.equal(scope.control('Add a note').disabled, true);
     });
   }
@@ -709,6 +718,61 @@ test('chart deletion freezes exact confirmation cancellation without invoking th
   });
 });
 
+test('chart duplication uses one bodyless request, prevents repeats, and navigates to the returned chart', async () => {
+  const duplication = deferred();
+  const duplicate = makeVaultChart({
+    chartId: 'chart-copy',
+    displayName: 'Server duplicate'
+  });
+
+  await withVaultChartManagement({}, async (scope) => {
+    await mountWithNotes(scope, scope.chart);
+    scope.fetch.enqueue('POST', duplicateUrl(scope.chart), duplication.promise);
+    await scope.click(scope.button('Duplicate chart'));
+
+    assertMutationIntent(scope.fetch.calls[1], {
+      method: 'POST',
+      url: duplicateUrl(scope.chart)
+    });
+    assert.equal(scope.button('Duplicating…').disabled, true);
+    assert.equal(scope.button('Delete chart').disabled, false);
+    await scope.click(scope.button('Duplicating…'));
+    assert.equal(scope.fetch.callsFor('POST', duplicateUrl(scope.chart)).length, 1);
+
+    duplication.resolve(jsonResponse({ chart: duplicate }, 201));
+    await scope.flush();
+
+    assert.deepEqual(scope.locationReplaceCalls, [
+      `/vault/chart?chartId=${encodeURIComponent(duplicate.chartId)}`
+    ]);
+    assert.equal(scope.fetch.callsFor('POST', duplicateUrl(scope.chart)).length, 1);
+  });
+});
+
+test('chart duplication failures preserve the source chart and release the action lock', async () => {
+  const cases = [
+    [404, 'This saved chart is no longer available.'],
+    [500, "We couldn't duplicate this chart. Please try again."]
+  ];
+
+  for (const [status, message] of cases) {
+    await withVaultChartManagement({}, async (scope) => {
+      await mountWithNotes(scope, scope.chart);
+      scope.fetch.enqueue('POST', duplicateUrl(scope.chart), statusResponse(status));
+      const duplicateButton = scope.button('Duplicate chart');
+      duplicateButton.focus();
+      await scope.click(duplicateButton);
+      await scope.flush();
+
+      scope.role('alert', message);
+      assert.match(scope.container.textContent, /Fixture chart/);
+      assert.equal(scope.button('Duplicate chart').disabled, false);
+      assert.deepEqual(scope.locationReplaceCalls, []);
+      assert.strictEqual(scope.document.activeElement, duplicateButton);
+    });
+  }
+});
+
 test('chart deletion pending state suppresses repeats, leaves other sections operable, and delegates success exactly once', async () => {
   const deletion = deferred();
 
@@ -814,6 +878,16 @@ test('unauthorized redirect policy is consistent for load, metadata, note mutati
     assert.deepEqual(scope.locationReplaceCalls, ['/auth/sign-in']);
     assert.equal(scope.button('Deleting…').disabled, true);
     assert.equal(scope.onDeletedCalls.length, 0);
+  });
+
+  await withVaultChartManagement({}, async (scope) => {
+    await mountWithNotes(scope, scope.chart);
+    scope.fetch.enqueue('POST', duplicateUrl(scope.chart), statusResponse(401));
+    await scope.click(scope.button('Duplicate chart'));
+    await scope.flush();
+    assert.deepEqual(scope.locationReplaceCalls, ['/auth/sign-in']);
+    assert.equal(scope.button('Duplicating…').disabled, true);
+    assert.match(scope.container.textContent, /Fixture chart/);
   });
 });
 

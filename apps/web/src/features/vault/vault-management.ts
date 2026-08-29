@@ -10,6 +10,7 @@ export {
 
 export {
   updateVaultChartMetadata,
+  duplicateVaultChart,
   listChartNotes,
   createChartNote,
   updateChartNote,
@@ -19,6 +20,7 @@ export {
 
 export type {
   UpdateVaultChartResult,
+  DuplicateVaultChartResult,
   ChartNotesResult,
   ChartNoteResult,
   DeleteResult

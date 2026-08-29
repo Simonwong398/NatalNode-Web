@@ -95,6 +95,9 @@ export function classifyApiEndpointFamily(pathname: string): EndpointFamily {
   if (pathname === '/api/account/export') return 'account.export';
   if (pathname === '/api/feedback') return 'feedback';
   if (pathname === '/api/vault/charts') return 'vault.charts';
+  if (/^\/api\/vault\/charts\/[^/]+\/duplicate$/u.test(pathname)) {
+    return 'vault.chart';
+  }
   if (/^\/api\/vault\/charts\/[^/]+$/u.test(pathname)) return 'vault.chart';
   if (/^\/api\/vault\/charts\/[^/]+\/notes(?:\/[^/]+)?$/u.test(pathname)) {
     return 'vault.notes';

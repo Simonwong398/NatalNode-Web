@@ -12,7 +12,8 @@ test('Vault management frontend reuses existing endpoints and keeps deferred fea
         'VaultChartMetadataForm.tsx',
         'VaultChartNotesManager.tsx',
         'VaultChartNoteEditor.tsx',
-        'VaultChartDeletionPanel.tsx'
+        'VaultChartDeletionPanel.tsx',
+        'VaultChartDuplicationPanel.tsx'
       ].map((fileName) =>
         readFile(
           new URL(`apps/web/src/features/vault/${fileName}`, REPOSITORY_ROOT),
@@ -43,12 +44,14 @@ test('Vault management frontend reuses existing endpoints and keeps deferred fea
   assert.match(management, /Add note/u);
   assert.match(management, /Save note/u);
   assert.match(management, /Delete chart/u);
+  assert.match(management, /Duplicate chart/u);
   assert.match(management, /window\.confirm/u);
   assert.match(api, /jsonRequest\('PATCH'/u);
   assert.match(api, /jsonRequest\('POST'/u);
+  assert.match(api, /\/duplicate/u);
   assert.match(api, /method: 'DELETE'/u);
   assert.match(api, /\/notes/u);
-  assert.doesNotMatch(management, /\b(?:tags|favorite|duplicate)\b/iu);
+  assert.doesNotMatch(management, /\b(?:tags|favorite)\b/iu);
   assert.match(savedExperience, /VaultChartManagement/u);
   assert.match(migration, /CONSTRAINT chart_notes_chart_fk[\s\S]*ON DELETE CASCADE/u);
 });

@@ -3,6 +3,7 @@ import type {
   GetVaultChartApiResponse,
   VaultChartRecord
 } from '@natalnode/contracts';
+import VaultChartDuplicationPanel from './VaultChartDuplicationPanel.js';
 import VaultChartDeletionPanel from './VaultChartDeletionPanel.js';
 import VaultChartMetadataForm from './VaultChartMetadataForm.js';
 import VaultChartNotesManager from './VaultChartNotesManager.js';
@@ -30,6 +31,7 @@ export default function VaultChartManagement({
         </time>
 
         <VaultChartMetadataForm chart={chart} onChartUpdated={onChartUpdated} />
+        <VaultChartDuplicationPanel chartId={chart.chartId} />
       </header>
 
       {children}

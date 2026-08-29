@@ -62,6 +62,20 @@ function operationCases(signal = undefined) {
         })
     },
     {
+      name: 'duplicateVaultChart',
+      invoke: () => vault.duplicateVaultChart(chartId, signal),
+      expectedStatus: 201,
+      alternateSuccessStatus: 200,
+      payload: { chart },
+      expectedResult: { status: 'success', chart },
+      assertRequest: (call) =>
+        assertBodylessRequest(call, {
+          url: `/api/vault/charts/${encodedChartId}/duplicate`,
+          method: 'POST',
+          signal
+        })
+    },
+    {
       name: 'listChartNotes',
       invoke: () => vault.listChartNotes(chartId, signal),
       expectedStatus: 200,
@@ -158,6 +172,7 @@ describe('runtime public surface', () => {
       'createChartNote',
       'deleteChartNote',
       'deleteVaultChart',
+      'duplicateVaultChart',
       'listChartNotes',
       'normalizeDisplayName',
       'normalizeNoteContent',
@@ -427,7 +442,7 @@ describe('successful request contracts and response mapping', () => {
     }
   });
 
-  test('keeps all six paths under /api/vault/charts and outside the /api/chart prefix', async () => {
+  test('keeps all seven paths under /api/vault/charts and outside the /api/chart prefix', async () => {
     const capturedUrls = [];
 
     for (const operation of operationCases()) {
@@ -440,7 +455,7 @@ describe('successful request contracts and response mapping', () => {
       );
     }
 
-    assert.equal(capturedUrls.length, 6);
+    assert.equal(capturedUrls.length, 7);
     for (const url of capturedUrls) {
       assert.equal(url.startsWith('/api/vault/charts/'), true);
       assert.equal(url.startsWith('/api/chart'), false);
