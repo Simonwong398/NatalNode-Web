@@ -11,12 +11,13 @@
 | Production astronomy/provider | `PROVIDER DECISION DEFERRED` |
 | Deployment | `PAUSED` / future external gates remain open |
 
-This document freezes the technical/product boundary for a future NatalNode
-notification platform. It does not implement notifications, browser push,
-subscriptions, payments, a service worker, a worker, a scheduler, a provider,
-or a new persistence schema. It is an implementation handoff and product
-foundation contract, not a legal notice, retention schedule, billing decision,
-or production-readiness claim.
+This document freezes the technical/product boundary for the NatalNode
+notification platform. It does not authorize notification delivery, browser
+push, payments, a service worker, a worker, a scheduler, a provider, or any
+Developer operational-notification implementation. The separately recorded B1
+slice is limited to a local Consumer/account-owned persistence foundation. This
+is an implementation handoff and product foundation contract, not a legal
+notice, retention schedule, billing decision, or production-readiness claim.
 
 The platform deliberately separates:
 
@@ -118,11 +119,13 @@ Current findings relevant to notifications:
 - Operational observability has one canonical bounded request-completion record.
   It is separate from Privacy Access Audit and excludes account, chart,
   credential, endpoint, and user-content data.
-- No notification, PushSubscription, VAPID, service-worker push, browser
-  permission, delivery worker, notification scheduler, or notification
-  persistence infrastructure exists. The only scheduler-like boundary is the
-  short-lived Auth lifecycle maintenance executable; it is not notification
-  infrastructure.
+- The committed B1 foundation provides only typed Consumer notification
+  primitives, owner-scoped preferences, and account-owned PushSubscription
+  persistence. No notification route/runtime, VAPID, service-worker push,
+  browser permission, delivery worker, notification scheduler, or Developer
+  operational-notification infrastructure exists. The only scheduler-like
+  boundary is the short-lived Auth lifecycle maintenance executable; it is not
+  notification infrastructure.
 - The Web application is a static Astro artifact with React islands. No
   service-worker or web-manifest implementation is present.
 - The accepted deployment direction uses one browser-visible origin with static
@@ -147,6 +150,154 @@ The platform should provide proactive events while preserving:
 - future gating of bounded notification types by paid entitlements;
 - separation of transport from billing, astronomy, and account policy; and
 - minimized content because lock-screen and browser surfaces may be shared.
+
+## 3A. Consumer and Developer notification domains
+
+NatalNode Platform has two distinct product notification domains. They may
+eventually share lower-level delivery infrastructure, but they do not share a
+high-level recipient, entitlement, or business-policy model by default.
+
+### Consumer notifications
+
+**Consumer Notifications** are NatalNode.com product notifications for an
+authenticated human account. Future concerns may include:
+
+- astrology alerts;
+- daily or personal sky updates;
+- saved-chart reminders; and
+- account or product messages.
+
+The initial proactive Consumer channel is `WEB_PUSH`. Consumer notification
+eligibility may eventually consume Consumer entitlement, but it remains
+separate from Notification Platform delivery and preference enforcement.
+
+### Developer operational notifications
+
+**Developer Operational Notifications** are operational communications for the
+NatalNode Developers hosted commercial API product. Future concerns may
+include:
+
+- quota or usage thresholds;
+- billing;
+- security;
+- incidents;
+- API deprecations; and
+- maintenance.
+
+These events may originate from an organization, project, API key,
+subscription/usage system, or security/operations system. They are not
+semantically equivalent to Consumer astrology or product notifications.
+
+The event subject or context must be distinguished from the eventual human
+recipient. For example:
+
+    organization quota threshold reached
+        -> future Developer notification policy
+        -> authorized recipient member(s)
+        -> channel preference/policy
+        -> delivery
+
+The organization is context for the event; it is not a browser
+`PushSubscription` owner. Recipient resolution, authorization, member scope,
+and policy are deferred. They must not be hard-coded to the Consumer
+account-preference model, and no organization schema, role, or member
+permission is defined here.
+
+Developer operational channels may later include `DASHBOARD`, `EMAIL`,
+optional `WEB_PUSH`, and future `WEBHOOK` or integration channels. This is a
+direction only, not a frozen full channel enum, and it does not add `EMAIL` or
+another channel to the B1 Consumer code.
+
+No final Developer policy defaults are selected. In particular, billing or
+security is not declared always-on, and no quota threshold such as 80% is
+declared default-on. Mandatory-versus-optional behavior remains a future
+Subscription/Developer product decision.
+
+### B1 classification and additive evolution
+
+`WEB-NOTIFY-001B1` is explicitly the **CONSUMER / ACCOUNT-OWNED WEB PUSH
+FOUNDATION**. Its `ownerId`, `notification_channel_preferences`,
+`notification_category_preferences`, `push_subscriptions`,
+`ACCOUNT`/`SYSTEM`/`ASTROLOGY_ALERT` categories, and `WEB_PUSH` preference
+are interpreted only inside this Consumer/account-owned scope.
+
+The existing B1 schema and domain remain valid as the Consumer foundation.
+`users(user_id)` remains the ownership root, and a Consumer
+`PushSubscription` remains human-account scoped. No migration rollback,
+organization ownership rewrite, table rename, or B1 code rewrite is required
+to add a future Developer notification domain additively.
+
+The current account-owned `NotificationIntent` is sufficient for Consumer
+notification work; it is not required to become a universal supertype for
+Developer operational events. A future Developer domain may reuse safe
+lower-level primitives or define an organization-context intent that later
+converges at delivery planning. Its high-level business-policy persistence
+does not need to be unified with B1.
+
+The existing account-owned PushSubscription persistence may later serve as a
+delivery credential for an authenticated human recipient, including a
+Developer member, when future Developer recipient policy resolves that member
+to the same NatalNode account. This does not make an organization the owner or
+change the B1 account-ownership rule.
+
+The likely shared lower-level direction is:
+
+    Consumer notification intent
+    or Developer operational notification intent
+        -> recipient resolution
+        -> preference/policy
+        -> shared delivery planner/outbox/channel adapter where compatible
+
+Shared delivery infrastructure is acceptable. Shared business-policy schema
+is not required.
+
+Notification Platform remains separate from Billing Platform. Consumer
+eligibility may consume Consumer entitlement, while Developer operational
+policy may consume Developer subscription, usage/quota, or security/operations
+state. Notification Platform is not the billing authority, and no Stripe or
+other provider logic belongs here.
+
+Future Subscription/Entitlement design must support independent product
+families such as `CONSUMER` and `DEVELOPER` without making them mutually
+exclusive. This contract freezes no plan names, prices, quotas, or billing
+periods.
+
+### B1 lifecycle and privacy distinction
+
+Deleting a user removes that user's current B1 Consumer notification
+preferences and PushSubscriptions through the existing account cascade.
+Future Developer organization/member semantics may require separate
+reassignment or organization-level operational-history decisions and are not
+resolved here.
+
+No B1 notification export implementation is added. Future Consumer safe
+preference metadata and future Developer operational membership or
+configuration may have different export semantics. No Developer export rule
+is frozen here.
+
+No numeric retention duration is selected. Developer operational notification
+history may have different retention requirements from Consumer preference and
+PushSubscription state; future policy must treat them separately where
+necessary.
+
+Developer operational data such as organization names, API keys, quota
+details, billing identifiers, or security-sensitive operations data must not
+enter ordinary notification observability without a separately approved
+bounded metadata contract.
+
+**DEVELOPER OPERATIONAL NOTIFICATION DOMAIN — CONTRACT REQUIRED BEFORE
+IMPLEMENTATION.** That future contract must resolve organization/project
+context, member recipient resolution, authorization, channel policy,
+mandatory-versus-optional messages, billing/security semantics, quota
+threshold behavior, Account/Organization deletion, export/privacy, retention,
+and operational ownership.
+
+`WEB-NOTIFY-001B1-R1` should verify that the current persistence is safely
+account-scoped, does not claim Organization ownership, does not turn the
+current categories into a permanent universal Developer taxonomy, keeps
+PushSubscription ownership human-account scoped, and permits future Developer
+recipient resolution without rewriting active-endpoint security. B1-R1 is a
+review criterion, not executed by this amendment.
 
 ## 4. Non-goals
 
@@ -318,11 +469,13 @@ A conceptual shape is:
     preferences[account].webPush.enabled
     preferences[account].categories[boundedCategory].enabled
 
-The exact schema is deferred. Preferences are resolved from the authenticated
+The B1 Consumer implementation uses normalized account-scoped persistence for
+these two preference classes. Preferences are resolved from the authenticated
 owner, and opt-in is the default direction. A disabled global channel or
 category prevents delivery even when entitled. Do not add quiet hours,
 device-fingerprint, birth-timezone, or speculative flags without a concrete
-requirement.
+requirement. Broader Developer policy and channel preferences require their
+own future contract.
 
 If local-time scheduling is later required, it needs a separate user
 delivery-timezone contract and must not reuse a birth-chart timezone.
@@ -376,7 +529,10 @@ selector. The future record is conceptually:
     state: ACTIVE | INVALIDATED
     invalidatedAt              (optional)
 
-Exact table and field names are deferred. The frozen rules are:
+The B1 Consumer implementation realizes this model with account-owned
+`push_subscriptions` persistence. Any future Developer credential or recipient
+policy must preserve the distinction between a human account's delivery
+credential and an organization's event context. The frozen rules are:
 
 - `endpoint`, `p256dh`, and `auth` use Push API terminology and are
   stored only for the server transport boundary;
@@ -678,9 +834,14 @@ Delivered operational history, if retained, follows separate approved retention
 and erasure policy. No duration or deletion exception is invented. Notification
 records require a coordinated successor update to the account-erasure contract.
 
+The B1 account cascade covers the current Consumer preferences and
+PushSubscriptions. Future Developer organization/member semantics may require
+separate reassignment or organization-level operational-history decisions and
+are not resolved here.
+
 ## 31. Account Export interaction
 
-If approved, Account Export may include privacy-minimized metadata:
+If approved, Account Export may include privacy-minimized Consumer metadata:
 
 - channel type, such as Web Push;
 - bounded enabled/disabled state;
@@ -691,6 +852,9 @@ If approved, Account Export may include privacy-minimized metadata:
 It must not include raw endpoint, `p256dh`, `auth`, VAPID material,
 browser subscription JSON, provider responses, sensitive notification history,
 or another account's state. The current no-archive export boundary is unchanged.
+
+Future Developer operational membership or configuration may require a
+separate export decision; this contract does not resolve it.
 
 ## 32. Retention questions
 
@@ -707,6 +871,10 @@ owner, duration, exceptions, deletion/backup behavior for:
 No duration is selected. This document does not modify
 `NATALNODE_DATA_RETENTION_V1.md` or turn technical expiry/invalid state into
 retention. Notification persistence requires a coordinated retention update.
+
+Developer operational notification history may require a different retention
+owner, duration, or deletion treatment from Consumer PushSubscription and
+preference state. Those decisions require the separate Developer contract.
 
 ## 33. Privacy Access Audit interaction
 
@@ -743,6 +911,10 @@ event names.
 Provider errors map to bounded internal classes. Raw remote responses are not
 persisted, logged, returned, or used as notification content. Delivery
 observability does not prove a user saw a notification.
+
+Developer organization names, API keys, quota details, billing identifiers,
+and security-sensitive operational data require a separately approved bounded
+observability contract before entering notification telemetry.
 
 ## 35. User notification-settings direction
 
@@ -786,10 +958,15 @@ These separations are frozen:
 
     Notification Platform != Billing Platform
     Notification Platform != Astrology Trigger Engine
+    Consumer notification policy != Developer operational notification policy
 
 Billing/product systems decide entitlement. Notification Platform enforces the
 supplied eligibility result and does not inspect payment-provider state or
 implement checkout.
+
+Consumer and Developer product families may supply different eligibility or
+operational policy inputs, but neither makes Notification Platform the billing
+authority.
 
 The trigger producer decides that a logical event exists. Notification Platform
 decides whether and how an eligible, opted-in user may receive it. Push code is
@@ -871,8 +1048,8 @@ approval.
 
 | Boundary | Classification | Current state / precondition |
 |---|---|---|
-| Typed categories, intent, preferences | `LOCAL IMPLEMENTATION READY` after contract acceptance | Focused provider-neutral domain; no billing or astrology types invented |
-| Owner-bound PushSubscription persistence | `LOCAL IMPLEMENTATION READY` after contract acceptance | Typed repository/migration slice; sensitive fields and ownership fixed here |
+| Typed categories, intent, preferences | `IMPLEMENTED LOCALLY / CONSUMER ACCOUNT-OWNED FOUNDATION` | Focused provider-neutral domain; no billing or astrology types invented |
+| Owner-bound PushSubscription persistence | `IMPLEMENTED LOCALLY / CONSUMER ACCOUNT-OWNED FOUNDATION` | Typed repository/migration slice; sensitive fields and account ownership fixed here |
 | Registration/unsubscribe API boundary | `LOCAL IMPLEMENTATION READY` after persistence contract | Auth principal, same-origin, validation, future notification rate limits |
 | Permission UX/settings UI | `LOCAL IMPLEMENTATION READY / LIVE-EXTERNAL-GATED` | Local browser code possible; real permission/Push API needs HTTPS/live acceptance |
 | Service worker | `LOCAL IMPLEMENTATION READY / LIVE-EXTERNAL-GATED` | Narrow handler later; no current worker or public-development fake |
@@ -895,17 +1072,24 @@ These are bounded candidates and are not executed by `WEB-NOTIFY-001A`:
 
 Current implementation status:
 
-- `WEB-NOTIFY-001B1` — **IMPLEMENTED LOCALLY**: typed domain primitives,
-  owner-scoped preferences, and PostgreSQL PushSubscription persistence
-  foundation only. Runtime composition, routes, browser registration, and
-  delivery remain deferred.
-- `WEB-NOTIFY-001B2` — **NOT STARTED**.
+- `WEB-NOTIFY-001B1` — **IMPLEMENTED LOCALLY / CONSUMER ACCOUNT-OWNED
+  FOUNDATION**: typed domain primitives, owner-scoped preferences, and
+  PostgreSQL PushSubscription persistence only. Runtime composition, routes,
+  browser registration, and delivery remain deferred.
+- `WEB-NOTIFY-001B1-R1` — **NOT STARTED**: focused ownership, concurrency, and
+  sensitive-credential persistence review.
+- `WEB-NOTIFY-001B2` — **NOT STARTED**: Consumer authenticated Web Push
+  registration/removal APIs.
+- Developer operational notification domain — **CONTRACT REQUIRED BEFORE
+  IMPLEMENTATION** after Subscription/Entitlement and Developer Organization
+  architecture are frozen.
 
-### `WEB-NOTIFY-001B1` — Typed notification domain and owner state
+### `WEB-NOTIFY-001B1` — Consumer typed notification domain and owner state
 
-Implement the bounded registry, intent shape, minimal preferences, and
-owner-bound PushSubscription repository/persistence contract after prerequisites
-are accepted. No billing plans, astrology trigger types, or delivery provider.
+This slice is implemented locally as the Consumer/account-owned foundation.
+It contains the bounded registry, intent shape, minimal preferences, and
+owner-bound PushSubscription repository/persistence contract. It contains no
+billing plans, astrology trigger types, or delivery provider.
 
 ### `WEB-NOTIFY-001B2` — Registration/removal APIs and ownership security
 
@@ -975,7 +1159,11 @@ The following remain open and receive no invented defaults:
 14. privileged-data roles, audit review, and break-glass behavior;
 15. any non-deceptive public-development fixture policy;
 16. HTTPS/live browser/provider acceptance and production gates; and
-17. any change to the historical P0 checkpoint or deferred P0 decision packet.
+17. any change to the historical P0 checkpoint or deferred P0 decision packet;
+18. the Developer operational notification domain, including organization and
+    project context, member recipient resolution, authorization, channels,
+    mandatory/default policy, lifecycle, export/privacy, retention, and
+    operational ownership.
 
 Absent decisions result in unavailable/fail-closed behavior or a deferred slice,
 not a guessed provider, plan, duration, timezone, or scientific meaning.
@@ -1009,7 +1197,9 @@ sensitive-credential persistence review.**
 This action must remain bounded, provider-neutral, and free of billing,
 astrology-trigger, service-worker, transport, or live credential work unless
 the corresponding slice is separately authorized. Do not execute it
-automatically as part of `001B1`.
+automatically as part of this contract amendment. It must also verify that the
+Consumer/account-owned B1 foundation remains additive-compatible with a future
+Developer operational notification domain.
 
 ## 50. Runtime-source, dependency, and migration integrity
 
