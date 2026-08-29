@@ -1,0 +1,24 @@
+---
+import BrandMark from './BrandMark.astro';
+
+type BrandTone = 'navy-cyan' | 'white-cyan' | 'black' | 'white';
+
+interface Props {
+  href?: string;
+  tone?: BrandTone;
+  size?: number;
+  class?: string;
+}
+
+const {
+  href = '/',
+  tone = 'white-cyan',
+  size = 28,
+  class: className
+} = Astro.props;
+---
+
+<a class:list={['nn-brand', 'nn-brand-lockup', className]} href={href} aria-label="NatalNode">
+  <BrandMark class="nn-brand-lockup__mark" size={size} tone={tone} />
+  <span class="nn-brand-lockup__wordmark">NATALNODE</span>
+</a>

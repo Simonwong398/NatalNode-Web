@@ -1,6 +1,7 @@
 ---
 import Container from '@/components/layout/Container.astro';
 import AuthSessionControl from '@/components/AuthSessionControl.astro';
+import BrandLockup from '@/components/brand/BrandLockup.astro';
 import SeoHead from '@/components/SeoHead.astro';
 import StructuredData from '@/components/StructuredData.astro';
 import { DEFAULT_ROBOTS, SITE_NAME, SITE_ORIGIN, type SeoMetadata } from '@/lib/seo';
@@ -43,6 +44,7 @@ const websiteStructuredData = robots === 'index,follow'
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
     {websiteStructuredData && <StructuredData data={websiteStructuredData} />}
     {structuredData && <StructuredData data={structuredData} />}
     <script is:inline>
@@ -82,9 +84,7 @@ const websiteStructuredData = robots === 'index,follow'
     </a>
     <header class="nn-site-header">
       <Container mode="shell" class="nn-site-header__inner">
-        <a class="nn-brand" href="/" aria-label="NatalNode home">
-          NatalNode
-        </a>
+        <BrandLockup />
 
         <button
           class="nn-menu-toggle"
@@ -156,7 +156,7 @@ const websiteStructuredData = robots === 'index,follow'
 
     <footer class="border-t border-natal-border/70">
       <Container mode="shell" class="flex flex-wrap items-center justify-between gap-x-6 gap-y-3 py-6">
-        <p class="nn-type-metadata">NatalNode</p>
+        <BrandLockup class="nn-footer-brand" size={22} />
         <nav aria-label="Trust navigation">
           <ul class="flex flex-wrap items-center gap-x-5 gap-y-2">
             <li>

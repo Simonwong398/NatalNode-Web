@@ -1,0 +1,73 @@
+---
+type BrandTone = 'navy-cyan' | 'white-cyan' | 'black' | 'white';
+
+interface Props {
+  tone?: BrandTone;
+  size?: number;
+  x?: number;
+  y?: number;
+  class?: string;
+  animated?: boolean;
+}
+
+const {
+  tone = 'white-cyan',
+  size = 28,
+  x,
+  y,
+  class: className,
+  animated = false
+} = Astro.props;
+
+const palettes: Record<BrandTone, { structure: string; signal: string }> = {
+  'navy-cyan': { structure: '#0F1722', signal: '#22C7D6' },
+  'white-cyan': { structure: '#FFFFFF', signal: '#22C7D6' },
+  black: { structure: '#000000', signal: '#000000' },
+  white: { structure: '#FFFFFF', signal: '#FFFFFF' }
+};
+
+const palette = palettes[tone];
+---
+
+<svg
+  class:list={['nn-brand-mark', animated && 'nn-brand-mark--animated', className]}
+  width={size}
+  height={size}
+  viewBox="0 0 160 160"
+  role="presentation"
+  aria-hidden="true"
+  focusable="false"
+  x={x}
+  y={y}
+>
+  <g transform="translate(80 80)" fill="none" stroke-linecap="round" stroke-linejoin="round">
+    <path
+      d="M 13.73 -64.56 A 66 66 0 0 1 13.73 64.56"
+      stroke={palette.structure}
+      stroke-width="5.5"
+    />
+    <path
+      d="M -13.73 64.56 A 66 66 0 0 1 -13.73 -64.56"
+      stroke={palette.structure}
+      stroke-width="5.5"
+    />
+
+    <path
+      d="M 0 -58 V 58"
+      stroke={palette.structure}
+      stroke-width="2.25"
+      stroke-opacity="0.72"
+    />
+    <circle cx="0" cy="-58" r="6.25" fill={palette.structure} stroke="none" />
+    <circle cx="0" cy="58" r="6.25" fill={palette.structure} stroke="none" />
+
+    <path d="M -30 32 V -32" stroke={palette.structure} stroke-width="6.5" />
+    <path d="M 30 32 V -32" stroke={palette.structure} stroke-width="6.5" />
+    <path
+      class="nn-brand-mark__signal"
+      d="M -30 -32 L 30 32"
+      stroke={palette.signal}
+      stroke-width="6.5"
+    />
+  </g>
+</svg>
