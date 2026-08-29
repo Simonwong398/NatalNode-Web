@@ -2,9 +2,9 @@
 
 - Status: **CURRENT PRODUCT READINESS CHECKPOINT**
 - Task: `WEB-P0-READY-002`
-- Baseline: `43b7c3c093b3e734fc6afa9f74a96282e2d11acc`
-- Baseline message: `fix: harden calculation observability`
-- Date: 2026-08-28
+- Baseline: `ed6303640f759a33ee67998338c4bf9cbfb4262d`
+- Baseline message: `fix: harden vault chart duplication`
+- Date: 2026-08-29
 - Mode: Product / architecture readiness reconciliation; documentation only
 - Checkpoint strategy: **V1 updated in place**; V1 is the living checkpoint
 - Production astronomy: `PROVIDER DECISION DEFERRED`
@@ -46,6 +46,7 @@ current baseline as required by this reconciliation:
 - `docs/product/NATALNODE_ACCOUNT_DATA_EXPORT_V1.md`
 - `docs/product/NATALNODE_AUTH_LIFECYCLE_CLEANUP_V1.md`
 - `docs/product/NATALNODE_API_PROBLEM_DETAILS_V1.md`
+- `docs/product/NATALNODE_PRIVACY_ACCESS_AUDIT_V1.md`
 - `docs/product/NATALNODE_CHARTRESULT_CACHE_V1.md`
 - `docs/product/NATALNODE_OBSERVABILITY_V1.md`
 - `docs/product/NATALNODE_LOCAL_PUBLIC_DEVELOPMENT_RUNTIME_V1.md`
@@ -82,12 +83,15 @@ errors, ChartResult caching, and P0 observability are corrected below. The
 public local development runtime is also present and its accepted behavior is
 recorded without rerunning browser acceptance.
 
-The remaining unblocked Web-owned P0 implementation gap is the missing Vault
-chart duplicate operation. Privacy-access auditing and complete retention
-enforcement remain real P0 gaps, but their safe contract and operational
-behavior depend on authorized access, retention, and policy decisions. Google
-OAuth, public legal pages, staging infrastructure, and production scientific
-truth remain separately blocked or deferred. No provider is selected here.
+The previously open Web-owned Vault chart duplicate operation is now closed.
+Privacy-access auditing has an approved privacy-minimized technical contract,
+but no durable runtime mechanism or current privileged data-access surface
+exists. Its durable schema/repository core is locally implementable without
+inventing roles; integration into real privileged surfaces remains gated on
+approved authorization and operational policy. Complete retention enforcement
+remains a separate P0 gap dependent on retention decisions. Google OAuth,
+public legal pages, staging infrastructure, and production scientific truth
+remain separately blocked or deferred. No provider is selected here.
 
 ## 4. P0 readiness matrix
 
@@ -100,13 +104,13 @@ truth remain separately blocked or deferred. No provider is selected here.
 | E. ChartResult cache | Provider-neutral, process-local, bounded cache with canonical-input keying, generation/schema identity, TTL/LRU, clone-on-store/read, BFF integration, and internal cache outcomes is implemented | `server/src/app/cache/chart-result-cache.ts`; `server/src/app/cache/chart-result-cache-key.ts`; `server/src/app/cache/cached-chart-calculator.ts`; commits `a587b6f3649b5938bdf8a3f3c295766f3954ddd8`, `305644f887563566315100b7aa3b977aaf1ff991`, `0ecd07429a6531d5b2b1b1fba382972e3d459c57` | Production Engine/scientific configuration identity and live multi-instance behavior remain provider/deployment concerns; no hour-level shared planet cache exists | **IMPLEMENTATION TRACK CLOSED; PROVIDER/DEPLOYMENT CONTEXT DEFERRED** |
 | F. P0 observability | `P0 OBSERVABILITY IMPLEMENTATION TRACK — CLOSED`: one canonical completion record carries bounded request facts, Problem Details code, cache status, Engine result generation, ChartResult contract version, scientific status, and Engine duration where applicable | `server/src/app/observability/api-request-observability.ts`; `server/src/app/observability/calculation-observability.ts`; current chart/cache composition; commits `09a71bf9b121bc976d0d00a5fa9f8fa40b2d4451`, `06f04999ba70b2447f0bd3821c844152f6b94d9e`, `43b7c3c093b3e734fc6afa9f74a96282e2d11acc` | Retention duration, privacy-access audit, production sink/vendor, warning-count bound, provenance status, and conditional scientific configuration ID remain deferred | **IMPLEMENTATION TRACK CLOSED; DEFERRED OPERATIONS/POLICY ITEMS PRESERVED** |
 | G. Public local development runtime | The accepted local public-development composition is implemented: `npm run dev:public`, public `http://localhost:4321`, loopback Hono `127.0.0.1:4322`, static Astro edge, fixture Chart/Sky paths, signed-out session/Vault behavior, and production-marker isolation | `package.json`; `server/src/executable/run-public-development-composition.ts`; `server/src/executable/public-development-dependencies.ts`; `server/src/executable/public-development-config.ts`; commits `41319da055e59b03cc3380d7b48d66cbbf406a2d`, `6d617dce075db3d75e0192edda33aa2c8babe771` | This is local development, not external staging or production; accepted browser behavior is not rerun in this checkpoint | **LOCAL IMPLEMENTATION CLOSED; ACCEPTED BEHAVIOR NOT RERUN** |
-| H. Privacy-access auditing | No `audit_events` table, access-audit repository, authorized-access event contract, or equivalent durable mechanism is present; operational request logs are explicitly not an access audit | `docs/PRD.md` privacy requirement; `server/db/migrations/`; `server/src/app/observability/`; privacy and observability contracts | A privacy-minimized audit contract, access roles, retention, and authorized operational workflow must be approved before safe implementation | **NOT STARTED / TRUE P0 GAP; POLICY-GATED** |
+| H. Privacy-access auditing | `NATALNODE_PRIVACY_ACCESS_AUDIT_V1.md` now freezes a provider-neutral, privacy-minimized event/repository/storage direction; no durable runtime mechanism or privileged data-access surface exists | `docs/PRD.md`; `docs/product/NATALNODE_PRIVACY_ACCESS_AUDIT_V1.md`; `server/db/migrations/`; `server/src/app/observability/`; current Auth/principal and route boundaries | Durable schema/repository core can proceed without role invention; privileged-surface integration, reviewer access, retention, and operational workflow remain policy-gated | **CONTRACT FROZEN; RUNTIME NOT STARTED; B1 LOCALLY READY / B2 POLICY-GATED** |
 | I1. Retention technical contract | Deletion, export, Auth cleanup, and observability contracts define bounded lifecycle boundaries, but no single approved duration/scope contract exists for Auth, Vault, Feedback, application logs, infrastructure logs, backups, and processor records | `docs/product/NATALNODE_ACCOUNT_DELETION_ERASURE_V1.md`; `docs/product/NATALNODE_ACCOUNT_DATA_EXPORT_V1.md`; `docs/product/NATALNODE_AUTH_LIFECYCLE_CLEANUP_V1.md`; `docs/product/NATALNODE_OBSERVABILITY_V1.md` | Retention durations, category scope, exceptions, restore behavior, and interaction with privacy-access audit require explicit policy decisions | **PARTIAL; RETENTION DURATION DEFERRED** |
 | I2. Retention enforcement | Auth cleanup code and a maintenance command exist, but no repository-wide Vault/Feedback/log enforcement or verified scheduled invocation exists | `server/src/maintenance/`; `server/src/persistence/postgres/postgres-auth-lifecycle-cleanup-repository.ts`; no configured scheduler or downstream log-retention control in repository source | Implement only the approved lifecycle semantics and verify them in the target environment; technical expiry is not deletion or a legal-retention policy | **INCOMPLETE / NOT OPERATIONALLY ENFORCED** |
 | I3. Retention policy / external dependency | Vault, Feedback, application/infrastructure logs, backups, and Resend retention/access remain policy and operations questions | `docs/product/NATALNODE_PRIVACY_TERMS_POLICY_V1.md` decisions P-07 through P-09; erasure/export/observability contracts | Legal/privacy/operations owners must approve durations, roles, exceptions, backup/restore handling, and processor disclosures | **POLICY / EXTERNAL BLOCKED** |
 | J1. Google Sign-In implementation | Only the `GOOGLE` contract/schema allowance exists; no OAuth route, state/PKCE flow, token exchange, browser flow, or Google adapter is implemented | `packages/contracts/src/auth.ts`; `server/db/migrations/0001_auth_vault_baseline.sql`; `server/src/auth-runtime/README.md` | Dedicated Auth security/privacy contract and implementation are required before enabling Google | **NOT IMPLEMENTED / P0 GAP** |
 | J2. Google OAuth credentials/configuration | No Google OAuth client credentials or deployment configuration is present or approved | `docs/product/NATALNODE_PRIVACY_TERMS_POLICY_V1.md` decision P-13; current runtime configuration | OAuth credentials, redirect configuration, processor disclosure, and live verification are external gates | **EXTERNAL / CREDENTIAL AND POLICY BLOCKED** |
-| K. Vault duplicate | Save, read/list, rename/category/tags/favorite, notes, delete, owner binding, and server recalculation exist; duplicate has no contract, route, repository operation, or UI action | `packages/contracts/src/api/vault.ts`; `server/src/app/routes/vault-charts.ts`; `server/src/persistence/vault-chart-repository.ts`; `apps/web/src/features/vault/` | A separate owner-scoped duplicate operation must preserve server recalculation, canonical-result integrity, ownership, and bounded metadata | **MISSING / TRUE P0 GAP; LOCALLY IMPLEMENTABLE** |
+| K. Vault duplicate | Owner-scoped duplicate contract, route, server recalculation, canonical-result persistence, bounded metadata copy, UI action, and focused regression coverage are implemented | `packages/contracts/src/api/vault.ts`; `server/src/app/routes/vault-charts.ts`; `server/src/persistence/vault-chart-repository.ts`; `apps/web/src/features/vault/`; commit `ed6303640f759a33ee67998338c4bf9cbfb4262d` | Live PostgreSQL/browser verification remains outside this checkpoint; the implementation track must not be reopened without a concrete regression | **IMPLEMENTATION TRACK CLOSED; OPERATIONALLY UNVERIFIED** |
 | L1. Legal/privacy copy implementation | `/privacy` and `/terms` are not present; no unsupported placeholder claims were added | `apps/web/src/pages/`; `docs/product/NATALNODE_PRIVACY_TERMS_POLICY_V1.md` | Approved legal entity/controller, contact, jurisdiction, age, retention, rights, and counsel-reviewed copy are required | **NOT IMPLEMENTED / POLICY-BLOCKED P0 GAP** |
 | L2. Legal/policy dependency | Product policy records unresolved legal and operational decisions; the policy document is not legal advice or final public copy | `docs/product/NATALNODE_PRIVACY_TERMS_POLICY_V1.md`, especially P-01 through P-16 | Legal/privacy/operations approval must precede publication and any unsupported commitment | **EXTERNAL / POLICY BLOCKED** |
 | M1. Staging local readiness | Provider-neutral topology, executable server composition, migrations, local edge, public-development runtime, and security middleware foundations exist; Railway/Caddy staging composition is not implemented or verified | `docs/adr/WEB-DEPLOY-001A-web-api-deployment-topology.md`; `docs/adr/WEB-DEPLOY-002A-railway-p0-staging-topology.md`; `server/src/executable/`; `server/src/runtime/` | Repository-local readiness is not a staging deployment; staging-specific edge, environment, and E2E work remains a separate authorized task | **PARTIAL / READY-TO-RESUME ONLY** |
@@ -130,6 +134,8 @@ missing:
    calculation observability hardening.
 7. Public local development runtime and its accepted signed-out/fixture
    behavior.
+8. Vault chart duplication, including the owner-scoped server recalculation
+   path and first-party UI boundary.
 
 The accepted Calculate/Chart/Interpretation/Details result architecture,
 Visual V1.1 foundation, and development Public Sky foundation also remain
@@ -154,7 +160,7 @@ or that all retention is enforced. These claims remain separate:
 | Is there a retention technical contract? | **Partial.** Auth expiry, Auth cleanup, account erasure, export, and logging boundaries exist, but a single approved duration and category schedule does not. |
 | Is retention enforcement complete? | **No.** The Auth maintenance command is code-complete, but scheduled/target-environment invocation is not verified; Vault, Feedback, and downstream application/infrastructure log enforcement are not established. |
 | Is the retention policy approved? | **No.** Duration, scope, exceptions, backup/restore handling, processor retention, and access roles remain policy/operations dependencies. |
-| Is privacy-access auditing implemented? | **No.** No durable access-audit mechanism exists. Operational request observability is not access-audit evidence and must not be repurposed as one. |
+| Is privacy-access auditing implemented? | **No.** The privacy-minimized technical contract is now frozen, but no durable access-audit mechanism or privileged data-access surface exists. Operational request observability remains separate and is not access-audit evidence. |
 | Is a privacy-access audit the same as an account deletion/export record? | **No.** Deletion/export records are bounded product operations; a privacy-access audit needs its own authorized-access model and retention decision. |
 
 No duration is invented in this checkpoint. Technical expiration remains
@@ -188,18 +194,19 @@ evidence. Browser acceptance is intentionally not rerun by this checkpoint.
 
 ### 8.1 One locally implementable next gap
 
-The single highest-priority **unblocked local implementation** is the missing
-Vault chart duplicate operation. It is a narrow Web-owned P0 contract gap and
-does not require an astronomy provider, OAuth credentials, deployment, or a
-retention-duration decision. It must remain owner-scoped and reuse the
-existing server-side recalculation/canonical-result rules rather than copying
-client-submitted scientific state.
+The single highest-priority **unblocked local implementation** is the durable
+Privacy Access Audit core. The technical contract is frozen in
+`docs/product/NATALNODE_PRIVACY_ACCESS_AUDIT_V1.md`; its typed event,
+append-only repository, and PostgreSQL storage direction can be implemented
+without selecting a provider or inventing an authorization role. This slice
+must not add a privileged surface, role taxonomy, retention cleanup, or user
+API. Integration remains separately blocked until a real privileged surface
+and approved access policy exist.
 
 Recommended task wording:
 
 ~~~
-Implement the missing Vault chart duplicate operation as one bounded,
-owner-scoped P0 Web task.
+WEB-PRIVACY-AUDIT-001B1 — Implement Durable Privacy Access Audit Core
 ~~~
 
 No part of that task is executed by this checkpoint.
@@ -221,8 +228,8 @@ not be relabeled as live or production astronomy.
 
 - Retention duration/scope for Auth, Vault, Feedback, application logs,
   infrastructure logs, backups, and processors.
-- Privacy-access audit authorization, access roles, event scope, retention,
-  and operational workflow.
+- Privacy-access audit authorization/access roles, retention, reviewer access,
+  and operational workflow; the technical event scope is now frozen.
 - Google OAuth security/privacy approval, credentials, redirect configuration,
   processor disclosure, and live verification.
 - Legal entity/controller, privacy contact, jurisdiction, age policy, rights,
@@ -244,8 +251,10 @@ configuration.
 The following remain intentionally deferred and are not converted into work by
 this checkpoint:
 
-- Retention durations and privacy-access auditing until their contracts and
-  policy/operations owners are resolved.
+- Retention durations and privileged-surface audit integration until their
+  policy/operations owners and real access surfaces are resolved. The
+  privacy-access technical contract is frozen; its durable core is the next
+  local P0 implementation slice.
 - Observability `warningCount`, `provenanceStatus`, and conditional
   `astronomyConfigurationId` until bounded source-level semantics are
   approved; production sink/vendor selection remains deferred.
@@ -265,8 +274,9 @@ this checkpoint:
 
 - Do not execute or recreate `WEB-PRIVACY-001A`.
 - Do not reopen the closed deletion, export, Auth cleanup, Problem Details,
-  cache, observability, or public-local-runtime implementation tracks without
-  a concrete regression or a separately authorized new boundary.
+  cache, observability, public-local-runtime, or Vault chart duplication
+  implementation tracks without a concrete regression or a separately
+  authorized new boundary.
 - Do not treat Auth cleanup code as proof of an approved retention duration or
   complete retention enforcement.
 - Do not use operational request logs as a privacy-access audit.
@@ -284,13 +294,14 @@ reopening. The remaining release picture is:
 ~~~
 P0 implementation foundation       = STRONG
 Closed implementation tracks       = PRESERVED
-Unblocked local P0 implementation  = VAULT DUPLICATE ONLY
+Unblocked local P0 implementation  = PRIVACY AUDIT CORE (B1)
 Privacy audit/retention completion = NOT COMPLETE; policy/operations gated
 Staging                             = PAUSED
 Production astronomy/provider       = DEFERRED
 Launch readiness                    = NOT COMPLETE
 ~~~
 
-The single recommended next P0 action is the bounded owner-scoped Vault chart
-duplicate operation described in section 8.1. It is a recommendation only;
-this checkpoint performs no implementation and does not start another task.
+The single recommended next P0 action is
+`WEB-PRIVACY-AUDIT-001B1 — Implement Durable Privacy Access Audit Core`, as
+described in section 8.1. It is a recommendation only; this checkpoint
+performs no implementation and does not start another task.
