@@ -1,432 +1,296 @@
 # NatalNode.com P0 Readiness Checkpoint V1
 
 - Status: **CURRENT PRODUCT READINESS CHECKPOINT**
-- Task: `WEB-P0-READY-001`
-- Baseline: `8b77fbc28f54a6f006d235dcbdf892cf7b2eb378`
-- Baseline message: `fix: transition to chart result`
-- Date: 2026-08-27
-- Mode: Product / architecture readiness audit; documentation only
+- Task: `WEB-P0-READY-002`
+- Baseline: `43b7c3c093b3e734fc6afa9f74a96282e2d11acc`
+- Baseline message: `fix: harden calculation observability`
+- Date: 2026-08-28
+- Mode: Product / architecture readiness reconciliation; documentation only
+- Checkpoint strategy: **V1 updated in place**; V1 is the living checkpoint
 - Production astronomy: `PROVIDER DECISION DEFERRED`
 - Deployment: `PAUSED`
 
 ## 1. Checkpoint purpose
 
-This checkpoint records current repository truth against the P0 contract in
-`docs/PRD.md`. It replaces mechanical continuation of historical task lists
-with an evidence-based readiness view. It does not rewrite the PRD, approve a
-provider, authorize deployment, or claim that repository implementation has
-been verified in a live environment.
+This living checkpoint reconciles the P0 contract in `docs/PRD.md` with the
+current repository source and bounded Git history. It supersedes stale status
+claims in the previous checkpoint snapshot, but it does not rewrite the PRD,
+approve a provider, authorize deployment, or claim live-environment
+verification.
 
-The classifications used here are:
+The distinction between implementation closure and operational readiness is
+deliberate:
 
-- `IMPLEMENTED`
-- `IMPLEMENTED BUT OPERATIONALLY UNVERIFIED`
-- `MISSING / TRUE P0 GAP`
-- `PROVIDER-DEPENDENT`
-- `POLICY / CREDENTIAL BLOCKED`
-- `DEPLOYMENT-PAUSED`
-- `P1+ / NOT P0`
-- `INTENTIONALLY DEFERRED`
+- **Implementation closed** means the bounded code/documentation track is
+  present in the repository and its stated boundary is complete.
+- **Operationally verified** means the real database, email provider, DNS/TLS,
+  hosting, credentials, production configuration, or browser flow has been
+  exercised in its target environment.
+- **Policy or external blocked** means a safe implementation or launch claim
+  depends on an approved decision, credential, legal review, provider, or
+  infrastructure that is not established here.
 
-Implementation evidence means the required boundary or capability is present
-in the repository. Operational verification means that the real database,
-email, DNS, TLS, hosting, credentials, provider behavior, and live browser
-flow have been exercised in the target environment. Those are different
-claims.
+This checkpoint records the first claim when supported and keeps the second
+claim separate. It performs no product implementation.
 
-## 2. Sources and audit boundaries
+## 2. Sources and audit boundary
 
-Authoritative and relevant governance sources inspected in full:
+The following source-of-truth documents were read in full or inspected at the
+current baseline as required by this reconciliation:
 
 - `docs/PRD.md`
 - `docs/ARCHITECTURE.md`
+- `docs/product/NATALNODE_P0_READINESS_CHECKPOINT_V1.md`
 - `docs/product/NATALNODE_PRIVACY_TERMS_POLICY_V1.md`
-- `docs/product/NATALNODE_PRODUCT_ROADMAP_V1.md`
+- `docs/product/NATALNODE_ACCOUNT_DELETION_ERASURE_V1.md`
+- `docs/product/NATALNODE_ACCOUNT_DATA_EXPORT_V1.md`
+- `docs/product/NATALNODE_AUTH_LIFECYCLE_CLEANUP_V1.md`
+- `docs/product/NATALNODE_API_PROBLEM_DETAILS_V1.md`
+- `docs/product/NATALNODE_CHARTRESULT_CACHE_V1.md`
+- `docs/product/NATALNODE_OBSERVABILITY_V1.md`
+- `docs/product/NATALNODE_LOCAL_PUBLIC_DEVELOPMENT_RUNTIME_V1.md`
 - `docs/product/NATALNODE_PUBLIC_SKY_DOMAIN_V1.md`
-- `docs/product/NATALNODE_RESULT_PROGRESSIVE_DISCLOSURE_V1.md`
-- `docs/design/NATALNODE_ASTROLOGICAL_SEMANTIC_LAYER_V1.md`
-- `docs/design/NATALNODE_VISUAL_SYSTEM_V1.md`
-- `docs/adr/WEB-AUTH-002A-email-magic-link-delivery.md`
 - `docs/adr/WEB-DEPLOY-001A-web-api-deployment-topology.md`
 - `docs/adr/WEB-DEPLOY-002A-railway-p0-staging-topology.md`
-- `docs/adr/WEB-FEEDBACK-001A-private-feedback-mvp-architecture.md`
-
-Repository evidence was inspected under `apps/web`, `server`, `packages`, the
-database migrations, workspace manifests, lockfile, and bounded Git history.
-The separate `C:\NatalNode` repository was neither accessed nor required.
-
-This audit did not run a build, test suite, live browser workflow, database,
-email delivery, deployment, or production-provider integration. Its
-operational conclusions are therefore deliberately conservative.
-
-## 3. Frozen accepted product areas
-
-The following accepted work is frozen unless a genuine regression is found:
-
-1. **Homepage Public Sky V1.** The development-only homepage preview uses the
-   accepted authentic chart geometry and explicit development boundary. This
-   checkpoint does not reopen its visual design.
-2. **Natal Result Progressive Disclosure V1.** Chart, Interpretation, and
-   Details remain exclusive result modes. Chart is wheel-first, complete facts
-   are disclosed on demand, Interpretation is progressively disclosed, and
-   Save is contextual.
-3. **Calculate to Result Transition V1.** A successful calculation moves focus
-   and scroll context to the result shell. This checkpoint found no evidence
-   requiring that transition to be redesigned.
-4. **Visual V1.1 functional baseline.** The responsive shell, editorial and
-   observatory modes, design primitives, and accepted Learn/Tools/Calculate/
-   Vault treatments remain approved. Optional polish is not P0 work.
-
-## 4. Executive readiness statement
-
-NatalNode.com has a substantial P0 implementation foundation: the static Astro
-product shell, responsive visual system, accessible Birth Input and historical
-timezone-state UX, unknown-time policy, EngineClient boundaries, development
-fixtures, same-origin Hono BFF, chart renderer, result workspace,
-deterministic interpretation, Email Magic Link code path, owner-scoped Vault,
-Private Feedback, Learn/Tools discovery surfaces, technical SEO, and bounded
-application security/observability are present.
-
-P0 is **not implementation-complete**. The primary Web-owned completion gaps
-are account deletion/account-wide erasure, full account export, Auth-record
-cleanup and retention enforcement, privacy access auditing, RFC 9457 error
-alignment, the PRD ChartResult cache abstraction, complete PRD observability
-fields, and the missing Vault duplicate operation. Google Sign-In and public
-legal pages are also P0 gaps but require policy, credentials, legal approval,
-or all three. Staging composition and verification remain explicitly paused.
-
-Production astronomy and production birth-place/historical-timezone resolution
-are external provider gates, not ordinary Web implementation gaps.
-
-## 5. P0 readiness matrix
-
-| Area | PRD/P0 requirement | Current repository status | Classification | Evidence/source location | External dependency/blocker | Recommended action | Priority |
-| --- | --- | --- | --- | --- | --- | --- | --- |
-| Repository/product shell | Website repository and coherent product shell | npm workspaces, Astro app, packages, Hono server, shared layout, public/private routes, and local composition entry points exist | `IMPLEMENTED` | `package.json`; `apps/web/src/layouts/SiteLayout.astro`; `server/src/executable/` | None for repository structure | Preserve current boundaries | P0 complete |
-| Design system | Reusable visual baseline | Tailwind, shared global primitives, Surface/Container, Editorial and Observatory modes are present; Visual V1.1 is approved | `IMPLEMENTED` | `apps/web/src/styles/global.css`; `apps/web/src/components/ui/Surface.astro`; `docs/design/NATALNODE_VISUAL_SYSTEM_V1.md` | None | Do not reopen cosmetic work | P0 complete |
-| Responsive/accessibility shell | Responsive shell and baseline keyboard/focus semantics | Responsive navigation, skip link, visible focus primitives, semantic page structure, and 320px-oriented rules are present; no known P0 blocker was found in this bounded review | `IMPLEMENTED` | `apps/web/src/layouts/SiteLayout.astro`; `apps/web/src/styles/global.css`; result and form components | Not a full WCAG audit | Preserve and verify at a later release checkpoint | P0 complete |
-| Birth Input | Date, time, place, coordinates/timezone context, house system, validation | Structured form and request-construction flow are implemented | `IMPLEMENTED` | `apps/web/src/features/chart-input/`; `apps/web/src/features/chart-experience/chart-request.ts` | Production resolver is separate | No new Birth Input task without a defect | P0 complete |
-| Historical timezone UX | Exact, ambiguous, nonexistent, and user-selected occurrence behavior | UX states, candidate selection, blocking behavior, and explicit fixture provenance exist | `IMPLEMENTED` | `apps/web/src/features/chart-input/BirthResolutionFeedback.tsx`; `useBirthInputResolution.ts`; `types.ts` | Real facts require production resolver | Keep UX; treat real resolution as provider-dependent | P0 UX complete |
-| Unknown birth time | No silent noon fallback; angles/houses/house interpretation unavailable | `UNKNOWN_TIME` is represented with null time-resolution facts and enforced by presentation policy | `IMPLEMENTED` | `packages/contracts/src/chart.ts`; `apps/web/src/features/chart-workspace/chart-presentation-policy.ts`; `ChartWorkspaceView.tsx` | Production Engine must honor the same contract | Preserve invariant | P0 complete |
-| Engine client abstraction | Browser/BFF depend on provider-neutral EngineClient | Interface, HTTP browser client, mock, and BFF injection are present | `IMPLEMENTED` | `packages/engine-client/src/index.ts`; `http-engine-client.ts`; `server/src/app/dependencies.ts` | Production Engine binding deferred | Do not add provider logic to Web | P0 complete |
-| Development MockEngineClient | Safe async UI fixture implementation | Chart and Sky fixtures are cloned per call; current executable accepts only `development-mock` | `IMPLEMENTED` | `packages/engine-client/src/mock-engine-client.ts`; `server/src/executable/create-executable-server-bindings.ts` | Not production astronomy | Retain explicit development labels | P0 complete |
-| Website API / BFF | Same-origin chart, Auth, Vault, Feedback, and relevant Sky boundaries | Hono routes, strict request validation, Auth middleware, exact-Origin checks, security headers, rate limits, runtime/bootstrap, migrations, and local edge exist | `IMPLEMENTED BUT OPERATIONALLY UNVERIFIED` | `server/src/app/create-app.ts`; `server/src/app/routes/`; `server/src/runtime/`; `server/src/executable/` | Live PostgreSQL, Resend, edge, and target environment not exercised here | Verify only when deployment track resumes | P0 code complete |
-| SVG Chart Renderer | Accessible SVG-first natal chart rendering | Renderer and geometry modules consume canonical ChartResult; accepted result architecture embeds it wheel-first | `IMPLEMENTED` | `apps/web/src/features/chart-renderer/`; `ChartWorkspaceView.tsx` | Production facts provider-dependent, renderer is not | Preserve accepted renderer | P0 complete |
-| Chart Workspace | Chart/Interpretation/Details result shell and compact/full facts | Single-mode tab architecture, compact orientation, complete-fact disclosures, keyboard tab behavior, and contextual Save exist | `IMPLEMENTED` | `apps/web/src/features/chart-workspace/`; `docs/product/NATALNODE_RESULT_PROGRESSIVE_DISCLOSURE_V1.md` | None for UI architecture | Freeze accepted result UX | P0 complete |
-| Calculation Details | Status, versions, configuration/provenance, warnings, house-system context | Details mode renders available facts and truthful unavailable/incomplete states | `IMPLEMENTED` | `apps/web/src/features/calculation-details/CalculationDetails.tsx` | Final scientific IDs require approved production Engine | Preserve unavailable-state honesty | P0 complete |
-| Deterministic interpretation | Interpretation based only on returned chart facts | Deterministic mappings and source-fact context exist; unavailable house interpretation remains suppressed for unknown time | `IMPLEMENTED` | `apps/web/src/features/interpretation/` | Production facts provider-dependent, interpretation logic is not | Do not add AI to P0 | P0 complete |
-| Guest | Calculate without an account; no permanent Vault | Unauthenticated calculation works and request/result state remains only in mounted page memory | `IMPLEMENTED` | `apps/web/src/features/chart-experience/ChartExperience.tsx`; privacy contract A.3/A.9 | None for current guest calculation | Keep page-memory behavior; broader temporary storage is governed P1 | P0 complete |
-| Guest temporary retention | PRD describes session/local temporary chart behavior | Refresh/navigation persistence is absent; privacy governance explicitly records this as P1 and requires a threat-model/data-lifetime decision before adding storage | `P1+ / NOT P0` | `docs/product/NATALNODE_PRIVACY_TERMS_POLICY_V1.md`, E-P1-02 | Policy/consent if later pursued | Do not add browser storage implicitly | P1 |
-| Auth — Email Magic Link | Request, delivery adapter, completion, session, logout | Token hashing, atomic challenge consumption, identity provisioning, HttpOnly cookie, current-session and logout paths, and Resend adapter exist | `IMPLEMENTED BUT OPERATIONALLY UNVERIFIED` | `server/src/auth-runtime/`; `server/src/app/routes/auth-email.ts`; `auth-session.ts`; `server/src/runtime/email/resend/`; Auth pages/features | Resend credential, sending-domain/DNS/tracking setup, live database/cookie verification | Keep code frozen; verify in an authorized environment later | P0 operational gate |
-| Auth — Google Sign-In | Google at Launch | Only contract/schema allowance exists; no OAuth route, state/PKCE, token handling, browser flow, or provider adapter exists | `POLICY / CREDENTIAL BLOCKED` and `MISSING / TRUE P0 GAP` | `packages/contracts/src/auth.ts`; `server/db/migrations/0001_auth_vault_baseline.sql`; privacy gap E-P0-07/P-13 | OAuth credentials/configuration, security/privacy review, approved disclosure | Separate bounded Auth architecture/implementation track after policy authorization | P0 blocker |
-| Auth minimization | Expired/consumed challenge and expired session cleanup | Expiry prevents authentication, but rows are not purged and challenge email rows are not user-linked | `MISSING / TRUE P0 GAP` | `server/src/auth-runtime/README.md`; `email-magic-link-challenge-repository.ts`; `auth-session-repository.ts`; privacy gap E-P0-03 | Approved retention semantics | Freeze retention semantics, then implement bounded cleanup | P0 blocker |
-| Vault | Save, open/list, rename, category, tags, favorite, notes, delete, ownership, server recalculation, canonical snapshot | All listed operations except duplicate are implemented; server binds owner identity and recalculates before saving | `IMPLEMENTED` with one bounded P0 gap | `apps/web/src/features/vault/`; `server/src/app/routes/vault-charts.ts`; `vault-notes.ts`; persistence adapters; `0001_auth_vault_baseline.sql` | Live PostgreSQL/browser verification outstanding | Preserve current slice; add duplicate only in a bounded task | P0 mostly complete |
-| Vault duplicate | PRD Chart Vault includes duplicate | No duplicate contract, route, repository operation, or UI action was found | `MISSING / TRUE P0 GAP` | `packages/contracts/src/api/vault.ts`; `server/src/app/routes/vault-charts.ts`; `apps/web/src/features/vault/` | None | Implement as a separate, owner-scoped bounded operation after higher-risk privacy contracts | P0 blocker, lower priority |
-| Private Feedback | Authenticated private create-only intake | Contract, validation, rate limits, migration, repository, BFF route, noindex form, session gate, and accessible states exist | `IMPLEMENTED BUT OPERATIONALLY UNVERIFIED` | `packages/contracts/src/feedback.ts`; `server/db/migrations/0004_private_feedback.sql`; `server/src/app/routes/feedback.ts`; `apps/web/src/pages/feedback.astro` | Live PostgreSQL/browser verification; approved retention/access policy | Do not promote history/delete to P0 absent policy | P0 code complete |
-| SEO Tools | Launch 2–4 SEO tools | Three public educational reference tools exist with explicit non-calculation positioning; current governance consistently treats these as educational Tools | `IMPLEMENTED` | `apps/web/src/lib/content-taxonomy.ts`; `apps/web/src/pages/tools/`; Visual System and privacy governance | Production calculators would require Engine/provider facts, but are not represented as current tool behavior | Accept current positioning; do not manufacture SEO microtasks | P0 complete under current accepted positioning |
-| Learn foundation | Index, taxonomy/discovery, article template/content | Content collection, six-category taxonomy, index, one published foundation article, Article metadata, and approved hero exist | `IMPLEMENTED` | `apps/web/src/content.config.ts`; `apps/web/src/content/learn/`; `apps/web/src/pages/learn/` | Editorial expansion is ongoing product content, not a P0 implementation blocker | Preserve foundation | P0 complete |
-| Technical SEO/trust | Canonical, robots, sitemap, social metadata, Article data, About, Methodology, trust nav, 404 | Required technical surfaces and metadata are present; private routes are excluded/noindex as appropriate | `IMPLEMENTED` | `SeoHead.astro`; `StructuredData.astro`; `robots.txt.ts`; `sitemap.xml.ts`; `about.astro`; `methodology.astro`; `404.astro`; `SiteLayout.astro` | Privacy/Terms pages are separately policy-blocked | No generic SEO cleanup task | P0 complete except legal pages |
-| Error model | RFC 9457 Problem Details | APIs use a shared custom `{ error: { code, message } }` family, not RFC 9457; Feedback ADR records coordinated migration as a pre-production gate | `MISSING / TRUE P0 GAP` | `docs/PRD.md` section 29; `server/src/app/create-app.ts`; route contracts; Feedback ADR | Requires coordinated contracts/middleware/client change, not an external service | Execute one cross-API contract migration task | P0 blocker |
-| ChartResult cache | Cache abstraction; complete ChartResult only; configuration-aware key; no hour-level shared planet cache | No application cache abstraction, cache key implementation, or ChartResult cache path was found | `MISSING / TRUE P0 GAP` | `docs/PRD.md` section 30; no cache module in `server/src` | Production key completeness depends on Engine metadata, but an abstraction can remain provider-neutral | Design and implement the smallest provider-neutral cache boundary; do not assume Redis | P0 blocker |
-| Privacy/data rights | Deletion, export, retention, access audit, truthful public policy | Individual chart/note deletion and data minimization exist; account deletion, account-wide erasure, full export, retention enforcement, access audit, and public legal routes do not | `MISSING / TRUE P0 GAP` plus `POLICY / CREDENTIAL BLOCKED` | `docs/product/NATALNODE_PRIVACY_TERMS_POLICY_V1.md`, E-P0-01 through E-P0-06; repositories/migrations | P-01 through P-10 decisions and legal approval affect public copy/operations | Start with account-deletion technical contract; do not invent legal text | Highest P0 blocker family |
-| Observability | All BFF request facts plus cache status; bounded Engine request facts | Server-generated request ID, method/endpoint family, status, duration, and privacy-minimized completion/error records exist. Cache status and Engine version/configuration/provenance/duration/warning count are absent | `MISSING / TRUE P0 GAP` (partial implementation) | `server/src/app/observability/api-request-observability.ts`; `docs/PRD.md` section 39 | Cache status follows cache implementation; production metadata follows Engine result | Extend only the approved privacy-minimized schema after cache/error boundaries are frozen | P0 blocker, sequenced |
-| Staging/deployment | Staging deployment and release validation | Same-origin topology and Railway staging contract are accepted; repository-local executable/composition exists. Railway/Caddy composition, provisioning, DNS/configuration, migration run, deployment, and E2E validation are absent | `DEPLOYMENT-PAUSED` | Deploy ADRs; no Railway/Caddy implementation files found; roadmap/privacy/Feedback governance | Explicit deployment pause, credentials, DNS, Railway, PostgreSQL, Resend | Resume only by explicit authorization, then continue accepted sequence | P0 paused gate |
-| Production astronomy | Production-approved Engine and scientific identities | Not implemented in Web and correctly not selected | `PROVIDER-DEPENDENT` | `docs/PRD.md` release gate; deploy ADRs; executable accepts only `development-mock` | Astronomy provider, rights, Engine production readiness, contract/E2E gates | Wait; do not implement provider logic in Web | External launch gate |
-| Production resolver | Real location and historical timezone authority | Browser development fixture intentionally exercises all UX states; no production geocoder/timezone source exists | `PROVIDER-DEPENDENT` | `apps/web/src/features/chart-input/development-resolver.ts`; Public Sky/privacy/deploy governance | Data-source/provider decision and operational integration | Wait for approved source; preserve resolver interface | External launch gate |
-
-## 6. True P0 blockers
-
-Only the following gaps prevent the repository from being called P0
-implementation-complete. External and paused items remain blockers to launch,
-but are separated so they are not mistaken for ordinary coding tasks.
-
-### 6.1 Account deletion and account-wide erasure
-
-- **Why P0:** the PRD privacy baseline and privacy gap E-P0-01 require account
-  and data deletion before public launch.
-- **Ownership:** primarily Web-owned, with policy decisions governing
-  confirmation, reauthentication, manual fallback, retention exceptions,
-  backups, and completion claims.
-- **Current gap:** there is no route, application service, repository delete,
-  UI, or verified manual mechanism. `users` deletion would cascade identities,
-  sessions, charts, notes, and Feedback, but standalone
-  `email_magic_link_challenges` are not linked to a user and no deletion
-  mechanism exists.
-- **Next bounded action:** freeze an executable technical contract before
-  runtime work. No such contract or implementation was found in current docs,
-  source, migrations, or bounded Git history.
-
-### 6.2 Full user-data export
-
-- **Why P0:** privacy gap E-P0-02 explicitly records export as required before
-  public launch.
-- **Ownership:** Web-owned implementation, policy-gated by P-06 for format,
-  verification, delivery, timing, and included categories.
-- **Current gap:** Vault reads are not an account export; Auth identity and
-  Feedback records are not available to the user.
-- **Conceptual record set:** account timestamps/opaque identity, Auth identity
-  provider/subject and timestamps, Vault chart metadata plus normalized input
-  and canonical result/version/provenance fields, chart notes, and private
-  Feedback submissions. Session/challenge credentials and hashes must not be
-  exposed as reusable secrets; any non-secret lifecycle metadata requires an
-  explicit contract decision.
-- **Next bounded action:** freeze an authenticated machine-readable export
-  contract after the higher-risk deletion lifecycle contract is established.
-
-### 6.3 Retention, cleanup, and privacy access audit
-
-- **Why P0:** privacy gaps E-P0-03 through E-P0-05 cover expired Auth-row
-  cleanup, enforceable Vault/Feedback/log retention, and the PRD access-audit
-  requirement.
-- **Ownership:** mixed. Repository cleanup/audit mechanisms are Web-owned;
-  durations, access roles, exceptions, infrastructure logs, and provider
-  behavior require approved policy and target-environment facts.
-- **Current gap:** expiry prevents credential use but does not purge rows;
-  there is no approved/enforced retention schedule and no `audit_events` or
-  equivalent privacy-access mechanism.
-- **Next bounded action:** resolve each policy before implementation; keep
-  audit data privacy-minimized and never copy sensitive payloads into logs.
-
-### 6.4 API error, cache, and observability conformance
-
-- **Why P0:** the PRD explicitly lists Error model, Cache abstraction, and
-  Observability in Launch P0.
-- **Ownership:** Web-owned and provider-neutral.
-- **Current gap:** the custom error envelope is not RFC 9457; no complete
-  ChartResult cache abstraction exists; observability omits cache status and
-  the bounded Engine metadata/duration/warning fields required by the PRD.
-- **Next bounded action:** use coordinated, bounded tasks in dependency order:
-  error contract, cache boundary, then the fields that depend on those
-  boundaries. No Redis or observability vendor is implied.
-
-### 6.5 Google Sign-In
-
-- **Why P0:** the PRD lists Email Magic Link and Google Sign-In for Launch.
-- **Ownership:** Web implementation, but it requires OAuth security/privacy
-  review, policy P-13, credentials, provider configuration, and truthful public
-  disclosure.
-- **Current gap:** schema allowance is not an implementation.
-- **Next bounded action:** wait for explicit policy/credential authorization,
-  then perform a dedicated Auth contract/security task. Do not claim Google is
-  active.
-
-### 6.6 Vault duplicate
-
-- **Why P0:** the PRD Chart Vault capability list includes duplicate.
-- **Ownership:** Web-owned.
-- **Current gap:** no contract, route, repository operation, or UI action was
-  found. Existing save/recalculate behavior must not be bypassed by a future
-  implementation.
-- **Next bounded action:** one owner-scoped operation after the higher-value
-  privacy contract work; do not reopen the rest of Vault.
-
-## 7. Provider-dependent items
-
-- **Production astronomy:** production Engine/AstronomyProvider selection,
-  commercial rights, runtime assets, final configuration/provenance identities,
-  production deployment, and final Engine/Web E2E remain external gates.
-- **Production resolver:** location resolution and historical timezone data
-  authority remain deferred. The development fixture is intentional and is
-  not production evidence.
-- **Production Public Sky:** contracts, BFF routes, validation, development
-  fixtures, instrument, and homepage preview exist. Production Sky facts still
-  require the approved Engine/provider boundary.
-
-No provider is selected by this checkpoint.
-
-## 8. Waiting / external / policy blocked
-
-- Google OAuth policy P-13, credentials, security review, and processor
-  disclosure.
-- Account deletion P-05 and export P-06 decisions, including identity
-  verification, response guarantees, backup/log exceptions, and manual
-  fallback.
-- Vault, Feedback, Auth, and infrastructure-log retention decisions P-07
-  through P-09.
-- Approved legal entity/controller, privacy contact, jurisdiction, age policy,
-  consent/cookie position, and final counsel-approved Privacy/Terms copy.
-- Resend credential, verified sending identity, DNS/SPF/DKIM/DMARC, disabled
-  tracking as required, and live delivery verification.
-- Live PostgreSQL migrations/persistence, TLS, encryption at rest, least
-  privilege, backups, infrastructure log handling, and target-environment
-  cookie verification.
-
-Public `/privacy` and `/terms` routes are P0 launch gaps, but writing pages
-before these decisions are approved would create unsupported claims. They are
-not safe placeholder-copy tasks.
-
-## 9. Deployment-paused items
-
-The accepted browser topology remains:
-
-```text
-browser
-  -> one public HTTPS origin
-       |-- normal routes/assets -> Astro static artifact
-       `-- /api/*               -> Hono BFF
-```
-
-Current states are distinct:
-
-- **Local full-stack runnable:** repository composition, executable, migration,
-  and local edge commands exist; not rerun by this audit.
-- **Staging deployable:** no. Railway/Caddy composition is not implemented.
-- **Staging verified:** no. Resources, configuration, migrations, and the ADR
-  E2E plan have not been exercised.
-- **Production-ready:** no. Privacy/security, provider, resolver, and scientific
-  release gates remain open.
-- **Production deployed:** no evidence and no claim.
-
-Deployment remains `PAUSED`. This checkpoint does not authorize
-`WEB-DEPLOY-002B`, provisioning, DNS, secrets, migrations, or deployment.
-
-## 10. Public Sky readiness
-
-Implemented development/research foundation:
-
-- provider-neutral Sky contracts and EngineClient methods;
-- strict BFF request validation and snapshot/event routes;
-- canonical development snapshot/event fixtures;
-- result-shape/scientific-metadata validation;
-- accessible Current Sky instrument; and
-- development-gated homepage preview plus a private noindex development route.
-
-Not production-ready or not P0:
-
-- production Public Sky astronomy is `PROVIDER-DEPENDENT`;
-- a public `/sky` product route is intentionally absent;
-- lunar-phase authority and richer event timeline are future domain work; and
-- Current Transits remains P1 in the current PRD.
-
-The accepted homepage preview must not be mistaken for live sky data or used
-to reopen homepage visual design.
-
-## 11. Natal result and accessibility readiness
-
-Repository evidence confirms the accepted result architecture:
-
-- one active Chart/Interpretation/Details mode with native button-based tab
-  controls, `tablist`/`tab`/`tabpanel` relationships, roving tab stops, arrow,
-  Home, and End behavior;
-- wheel-first Chart mode with compact orientation and separate complete-facts
-  disclosure;
-- deterministic Interpretation with bounded progressive disclosures and
-  source-fact context;
-- contextual, collapsed Save;
-- Details with versions, status, configuration/provenance availability,
-  warnings, and house-system context;
-- unknown-time suppression of angles, houses, and house interpretation; and
-- successful calculation focus/scroll transition to the result shell.
-
-The shared shell also includes a skip link, semantic navigation, keyboard
-mobile-menu behavior, and visible-focus primitives. This bounded readiness
-review found **NO KNOWN P0 ACCESSIBILITY BLOCKER**. It is not a full WCAG audit
-and does not create a speculative cleanup backlog.
-
-## 12. Known architectural defects
-
-### 12.1 Phantom web package dependency
-
-`apps/web/src` directly imports `@natalnode/contracts` from multiple modules,
-but `apps/web/package.json` and its lockfile workspace entry do not declare
-that dependency. The package is currently available through workspace
-hoisting/transitive dependencies, so this is not evidence that the current
-monorepo build is broken. It is nevertheless a concrete package-integrity
-defect that can fail under stricter isolated workspace installation or package
-graph tooling.
-
-Classification: **pre-release cleanup, not a P0 product-capability blocker**.
-It is too small and low-risk to outrank account-level privacy work.
-
-### 12.2 RFC 9457 mismatch
-
-The custom API error envelope is internally consistent but conflicts with the
-current PRD. A future fix must migrate shared contracts, middleware, routes,
-and browser clients together; adding a third error dialect to one endpoint is
-prohibited.
-
-### 12.3 Cache and observability gap
-
-No ChartResult cache abstraction exists, and the current privacy-safe request
-record is narrower than the PRD observability contract. These are real P0
-architecture gaps, not justification to add Redis, Sentry, OpenTelemetry, or
-analytics.
-
-### 12.4 Large-file governance
-
-LOC thresholds remain heuristic guardrails, not lint rules or an autonomous
-refactor backlog. The proactive decomposition program remains paused. No
-active P0 capability was found to require a structural refactor, and this
-checkpoint creates no LOC-derived work item.
-
-## 13. P1+ / intentionally deferred
-
-- Current Transits, public `/sky` expansion, lunar phase authority, richer Sky
-  event timeline, and advanced predictive techniques.
-- AI interpretation and AI quotas.
-- Pro subscriptions, payments, billing, PDF export, ads, CMP, analytics, and
-  monetization.
-- Community, Questions, Practitioner profiles/network/marketplace, public user
-  content, moderation, following, messaging, and outreach execution.
-- Feedback history/detail/update/delete unless policy or legal review promotes
-  a specific capability.
-- Guest refresh/navigation persistence, account profile controls, identity
-  management, all-session revocation, and saved chart-fact correction.
-- Public chart sharing and cross-device guest recovery.
-- Generic visual polish and proactive large-file decomposition.
-
-These items do not influence the next P0 task.
-
-## 14. Recommended next single task
-
-```text
-WEB-PRIVACY-001A — Freeze Account Deletion and Account-Wide Erasure Technical Contract
-```
-
-This is the highest-value next task because:
-
-1. account deletion is an explicit PRD/privacy P0 launch requirement;
-2. no executable technical contract or implementation has landed;
-3. the Web team can define the application, persistence, Auth, Vault, notes,
-   Feedback, session, and challenge boundaries without selecting an astronomy
-   provider or resuming deployment;
-4. deletion crosses the most sensitive persisted data and has greater
-   irreversible-risk and trust value than a small package fix, Vault duplicate,
-   cache optimization, or additional UI work; and
-5. a contract-first task can identify and preserve unresolved policy/legal
-   choices rather than silently inventing them in runtime code.
-
-The contract task should freeze authentication/reconfirmation, owner binding,
-cross-table and standalone challenge handling, active-session invalidation,
-transaction/failure semantics, idempotency and response disclosure, manual
-fallback boundary, backups/log/provider exclusions, verification evidence, and
-the exact policy decisions that must be approved before implementation. It
-must not implement deletion, write legal copy, or claim that erasure already
-exists.
-
-## 15. Do not do next
-
-- Do not continue homepage/Public Sky visual polish.
-- Do not reopen accepted Natal result or result-transition UX without a
-  concrete regression.
-- Do not build `/sky`, transits, lunar phase, or event expansion as a P0 proxy.
-- Do not implement production astronomy or resolver/provider logic in Web.
-- Do not select a provider or convert development fixtures into production
-  claims.
-- Do not invent Privacy, Terms, retention, deletion, export, or legal-policy
-  text.
-- Do not resume Railway/Caddy/DNS/deployment work while deployment is paused.
-- Do not promote Feedback history/delete, profile controls, AI, monetization,
-  Community, or Practitioner work into P0 without governance authorization.
-- Do not resume generic LOC or large-file decomposition.
-- Do not choose the phantom dependency cleanup merely because it is easy.
-- Do not execute `WEB-PRIVACY-001A` automatically from this checkpoint.
-
-## 16. Checkpoint decision
-
-The repository is **P0 foundation-strong but not P0 implementation-complete**.
-Accepted visual and result work should remain frozen. The next safe product
-completion move is the single account deletion/account-wide erasure technical
-contract above. All other P0 gaps remain recorded for sequencing after that
-contract or for their required provider, policy, credential, legal, or
-deployment gate.
+
+Relevant current source was checked under `server/src`, `server/db/migrations`,
+`apps/web/src`, and `packages`. Bounded Git history was checked for the
+implementation commits that closed the tracks below. Some product contracts
+retain their original pre-implementation status headers because they are
+design handoff documents; current source and later implementation history are
+the evidence used for this living checkpoint.
+
+The fixed architecture boundary remains:
+
+~~~
+NatalNode.com
+    -> Website API / BFF
+    -> NatalNode Engine Public API
+    -> AstronomyProvider
+~~~
+
+The separate `C:\\NatalNode` repository was not accessed. No tests, check,
+build, install, browser workflow, database, email delivery, deployment, or
+production-provider validation was run for this documentation-only task.
+
+## 3. Executive readiness statement
+
+The repository is **P0 foundation-strong but not P0 implementation-complete
+or launch-ready**. The previously stale implementation-gap claims for account
+deletion/erasure, account export, Auth lifecycle cleanup, RFC 9457 runtime
+errors, ChartResult caching, and P0 observability are corrected below. The
+public local development runtime is also present and its accepted behavior is
+recorded without rerunning browser acceptance.
+
+The remaining unblocked Web-owned P0 implementation gap is the missing Vault
+chart duplicate operation. Privacy-access auditing and complete retention
+enforcement remain real P0 gaps, but their safe contract and operational
+behavior depend on authorized access, retention, and policy decisions. Google
+OAuth, public legal pages, staging infrastructure, and production scientific
+truth remain separately blocked or deferred. No provider is selected here.
+
+## 4. P0 readiness matrix
+
+| Track | Current repository status | Evidence | Boundary that remains open | Classification |
+| --- | --- | --- | --- | --- |
+| A. Account deletion / account-wide erasure | Authenticated destructive route, recent-authentication gate, owner-bound transactional PostgreSQL erasure, cookie clearing, and Account UI are implemented | `server/src/app/routes/account.ts`; `server/src/persistence/postgres/postgres-account-erasure-repository.ts`; `apps/web/src/features/account/account-deletion.ts`; commits `de5df3575bc91af4b87ee7488c768d44ba7df732`, `3e0e25c15426a6e4067722471ffbba23026523d5` | Backup restore reconciliation, infrastructure-log retention, processor retention, live DB verification, and legal/public claims remain open | **IMPLEMENTATION TRACK CLOSED; OPERATIONALLY/POLICY UNVERIFIED** |
+| B. Account export | Authenticated two-stage prepare/transfer flow, repeatable-read export snapshot, bounded streaming, browser UX, and Problem Details handling are implemented | `server/src/app/routes/account-export.ts`; `server/src/app/account-export-stream.ts`; `server/src/persistence/postgres/postgres-account-data-export-repository.ts`; `apps/web/src/features/account/account-export.ts`; commits `001a4172b6d988023671c835641e49ef0ee77549`, `41034a2ba300a09f7c69b9dfd4e2d03a4265b071`, `b5ec56ddb55776a48efd2981f4af81cc5cc3cf3b`, `f80a125de88d1b4cc45f47ef705eb8ca7bfc2f2c`, `cd1c90fc7246de279dd2d66e31e10e20d57ffe9f` | Live PostgreSQL snapshot/stream/browser delivery and policy completeness are not verified; export is not an access-audit event | **IMPLEMENTATION TRACK CLOSED; OPERATIONALLY/POLICY UNVERIFIED** |
+| C. Auth lifecycle cleanup | Bounded cleanup phases for expired sessions, expired unconsumed challenges, and consumed challenges plus an explicit maintenance executable are implemented | `server/src/auth-runtime/auth-lifecycle-cleanup.ts`; `server/src/persistence/postgres/postgres-auth-lifecycle-cleanup-repository.ts`; `server/src/maintenance/auth-lifecycle-maintenance.ts`; commits `446204803879a6acb64a715fcac33573f159d85c`, `549661c916159b9d842e92dfd89a287ed3372692` | Scheduler/operational invocation, target-environment execution, and approved retention durations remain open | **IMPLEMENTATION TRACK CLOSED; ENFORCEMENT UNVERIFIED** |
+| D. RFC 9457 / Problem Details | Current Hono API routes, security middleware, central error boundary, account/export paths, and first-party browser readers use the bounded Problem Details runtime | `server/src/app/problem-details/`; `server/src/app/create-app.ts`; current API route modules; commits `36f40b911e88e3a421ad1458a0d7cccde720bb43`, `fa211117a9374cc5f617d8262bb3cc3d76668d3b`, `87704778f8e60a5e483f1a51b4002a0996489c14`, `430b07d872bb10e3e096eb5bba7139ddc6a8bd57` | Unused legacy error-envelope type declarations remain in `packages/contracts/src/api/` as a later package-contract cleanup candidate; non-API HTML errors are outside this migration | **RUNTIME MIGRATION CLOSED; PACKAGE RESIDUE NON-BLOCKING** |
+| E. ChartResult cache | Provider-neutral, process-local, bounded cache with canonical-input keying, generation/schema identity, TTL/LRU, clone-on-store/read, BFF integration, and internal cache outcomes is implemented | `server/src/app/cache/chart-result-cache.ts`; `server/src/app/cache/chart-result-cache-key.ts`; `server/src/app/cache/cached-chart-calculator.ts`; commits `a587b6f3649b5938bdf8a3f3c295766f3954ddd8`, `305644f887563566315100b7aa3b977aaf1ff991`, `0ecd07429a6531d5b2b1b1fba382972e3d459c57` | Production Engine/scientific configuration identity and live multi-instance behavior remain provider/deployment concerns; no hour-level shared planet cache exists | **IMPLEMENTATION TRACK CLOSED; PROVIDER/DEPLOYMENT CONTEXT DEFERRED** |
+| F. P0 observability | `P0 OBSERVABILITY IMPLEMENTATION TRACK — CLOSED`: one canonical completion record carries bounded request facts, Problem Details code, cache status, Engine result generation, ChartResult contract version, scientific status, and Engine duration where applicable | `server/src/app/observability/api-request-observability.ts`; `server/src/app/observability/calculation-observability.ts`; current chart/cache composition; commits `09a71bf9b121bc976d0d00a5fa9f8fa40b2d4451`, `06f04999ba70b2447f0bd3821c844152f6b94d9e`, `43b7c3c093b3e734fc6afa9f74a96282e2d11acc` | Retention duration, privacy-access audit, production sink/vendor, warning-count bound, provenance status, and conditional scientific configuration ID remain deferred | **IMPLEMENTATION TRACK CLOSED; DEFERRED OPERATIONS/POLICY ITEMS PRESERVED** |
+| G. Public local development runtime | The accepted local public-development composition is implemented: `npm run dev:public`, public `http://localhost:4321`, loopback Hono `127.0.0.1:4322`, static Astro edge, fixture Chart/Sky paths, signed-out session/Vault behavior, and production-marker isolation | `package.json`; `server/src/executable/run-public-development-composition.ts`; `server/src/executable/public-development-dependencies.ts`; `server/src/executable/public-development-config.ts`; commits `41319da055e59b03cc3380d7b48d66cbbf406a2d`, `6d617dce075db3d75e0192edda33aa2c8babe771` | This is local development, not external staging or production; accepted browser behavior is not rerun in this checkpoint | **LOCAL IMPLEMENTATION CLOSED; ACCEPTED BEHAVIOR NOT RERUN** |
+| H. Privacy-access auditing | No `audit_events` table, access-audit repository, authorized-access event contract, or equivalent durable mechanism is present; operational request logs are explicitly not an access audit | `docs/PRD.md` privacy requirement; `server/db/migrations/`; `server/src/app/observability/`; privacy and observability contracts | A privacy-minimized audit contract, access roles, retention, and authorized operational workflow must be approved before safe implementation | **NOT STARTED / TRUE P0 GAP; POLICY-GATED** |
+| I1. Retention technical contract | Deletion, export, Auth cleanup, and observability contracts define bounded lifecycle boundaries, but no single approved duration/scope contract exists for Auth, Vault, Feedback, application logs, infrastructure logs, backups, and processor records | `docs/product/NATALNODE_ACCOUNT_DELETION_ERASURE_V1.md`; `docs/product/NATALNODE_ACCOUNT_DATA_EXPORT_V1.md`; `docs/product/NATALNODE_AUTH_LIFECYCLE_CLEANUP_V1.md`; `docs/product/NATALNODE_OBSERVABILITY_V1.md` | Retention durations, category scope, exceptions, restore behavior, and interaction with privacy-access audit require explicit policy decisions | **PARTIAL; RETENTION DURATION DEFERRED** |
+| I2. Retention enforcement | Auth cleanup code and a maintenance command exist, but no repository-wide Vault/Feedback/log enforcement or verified scheduled invocation exists | `server/src/maintenance/`; `server/src/persistence/postgres/postgres-auth-lifecycle-cleanup-repository.ts`; no configured scheduler or downstream log-retention control in repository source | Implement only the approved lifecycle semantics and verify them in the target environment; technical expiry is not deletion or a legal-retention policy | **INCOMPLETE / NOT OPERATIONALLY ENFORCED** |
+| I3. Retention policy / external dependency | Vault, Feedback, application/infrastructure logs, backups, and Resend retention/access remain policy and operations questions | `docs/product/NATALNODE_PRIVACY_TERMS_POLICY_V1.md` decisions P-07 through P-09; erasure/export/observability contracts | Legal/privacy/operations owners must approve durations, roles, exceptions, backup/restore handling, and processor disclosures | **POLICY / EXTERNAL BLOCKED** |
+| J1. Google Sign-In implementation | Only the `GOOGLE` contract/schema allowance exists; no OAuth route, state/PKCE flow, token exchange, browser flow, or Google adapter is implemented | `packages/contracts/src/auth.ts`; `server/db/migrations/0001_auth_vault_baseline.sql`; `server/src/auth-runtime/README.md` | Dedicated Auth security/privacy contract and implementation are required before enabling Google | **NOT IMPLEMENTED / P0 GAP** |
+| J2. Google OAuth credentials/configuration | No Google OAuth client credentials or deployment configuration is present or approved | `docs/product/NATALNODE_PRIVACY_TERMS_POLICY_V1.md` decision P-13; current runtime configuration | OAuth credentials, redirect configuration, processor disclosure, and live verification are external gates | **EXTERNAL / CREDENTIAL AND POLICY BLOCKED** |
+| K. Vault duplicate | Save, read/list, rename/category/tags/favorite, notes, delete, owner binding, and server recalculation exist; duplicate has no contract, route, repository operation, or UI action | `packages/contracts/src/api/vault.ts`; `server/src/app/routes/vault-charts.ts`; `server/src/persistence/vault-chart-repository.ts`; `apps/web/src/features/vault/` | A separate owner-scoped duplicate operation must preserve server recalculation, canonical-result integrity, ownership, and bounded metadata | **MISSING / TRUE P0 GAP; LOCALLY IMPLEMENTABLE** |
+| L1. Legal/privacy copy implementation | `/privacy` and `/terms` are not present; no unsupported placeholder claims were added | `apps/web/src/pages/`; `docs/product/NATALNODE_PRIVACY_TERMS_POLICY_V1.md` | Approved legal entity/controller, contact, jurisdiction, age, retention, rights, and counsel-reviewed copy are required | **NOT IMPLEMENTED / POLICY-BLOCKED P0 GAP** |
+| L2. Legal/policy dependency | Product policy records unresolved legal and operational decisions; the policy document is not legal advice or final public copy | `docs/product/NATALNODE_PRIVACY_TERMS_POLICY_V1.md`, especially P-01 through P-16 | Legal/privacy/operations approval must precede publication and any unsupported commitment | **EXTERNAL / POLICY BLOCKED** |
+| M1. Staging local readiness | Provider-neutral topology, executable server composition, migrations, local edge, public-development runtime, and security middleware foundations exist; Railway/Caddy staging composition is not implemented or verified | `docs/adr/WEB-DEPLOY-001A-web-api-deployment-topology.md`; `docs/adr/WEB-DEPLOY-002A-railway-p0-staging-topology.md`; `server/src/executable/`; `server/src/runtime/` | Repository-local readiness is not a staging deployment; staging-specific edge, environment, and E2E work remains a separate authorized task | **PARTIAL / READY-TO-RESUME ONLY** |
+| M2. Staging external infrastructure | Railway P0 research-staging topology is accepted, but provisioning, DNS/TLS, secrets, PostgreSQL/Resend configuration, deployment, migration execution, and staging E2E are absent | `docs/adr/WEB-DEPLOY-002A-railway-p0-staging-topology.md`; no Railway/Caddy deployment implementation in the repository | Deployment remains paused; do not start `WEB-DEPLOY-002B` from this checkpoint | **DEPLOYMENT-PAUSED / EXTERNAL BLOCKED** |
+| N. Production astronomy/provider | Production Engine, AstronomyProvider, rights, scientific configuration, provenance, and production E2E are not selected or implemented in Web | `docs/PRD.md` release gate; deploy ADRs; `server/src/executable/create-executable-server-bindings.ts` accepts only explicit development-mock behavior | Approved production Engine/provider and scientific release gates are required | **PROVIDER-DEPENDENT / DEFERRED** |
+| O. Resolver / production Sky | Development resolver and provider-neutral Public Sky fixtures/instrument exist; production location, historical-timezone, and Sky authority do not | `apps/web/src/features/chart-input/development-resolver.ts`; `docs/product/NATALNODE_PUBLIC_SKY_DOMAIN_V1.md`; current Sky BFF/fixture source | Approved production data source/Engine remains required; Current Transits is P1 and is not started | **PROVIDER-DEPENDENT / DEFERRED** |
+
+## 5. Closed implementation tracks and reopening protection
+
+The following implementation tracks are closed at the repository boundary and
+must not be mechanically reopened because the older checkpoint said they were
+missing:
+
+1. Account deletion and account-wide erasure implementation.
+2. Account export implementation, including the two-stage browser delivery
+   amendment.
+3. Auth lifecycle cleanup implementation and maintenance command.
+4. RFC 9457 Problem Details runtime migration across the API/BFF boundaries.
+5. ChartResult cache abstraction and BFF integration.
+6. `P0 OBSERVABILITY IMPLEMENTATION TRACK — CLOSED`, including request and
+   calculation observability hardening.
+7. Public local development runtime and its accepted signed-out/fixture
+   behavior.
+
+The accepted Calculate/Chart/Interpretation/Details result architecture,
+Visual V1.1 foundation, and development Public Sky foundation also remain
+frozen unless a concrete regression is found. This checkpoint does not reopen
+visual polish, result UX, homepage design, or a repository-wide decomposition
+program.
+
+`WEB-PRIVACY-001A — Freeze Account Deletion and Account-Wide Erasure
+Technical Contract` is a stale recommendation from the previous checkpoint.
+The implementation track has landed; that task must not be executed or
+recreated. Any remaining deletion work is limited to explicit operational,
+backup, processor, legal, or policy gates recorded above.
+
+## 6. Retention and privacy-access interpretation
+
+The repository now contains a bounded Auth lifecycle cleanup mechanism, but
+that does not mean that a product/legal retention duration has been approved
+or that all retention is enforced. These claims remain separate:
+
+| Question | Current answer |
+| --- | --- |
+| Is there a retention technical contract? | **Partial.** Auth expiry, Auth cleanup, account erasure, export, and logging boundaries exist, but a single approved duration and category schedule does not. |
+| Is retention enforcement complete? | **No.** The Auth maintenance command is code-complete, but scheduled/target-environment invocation is not verified; Vault, Feedback, and downstream application/infrastructure log enforcement are not established. |
+| Is the retention policy approved? | **No.** Duration, scope, exceptions, backup/restore handling, processor retention, and access roles remain policy/operations dependencies. |
+| Is privacy-access auditing implemented? | **No.** No durable access-audit mechanism exists. Operational request observability is not access-audit evidence and must not be repurposed as one. |
+| Is a privacy-access audit the same as an account deletion/export record? | **No.** Deletion/export records are bounded product operations; a privacy-access audit needs its own authorized-access model and retention decision. |
+
+No duration is invented in this checkpoint. Technical expiration remains
+distinct from deletion and from a legal retention promise.
+
+## 7. Public local-development readiness
+
+The accepted local behavior is recorded from current source/history and is not
+rerun here:
+
+- `npm run dev:public` builds the static Astro artifact and starts the
+  `public-development` edge/runtime.
+- The browser origin is `http://localhost:4321`.
+- The Hono API listener is loopback-only at `127.0.0.1:4322`.
+- Chart requests use the existing `CachedChartCalculator` and
+  `MockEngineClient` fixture path through the BFF.
+- Public Sky uses the existing provider-neutral development fixtures and
+  retains its development/research disclosure.
+- `GET /api/auth/session` is signed out, and protected Vault behavior fails
+  closed/redirects through the existing boundary rather than fabricating a
+  user or persistence store.
+- PostgreSQL and Resend are not needed for this public-development path.
+- The complete local runtime and production executable remain isolated; the
+  public-development composition rejects an explicit production marker and
+  does not select a production Engine/provider.
+
+This is not staging evidence, production evidence, or live astronomy
+evidence. Browser acceptance is intentionally not rerun by this checkpoint.
+
+## 8. Remaining P0 gaps by ownership
+
+### 8.1 One locally implementable next gap
+
+The single highest-priority **unblocked local implementation** is the missing
+Vault chart duplicate operation. It is a narrow Web-owned P0 contract gap and
+does not require an astronomy provider, OAuth credentials, deployment, or a
+retention-duration decision. It must remain owner-scoped and reuse the
+existing server-side recalculation/canonical-result rules rather than copying
+client-submitted scientific state.
+
+Recommended task wording:
+
+~~~
+Implement the missing Vault chart duplicate operation as one bounded,
+owner-scoped P0 Web task.
+~~~
+
+No part of that task is executed by this checkpoint.
+
+### 8.2 Provider-dependent gaps
+
+- Production Engine/AstronomyProvider selection, rights, runtime assets,
+  scientific configuration, provenance, and production Full Chart E2E.
+- Production location and historical-timezone authority behind the existing
+  resolver boundary.
+- Production Public Sky authority and any future Sky expansion.
+- Any provider-specific generation/configuration needed to make production
+  cache or observability claims.
+
+`PROVIDER DECISION DEFERRED` remains authoritative. Development fixtures must
+not be relabeled as live or production astronomy.
+
+### 8.3 External, policy, credential, and deployment blockers
+
+- Retention duration/scope for Auth, Vault, Feedback, application logs,
+  infrastructure logs, backups, and processors.
+- Privacy-access audit authorization, access roles, event scope, retention,
+  and operational workflow.
+- Google OAuth security/privacy approval, credentials, redirect configuration,
+  processor disclosure, and live verification.
+- Legal entity/controller, privacy contact, jurisdiction, age policy, rights,
+  retention representations, and counsel-approved `/privacy` and `/terms`
+  copy.
+- Live PostgreSQL, TLS, encryption at rest, least privilege, backup/restore,
+  Resend credentials/domain/DNS, and target-environment cookie verification.
+- Railway/Caddy staging provisioning, DNS/TLS, secrets, migrations, and E2E;
+  deployment remains paused.
+- Production observability sink/vendor and downstream log retention/access;
+  no logging vendor, APM, analytics, or audit system is selected.
+
+These blockers must not be disguised as ordinary source edits or silently
+resolved with invented policy text, credentials, providers, or deployment
+configuration.
+
+## 9. Deferred and non-P0 items
+
+The following remain intentionally deferred and are not converted into work by
+this checkpoint:
+
+- Retention durations and privacy-access auditing until their contracts and
+  policy/operations owners are resolved.
+- Observability `warningCount`, `provenanceStatus`, and conditional
+  `astronomyConfigurationId` until bounded source-level semantics are
+  approved; production sink/vendor selection remains deferred.
+- Google Sign-In until implementation and external authorization gates land.
+- Public legal pages until approved policy and counsel-reviewed copy exist.
+- Railway/Caddy staging implementation while deployment is paused.
+- Production astronomy, production resolver, and production Public Sky.
+- Current Transits, `/sky` expansion, AI, Pro, Ads/CMP, PDF, subscriptions,
+  Community, Practitioner, and other P1/P2/P3 work.
+- Guest refresh/navigation persistence, Feedback history/delete, profile and
+  identity-management expansion, and generic visual polish.
+- Standalone large-file cleanup. LOC thresholds remain heuristic guardrails,
+  not lint rules, automatic refactor triggers, or reasons to alter working
+  code.
+
+## 10. Do not do next
+
+- Do not execute or recreate `WEB-PRIVACY-001A`.
+- Do not reopen the closed deletion, export, Auth cleanup, Problem Details,
+  cache, observability, or public-local-runtime implementation tracks without
+  a concrete regression or a separately authorized new boundary.
+- Do not treat Auth cleanup code as proof of an approved retention duration or
+  complete retention enforcement.
+- Do not use operational request logs as a privacy-access audit.
+- Do not add Google OAuth, legal copy, provider logic, production astronomy,
+  staging infrastructure, or deployment configuration from this checkpoint.
+- Do not start Current Transits or any other P1/P2/P3 work.
+- Do not access or modify `C:\\NatalNode`.
+
+## 11. Checkpoint decision
+
+The repository has crossed several former P0 implementation gaps since the
+previous checkpoint, and those closed tracks are now protected from stale-list
+reopening. The remaining release picture is:
+
+~~~
+P0 implementation foundation       = STRONG
+Closed implementation tracks       = PRESERVED
+Unblocked local P0 implementation  = VAULT DUPLICATE ONLY
+Privacy audit/retention completion = NOT COMPLETE; policy/operations gated
+Staging                             = PAUSED
+Production astronomy/provider       = DEFERRED
+Launch readiness                    = NOT COMPLETE
+~~~
+
+The single recommended next P0 action is the bounded owner-scoped Vault chart
+duplicate operation described in section 8.1. It is a recommendation only;
+this checkpoint performs no implementation and does not start another task.
