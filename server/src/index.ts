@@ -61,7 +61,23 @@ export type {
   MagicLinkUrlBuilder,
   SessionCookiePolicy,
   SecureTokenGenerator,
-  TokenHasher
+  TokenHasher,
+  GoogleOidcAuthorizationCodeExchangeInput,
+  GoogleOidcAuthorizationRequest,
+  GoogleOidcAuthorizationRequestInput,
+  GoogleOidcProvider,
+  GoogleOidcProviderErrorCode,
+  VerifiedGoogleIdentity,
+  ClaimGoogleOAuthTransactionInput,
+  CreateGoogleOAuthTransactionInput,
+  GoogleOAuthTransactionFlowKind,
+  GoogleOAuthTransactionPolicy,
+  GoogleOAuthTransactionRecord,
+  GoogleOAuthTransactionServiceDependencies,
+  GoogleOAuthTransactionStartMaterial,
+  GoogleOAuthTransactionStatus,
+  GoogleOAuthTransactionTerminalStatus,
+  TerminalizeGoogleOAuthTransactionInput
 } from './auth-runtime/index.js';
 export {
   AuthLifecycleCleanup,
@@ -75,7 +91,15 @@ export {
   serializeClearedSessionCookie,
   serializeSessionCookie,
   Sha256TokenHasher,
-  extractSessionCookie
+  extractSessionCookie,
+  GOOGLE_OIDC_PROVIDER,
+  GoogleOidcProviderError,
+  deriveS256PkceCodeChallenge,
+  GoogleOAuthTransactionService,
+  verifyGoogleOAuthSecretHash,
+  GOOGLE_OAUTH_FLOW_KIND,
+  GOOGLE_OAUTH_POST_AUTH_REDIRECT,
+  GOOGLE_OAUTH_TRANSACTION_MAX_TTL_SECONDS
 } from './auth-runtime/index.js';
 
 export { createApp } from './app/index.js';
@@ -139,6 +163,10 @@ export type {
   EmailMagicLinkAuthLifecycle,
   FeedbackSubmissionRecord,
   FeedbackSubmissionRepository,
+  GoogleOAuthTransactionClaim,
+  GoogleOAuthTransactionClaimInput,
+  GoogleOAuthTransactionRepository,
+  GoogleOAuthTransactionTerminalizeInput,
   PrivacyAccessAuditAccountResourceCategory,
   PrivacyAccessAuditAction,
   PrivacyAccessAuditActorType,
@@ -161,6 +189,7 @@ export {
   PostgresAuthSessionRepository,
   PostgresAuthIdentityRepository,
   PostgresAuthIdentityProvisioningRepository,
+  PostgresGoogleOAuthTransactionRepository,
   PostgresChartNoteRepository,
   PostgresEmailMagicLinkChallengeRepository,
   PostgresEmailMagicLinkAuthLifecycle,

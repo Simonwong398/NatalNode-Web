@@ -12,6 +12,12 @@ export type {
   AccountDataExportSnapshotOpenResult
 } from './account-data-export-repository.js';
 export type { AuthSessionRepository } from './auth-session-repository.js';
+export type {
+  GoogleOAuthTransactionClaim,
+  GoogleOAuthTransactionClaimInput,
+  GoogleOAuthTransactionRepository,
+  GoogleOAuthTransactionTerminalizeInput
+} from './google-oauth-transaction-repository.js';
 export {
   assertAuthLifecycleCleanupBatchSize,
   AUTH_LIFECYCLE_CLEANUP_DEFAULT_BATCH_SIZE,

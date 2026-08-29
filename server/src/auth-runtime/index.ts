@@ -21,6 +21,38 @@ export type { SecureTokenGenerator } from './secure-token.js';
 export { Sha256TokenHasher } from './token-hasher.js';
 export type { TokenHasher } from './token-hasher.js';
 
+export {
+  GOOGLE_OIDC_PROVIDER,
+  GoogleOidcProviderError,
+  type GoogleOidcAuthorizationCodeExchangeInput,
+  type GoogleOidcAuthorizationRequest,
+  type GoogleOidcAuthorizationRequestInput,
+  type GoogleOidcProvider,
+  type GoogleOidcProviderErrorCode,
+  type VerifiedGoogleIdentity
+} from './google-oidc-provider.js';
+
+export {
+  deriveS256PkceCodeChallenge,
+  GoogleOAuthTransactionService,
+  verifyGoogleOAuthSecretHash,
+  GOOGLE_OAUTH_FLOW_KIND,
+  GOOGLE_OAUTH_POST_AUTH_REDIRECT,
+  GOOGLE_OAUTH_TRANSACTION_MAX_TTL_SECONDS
+} from './google-oauth-transaction.js';
+export type {
+  ClaimGoogleOAuthTransactionInput,
+  CreateGoogleOAuthTransactionInput,
+  GoogleOAuthTransactionFlowKind,
+  GoogleOAuthTransactionPolicy,
+  GoogleOAuthTransactionRecord,
+  GoogleOAuthTransactionServiceDependencies,
+  GoogleOAuthTransactionStartMaterial,
+  GoogleOAuthTransactionStatus,
+  GoogleOAuthTransactionTerminalStatus,
+  TerminalizeGoogleOAuthTransactionInput
+} from './google-oauth-transaction.js';
+
 export { issueAuthSession } from './issue-auth-session.js';
 export type {
   IssuedAuthSession,

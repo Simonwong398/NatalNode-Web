@@ -2,6 +2,7 @@ export { createPostgresPersistence } from './create-postgres-persistence.js';
 export { PostgresAccountDataExportRepository } from './postgres-account-data-export-repository.js';
 export { PostgresAccountErasureRepository } from './postgres-account-erasure-repository.js';
 export { PostgresAuthSessionRepository } from './postgres-auth-session-repository.js';
+export { PostgresGoogleOAuthTransactionRepository } from './postgres-google-oauth-transaction-repository.js';
 export { PostgresAuthLifecycleCleanupRepository } from './postgres-auth-lifecycle-cleanup-repository.js';
 export { PostgresAuthIdentityRepository } from './postgres-auth-identity-repository.js';
 export { PostgresAuthIdentityProvisioningRepository } from './postgres-auth-identity-provisioning-repository.js';
