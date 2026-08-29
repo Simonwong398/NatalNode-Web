@@ -6,6 +6,7 @@ import type {
 import type { WebPushVapidReadiness } from './web-push-vapid.js';
 
 export const NOTIFICATION_DELIVERY_CLAIM_BATCH_SIZE = 50;
+const NOTIFICATION_DELIVERY_SEQUENTIAL_CLAIM_LIMIT = 1;
 export const NOTIFICATION_DELIVERY_LEASE_SECONDS = 120;
 export const NOTIFICATION_DELIVERY_MAX_ATTEMPTS = 5;
 export const NOTIFICATION_DELIVERY_ATTEMPT_TIMEOUT_MILLISECONDS = 30_000;
@@ -100,6 +101,7 @@ export interface NotificationDeliveryWorkerDependencies {
   readonly repository: NotificationDeliveryWorkerRepository;
   readonly transport: WebPushTransport;
   readonly eligibility: CurrentNotificationDeliveryEligibility;
+  /** Maximum number of single-delivery claim/send cycles in one drain. */
   readonly claimBatchSize?: number;
   readonly transportAttemptTimeoutMillis?: number;
 }
@@ -266,15 +268,31 @@ export class NotificationDeliveryWorker {
       return { ...emptyResult, status: 'SHUTDOWN', recovered };
     }
 
-    const claims = await this.dependencies.repository.claimDueDeliveries(
-      this.claimBatchSize
-    );
     let persisted = 0;
     let skipped = 0;
     let configurationUnavailable = 0;
     let status: NotificationDeliveryWorkerRunResult['status'] = 'COMPLETED';
+    let claimed = 0;
 
-    for (const claim of claims) {
+    while (claimed < this.claimBatchSize) {
+      if (this.shutdownRequested) {
+        status = 'SHUTDOWN';
+        break;
+      }
+
+      const claims = await this.dependencies.repository.claimDueDeliveries(
+        NOTIFICATION_DELIVERY_SEQUENTIAL_CLAIM_LIMIT
+      );
+      const claim = claims[0];
+
+      if (claim === undefined) {
+        break;
+      }
+
+      claimed += 1;
+
+      // A claim returned after shutdown remains leased for normal recovery;
+      // no new transport attempt starts once shutdown has been requested.
       if (this.shutdownRequested) {
         status = 'SHUTDOWN';
         break;
@@ -304,7 +322,7 @@ export class NotificationDeliveryWorker {
     return {
       status,
       recovered,
-      claimed: claims.length,
+      claimed,
       persisted,
       skipped,
       configurationUnavailable

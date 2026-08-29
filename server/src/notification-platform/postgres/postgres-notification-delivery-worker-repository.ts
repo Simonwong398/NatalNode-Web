@@ -122,8 +122,11 @@ const FIND_DUE_DELIVERIES_SQL = `
   INNER JOIN notification_intents AS i
     ON i.intent_id = d.intent_id
   WHERE d.state IN ('PENDING', 'RETRYABLE')
-    AND d.next_attempt_at <= CURRENT_TIMESTAMP
-    AND (d.attempt_count = 0 OR d.first_attempt_at IS NOT NULL)
+    AND d.next_attempt_at <= clock_timestamp()
+    AND (
+      (d.attempt_count = 0 AND d.first_attempt_at IS NULL)
+      OR (d.attempt_count > 0 AND d.first_attempt_at IS NOT NULL)
+    )
     AND d.attempt_count < $2
   ORDER BY d.next_attempt_at ASC, d.delivery_id ASC
   LIMIT $1
@@ -134,27 +137,30 @@ const CLAIM_DELIVERY_SQL = `
   SET
     state = 'PROCESSING',
     claim_token = $2,
-    claim_expires_at = CURRENT_TIMESTAMP + ($3 * INTERVAL '1 second'),
+    claim_expires_at = clock_timestamp() + ($3 * INTERVAL '1 second'),
     attempt_count = attempt_count + 1,
     next_attempt_at = NULL,
-    last_attempt_at = CURRENT_TIMESTAMP,
-    first_attempt_at = COALESCE(first_attempt_at, CURRENT_TIMESTAMP),
-    updated_at = CURRENT_TIMESTAMP
+    last_attempt_at = clock_timestamp(),
+    first_attempt_at = COALESCE(first_attempt_at, clock_timestamp()),
+    updated_at = clock_timestamp()
   WHERE delivery_id = $1
     AND state IN ('PENDING', 'RETRYABLE')
-    AND next_attempt_at <= CURRENT_TIMESTAMP
-    AND (attempt_count = 0 OR first_attempt_at IS NOT NULL)
+    AND next_attempt_at <= clock_timestamp()
+    AND (
+      (attempt_count = 0 AND first_attempt_at IS NULL)
+      OR (attempt_count > 0 AND first_attempt_at IS NOT NULL)
+    )
     AND attempt_count < $4
   RETURNING delivery_id, claim_token, claim_expires_at, attempt_count, first_attempt_at`;
 
 const FIND_DATABASE_NOW_SQL =
-  'SELECT CURRENT_TIMESTAMP AS database_now';
+  'SELECT clock_timestamp() AS database_now';
 
 const FIND_EXPIRED_DELIVERIES_SQL = `
   SELECT delivery_id, attempt_count, first_attempt_at
   FROM notification_deliveries
   WHERE state = 'PROCESSING'
-    AND claim_expires_at <= CURRENT_TIMESTAMP
+    AND claim_expires_at <= clock_timestamp()
   ORDER BY claim_expires_at ASC, delivery_id ASC
   LIMIT $1
   FOR UPDATE SKIP LOCKED`;
@@ -170,10 +176,10 @@ const RECOVER_TO_RETRYABLE_SQL = `
     cancel_reason = NULL,
     delivered_at = NULL,
     terminal_at = NULL,
-    updated_at = CURRENT_TIMESTAMP
+    updated_at = clock_timestamp()
   WHERE delivery_id = $1
     AND state = 'PROCESSING'
-    AND claim_expires_at <= CURRENT_TIMESTAMP`;
+    AND claim_expires_at <= clock_timestamp()`;
 
 const RECOVER_TO_DEAD_SQL = `
   UPDATE notification_deliveries
@@ -185,11 +191,11 @@ const RECOVER_TO_DEAD_SQL = `
     last_failure_class = 'TIMEOUT_AMBIGUOUS',
     cancel_reason = NULL,
     delivered_at = NULL,
-    terminal_at = CURRENT_TIMESTAMP,
-    updated_at = CURRENT_TIMESTAMP
+    terminal_at = clock_timestamp(),
+    updated_at = clock_timestamp()
   WHERE delivery_id = $1
     AND state = 'PROCESSING'
-    AND claim_expires_at <= CURRENT_TIMESTAMP`;
+    AND claim_expires_at <= clock_timestamp()`;
 
 const LOCK_OWNER_SQL = `
   SELECT user_id
@@ -239,7 +245,7 @@ const LOCK_DELIVERY_SQL = `
     claim_token,
     claim_expires_at,
     first_attempt_at,
-    CURRENT_TIMESTAMP AS database_now
+    clock_timestamp() AS database_now
   FROM notification_deliveries
   WHERE delivery_id = $1
   FOR UPDATE`;
@@ -266,8 +272,8 @@ const CANCEL_DELIVERY_SQL = `
     last_failure_class = NULL,
     cancel_reason = $3,
     delivered_at = NULL,
-    terminal_at = CURRENT_TIMESTAMP,
-    updated_at = CURRENT_TIMESTAMP
+    terminal_at = clock_timestamp(),
+    updated_at = clock_timestamp()
   WHERE delivery_id = $1
     AND state = 'PROCESSING'
     AND claim_token = $2`;
@@ -282,8 +288,8 @@ const DEAD_DELIVERY_SQL = `
     last_failure_class = $3,
     cancel_reason = NULL,
     delivered_at = NULL,
-    terminal_at = CURRENT_TIMESTAMP,
-    updated_at = CURRENT_TIMESTAMP
+    terminal_at = clock_timestamp(),
+    updated_at = clock_timestamp()
   WHERE delivery_id = $1
     AND state = 'PROCESSING'
     AND claim_token = $2`;
@@ -297,9 +303,9 @@ const DELIVERED_DELIVERY_SQL = `
     claim_expires_at = NULL,
     last_failure_class = NULL,
     cancel_reason = NULL,
-    delivered_at = CURRENT_TIMESTAMP,
-    terminal_at = CURRENT_TIMESTAMP,
-    updated_at = CURRENT_TIMESTAMP
+    delivered_at = clock_timestamp(),
+    terminal_at = clock_timestamp(),
+    updated_at = clock_timestamp()
   WHERE delivery_id = $1
     AND state = 'PROCESSING'
     AND claim_token = $2`;
@@ -315,7 +321,7 @@ const RETRYABLE_DELIVERY_SQL = `
     cancel_reason = NULL,
     delivered_at = NULL,
     terminal_at = NULL,
-    updated_at = CURRENT_TIMESTAMP
+    updated_at = clock_timestamp()
   WHERE delivery_id = $1
     AND state = 'PROCESSING'
     AND claim_token = $2`;
@@ -324,8 +330,8 @@ const INVALIDATE_SUBSCRIPTION_SQL = `
   UPDATE push_subscriptions
   SET
     status = 'INVALIDATED',
-    invalidated_at = CURRENT_TIMESTAMP,
-    updated_at = CURRENT_TIMESTAMP
+    invalidated_at = clock_timestamp(),
+    updated_at = clock_timestamp()
   WHERE subscription_id = $1
     AND status = 'ACTIVE'`;
 
@@ -916,6 +922,34 @@ export class PostgresNotificationDeliveryWorkerRepository
           : { outcome: 'SKIPPED', deliveryId, reason: 'STALE_CLAIM' };
       }
 
+      // Eligibility evaluation and local validation may have consumed part of
+      // the lease. Re-check the database wall clock immediately before the
+      // bounded transport attempt so lock/evaluator latency cannot start a
+      // send after the lease is no longer sufficient.
+      const preTransportNowRows = await queryRows<DatabaseNowRow>(
+        client,
+        FIND_DATABASE_NOW_SQL
+      );
+      const preTransportDatabaseNow = timestampToDate(
+        preTransportNowRows[0]?.database_now ?? null
+      );
+
+      if (preTransportDatabaseNow === null) {
+        await client.query('COMMIT');
+        return { outcome: 'SKIPPED', deliveryId, reason: 'STALE_CLAIM' };
+      }
+
+      const preTransportRemainingLeaseMillis =
+        claimExpiresAt.getTime() - preTransportDatabaseNow.getTime();
+      if (preTransportRemainingLeaseMillis <= transportAttemptTimeoutMillis) {
+        await client.query('COMMIT');
+        return {
+          outcome: 'SKIPPED',
+          deliveryId,
+          reason: 'INSUFFICIENT_LEASE'
+        };
+      }
+
       let transportOutcome: WebPushTransportOutcome;
       const transportSubscription = {
         endpoint: subscription.endpoint,
@@ -969,6 +1003,18 @@ export class PostgresNotificationDeliveryWorkerRepository
       }
 
       if (isRetryableTransportOutcome(transportOutcome.outcome)) {
+        const outcomeNowRows = await queryRows<DatabaseNowRow>(
+          client,
+          FIND_DATABASE_NOW_SQL
+        );
+        const outcomeDatabaseNow = timestampToDate(
+          outcomeNowRows[0]?.database_now ?? null
+        );
+
+        if (outcomeDatabaseNow === null) {
+          throw new Error('Database time is invalid.');
+        }
+
         const baseDelaySeconds = notificationRetryDelaySeconds(
           delivery.attempt_count
         );
@@ -988,7 +1034,7 @@ export class PostgresNotificationDeliveryWorkerRepository
           effectiveDelaySeconds === null
             ? null
             : new Date(
-                databaseNow.getTime() +
+                outcomeDatabaseNow.getTime() +
                   effectiveDelaySeconds * MILLISECONDS_PER_SECOND
               );
         const retryable =

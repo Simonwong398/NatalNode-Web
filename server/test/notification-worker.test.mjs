@@ -192,8 +192,11 @@ class ScriptedPoolClient {
 
     assert.equal(this.inTransaction, true, normalized);
 
-    if (normalized.startsWith('SELECT CURRENT_TIMESTAMP AS database_now')) {
-      return { rows: [{ database_now: this.pool.databaseNow }] };
+    if (normalized.startsWith('SELECT clock_timestamp() AS database_now')) {
+      const databaseNow = Array.isArray(this.pool.databaseNow)
+        ? this.pool.databaseNow.shift() ?? NOW
+        : this.pool.databaseNow;
+      return { rows: [{ database_now: databaseNow }] };
     }
     if (normalized.startsWith('SELECT d.delivery_id')) {
       return { rows: this.pool.dueRows.map(clone) };
@@ -347,7 +350,15 @@ test('claim uses deterministic order, SKIP LOCKED, fresh tokens, two-minute leas
   assert.equal(claimQueries[0].params[3], 5);
   assert.equal(claimQueries[0].params[1], 'generated-claim-1');
   assert.equal(claimQueries[1].params[1], 'generated-claim-2');
-  assert.match(claimQueries[0].sql, /first_attempt_at = COALESCE\(first_attempt_at, CURRENT_TIMESTAMP\)/u);
+  assert.match(dueQuery.sql, /d\.next_attempt_at <= clock_timestamp\(\)/u);
+  assert.match(
+    claimQueries[0].sql,
+    /first_attempt_at = COALESCE\(first_attempt_at, clock_timestamp\(\)/u
+  );
+  assert.match(
+    claimQueries[0].sql,
+    /\(attempt_count = 0 AND first_attempt_at IS NULL\)/u
+  );
   assert.equal(pool.clients[0].released, true);
 });
 
@@ -458,6 +469,25 @@ test('wrong token and insufficient lease cannot invoke transport or overwrite de
   });
   assert.equal(transportCalls.length, 0);
   assert.equal(mutationCalls(shortLeasePool).length, 0);
+
+  const leaseConsumedDuringFinalGatePool = makeRepositoryPool({
+    databaseNow: new Date('2026-08-29T12:01:40.000Z')
+  });
+  const leaseConsumedDuringFinalGateResult = await makeRepository(
+    leaseConsumedDuringFinalGatePool
+  ).processClaimedDelivery(makeClaim(), {
+    eligibility: makeEligibility(true),
+    transport: makeTransport({ outcome: 'ACCEPTED' }, transportCalls),
+    transportAttemptTimeoutMillis: 30_000
+  });
+
+  assert.deepEqual(leaseConsumedDuringFinalGateResult, {
+    outcome: 'SKIPPED',
+    deliveryId: DELIVERY_ID,
+    reason: 'INSUFFICIENT_LEASE'
+  });
+  assert.equal(transportCalls.length, 0);
+  assert.equal(mutationCalls(leaseConsumedDuringFinalGatePool).length, 0);
 });
 
 test('final authority revalidation cancels for disabled preferences, revoked eligibility, and inactive or cross-owner targets', async () => {
@@ -589,7 +619,12 @@ test('Retry-After is bounded and never reduces the deterministic base delay or e
   assert.equal(boundedRetryAfterSeconds(3_601), undefined);
   assert.equal(boundedRetryAfterSeconds(-1), undefined);
 
-  const pool = makeRepositoryPool();
+  const pool = makeRepositoryPool({
+    databaseNow: [
+      NOW,
+      new Date('2026-08-29T12:00:20.000Z')
+    ]
+  });
   const result = await makeRepository(pool).processClaimedDelivery(makeClaim(), {
     eligibility: makeEligibility(true),
     transport: makeTransport({
@@ -604,7 +639,7 @@ test('Retry-After is bounded and never reduces the deterministic base delay or e
     state: 'RETRYABLE'
   });
   const retry = mutationCalls(pool).find((call) => call.sql.includes("state = 'RETRYABLE'"));
-  assert.equal(retry.params[2].toISOString(), '2026-08-29T13:00:00.000Z');
+  assert.equal(retry.params[2].toISOString(), '2026-08-29T13:00:20.000Z');
 
   const exhaustedPool = makeRepositoryPool({
     deliveryRows: [makeDeliveryRow({ attemptCount: 5 })]
@@ -679,10 +714,12 @@ test('defensive configuration or eligibility unavailability stops without invali
 
 test('bounded worker gates readiness, keeps HTTP-independent repository orchestration, and honors shutdown', async () => {
   class FakeWorkerRepository {
-    constructor(resultQueue = []) {
+    constructor(resultQueue = [], claimQueue = []) {
       this.resultQueue = [...resultQueue];
+      this.claimQueue = [...claimQueue];
       this.recoverCalls = 0;
       this.claimCalls = 0;
+      this.claimLimits = [];
       this.processCalls = 0;
     }
 
@@ -691,9 +728,11 @@ test('bounded worker gates readiness, keeps HTTP-independent repository orchestr
       return 2;
     }
 
-    async claimDueDeliveries() {
+    async claimDueDeliveries(limit) {
       this.claimCalls += 1;
-      return [makeClaim({ deliveryId: 'delivery-a' }), makeClaim({ deliveryId: 'delivery-b' })];
+      this.claimLimits.push(limit);
+      const claim = this.claimQueue.shift();
+      return claim === undefined ? [] : [claim];
     }
 
     async processClaimedDelivery() {
@@ -719,6 +758,9 @@ test('bounded worker gates readiness, keeps HTTP-independent repository orchestr
   const stopRepository = new FakeWorkerRepository([
     { outcome: 'CONFIGURATION_UNAVAILABLE', deliveryId: 'delivery-a' },
     { outcome: 'PERSISTED', deliveryId: 'delivery-b', state: 'DELIVERED' }
+  ], [
+    makeClaim({ deliveryId: 'delivery-a' }),
+    makeClaim({ deliveryId: 'delivery-b' })
   ]);
   const stopWorker = new NotificationDeliveryWorker({
     readiness: { status: 'READY' },
@@ -729,6 +771,32 @@ test('bounded worker gates readiness, keeps HTTP-independent repository orchestr
   const stopResult = await stopWorker.runOnce();
   assert.equal(stopResult.status, 'CONFIGURATION_UNAVAILABLE');
   assert.equal(stopRepository.processCalls, 1);
+  assert.deepEqual(stopRepository.claimLimits, [1]);
+
+  const drainingRepository = new FakeWorkerRepository([
+    { outcome: 'PERSISTED', deliveryId: 'delivery-a', state: 'DELIVERED' },
+    { outcome: 'PERSISTED', deliveryId: 'delivery-b', state: 'DELIVERED' }
+  ], [
+    makeClaim({ deliveryId: 'delivery-a' }),
+    makeClaim({ deliveryId: 'delivery-b' })
+  ]);
+  const drainingWorker = new NotificationDeliveryWorker({
+    readiness: { status: 'READY' },
+    repository: drainingRepository,
+    transport: makeTransport({ outcome: 'ACCEPTED' }),
+    eligibility: makeEligibility(true)
+  });
+  const drainingResult = await drainingWorker.runOnce();
+  assert.deepEqual(drainingResult, {
+    status: 'COMPLETED',
+    recovered: 2,
+    claimed: 2,
+    persisted: 2,
+    skipped: 0,
+    configurationUnavailable: 0
+  });
+  assert.deepEqual(drainingRepository.claimLimits, [1, 1, 1]);
+  assert.equal(drainingRepository.processCalls, 2);
 
   const shutdownRepository = new FakeWorkerRepository();
   const shutdownWorker = new NotificationDeliveryWorker({

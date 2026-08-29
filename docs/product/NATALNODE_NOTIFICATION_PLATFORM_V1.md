@@ -2,7 +2,7 @@
 
 | Field | Value |
 |---|---|
-| Status | **PASS / CONTRACT AMENDMENT CLOSED / APPROVED TECHNICAL CONTRACT / B3 IMPLEMENTED LOCALLY / B4A FROZEN / B4B1 IMPLEMENTED LOCALLY / B4B2 IMPLEMENTED LOCALLY / B4B3 IMPLEMENTED LOCALLY / CONCURRENCY & SECURITY REVIEW REQUIRED / B4B4 DEFERRED / LIVE WEB PUSH DELIVERY NOT IMPLEMENTED** |
+| Status | **PASS / CONTRACT AMENDMENT CLOSED / APPROVED TECHNICAL CONTRACT / B3 IMPLEMENTED LOCALLY / B4A FROZEN / B4B1 IMPLEMENTED LOCALLY / B4B2 IMPLEMENTED LOCALLY / B4B3 IMPLEMENTED LOCALLY / B4B3-R1 PASS / CONCURRENCY & SECURITY REVIEW CLOSED / B4B4 DEFERRED / LIVE WEB PUSH DELIVERY NOT IMPLEMENTED** |
 | Task | `WEB-NOTIFY-001B4A-R1` |
 | Reviewed baseline | `9d188bbe491d5f4038e49fe920cacd720c9a8d33` (`docs: define web push delivery contract`) |
 | Date | 2026-08-29 |
@@ -1054,6 +1054,14 @@ PostgreSQL row locking with `FOR UPDATE SKIP LOCKED`. It selects due
   `first_attempt_at` is set exactly once on the first claim and remains the
   durable anchor for the 24-hour retry horizon.
 
+The current sequential worker drain requests one due delivery per claim
+transaction and completes that delivery before requesting the next one. The
+`50` value remains the bounded recovery/drain ceiling and repository limit; it
+is not a queue of sends waiting behind one lease. Lease-expiry checks,
+lease-expiry arithmetic, and retry scheduling use the PostgreSQL wall clock
+(`clock_timestamp()`), while each persisted event timestamp is evaluated at
+its actual mutation time rather than the transaction start time.
+
 The adapter attempt has a local timeout no longer than `30 seconds`, leaving a
 bounded lease-recovery margin. Completion updates must match both
 `delivery_id` and `claim_token`; a stale worker cannot overwrite a newer
@@ -1608,13 +1616,15 @@ Current implementation status:
   provider-neutral `WebPushTransport`, per-call VAPID configuration/readiness,
   P-256 public/private match validation, bounded protocol outcomes, and
   redaction. No worker or live send route exists.
-- `WEB-NOTIFY-001B4B3` — **IMPLEMENTED LOCALLY / CONCURRENCY & SECURITY
-  REVIEW REQUIRED**: separate bounded consumer worker/executable, due-row
-  claim and two-minute lease fencing, expired-claim recovery, bounded retry
-  scheduling, final authority serialization, current preference/eligibility
-  revalidation, existing `WebPushTransport` invocation, delivery persistence,
-  and exact-target subscription invalidation. No B4B4 live acceptance is
-  included.
+- `WEB-NOTIFY-001B4B3` — **IMPLEMENTED LOCALLY / B4B3-R1 PASS /
+  CONCURRENCY & SECURITY REVIEW CLOSED**: separate bounded consumer
+  worker/executable, one-at-a-time due-row claim/send sequencing under the
+  two-minute lease, wall-clock lease/retry arithmetic, expired-claim recovery,
+  bounded retry scheduling, final authority serialization, current
+  preference/eligibility revalidation, existing `WebPushTransport` invocation,
+  delivery persistence, and exact-target subscription invalidation. Real
+  PostgreSQL concurrency and live-delivery acceptance remain outside this
+  local review and are not claimed here.
 - `WEB-NOTIFY-001B4B4` — **NOT STARTED**: bounded integration validation and
   local live-delivery acceptance only when legitimate developer-owned
   configuration exists.
@@ -1695,16 +1705,19 @@ Service Worker, or live-send route is introduced.
 
 ### `WEB-NOTIFY-001B4B3` — Worker, retry, and invalidation
 
-**IMPLEMENTED LOCALLY / CONCURRENCY & SECURITY REVIEW REQUIRED.** This slice
-adds the separate bounded consumer worker/executable, atomic due-row
-claim/lease fencing, additive `first_attempt_at` persistence for the exact
-24-hour retry horizon, expired-claim recovery, deterministic retry/backoff,
-final-send lock ordering and authority revalidation, existing
+**IMPLEMENTED LOCALLY / B4B3-R1 PASS / CONCURRENCY & SECURITY REVIEW
+CLOSED.** This slice adds the separate bounded consumer worker/executable,
+one-at-a-time due-row claim/send sequencing under the two-minute lease,
+additive `first_attempt_at` persistence for the exact 24-hour retry horizon,
+wall-clock lease/retry arithmetic, expired-claim recovery, deterministic
+retry/backoff, final-send lock ordering and authority revalidation, existing
 `WebPushTransport` invocation, bounded delivery-state persistence, graceful
 shutdown, and exact-target-only invalidation. The current eligibility source
 remains a required server-internal dependency and the executable fails closed
-when it is unavailable. No Developer notifications, new astrology trigger
-semantics, live provider acceptance, or B4B4 implementation is included.
+when it is unavailable. Real PostgreSQL concurrency and live-delivery
+acceptance remain outside this local review. No Developer notifications, new
+astrology trigger semantics, live provider acceptance, or B4B4 implementation
+is included.
 
 ### `WEB-NOTIFY-001B4B4` — Bounded integration validation
 
@@ -1864,7 +1877,8 @@ unrelated source inspection are intentionally not run.
     WEB-NOTIFY-001B4A                  = APPROVED TECHNICAL CONTRACT / IMPLEMENTATION DEFERRED
     WEB-NOTIFY-001B4B1               = IMPLEMENTED LOCALLY / SECURITY REVIEW REQUIRED
     WEB-NOTIFY-001B4B2               = IMPLEMENTED LOCALLY / SECURITY REVIEW REQUIRED
-    WEB-NOTIFY-001B4B3               = IMPLEMENTED LOCALLY / CONCURRENCY & SECURITY REVIEW REQUIRED
+    WEB-NOTIFY-001B4B3               = IMPLEMENTED LOCALLY / B4B3-R1 PASS / CONCURRENCY & SECURITY REVIEW CLOSED
+    WEB-NOTIFY-001B4B3-R1            = PASS / CONCURRENCY & SECURITY REVIEW CLOSED
     WEB-NOTIFY-001B4B4               = NOT STARTED
 
 The B3 foundation, B4B1 persistence/enqueue boundary, B4B2 VAPID/transport
