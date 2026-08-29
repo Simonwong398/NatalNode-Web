@@ -1,8 +1,8 @@
 import { Hono } from 'hono';
 import type { ServerDependencies } from './dependencies.js';
 import {
-  logUnhandledApiError,
-  observeApiRequests
+  observeApiRequests,
+  type ObservabilitySink
 } from './observability/api-request-observability.js';
 import { applyApiSecurityHeaders } from './security/api-security-headers.js';
 import {
@@ -44,11 +44,18 @@ function isApiPath(pathname: string): boolean {
   return pathname === '/api' || pathname.startsWith('/api/');
 }
 
-export function createApp(dependencies: ServerDependencies): Hono {
+export interface CreateAppOptions {
+  readonly observabilitySink?: ObservabilitySink;
+}
+
+export function createApp(
+  dependencies: ServerDependencies,
+  options: CreateAppOptions = {}
+): Hono {
   const app = new Hono();
   const rateLimiter = new InMemoryP0StagingRateLimiter();
 
-  app.use('/api/*', observeApiRequests());
+  app.use('/api/*', observeApiRequests({ sink: options.observabilitySink }));
   app.use('/api/*', applyApiSecurityHeaders());
   app.use(
     '/api/*',
@@ -73,7 +80,6 @@ export function createApp(dependencies: ServerDependencies): Hono {
   );
 
   app.onError((_error, context) => {
-    logUnhandledApiError(context);
     return isApiPath(context.req.path)
       ? createProblemDetailsContextResponse(context, {
           code: 'INTERNAL_ERROR'

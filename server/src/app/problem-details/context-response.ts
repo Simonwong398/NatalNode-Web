@@ -13,5 +13,6 @@ export function createProblemDetailsContextResponse(
   input: CreateProblemDetailsInput
 ): Response {
   const response = createProblemDetailsResponse(input);
+  context.set('problemCode', input.code);
   return context.newResponse(response.body, response);
 }

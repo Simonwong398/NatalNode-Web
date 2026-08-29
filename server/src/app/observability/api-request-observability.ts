@@ -1,10 +1,11 @@
 import { randomUUID } from 'node:crypto';
 import { performance } from 'node:perf_hooks';
 import type { Context, MiddlewareHandler } from 'hono';
+import type { ProblemCode } from '../problem-details/index.js';
 
 export const REQUEST_ID_HEADER = 'X-Request-Id';
 
-type EndpointFamily =
+export type EndpointFamily =
   | 'health'
   | 'chart'
   | 'sky.snapshot'
@@ -22,26 +23,42 @@ type EndpointFamily =
   | 'vault.notes'
   | 'unknown-api';
 
+export type HttpMethod =
+  | 'DELETE'
+  | 'GET'
+  | 'HEAD'
+  | 'OPTIONS'
+  | 'PATCH'
+  | 'POST'
+  | 'PUT'
+  | 'OTHER';
+
 interface ApiRequestContextVariables {
   requestId: string;
+  problemCode: ProblemCode | undefined;
 }
 
 declare module 'hono' {
   interface ContextVariableMap extends ApiRequestContextVariables {}
 }
 
-interface OperationalRequestRecord {
+export interface OperationalRequestRecord {
   readonly timestamp: string;
   readonly level: 'info' | 'error';
-  readonly event: 'api.request.completed' | 'api.request.error';
+  readonly event: 'api.request.completed';
   readonly requestId: string;
-  readonly method: string;
+  readonly method: HttpMethod;
   readonly endpointFamily: EndpointFamily;
   readonly status: number;
-  readonly durationMs?: number;
+  readonly durationMs: number;
+  readonly problemCode?: ProblemCode;
 }
 
-const KNOWN_HTTP_METHODS = new Set([
+export interface ObservabilitySink {
+  write(record: OperationalRequestRecord): void;
+}
+
+const KNOWN_HTTP_METHODS: ReadonlySet<string> = new Set([
   'DELETE',
   'GET',
   'HEAD',
@@ -51,8 +68,10 @@ const KNOWN_HTTP_METHODS = new Set([
   'PUT'
 ]);
 
-function boundedMethod(method: string): string {
-  return KNOWN_HTTP_METHODS.has(method) ? method : 'OTHER';
+function boundedMethod(method: string): HttpMethod {
+  return KNOWN_HTTP_METHODS.has(method)
+    ? (method as Exclude<HttpMethod, 'OTHER'>)
+    : 'OTHER';
 }
 
 export function classifyApiEndpointFamily(pathname: string): EndpointFamily {
@@ -77,29 +96,52 @@ export function classifyApiEndpointFamily(pathname: string): EndpointFamily {
   return 'unknown-api';
 }
 
-function writeOperationalRecord(record: OperationalRequestRecord): void {
+function createDefaultObservabilitySink(): ObservabilitySink {
+  return {
+    write(record) {
+      const line = JSON.stringify(record) + '\n';
+      const stream = record.level === 'error' ? process.stderr : process.stdout;
+      stream.write(line);
+    }
+  };
+}
+
+function requestFacts(context: Context): {
+  readonly requestId: string;
+  readonly method: HttpMethod;
+  readonly endpointFamily: EndpointFamily;
+  readonly problemCode?: ProblemCode;
+} {
+  const problemCode = context.get('problemCode');
+
+  return {
+    requestId: context.get('requestId'),
+    method: boundedMethod(context.req.raw.method),
+    endpointFamily: classifyApiEndpointFamily(context.req.path),
+    ...(problemCode === undefined ? {} : { problemCode })
+  };
+}
+
+function emitOperationalRecord(
+  sink: ObservabilitySink,
+  record: OperationalRequestRecord
+): void {
   try {
-    const line = `${JSON.stringify(record)}\n`;
-    const stream = record.level === 'error' ? process.stderr : process.stdout;
-    stream.write(line);
+    sink.write(record);
   } catch (_error) {
     // Operational logging must never change authoritative request behavior.
   }
 }
 
-function requestFacts(context: Context): {
-  readonly requestId: string;
-  readonly method: string;
-  readonly endpointFamily: EndpointFamily;
-} {
-  return {
-    requestId: context.get('requestId'),
-    method: boundedMethod(context.req.raw.method),
-    endpointFamily: classifyApiEndpointFamily(context.req.path)
-  };
+export interface ObserveApiRequestsOptions {
+  readonly sink?: ObservabilitySink;
 }
 
-export function observeApiRequests(): MiddlewareHandler {
+export function observeApiRequests(
+  options: ObserveApiRequestsOptions = {}
+): MiddlewareHandler {
+  const sink = options.sink ?? createDefaultObservabilitySink();
+
   return async (context, next) => {
     const requestId = randomUUID();
     const startedAt = performance.now();
@@ -109,7 +151,7 @@ export function observeApiRequests(): MiddlewareHandler {
 
     await next();
 
-    writeOperationalRecord({
+    emitOperationalRecord(sink, {
       timestamp: new Date().toISOString(),
       level: context.res.status >= 500 ? 'error' : 'info',
       event: 'api.request.completed',
@@ -118,14 +160,4 @@ export function observeApiRequests(): MiddlewareHandler {
       durationMs: Math.max(0, Math.round(performance.now() - startedAt))
     });
   };
-}
-
-export function logUnhandledApiError(context: Context): void {
-  writeOperationalRecord({
-    timestamp: new Date().toISOString(),
-    level: 'error',
-    event: 'api.request.error',
-    ...requestFacts(context),
-    status: 500
-  });
 }
