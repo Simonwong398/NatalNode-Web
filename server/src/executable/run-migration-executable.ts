@@ -1,6 +1,6 @@
 import { fileURLToPath } from 'node:url';
 import {
-  loadServerEnvironment,
+  loadPostgresPoolRuntimeEnvironment,
   runPostgresMigrations
 } from '../runtime/index.js';
 
@@ -9,10 +9,10 @@ const MIGRATIONS_DIRECTORY = fileURLToPath(
 );
 
 export async function runMigrationExecutable(): Promise<void> {
-  const environmentConfig = loadServerEnvironment();
+  const postgresPoolRuntimeConfig = loadPostgresPoolRuntimeEnvironment();
 
   await runPostgresMigrations(
-    environmentConfig.postgresPoolRuntimeConfig,
+    postgresPoolRuntimeConfig,
     MIGRATIONS_DIRECTORY
   );
 }

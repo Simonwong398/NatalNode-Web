@@ -6,7 +6,12 @@ export {
   runPostgresMigrations
 } from './postgres/index.js';
 export { DurationAuthenticationExpirationPolicy } from './duration-authentication-expiration-policy.js';
-export { loadServerEnvironment, parseServerEnvironment } from './environment/index.js';
+export {
+  loadPostgresPoolRuntimeEnvironment,
+  loadServerEnvironment,
+  parsePostgresPoolRuntimeEnvironment,
+  parseServerEnvironment
+} from './environment/index.js';
 export {
   createServerProcessRuntime,
   loadServerProcessRuntime,
