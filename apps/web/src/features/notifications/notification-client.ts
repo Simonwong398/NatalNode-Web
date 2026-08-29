@@ -15,6 +15,15 @@ const CATEGORY_PREFERENCE_ENDPOINT =
   '/api/account/notifications/preferences/category';
 const PUSH_SUBSCRIPTIONS_ENDPOINT =
   '/api/account/notifications/web-push/subscriptions';
+const SAFE_SUBSCRIPTION_METADATA_KEYS = [
+  'subscriptionId',
+  'channel',
+  'status',
+  'createdAt',
+  'updatedAt',
+  'lastSuccessAt',
+  'invalidatedAt'
+] as const;
 
 export type NotificationRequestFailureStatus =
   | 'invalid-request'
@@ -91,11 +100,22 @@ function isBooleanOrNull(value: unknown): value is boolean | null {
   return value === null || typeof value === 'boolean';
 }
 
+function hasExactlyKeys(
+  value: Record<string, unknown>,
+  keys: readonly string[]
+): boolean {
+  return (
+    Object.keys(value).length === keys.length &&
+    keys.every((key) => Object.prototype.hasOwnProperty.call(value, key))
+  );
+}
+
 function isSafeSubscriptionMetadata(
   value: unknown
 ): value is SafePushSubscriptionMetadata {
   return (
     isRecord(value) &&
+    hasExactlyKeys(value, SAFE_SUBSCRIPTION_METADATA_KEYS) &&
     typeof value.subscriptionId === 'string' &&
     value.channel === 'WEB_PUSH' &&
     (value.status === 'ACTIVE' || value.status === 'INVALIDATED') &&

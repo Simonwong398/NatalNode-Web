@@ -445,6 +445,50 @@ describe('notification browser foundation', { concurrency: false }, () => {
     });
   });
 
+  test('enable redirects on channel authorization expiry after registration', async () => {
+    await withDom(async ({ document, window }) => {
+      const originalReplace = Object.getOwnPropertyDescriptor(window.location, 'replace');
+      const replaceCalls = [];
+      Object.defineProperty(window.location, 'replace', {
+        configurable: true,
+        writable: true,
+        value: (path) => replaceCalls.push(path)
+      });
+
+      try {
+        const elements = createElements(document);
+        const clientCalls = [];
+        const browser = createBrowser();
+        const client = createClient(createState(), clientCalls, {
+          async setChannelPreference(enabled) {
+            clientCalls.push(['setChannel', enabled]);
+            return { status: 'unauthorized' };
+          }
+        });
+        initializeNotificationSettings(elements, {
+          client,
+          browser: browser.browser,
+          getCapabilities: () => SUPPORTED
+        });
+        await settle();
+        elements.enableButton.dispatchEvent(new Event('click', { bubbles: true }));
+        await settle();
+
+        assert.deepEqual(replaceCalls, ['/auth/sign-in']);
+        assert.equal(elements.content.hidden, true);
+        assert.deepEqual(clientCalls.map(([name]) => name), [
+          'getState',
+          'getState',
+          'register',
+          'setChannel'
+        ]);
+      } finally {
+        if (originalReplace) Object.defineProperty(window.location, 'replace', originalReplace);
+        else delete window.location.replace;
+      }
+    });
+  });
+
   test('disable resolves and releases the current subscription before turning off the channel', async () => {
     await withDom(async ({ document }) => {
       const elements = createElements(document);
@@ -494,6 +538,48 @@ describe('notification browser foundation', { concurrency: false }, () => {
       assert.equal(clientCalls.some(([name]) => name === 'remove'), false);
       assert.equal(clientCalls.some(([name]) => name === 'setChannel'), false);
       assert.equal(browser.calls.some(([name]) => name === 'unsubscribe'), false);
+    });
+  });
+
+  test('disable redirects on channel authorization expiry after releasing the subscription', async () => {
+    await withDom(async ({ document, window }) => {
+      const originalReplace = Object.getOwnPropertyDescriptor(window.location, 'replace');
+      const replaceCalls = [];
+      Object.defineProperty(window.location, 'replace', {
+        configurable: true,
+        writable: true,
+        value: (path) => replaceCalls.push(path)
+      });
+
+      try {
+        const elements = createElements(document);
+        const clientCalls = [];
+        const browser = createBrowser({ permission: 'granted', subscription: createSubscription() });
+        const client = createClient(createState({
+          channelPreferences: { WEB_PUSH: true }
+        }), clientCalls, {
+          async setChannelPreference(enabled) {
+            clientCalls.push(['setChannel', enabled]);
+            return { status: 'unauthorized' };
+          }
+        });
+        initializeNotificationSettings(elements, {
+          client,
+          browser: browser.browser,
+          getCapabilities: () => SUPPORTED
+        });
+        await settle();
+        elements.disableButton.dispatchEvent(new Event('click', { bubbles: true }));
+        await settle();
+
+        assert.deepEqual(replaceCalls, ['/auth/sign-in']);
+        assert.equal(elements.content.hidden, true);
+        assert.equal(clientCalls.some(([name]) => name === 'remove'), true);
+        assert.equal(browser.calls.some(([name]) => name === 'unsubscribe'), true);
+      } finally {
+        if (originalReplace) Object.defineProperty(window.location, 'replace', originalReplace);
+        else delete window.location.replace;
+      }
     });
   });
 
@@ -579,6 +665,29 @@ describe('notification payload and browser credential boundaries', () => {
       const result = await client.getState();
       assert.deepEqual(result, { status: expected });
     }
+  });
+
+  test('rejects notification state that includes raw subscription credentials', async () => {
+    const responseState = createState({
+      pushSubscriptions: [{
+        subscriptionId: 'server-subscription-1',
+        channel: 'WEB_PUSH',
+        status: 'ACTIVE',
+        createdAt: '2026-08-29T00:00:00.000Z',
+        updatedAt: '2026-08-29T00:00:00.000Z',
+        lastSuccessAt: null,
+        invalidatedAt: null,
+        endpoint: 'https://push.example.test/subscription-a',
+        p256dh: 'credential-extra',
+        auth: 'credential-extra'
+      }]
+    });
+    const client = createNotificationClient(async () => new Response(
+      JSON.stringify(responseState),
+      { status: 200, headers: { 'Content-Type': 'application/json' } }
+    ));
+
+    assert.deepEqual(await client.getState(), { status: 'failed' });
   });
 
   test('accepts bounded minimal payloads and rejects unsafe paths or extra data', () => {

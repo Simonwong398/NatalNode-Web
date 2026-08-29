@@ -753,8 +753,13 @@ async function enableNotifications(
     const preferenceResult = await client.setChannelPreference(true);
 
     if (preferenceResult.status !== 'success') {
-      showError(elements, PARTIAL_ENABLE_MESSAGE);
-      setState({ ...workingState, phase: 'ready' });
+      if (preferenceResult.status === 'unauthorized') {
+        setState({ ...workingState, phase: 'error' });
+        showFailure(elements, preferenceResult);
+      } else {
+        showError(elements, PARTIAL_ENABLE_MESSAGE);
+        setState({ ...workingState, phase: 'ready' });
+      }
       return;
     }
 
@@ -850,8 +855,13 @@ async function disableNotifications(
       const preferenceResult = await client.setChannelPreference(false);
 
       if (preferenceResult.status !== 'success') {
-        showError(elements, PARTIAL_DISABLE_MESSAGE);
-        setState({ ...workingState, phase: 'ready', connected: false });
+        if (preferenceResult.status === 'unauthorized') {
+          setState({ ...workingState, phase: 'error', connected: false });
+          showFailure(elements, preferenceResult);
+        } else {
+          showError(elements, PARTIAL_DISABLE_MESSAGE);
+          setState({ ...workingState, phase: 'ready', connected: false });
+        }
         return;
       }
 
