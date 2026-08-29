@@ -2,7 +2,7 @@
 
 | Field | Value |
 |---|---|
-| Status | **APPROVED TECHNICAL CONTRACT / B3 IMPLEMENTED LOCALLY / VISUAL ACCEPTANCE REQUIRED / LIVE WEB PUSH DELIVERY NOT IMPLEMENTED** |
+| Status | **APPROVED TECHNICAL CONTRACT / B3 IMPLEMENTED LOCALLY / PRODUCT-OWNER VISUAL RE-ACCEPTANCE REQUIRED / LIVE WEB PUSH DELIVERY NOT IMPLEMENTED** |
 | Task | `WEB-NOTIFY-001B3` |
 | Reviewed baseline | `ce3a46400b704022a4456f92ac9ba82876e80246` (`fix: harden consumer notification APIs`) |
 | Date | 2026-08-29 |
@@ -1062,8 +1062,8 @@ approval.
 | Typed categories, intent, preferences | `IMPLEMENTED LOCALLY / CONSUMER ACCOUNT-OWNED FOUNDATION` | Focused provider-neutral domain; no billing or astrology types invented |
 | Owner-bound PushSubscription persistence | `IMPLEMENTED LOCALLY / CONSUMER ACCOUNT-OWNED FOUNDATION` | Typed repository/migration slice; sensitive fields and account ownership fixed here |
 | Registration/unsubscribe API boundary | `IMPLEMENTED LOCALLY / CONSUMER AUTHENTICATED API` | Auth principal, same-origin, bounded validation, account-key rate limiting, safe metadata |
-| Permission UX/settings UI | `IMPLEMENTED LOCALLY / VISUAL ACCEPTANCE REQUIRED` | Account Notifications UI uses explicit user gestures and all supported/denied/unavailable states |
-| Service worker | `IMPLEMENTED LOCALLY / VISUAL ACCEPTANCE REQUIRED` | Root-hosted narrow push/click worker; no fetch/cache/offline or public-development fake |
+| Permission UX/settings UI | `IMPLEMENTED LOCALLY / PRODUCT-OWNER VISUAL RE-ACCEPTANCE REQUIRED` | Account Notifications UI uses explicit user gestures and all supported/denied/unavailable states |
+| Service worker | `IMPLEMENTED LOCALLY / PRODUCT-OWNER VISUAL RE-ACCEPTANCE REQUIRED` | Root-hosted narrow push/click worker; no fetch/cache/offline or public-development fake |
 | Web Push adapter | `OPERATIONS-GATED / PROVIDER-DEPENDENT` | Library/provider decision, credentials, error mapping, operations |
 | Durable outbox/worker | `OPERATIONS-GATED` | Persistence, worker/scheduler ownership, claiming, retry, deployment |
 | Entitlement integration | `FUTURE SUBSCRIPTION-GATED` | Approved product/billing entitlement source required |
@@ -1093,7 +1093,7 @@ Current implementation status:
   PUSH / PREFERENCE API**: authenticated account routes, owner-scoped
   registration/removal, safe metadata responses, and privacy-safe Account
   Export projection. Browser permission and delivery remain deferred.
-- `WEB-NOTIFY-001B3` — **IMPLEMENTED LOCALLY / VISUAL ACCEPTANCE REQUIRED /
+- `WEB-NOTIFY-001B3` — **IMPLEMENTED LOCALLY / PRODUCT-OWNER VISUAL RE-ACCEPTANCE REQUIRED /
   LIVE WEB PUSH DELIVERY NOT IMPLEMENTED**: Account Notifications settings,
   explicit permission flow, root-hosted Service Worker, browser
   registration/removal choreography, safe public-key capability, bounded
@@ -1122,7 +1122,7 @@ service worker or transport.
 
 ### `WEB-NOTIFY-001B3` — Service worker, permission UX, and settings
 
-Implemented locally with visual acceptance still required. The Account
+Implemented locally with product-owner visual re-acceptance still required. The Account
 Notifications surface uses an explicit user-gesture-only permission flow,
 separately detects Notification, Service Worker, and PushManager support,
 registers the root-hosted worker only after permission is granted, maps only
@@ -1131,7 +1131,7 @@ account switching/disable conflicts fail-closed. The worker accepts only the
 bounded V1 payload and approved same-origin paths, has no fetch/cache/offline
 behavior, and uses a generic fallback for invalid payloads. No automatic
 permission prompt, private VAPID credential, server delivery, provider, or
-public-development fake is included. **VISUAL ACCEPTANCE REQUIRED.**
+public-development fake is included. **PRODUCT-OWNER VISUAL RE-ACCEPTANCE REQUIRED.**
 
 ### `WEB-NOTIFY-001B4` — Outbox, worker, and Web Push adapter
 
@@ -1222,7 +1222,7 @@ recommended policy checkpoint.
 
 After this local browser foundation, the next required action is:
 
-**`PRODUCT-OWNER VISUAL ACCEPTANCE` — review desktop and mobile Account
+**`PRODUCT-OWNER VISUAL RE-ACCEPTANCE` — review desktop and mobile Account
 Notifications states, including default, denied, and connected states only
 when legitimately available.**
 
@@ -1283,7 +1283,7 @@ provider calls, and browser permission automation are intentionally not run.
     Billing/subscription implementation = DEFERRED
     Astrology trigger implementation    = DEFERRED
     Runtime implementation             = B3 LOCAL BROWSER FOUNDATION; LIVE DELIVERY NOT IMPLEMENTED
-    Live/deployment acceptance          = VISUAL ACCEPTANCE REQUIRED / LIVE EXTERNAL GATES OPEN
+    Live/deployment acceptance          = PRODUCT-OWNER VISUAL RE-ACCEPTANCE REQUIRED / LIVE EXTERNAL GATES OPEN
     Historical P0 status               = PRESERVED; NEW SCOPE AFTER WEB-P0-READY-003
     WEB-P0-POLICY-001A                 = NOT EXECUTED / DEFERRED
     WEB-NOTIFY-001B4                   = NOT STARTED

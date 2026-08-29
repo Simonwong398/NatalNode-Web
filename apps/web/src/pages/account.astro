@@ -103,7 +103,7 @@ const seo: SeoMetadata = {
             <fieldset class="mt-8 border-t border-[var(--nn-border-subtle)] pt-6" data-notifications-categories>
               <legend class="nn-type-label">Notification categories</legend>
               <p class="nn-type-body-small mt-2" id="account-notifications-category-help">
-                Choose which account-owned categories may use the Web Push channel when available.
+                Choose which account-owned categories may use browser notifications when available.
                 Categories do not create a browser subscription.
               </p>
 
@@ -114,12 +114,16 @@ const seo: SeoMetadata = {
                     id="account-notifications-category-account"
                     data-notifications-category="ACCOUNT"
                     type="checkbox"
-                    aria-describedby="account-notifications-category-account-help account-notifications-category-help"
+                    aria-describedby="account-notifications-category-account-state account-notifications-category-account-help account-notifications-category-help"
                   />
                   <span class="min-w-0">
                     <span class="flex flex-wrap items-baseline gap-x-3 gap-y-1">
                       <span class="nn-type-label">Account</span>
-                      <span class="nn-type-metadata" data-notifications-category-state="ACCOUNT">Not set</span>
+                      <span
+                        class="nn-type-metadata"
+                        data-notifications-category-state="ACCOUNT"
+                        id="account-notifications-category-account-state"
+                      >Not set</span>
                     </span>
                     <span class="nn-type-body-small mt-1 block" id="account-notifications-category-account-help">
                       Account and product updates when available.
@@ -133,12 +137,16 @@ const seo: SeoMetadata = {
                     id="account-notifications-category-system"
                     data-notifications-category="SYSTEM"
                     type="checkbox"
-                    aria-describedby="account-notifications-category-system-help account-notifications-category-help"
+                    aria-describedby="account-notifications-category-system-state account-notifications-category-system-help account-notifications-category-help"
                   />
                   <span class="min-w-0">
                     <span class="flex flex-wrap items-baseline gap-x-3 gap-y-1">
                       <span class="nn-type-label">System</span>
-                      <span class="nn-type-metadata" data-notifications-category-state="SYSTEM">Not set</span>
+                      <span
+                        class="nn-type-metadata"
+                        data-notifications-category-state="SYSTEM"
+                        id="account-notifications-category-system-state"
+                      >Not set</span>
                     </span>
                     <span class="nn-type-body-small mt-1 block" id="account-notifications-category-system-help">
                       Important NatalNode system updates when available.
@@ -152,12 +160,16 @@ const seo: SeoMetadata = {
                     id="account-notifications-category-astrology-alert"
                     data-notifications-category="ASTROLOGY_ALERT"
                     type="checkbox"
-                    aria-describedby="account-notifications-category-astrology-alert-help account-notifications-category-help"
+                    aria-describedby="account-notifications-category-astrology-alert-state account-notifications-category-astrology-alert-help account-notifications-category-help"
                   />
                   <span class="min-w-0">
                     <span class="flex flex-wrap items-baseline gap-x-3 gap-y-1">
                       <span class="nn-type-label">Astrology alerts</span>
-                      <span class="nn-type-metadata" data-notifications-category-state="ASTROLOGY_ALERT">Not set</span>
+                      <span
+                        class="nn-type-metadata"
+                        data-notifications-category-state="ASTROLOGY_ALERT"
+                        id="account-notifications-category-astrology-alert-state"
+                      >Not set</span>
                     </span>
                     <span class="nn-type-body-small mt-1 block" id="account-notifications-category-astrology-alert-help">
                       Future astrology alerts when available.
@@ -498,6 +510,15 @@ const seo: SeoMetadata = {
 </script>
 
 <style>
+  [data-account-notifications] .nn-button--unavailable,
+  [data-account-notifications] .nn-button--unavailable:hover {
+    color: var(--nn-text-muted);
+    border-color: var(--nn-border-subtle);
+    border-style: dashed;
+    background: var(--nn-surface-base);
+    box-shadow: none;
+  }
+
   .account-danger-surface {
     border: 1px solid color-mix(in srgb, var(--nn-status-error) 38%, var(--nn-border-default));
     border-radius: var(--nn-radius-medium);

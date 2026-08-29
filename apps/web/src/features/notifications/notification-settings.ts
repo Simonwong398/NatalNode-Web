@@ -32,6 +32,10 @@ const CONFLICT_MESSAGE =
   "This browser's notification subscription is associated with another account. Switch to that account before changing it here.";
 const UNAVAILABLE_MESSAGE =
   'Notification settings are currently unavailable. Please try again later.';
+const BROWSER_NOTIFICATIONS_UNAVAILABLE_MESSAGE =
+  'Browser notifications are currently unavailable.';
+const BROWSER_NOTIFICATIONS_UNSUPPORTED_MESSAGE =
+  'Browser notifications are not supported by this browser.';
 const INVALID_REQUEST_MESSAGE =
   "We couldn't save this notification setting. Please try again.";
 const RATE_LIMITED_MESSAGE =
@@ -410,8 +414,7 @@ function renderPermission(
   capabilities: BrowserNotificationCapabilities
 ): void {
   if (!capabilities.notification) {
-    elements.permissionStatus.textContent =
-      'This browser does not provide the Notification permission API.';
+    elements.permissionStatus.textContent = BROWSER_NOTIFICATIONS_UNSUPPORTED_MESSAGE;
     return;
   }
 
@@ -435,11 +438,8 @@ function renderCategories(
   for (const control of elements.categoryControls) {
     const preference = apiState?.categoryPreferences[control.category] ?? null;
     control.input.checked = preference === true;
-    control.input.indeterminate = preference === null;
-    control.input.setAttribute(
-      'aria-checked',
-      preference === null ? 'mixed' : String(preference)
-    );
+    control.input.indeterminate = false;
+    control.input.removeAttribute('aria-checked');
     control.state.textContent = preference === null
       ? 'Not set'
       : preference
@@ -470,11 +470,9 @@ function render(
   if (apiState === null) {
     elements.connectionStatus.textContent = UNAVAILABLE_MESSAGE;
   } else if (!configured) {
-    elements.connectionStatus.textContent =
-      'Web Push is not configured for this environment yet.';
+    elements.connectionStatus.textContent = BROWSER_NOTIFICATIONS_UNAVAILABLE_MESSAGE;
   } else if (!browserSupported) {
-    elements.connectionStatus.textContent =
-      'This browser does not support all required Web Push features.';
+    elements.connectionStatus.textContent = BROWSER_NOTIFICATIONS_UNSUPPORTED_MESSAGE;
   } else if (state.connected) {
     elements.connectionStatus.textContent =
       'This browser is connected to this NatalNode account.';
@@ -495,9 +493,12 @@ function render(
     browserSupported &&
     (!state.connected || apiState?.channelPreferences.WEB_PUSH !== true) &&
     permission !== 'denied';
+  const enableUnavailable = !canEnable && !working;
   elements.enableButton.hidden =
     state.connected && apiState?.channelPreferences.WEB_PUSH === true;
   elements.enableButton.disabled = !canEnable || working;
+  elements.enableButton.classList.toggle('nn-button--primary', !enableUnavailable);
+  elements.enableButton.classList.toggle('nn-button--unavailable', enableUnavailable);
   elements.enableButton.textContent = working && !state.connected
     ? ENABLE_PENDING_LABEL
     : READY_ENABLE_LABEL;
@@ -672,7 +673,7 @@ async function enableNotifications(
     }
 
     if (!latest.browser.capabilities.supported) {
-      showError(elements, 'This browser does not support Web Push.');
+      showError(elements, BROWSER_NOTIFICATIONS_UNSUPPORTED_MESSAGE);
       setState({ ...workingState, phase: 'error' });
       return;
     }

@@ -108,7 +108,7 @@ function createElements(document) {
     <div data-notifications-content>
       <p data-notifications-permission></p>
       <p data-notifications-connection></p>
-      <button data-notifications-enable type="button"></button>
+      <button class="nn-button nn-button--primary" data-notifications-enable type="button"></button>
       <button data-notifications-disable type="button"></button>
       <input data-notifications-category="ACCOUNT" type="checkbox">
       <span data-notifications-category-state="ACCOUNT"></span>
@@ -308,6 +308,13 @@ describe('notification browser foundation', { concurrency: false }, () => {
       assert.deepEqual(clientCalls, [['getState']]);
       assert.equal(browser.calls.some(([name]) => name === 'requestPermission'), false);
       assert.equal(elements.enableButton.disabled, true);
+      assert.equal(elements.enableButton.classList.contains('nn-button--primary'), false);
+      assert.equal(elements.enableButton.classList.contains('nn-button--unavailable'), true);
+      assert.equal(elements.connectionStatus.textContent, 'Browser notifications are currently unavailable.');
+      assert.doesNotMatch(
+        elements.connectionStatus.textContent,
+        /VAPID|application server key|PushSubscription|Service Worker|this environment|server configuration|Web Push/iu
+      );
     });
   });
 
@@ -328,6 +335,13 @@ describe('notification browser foundation', { concurrency: false }, () => {
       assert.equal(browser.calls.some(([name]) => name === 'requestPermission'), false);
       assert.equal(clientCalls.some(([name]) => name === 'register'), false);
       assert.equal(clientCalls.some(([name]) => name === 'setChannel'), false);
+      assert.equal(elements.enableButton.disabled, true);
+      assert.equal(elements.enableButton.classList.contains('nn-button--primary'), false);
+      assert.equal(elements.enableButton.classList.contains('nn-button--unavailable'), true);
+      assert.match(
+        elements.permissionStatus.textContent,
+        /Browser permission is blocked\. Update this site's browser permission/iu
+      );
     });
   });
 
@@ -510,19 +524,35 @@ describe('notification browser foundation', { concurrency: false }, () => {
     });
   });
 
-  test('category changes preserve neutral missing state semantics and do not touch Web Push registration', async () => {
+  test('category rendering keeps null neutral and distinguishes false and true without mutating state', async () => {
     await withDom(async ({ document }) => {
       const elements = createElements(document);
       const clientCalls = [];
       const browser = createBrowser();
       initializeNotificationSettings(elements, {
-        client: createClient(createState(), clientCalls),
+        client: createClient(createState({
+          categoryPreferences: {
+            ACCOUNT: null,
+            SYSTEM: false,
+            ASTROLOGY_ALERT: true
+          }
+        }), clientCalls),
         browser: browser.browser,
         getCapabilities: () => SUPPORTED
       });
       await settle();
       const accountInput = elements.categoryControls[0].input;
-      assert.equal(accountInput.indeterminate, true);
+      assert.equal(accountInput.indeterminate, false);
+      assert.equal(accountInput.checked, false);
+      assert.equal(accountInput.hasAttribute('aria-checked'), false);
+      assert.equal(elements.categoryControls[0].state.textContent, 'Not set');
+      assert.equal(elements.categoryControls[1].input.indeterminate, false);
+      assert.equal(elements.categoryControls[1].input.checked, false);
+      assert.equal(elements.categoryControls[1].state.textContent, 'Off');
+      assert.equal(elements.categoryControls[2].input.indeterminate, false);
+      assert.equal(elements.categoryControls[2].input.checked, true);
+      assert.equal(elements.categoryControls[2].state.textContent, 'On');
+      assert.deepEqual(clientCalls, [['getState']]);
       accountInput.click();
       await settle();
 
