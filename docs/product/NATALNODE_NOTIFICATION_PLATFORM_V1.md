@@ -541,6 +541,28 @@ immutable bounded payload required for one Web Push send. It does not receive
 an account ID, birth data, chart data, preference state, entitlement state,
 raw event data, or an arbitrary provider payload.
 
+For the current Consumer Web Push categories (`ACCOUNT`, `SYSTEM`, and
+`ASTROLOGY_ALERT`), every transport attempt must request `TTL: 3600` seconds
+(one hour) from the remote Push Service. Web Push TTL is the maximum retention
+period requested after that service accepts a send. It is not NatalNode outbox
+or database retention, retry delay or retry horizon, worker lease duration,
+browser display/expiration behavior, guaranteed provider retention, or a
+guaranteed delivery time; the Push Service may discard the notification
+earlier. The value is fixed in the server transport, is not caller-, API-,
+template-, browser-, or subscription-configurable. No per-category or
+per-template TTL is defined, and the value remains `3600` for each separate
+retry attempt. It is separate from the maximum five attempts and the 24-hour
+retry horizon.
+
+If a Push Service accepted a notification before a local channel Disable,
+category Off, PushSubscription removal, or account deletion committed,
+NatalNode cannot recall that remote notification. The one-hour TTL limits but
+cannot eliminate that residual external-delivery window. The final-send
+serialization contract still prevents new server-side transport attempts after
+the relevant local authority mutation has committed; it does not claim remote
+recall, exactly-once delivery, browser-enforced expiry, or deletion from third-
+party Push Service infrastructure.
+
 The bounded outcome classes are:
 
 | Outcome | Meaning at the transport boundary | Delivery handling |
@@ -1648,11 +1670,20 @@ matching, bounded outcome classification, and secret/error redaction. It adds
 no hosted provider, arbitrary send API, worker claim loop, or live delivery.
 The implementation passes VAPID details per protocol call and owns a monotonic
 wall-clock cancellation boundary no longer than the future worker's 30-second
-attempt limit. The review also confirms that `web-push@3.6.7` defaults Web Push
-TTL to four weeks when no `TTL` option is supplied; the product transport TTL
-is therefore intentionally **NOT FROZEN / B4B3 BLOCKED** until a bounded value
-is explicitly approved. No implicit library retention default is accepted as a
-NatalNode product policy.
+attempt limit.
+
+### `WEB-NOTIFY-001B4B2-R2` — One-hour Consumer Web Push TTL
+
+**PASS / TTL CONTRACT AND IMPLEMENTATION CLOSED.** The Consumer Web Push
+transport TTL is frozen at exactly `3600` seconds (one hour) for all current
+Consumer categories. The server transport passes that value explicitly in
+every generated protocol request, so it does not inherit `web-push@3.6.7`'s
+28-day implicit default. The value is not caller-configurable and remains
+separate from the five-attempt retry policy and 24-hour retry horizon. A remote
+Push Service acceptance cannot be recalled after local Disable/Off,
+PushSubscription removal, or account deletion; the one-hour TTL only bounds
+that residual external-delivery window. No new dependency, worker, migration,
+Service Worker, or live-send route is introduced.
 
 ### `WEB-NOTIFY-001B4B3` — Worker, retry, and invalidation
 

@@ -17,6 +17,7 @@ import {
 } from './web-push-vapid.js';
 
 const RETRY_AFTER_MAXIMUM_SECONDS = 3_600;
+const CONSUMER_WEB_PUSH_TTL_SECONDS = 3_600;
 const DEFAULT_ATTEMPT_TIMEOUT_MILLISECONDS = 30_000;
 const MAXIMUM_ATTEMPT_TIMEOUT_MILLISECONDS = 30_000;
 const MINIMUM_ATTEMPT_TIMEOUT_MILLISECONDS = 1;
@@ -455,7 +456,10 @@ function sendBoundedWebPushRequest(
       const requestDetails = webpush.generateRequestDetails(
         request.subscription,
         request.payload,
-        { vapidDetails: request.vapidDetails }
+        {
+          vapidDetails: request.vapidDetails,
+          TTL: CONSUMER_WEB_PUSH_TTL_SECONDS
+        }
       );
       const remainingMillis = request.timeoutMillis -
         (performance.now() - startedAt);

@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import { createECDH } from 'node:crypto';
 import { readFile } from 'node:fs/promises';
+import { createRequire } from 'node:module';
 import test from 'node:test';
 
 import {
@@ -11,6 +12,8 @@ import {
   isValidWebPushVapidSubject
 } from '../dist/notification-platform/index.js';
 import { parseServerEnvironment } from '../dist/runtime/index.js';
+
+const webpush = createRequire(import.meta.url)('web-push');
 
 function createVapidConfiguration(subject = 'mailto:notifications@natalnode.example') {
   const curve = createECDH('prime256v1');
@@ -303,6 +306,54 @@ test('transport sends only the validated V1 payload and subscription material to
   assert.equal(calls[0].payload, JSON.stringify(input.payload));
   assert.equal(calls[0].timeoutMillis, 2_500);
   assert.deepEqual(calls[0].vapidDetails, configuration);
+});
+
+test('consumer transport freezes one-hour TTL and avoids the web-push default', async () => {
+  const source = await readFile(
+    new URL('../src/notification-platform/web-push-transport.ts', import.meta.url),
+    'utf8'
+  );
+  const input = createTransportInput();
+  const configuration = createVapidConfiguration();
+  const subscription = {
+    endpoint: input.subscription.endpoint,
+    keys: {
+      p256dh: input.subscription.p256dh,
+      auth: input.subscription.auth
+    }
+  };
+  const payload = JSON.stringify(input.payload);
+  const implicitDefault = webpush.generateRequestDetails(
+    subscription,
+    payload,
+    { vapidDetails: configuration }
+  );
+  const explicitOneHour = webpush.generateRequestDetails(
+    subscription,
+    payload,
+    { vapidDetails: configuration, TTL: 3_600 }
+  );
+
+  assert.equal(implicitDefault.headers.TTL, 2419200);
+  assert.equal(explicitOneHour.headers.TTL, 3600);
+  assert.notEqual(explicitOneHour.headers.TTL, implicitDefault.headers.TTL);
+  assert.match(source, /CONSUMER_WEB_PUSH_TTL_SECONDS\s*=\s*3_600/u);
+  assert.match(source, /TTL:\s*CONSUMER_WEB_PUSH_TTL_SECONDS/u);
+  assert.doesNotMatch(source, /2419200/u);
+
+  const { calls, protocolClient } = createProtocolClient(() => ({
+    statusCode: 201,
+    headers: {}
+  }));
+  const transport = createTransport(protocolClient);
+  const callerAttempt = createTransportInput({
+    TTL: 1,
+    ttl: 1
+  });
+
+  assert.deepEqual(await transport.send(callerAttempt), { outcome: 'ACCEPTED' });
+  assert.equal(Object.prototype.hasOwnProperty.call(calls[0], 'TTL'), false);
+  assert.equal(Object.prototype.hasOwnProperty.call(calls[0], 'ttl'), false);
 });
 
 test('transport instances keep per-call VAPID configuration isolated', async () => {
