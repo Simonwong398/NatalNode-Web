@@ -43,6 +43,7 @@ export async function createServerBootstrap(
         emailMagicLinkAuthLifecycle:
           postgresRuntime.emailMagicLinkAuthLifecycle,
         engineClient: bindings.engineClient,
+        chartResultCacheIdentity: bindings.chartResultCacheIdentity,
         emailMagicLinkDelivery: bindings.emailMagicLinkDelivery
       },
       environmentConfig.serverRuntimeConfig

@@ -14,6 +14,7 @@ import type {
   PersistenceRepositories
 } from '../persistence/index.js';
 import type { RequestAuthenticator } from './auth/index.js';
+import type { ChartCalculationService } from './cache/cached-chart-calculator.js';
 import type { Clock, IdGenerator } from './creation-boundaries.js';
 
 export interface ServerDependencies {
@@ -26,6 +27,7 @@ export interface ServerDependencies {
   readonly idGenerator: IdGenerator;
   readonly persistence: PersistenceRepositories;
   readonly engineClient: EngineClient;
+  readonly chartCalculator: ChartCalculationService;
   readonly clock: Clock;
   readonly secureTokenGenerator: SecureTokenGenerator;
   readonly tokenHasher: TokenHasher;

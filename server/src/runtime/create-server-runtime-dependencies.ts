@@ -1,4 +1,5 @@
 import type { ServerDependencies } from '../app/dependencies.js';
+import { CachedChartCalculator } from '../app/cache/cached-chart-calculator.js';
 import { SessionRequestAuthenticator } from '../app/auth/session-request-authenticator.js';
 import {
   assertValidSessionCookiePolicy,
@@ -35,6 +36,11 @@ export function createServerRuntimeDependencies(
   assertValidRuntimeConfig(config);
 
   const clock = new SystemClock();
+  const chartCalculator = new CachedChartCalculator({
+    engineClient: bindings.engineClient,
+    clock,
+    cacheIdentity: bindings.chartResultCacheIdentity
+  });
   const idGenerator = new NodeIdGenerator();
   const secureTokenGenerator = new NodeSecureTokenGenerator();
   const tokenHasher = new Sha256TokenHasher();
@@ -70,6 +76,7 @@ export function createServerRuntimeDependencies(
     idGenerator,
     persistence,
     engineClient: bindings.engineClient,
+    chartCalculator,
     clock,
     secureTokenGenerator,
     tokenHasher,

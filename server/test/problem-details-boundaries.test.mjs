@@ -6,9 +6,15 @@ import {
   SKY_FIXTURE_AT_UTC,
   WEB_UI_FIXTURE_V1
 } from '@natalnode/test-fixtures';
+import { CachedChartCalculator } from '../dist/app/cache/cached-chart-calculator.js';
 import { createApp } from '../dist/app/create-app.js';
 
 const PUBLIC_WEB_ORIGIN = 'https://natalnode.test';
+const CACHE_IDENTITY = {
+  runtimeNamespace: 'development-mock',
+  engineResultGeneration: 'UI_FIXTURE_V1',
+  chartResultContractVersion: '1.0.0'
+};
 
 const VALID_CHART_API_REQUEST = {
   chart: {
@@ -30,6 +36,12 @@ const VALID_CHART_API_REQUEST = {
 };
 
 function createDependencies(engineClient) {
+  const clock = {
+    now() {
+      return '2026-08-28T12:00:00.000Z';
+    }
+  };
+
   return {
     publicWebOrigin: PUBLIC_WEB_ORIGIN,
     authenticator: {
@@ -50,7 +62,12 @@ function createDependencies(engineClient) {
       chartNotes: {}
     },
     engineClient,
-    clock: {},
+    chartCalculator: new CachedChartCalculator({
+      engineClient,
+      clock,
+      cacheIdentity: CACHE_IDENTITY
+    }),
+    clock,
     idGenerator: {},
     secureTokenGenerator: {},
     tokenHasher: {},

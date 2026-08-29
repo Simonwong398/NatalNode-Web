@@ -1,7 +1,13 @@
 import { createApp } from '../../dist/app/create-app.js';
+import { CachedChartCalculator } from '../../dist/app/cache/cached-chart-calculator.js';
 
 const PUBLIC_WEB_ORIGIN = 'https://natalnode.test';
 const INITIAL_TIMESTAMP = '2026-08-26T12:00:00.000Z';
+const CACHE_IDENTITY = {
+  runtimeNamespace: 'development-mock',
+  engineResultGeneration: 'UI_FIXTURE_V1',
+  chartResultContractVersion: '1.0.0'
+};
 
 function createInitialChart() {
   return {
@@ -58,6 +64,17 @@ function createHarness() {
   const calls = { engine: 0 };
   let nextNoteId = 0;
 
+  const engineClient = {
+    async calculateChart() {
+      calls.engine += 1;
+      throw new Error('Vault management must not call EngineClient.');
+    }
+  };
+  const clock = {
+    now() {
+      return INITIAL_TIMESTAMP;
+    }
+  };
   const dependencies = {
     publicWebOrigin: PUBLIC_WEB_ORIGIN,
     authenticator: {
@@ -169,17 +186,13 @@ function createHarness() {
         }
       }
     },
-    engineClient: {
-      async calculateChart() {
-        calls.engine += 1;
-        throw new Error('Vault management must not call EngineClient.');
-      }
-    },
-    clock: {
-      now() {
-        return INITIAL_TIMESTAMP;
-      }
-    },
+    engineClient,
+    chartCalculator: new CachedChartCalculator({
+      engineClient,
+      clock,
+      cacheIdentity: CACHE_IDENTITY
+    }),
+    clock,
     secureTokenGenerator: {},
     tokenHasher: {},
     authenticationExpirationPolicy: {},
