@@ -45,6 +45,16 @@ function isSafeAuthorizationUrl(value: unknown): value is string {
   }
 }
 
+export function isGoogleAuthenticationAvailable(
+  dependencies: ServerDependencies
+): boolean {
+  return (
+    dependencies.googleOidcProvider !== undefined &&
+    dependencies.googleOAuthTransactionService !== undefined &&
+    dependencies.googleAuthAccountSessionLifecycle !== undefined
+  );
+}
+
 function hasGoogleAuthDependencies(
   dependencies: ServerDependencies
 ): dependencies is ServerDependencies & {
@@ -56,11 +66,7 @@ function hasGoogleAuthDependencies(
     ServerDependencies['googleAuthAccountSessionLifecycle']
   >;
 } {
-  return (
-    dependencies.googleOidcProvider !== undefined &&
-    dependencies.googleOAuthTransactionService !== undefined &&
-    dependencies.googleAuthAccountSessionLifecycle !== undefined
-  );
+  return isGoogleAuthenticationAvailable(dependencies);
 }
 
 function redirectToFailure(

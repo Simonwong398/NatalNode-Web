@@ -113,7 +113,10 @@ test('public-development session is always signed out, including with a stale co
 
   assert.equal(response.status, 200);
   assert.equal(response.headers.get('Cache-Control'), 'no-store');
-  assert.deepEqual(await response.json(), { authenticated: false });
+  assert.deepEqual(await response.json(), {
+    authenticated: false,
+    googleSignInAvailable: false
+  });
 });
 
 test('public-development logout clears a cookie without persistence', async () => {

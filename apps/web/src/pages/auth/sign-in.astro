@@ -55,6 +55,39 @@ const seo = {
           ></p>
         </form>
 
+        <p
+          class="nn-status nn-status--error mt-8"
+          id="google-sign-in-status"
+          aria-live="polite"
+          hidden
+        ></p>
+
+        <div
+          class="mt-8"
+          id="google-sign-in-option"
+          aria-hidden="true"
+          hidden
+        >
+          <div class="flex items-center gap-3" aria-hidden="true">
+            <span class="h-px flex-1 bg-natal-border/70"></span>
+            <span class="nn-type-body-small px-1 text-natal-muted">or</span>
+            <span class="h-px flex-1 bg-natal-border/70"></span>
+          </div>
+          <form
+            class="mt-6"
+            id="google-sign-in-form"
+            method="post"
+            action="/api/auth/google/start"
+          >
+            <button
+              class="nn-button nn-button--secondary w-full"
+              type="submit"
+            >
+              Continue with Google
+            </button>
+          </form>
+        </div>
+
         <section
           class="nn-notice nn-notice--info mt-10 flex-col"
           id="sign-in-success"
@@ -75,12 +108,23 @@ const seo = {
 
   <script>
     import { setupEmailMagicLinkRequest } from '@/features/auth/request-email-magic-link';
+    import { initializeGoogleSignIn } from '@/features/auth/google-sign-in';
 
     const form = document.querySelector<HTMLFormElement>('#email-sign-in-form');
     const emailInput = document.querySelector<HTMLInputElement>('#sign-in-email');
     const submitButton = document.querySelector<HTMLButtonElement>('#sign-in-submit');
     const statusElement = document.querySelector<HTMLElement>('#sign-in-status');
     const successElement = document.querySelector<HTMLElement>('#sign-in-success');
+    const googleOption = document.querySelector<HTMLElement>('#google-sign-in-option');
+    const googleFailureStatus = document.querySelector<HTMLElement>('#google-sign-in-status');
+
+    if (form && googleOption && googleFailureStatus) {
+      initializeGoogleSignIn({
+        emailForm: form,
+        option: googleOption,
+        failureStatus: googleFailureStatus
+      });
+    }
 
     if (form && emailInput && submitButton && statusElement && successElement) {
       setupEmailMagicLinkRequest({

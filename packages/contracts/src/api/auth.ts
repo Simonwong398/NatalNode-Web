@@ -20,6 +20,7 @@ export interface LogoutApiResponse {
 
 export interface CurrentSessionApiResponse {
   readonly authenticated: boolean;
+  readonly googleSignInAvailable: boolean;
 }
 
 export type AuthApiErrorCode = 'INVALID_REQUEST' | 'UNAUTHORIZED' | 'INTERNAL_ERROR';

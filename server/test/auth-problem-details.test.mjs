@@ -154,13 +154,16 @@ test('unknown, expired, and consumed Magic Links remain indistinguishable 401 re
   assert.doesNotMatch(responses[0], /unknown|expired|consumed|token/iu);
 });
 
-test('Auth session status and logout success responses remain unchanged', async () => {
+test('Auth session status and capability plus logout success responses remain bounded', async () => {
   const app = createAuthApp();
 
   const sessionResponse = await app.request('/api/auth/session');
   assert.equal(sessionResponse.status, 200);
   assert.equal(sessionResponse.headers.get('Content-Type'), 'application/json');
-  assert.deepEqual(await sessionResponse.json(), { authenticated: false });
+  assert.deepEqual(await sessionResponse.json(), {
+    authenticated: false,
+    googleSignInAvailable: false
+  });
 
   const logoutResponse = await app.request('/api/auth/logout', {
     method: 'POST',

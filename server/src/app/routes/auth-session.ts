@@ -8,6 +8,7 @@ import {
   serializeClearedSessionCookie
 } from '../../auth-runtime/index.js';
 import type { ServerDependencies } from '../dependencies.js';
+import { isGoogleAuthenticationAvailable } from './google-auth.js';
 
 function markAuthenticationResponse(context: Context): void {
   context.header('Cache-Control', 'no-store');
@@ -58,7 +59,8 @@ async function getCurrentSession(
 
   const principal = await dependencies.authenticator.authenticate(context.req.raw);
   const response: CurrentSessionApiResponse = {
-    authenticated: principal !== null
+    authenticated: principal !== null,
+    googleSignInAvailable: isGoogleAuthenticationAvailable(dependencies)
   };
 
   return context.json(response);

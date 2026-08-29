@@ -5,7 +5,7 @@
 - Baseline: `8bcf25fd37187e6268077ed25539846679286dfd`
 - Baseline message: `docs: define p0 data retention contract`
 - Date: 2026-08-29
-- Mode: Product / architecture readiness reconciliation; narrowly updated after the P0 Google Sign-In contract freeze and B1 core implementation
+- Mode: Product / architecture readiness reconciliation; narrowly updated after the P0 Google Sign-In B3 local UI implementation
 - Checkpoint strategy: **V1 updated in place**; V1 is the living checkpoint
 - Production astronomy: `PROVIDER DECISION DEFERRED`
 - Deployment: `PAUSED`
@@ -115,7 +115,7 @@ No astronomy provider is selected here.
 | I1. Retention technical contract | `NATALNODE_DATA_RETENTION_V1.md` freezes the P0 category inventory, lifecycle distinctions, enforcement classes, scheduler boundary, failure/privacy rules, readiness matrix, and policy-parameter registry without inventing durations | `docs/product/NATALNODE_DATA_RETENTION_V1.md`; `docs/product/NATALNODE_ACCOUNT_DELETION_ERASURE_V1.md`; `docs/product/NATALNODE_ACCOUNT_DATA_EXPORT_V1.md`; `docs/product/NATALNODE_AUTH_LIFECYCLE_CLEANUP_V1.md`; `docs/product/NATALNODE_OBSERVABILITY_V1.md` | Policy values/owners, audit deletion interaction, backup/restore reconciliation, processor terms, and external log controls remain open | **CONTRACT FROZEN; POLICY / EXTERNAL GATES OPEN** |
 | I2. Retention enforcement | Auth cleanup code and a maintenance command exist; no repository-wide Vault/Feedback/time-retention enforcement or verified scheduled invocation exists | `server/src/maintenance/`; `server/src/persistence/postgres/postgres-auth-lifecycle-cleanup-repository.ts`; `docs/product/NATALNODE_DATA_RETENTION_V1.md`; no configured scheduler or downstream log-retention control in repository source | Implement only after approved category semantics and owners; technical expiry is not deletion or a legal-retention policy | **INCOMPLETE / NOT OPERATIONALLY ENFORCED** |
 | I3. Retention policy / external dependency | The contract records unresolved policy and external boundaries for Auth consumed challenges, Vault, Feedback, audit, observability, infrastructure logs, backups, Resend, and future OAuth | `docs/product/NATALNODE_DATA_RETENTION_V1.md`; `docs/product/NATALNODE_PRIVACY_TERMS_POLICY_V1.md`; erasure/export/observability contracts | Privacy/Product/Security/Operations owners must approve values, scope, exceptions, restore behavior, processor treatment, and scheduler ownership | **POLICY / EXTERNAL BLOCKED** |
-| J1. Google Sign-In technical contract and implementation | `NATALNODE_GOOGLE_SIGN_IN_V1.md` freezes the subject-first identity model, server-controlled Authorization Code/OIDC flow, state/PKCE/nonce, collision-safe account resolution, existing-session integration, and live-gate boundary; B1 provides the provider boundary and pending transaction core, and B2 now provides the local start/callback, collision-safe account/session integration, and reviewed Google export representation | `docs/product/NATALNODE_GOOGLE_SIGN_IN_V1.md`; `server/src/auth-runtime/google-oidc-provider.ts`; `server/src/auth-runtime/google-oauth-transaction.ts`; `server/src/app/routes/google-auth.ts`; `server/src/persistence/postgres/postgres-google-auth-account-session-lifecycle.ts`; `server/src/account/account-data-export.ts`; `server/db/migrations/0007_google_oauth_transactions.sql` | B2 focused security review, B3 sign-in UI, external configuration, privacy disclosure, and live verification remain open | **CONTRACT FROZEN; B1/B2 IMPLEMENTED LOCALLY; B3 NOT STARTED; LIVE OAUTH EXTERNAL-GATED** |
+| J1. Google Sign-In technical contract and implementation | `NATALNODE_GOOGLE_SIGN_IN_V1.md` freezes the subject-first identity model, server-controlled Authorization Code/OIDC flow, state/PKCE/nonce, collision-safe account resolution, existing-session integration, and live-gate boundary; B1 provides the provider boundary and pending transaction core, B2 provides the local start/callback, collision-safe account/session integration, and reviewed Google export representation, and B3 provides the server-owned availability response plus minimal sign-in UI | `docs/product/NATALNODE_GOOGLE_SIGN_IN_V1.md`; `server/src/auth-runtime/google-oidc-provider.ts`; `server/src/auth-runtime/google-oauth-transaction.ts`; `server/src/app/routes/google-auth.ts`; `server/src/app/routes/auth-session.ts`; `apps/web/src/features/auth/google-sign-in.ts`; `server/src/persistence/postgres/postgres-google-auth-account-session-lifecycle.ts`; `server/src/account/account-data-export.ts`; `server/db/migrations/0007_google_oauth_transactions.sql` | External configuration, privacy disclosure, configured-state visual review, and live verification remain open; 001C adversarial review is not started | **CONTRACT FROZEN; B1/B2 IMPLEMENTED / REVIEW CLOSED; B3 IMPLEMENTED LOCALLY; LIVE OAUTH EXTERNAL-GATED** |
 | J2. Google OAuth credentials/configuration | No Google OAuth client credentials or deployment configuration is present or approved | `docs/product/NATALNODE_PRIVACY_TERMS_POLICY_V1.md` decision P-13; current runtime configuration | OAuth credentials, redirect configuration, processor disclosure, and live verification are external gates | **EXTERNAL / CREDENTIAL AND POLICY BLOCKED** |
 | K. Vault duplicate | Owner-scoped duplicate contract, route, server recalculation, canonical-result persistence, bounded metadata copy, UI action, and focused regression coverage are implemented | `packages/contracts/src/api/vault.ts`; `server/src/app/routes/vault-charts.ts`; `server/src/persistence/vault-chart-repository.ts`; `apps/web/src/features/vault/`; commit `ed6303640f759a33ee67998338c4bf9cbfb4262d` | Live PostgreSQL/browser verification remains outside this checkpoint; the implementation track must not be reopened without a concrete regression | **IMPLEMENTATION TRACK CLOSED; OPERATIONALLY UNVERIFIED** |
 | L1. Legal/privacy copy implementation | `/privacy` and `/terms` are not present; no unsupported placeholder claims were added | `apps/web/src/pages/`; `docs/product/NATALNODE_PRIVACY_TERMS_POLICY_V1.md` | Approved legal entity/controller, contact, jurisdiction, age, retention, rights, and counsel-reviewed copy are required | **NOT IMPLEMENTED / POLICY-BLOCKED P0 GAP** |
@@ -215,17 +215,32 @@ live Google credentials, redirect registration, privacy disclosure, and live
 verification remain external-gated. The reviewed Google identity
 presenter/schema extension is now included in the B2 local implementation.
 
-`WEB-AUTH-GOOGLE-001B1` is implemented as the bounded local provider
-abstraction and pending transaction/state/PKCE/nonce core. `WEB-AUTH-GOOGLE-001B2`
-is now implemented locally with Auth routes, injected-provider integration,
-collision-safe account/session persistence, and the reviewed Google export
-representation. No provider network calls or Web UI were added. The B2
-integration must receive a focused security review before B3.
+`WEB-AUTH-GOOGLE-001B1` is implemented and its review is closed as the bounded
+local provider abstraction and pending transaction/state/PKCE/nonce core.
+`WEB-AUTH-GOOGLE-001B2` is implemented and its focused security review is
+closed; it provides Auth routes, injected-provider integration, collision-safe
+account/session persistence, and the reviewed Google export representation.
+`WEB-AUTH-GOOGLE-001B3` is implemented locally with a server-owned capability
+field on the existing Auth/session response, a minimal capability-gated sign-in
+action, and the fixed generic callback-failure state. No provider network calls,
+credentials, or fake public-development Auth were added.
 
-The single next P0 action is the focused B2 review:
+Google Sign-In implementation status:
+
+- `WEB-AUTH-GOOGLE-001B1` — **IMPLEMENTED / REVIEW CLOSED**
+- `WEB-AUTH-GOOGLE-001B2` — **IMPLEMENTED / REVIEW CLOSED**
+- `WEB-AUTH-GOOGLE-001B3` — **IMPLEMENTED LOCALLY**
+- `WEB-AUTH-GOOGLE-001C` — **NOT STARTED**
+- `WEB-AUTH-GOOGLE-001D` live OAuth acceptance — **EXTERNAL-GATED**
+
+The single next P0 action is `WEB-AUTH-GOOGLE-001C`, the focused end-to-end
+Google Auth adversarial review. A legitimate configured Google state is not
+available in public-development, while the capability-true UI is covered by
+focused tests and the capability-false and callback-failure states are
+available for local browser review:
 
 ~~~
-WEB-AUTH-GOOGLE-001B2-R1 — Focused Account Takeover / Email Collision / Session Atomicity / Callback Security Review
+WEB-AUTH-GOOGLE-001C — Focused end-to-end Google Auth adversarial review
 ~~~
 
 This is a recommendation only; this checkpoint does not start it.
@@ -278,10 +293,9 @@ this checkpoint:
 - Observability `warningCount`, `provenanceStatus`, and conditional
   `astronomyConfigurationId` until bounded source-level semantics are
   approved; production sink/vendor selection remains deferred.
-- Google Sign-In B3 UI and live enablement until the remaining bounded UI
-  slice, external authorization gates, privacy disclosure, and live
-  verification land. B1 and the B2 local server integration are implemented;
-  this checkpoint does not start B3.
+- Google Sign-In live enablement until external authorization gates, privacy
+  disclosure, and live verification land. B1, B2, and the B3 local UI/capability
+  slice are implemented; this checkpoint does not start 001C or 001D.
 - Public legal pages until approved policy and counsel-reviewed copy exist.
 - Railway/Caddy staging implementation while deployment is paused.
 - Production astronomy, production resolver, and production Public Sky.
@@ -303,9 +317,9 @@ this checkpoint:
 - Do not treat Auth cleanup code as proof of an approved retention duration or
   complete retention enforcement.
 - Do not use operational request logs as a privacy-access audit.
-- Do not add the Google Sign-In UI, provider network wiring, legal copy,
-  production astronomy, staging infrastructure, or deployment configuration
-  from this checkpoint. Preserve the completed B1/B2 local boundaries.
+- Do not add provider network wiring, legal copy, production astronomy, staging
+  infrastructure, or deployment configuration from this checkpoint. Preserve
+  the completed B1/B2/B3 local boundaries.
 - Do not start Current Transits or any other P1/P2/P3 work.
 - Do not access or modify `C:\\NatalNode`.
 
@@ -320,9 +334,11 @@ P0 implementation foundation       = STRONG
 Closed implementation tracks       = PRESERVED
 Retention technical contract       = FROZEN; policy values required
 Google Sign-In technical contract  = FROZEN
-Google Sign-In B1 core              = IMPLEMENTED
-Google Sign-In B2 local integration = IMPLEMENTED LOCALLY; B3 NOT STARTED
-Unblocked local P0 work             = GOOGLE SIGN-IN 001B2-R1; retention remains policy-gated
+Google Sign-In B1 core              = IMPLEMENTED / REVIEW CLOSED
+Google Sign-In B2 local integration = IMPLEMENTED / REVIEW CLOSED
+Google Sign-In B3 local UI           = IMPLEMENTED LOCALLY
+Google Sign-In 001C review            = NOT STARTED
+Unblocked local P0 work             = GOOGLE SIGN-IN 001C; retention remains policy-gated
 Privacy audit/retention completion = NOT COMPLETE; policy/operations gated
 Google live OAuth/configuration     = EXTERNAL / CREDENTIAL AND POLICY GATED
 Staging                             = PAUSED
@@ -331,12 +347,12 @@ Launch readiness                    = NOT COMPLETE
 ~~~
 
 The single recommended next P0 action is
-`WEB-AUTH-GOOGLE-001B2-R1`, the focused Account Takeover / Email Collision /
-Session Atomicity / Callback Security Review of the completed B2 local
-integration described in section 8.1. It is a recommendation only; this
-checkpoint does not start another task. `WEB-AUTH-GOOGLE-001B3` remains not
-started. Retention
-policy/operations approval, Privacy Access Audit privileged integration,
-Google live configuration, legal/public copy, staging, and production
-provider gates remain separately open.
+`WEB-AUTH-GOOGLE-001C`, the focused end-to-end Google Auth adversarial review
+of the completed B1/B2 security foundation and B3 server-owned UI boundary
+described in section 8.1. It is a recommendation only; this checkpoint does
+not start another task. `WEB-AUTH-GOOGLE-001C` remains not started and
+`WEB-AUTH-GOOGLE-001D` live acceptance remains external-gated. Retention
+policy/operations approval, Privacy Access Audit
+privileged integration, Google live configuration, legal/public copy, staging,
+and production provider gates remain separately open.
 `WEB-PRIVACY-AUDIT-001B2` remains policy-gated and is not started.
