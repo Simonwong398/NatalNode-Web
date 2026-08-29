@@ -184,6 +184,23 @@ The process-local design is intentionally not globally coherent:
 If a future task requires shared or restart-persistent caching, it must create
 a separate architecture decision rather than silently changing this contract.
 
+### 4.2 Future module placement
+
+WEB-CACHE-001B1 owns a small, internal server module under
+`server/src/app/cache/`, with `chart-result-cache.ts` as the boundary for the
+`ChartResultCache` abstraction. That module owns the explicit canonical-input
+adapter, deterministic serializer, versioned key derivation, bounded Map,
+Clock-based TTL, LRU/expiry behavior, and clone-on-store/read. A separate
+purpose-built key helper may be a sibling in the same directory only if the
+implementation's responsibility boundary requires it.
+
+The module is Website API/BFF infrastructure. It must not live in
+`packages/engine-client`, `MockEngineClient`, `HttpEngineClient`, browser
+feature code, or scientific/provider code. B1 may expose the abstraction to
+focused tests and future server composition, but it does not add a cache field
+to `ServerDependencies`, change route registration, or integrate a lookup;
+those are B2 responsibilities.
+
 ## 5. Correctness invariant
 
 The frozen invariant is:
@@ -280,6 +297,20 @@ Any future calculation option that can change ChartResult must be added to
 this canonical object before runtime use. A presentation-only field must not
 be added merely because it is present in a browser form.
 
+The source boundary is concrete in the current repository. The BFF type gate
+is `isChartCalculationApiRequest` in
+`server/src/app/validation/chart-request.ts`; after that gate,
+`createChartRoute` in `server/src/app/routes/chart.ts` passes `payload.chart`
+unchanged to `dependencies.engineClient.calculateChart(...)`. The browser
+producer is `toChartRequest` in
+`apps/web/src/features/chart-experience/chart-request.ts`, which copies all
+normalized birth and house-system fields into that request shape. There is no
+server-side re-resolution or scientific normalization between validation and
+the EngineClient call. B1 therefore receives the exact `ChartRequest` at this
+BFF boundary, not browser form state, a returned ChartResult, or a second
+browser-derived representation. The authenticated Vault route has the same
+normalized request shape and remains a separate B2 integration boundary.
+
 ### 7.1 Place-label decision
 
 locationLabel is intentionally excluded from scientific cache identity under
@@ -347,6 +378,13 @@ Latitude and longitude use the exact finite numeric representation already
 normalized and passed to EngineClient. The cache introduces no scientific
 tolerance and no coordinate rounding.
 
+The current BFF guard rejects `NaN`, positive infinity, and negative infinity
+for latitude, longitude, and the nullable UTC offset. The B1 canonicalizer
+must assert that same finite-number precondition before serialization as a
+fail-closed invariant. It must not rely on `JSON.stringify` converting an
+invalid number to `null`, and it must not add date, coordinate-range, or other
+scientific validation that is not part of this cache boundary.
+
 The deterministic serializer must:
 
 - reject non-finite values through the existing request boundary before key
@@ -357,8 +395,11 @@ The deterministic serializer must:
   free JSON form;
 - use the ECMAScript/JSON numeric representation of the received finite
   number without decimal rounding or truncation; and
-- canonicalize negative zero to the JSON numeric token 0, since the current
-  coordinate contract treats it as the same numeric coordinate.
+- canonicalize every numeric canonical-input field with
+  `Object.is(value, -0) ? 0 : value` before serialization. This includes
+  latitude, longitude, and a non-null UTC offset. The resulting JSON token is
+  numeric `0`, since the current numeric contract treats negative zero as the
+  same coordinate/offset value.
 
 No new geographic precision rule or scientific equivalence tolerance is
 introduced by this cache.
@@ -379,11 +420,24 @@ the relevant cache version.
 The key is a versioned, deterministic hash identity:
 
 ~~~text
-canonicalInputJson =
-  stable UTF-8 JSON for the explicitly ordered canonical input object
+canonicalInput = {
+  localDate: birth.localDate,
+  localTime: birth.localTime,
+  latitude: normalizeNegativeZero(birth.latitude),
+  longitude: normalizeNegativeZero(birth.longitude),
+  ianaTimeZone: birth.ianaTimeZone,
+  resolvedUtcInstant: birth.resolvedUtcInstant,
+  utcOffsetSeconds: normalizeNullableNegativeZero(birth.utcOffsetSeconds),
+  timezoneDatabaseVersion: birth.timezoneDatabaseVersion,
+  timezoneResolutionMethod: birth.timezoneResolutionMethod,
+  ambiguityStatus: birth.ambiguityStatus,
+  houseSystem: request.houseSystem
+}
+
+canonicalInputJson = JSON.stringify(canonicalInput)
 
 inputDigest =
-  SHA-256(canonicalInputJson), represented as lowercase hexadecimal
+  SHA-256(UTF-8(canonicalInputJson)), represented as lowercase hexadecimal
 
 cacheKey =
   v1:<runtime-namespace>:<engine-result-generation>:<chart-result-contract-version>:<inputDigest>
@@ -394,35 +448,103 @@ The conceptual dimensions are separate:
 | Dimension | Purpose |
 | --- | --- |
 | CACHE_FORMAT_VERSION (v1) | Changes when the cache entry/key representation changes. |
-| runtimeNamespace | Separates development/research, staging, and production cache populations. It is internal and deployment-bound. |
-| engineResultGeneration | Opaque provider-neutral generation for the Engine/result configuration used by the deployment. It changes when result-producing Engine, scientific configuration, provenance, or time-policy semantics change. |
-| chartResultContractVersion | Expected ChartResult schema/contract version. It changes when the result shape or meaning changes. |
+| runtimeNamespace | Explicit server-composition identity that separates development/research, staging, and production cache populations. It is internal, stable for a deployment, and not provider-specific. |
+| engineResultGeneration | Explicit pre-calculation, provider-neutral generation for the Engine/result configuration used by the deployment. It changes when result-producing Engine, scientific configuration, provenance, or time-policy semantics change. |
+| chartResultContractVersion | Expected `ChartResult.schemaVersion` compatibility value. It changes when the result shape or meaning changes. |
 | inputDigest | SHA-256 of the canonical calculation input only. |
 
-The exact production values for the opaque runtime namespace and Engine
-result generation are not selected in this task. A runtime with no valid
-namespace or generation must bypass the cache rather than defaulting to a
-shared namespace.
+`canonicalInput` is a newly constructed object with the property order shown
+above. `JSON.stringify` is used with no pretty-printing or locale-dependent
+formatting; the Node/platform crypto implementation consumes that exact
+string as UTF-8. B1 must not recursively sort arbitrary caller objects, use a
+locale formatter, or serialize the whole request as an implicit identity.
+`normalizeNegativeZero` and its nullable equivalent first assert finite
+numbers and then apply the `Object.is(value, -0)` rule. An invalid number is a
+canonicalization invariant violation, not a serializable cache miss.
+
+The cache constructor receives one explicit internal identity/configuration
+object before the first lookup:
+
+~~~ts
+{
+  runtimeNamespace: string;
+  engineResultGeneration: string;
+  chartResultContractVersion: string;
+}
+~~~
+
+The server deployment composition owns these values; they are not derived
+from a request, a random value, a browser, or a post-calculation result. Each
+value must be non-empty and stable for the lifetime of the composed
+deployment. A missing or invalid value is a configuration/invariant error,
+not permission to fall back to a shared namespace.
+
+The current executable has one accepted mode,
+`ENGINE_CLIENT_MODE=development-mock`. Its composition maps that mode to
+`runtimeNamespace: "development-mock"`,
+`engineResultGeneration: "UI_FIXTURE_V1"` (the current
+`MockEngineClient`/fixture identity), and
+`chartResultContractVersion: "1.0.0"` (the current fixture's
+`ChartResult.schemaVersion`). `UI_FIXTURE_V1` is therefore only the explicit
+mock-generation discriminator; it is not the generic production cache
+architecture. A future production-approved binding must supply a distinct
+production runtime namespace and its own provider-neutral generation before
+lookup. Provider selection remains:
+
+PROVIDER DECISION DEFERRED
 
 Because the current EngineClient interface exposes the result's
 engineVersion and scientific metadata after a call rather than exposing a
 pre-call configuration identity, the future BFF composition must supply the
-expected generation as internal configuration. On a fresh result, the
-implementation must verify compatibility with the configured generation and
-contract version before storing it. A mismatch is a cache bypass/miss, never
-an opportunity to infer, repair, or rewrite scientific metadata.
+expected generation as internal configuration. This is the smallest new
+server-owned configuration concept needed by the current source; the
+repository has no existing `NODE_ENV`, deployment identity, or scientific
+configuration object that can safely substitute for it. `PUBLIC_WEB_ORIGIN`
+is not used as a cache identity. On a fresh result, the B2 integration must
+verify compatibility with the configured generation and contract version
+before storing it. A mismatch is a cache bypass/miss, never an opportunity
+to infer, repair, or rewrite scientific metadata.
+
+The PRD's illustrative cache dimensions (`engineVersion`,
+`chartSchemaVersion`, and `astronomyConfigurationId`) are therefore mapped as
+follows: `chartResultContractVersion` reuses the current
+`ChartResult.schemaVersion`, while the pre-call `engineResultGeneration` is
+the Website-side compatibility namespace that must change whenever the
+Engine version or returned scientific configuration/provenance/time-policy
+identity changes. `astronomyConfigurationId` is currently returned only
+inside complete scientific metadata and is not independently available before
+the Engine call, so it must not be read after the fact to construct a lookup
+key or be fabricated into the request.
 
 This versioned form provides an invalidation path without storing raw birth
 data in the key. A change to cache format, result contract, or result
 generation produces a new namespace/key family; old in-memory entries are
 also removed on process restart.
 
-### 8.1 Hash collision behavior
+### 8.1 Version and namespace change ownership
 
-SHA-256 is sufficient for P0 process-local cache identity under normal
-cryptographic engineering assumptions. The cache does not persist the raw
-canonical input for collision-resolution comparison. A practical collision
-resolution store is not justified for this bounded, transient cache.
+The invalidation decision belongs to the responsibility that changed:
+
+| Value | Owner | Bump/change rule |
+| --- | --- | --- |
+| `CACHE_FORMAT_VERSION` | B1 cache-module maintainers | Bump when key representation, canonical serialization, or cache-entry envelope/storage semantics change. |
+| `runtimeNamespace` | Server deployment composition | Change when a deployment population or development/production isolation boundary changes. It is not a scientific/provider version. |
+| `engineResultGeneration` | Engine binding and scientific-configuration owner at the deployment boundary | Bump whenever the same canonical request may produce different valid results because of Engine generation, scientific configuration, provenance semantics, or time-policy semantics. The new value must be known before lookup. |
+| `chartResultContractVersion` | Website contract owner maintaining `packages/contracts/src/chart.ts` and the result producers | Bump the `ChartResult.schemaVersion` compatibility value when ChartResult structure or meaning changes. |
+
+If one change crosses more than one responsibility, every affected value is
+updated before the cache is used. Ordinary implementation changes that do not
+alter any of those identities do not require an arbitrary cache flush.
+
+### 8.2 Hash collision behavior
+
+SHA-256 via the Node/platform `createHash('sha256')` API is sufficient for P0
+process-local cache identity under normal cryptographic engineering
+assumptions. It requires no new dependency and no new secret. The digest stays
+inside the process, is not logged or exposed, and the cache does not persist
+the raw canonical input for collision-resolution comparison. A practical
+collision-resolution store is not justified for this bounded, transient
+cache.
 
 If an entry's compatibility envelope or result validation is inconsistent,
 the entry is treated as incompatible and ignored. The implementation must not
@@ -472,7 +594,8 @@ Development MockEngineClient results must never contaminate a future
 production cache. The runtime namespace is therefore mandatory:
 
 - development/research mock calculations use a development/research
-  namespace;
+  namespace; in the current executable this is the explicit
+  `development-mock` value;
 - production-approved calculations use a distinct production namespace; and
 - a namespace is selected by server deployment composition, not by a browser
   request.
@@ -491,8 +614,12 @@ PROVIDER DECISION DEFERRED
 
 ### 10.1 TTL
 
-P0 freezes a **15-minute fixed TTL**, configurable only through internal
-server configuration and never exposed to browsers or API consumers.
+P0 freezes a **15-minute fixed TTL**. The future cache module owns this as a
+code-level default (`15 * 60 * 1000` milliseconds), with a narrow constructor
+override for focused tests or internal composition. The override must remain
+a finite positive integer; production composition retains the P0 default. It
+is never exposed to browsers or API consumers and does not require a new
+environment variable.
 
 The TTL is an operational freshness, memory, and privacy bound, not a
 scientific time-decay rule. Fifteen minutes is a conservative technical
@@ -508,10 +635,27 @@ as part of ordinary lookup/prune activity.
 ### 10.2 Capacity and eviction
 
 Each server process has a hard maximum of **512 complete ChartResult entries**.
-The cache uses:
+The future cache module owns `512` as its code-level default, with a narrow
+constructor override for focused tests or internal composition. The override
+may lower the bound for focused tests, but must be a positive integer no
+greater than the P0 hard cap of 512. It uses the following exact insertion
+behavior:
 
-1. expiry removal for entries past TTL; then
-2. least-recently-used eviction when the hard entry limit is reached.
+1. remove all entries whose `expiresAt` is at or before the current Clock
+   value;
+2. remove an existing entry for the same key before replacement;
+3. while the map is at capacity, remove the least-recently-used entry; and
+4. insert the cloned replacement only after space exists.
+
+The map therefore never transiently exceeds the configured hard cap, even
+when expired entries are present or the same key is overwritten. A successful
+overwrite is one entry, becomes most-recently-used, and receives a new fixed
+TTL beginning at that store operation.
+
+On `get`, an encountered expired entry is deleted and treated as a miss. On a
+compatible hit, the entry is moved to the most-recently-used position, but
+its existing `expiresAt` is unchanged. A full opportunistic expiry sweep is
+performed before any LRU eviction; no background timer is needed.
 
 The map must not grow without bound. There is no persistent-storage budget
 because P0 does not persist the cache. The current WEB_UI_FIXTURE_V1
@@ -523,6 +667,21 @@ requires a focused capacity review rather than silent truncation.
 
 Restart clears all entries. No cross-instance eviction or invalidation is
 required.
+
+### 10.3 Clock and cleanup lifecycle
+
+B1 uses the existing server `Clock` abstraction from
+`server/src/app/creation-boundaries.ts`, whose current `SystemClock`
+implementation returns an ISO timestamp string. The cache converts
+`clock.now()` to epoch milliseconds, rejects a non-finite/invalid clock value
+as an invariant error, and uses that value for both `storedAt` and
+`expiresAt`. It must not call `Date.now()` directly, so focused tests can
+control expiry with a fake Clock.
+
+Cleanup is lazy and bounded: `get` removes an encountered expired entry, and
+`set` sweeps the at-most-512-entry map before performing LRU eviction. There
+is no `setInterval`, scheduler, background worker, or other cache lifecycle
+timer that could keep Node alive.
 
 ## 11. Errors, negative caching, and cache failure
 
@@ -551,8 +710,12 @@ calculation where safe:
 
 - a cache read error is recorded as an internal cache error and treated as a
   miss;
-- a corrupt, expired, or incompatible entry is ignored or discarded and
+- a corrupt, expired, or incompatible entry is evicted or discarded and
   treated as a miss;
+- a clone failure while storing a successful result skips the cache write and
+  does not fail the user response;
+- a clone failure while reading an entry evicts that entry, exposes no
+  internal object, and is treated as a miss;
 - a cache write error after a successful calculation does not fail the user
   response;
 - a fresh EngineClient failure keeps the current calculation error behavior;
@@ -562,6 +725,39 @@ calculation where safe:
 
 The cache must not silently return a stale or partially readable result merely
 to avoid a miss.
+
+The store-side clone and compatibility checks occur before eviction or map
+mutation. A failed write therefore cannot partially replace an entry or evict
+an unrelated least-recently-used entry. The read-side clone is the only value
+returned to a caller; the internal stored clone is never exposed.
+
+Canonicalization invariant failures and invalid cache-constructor identity or
+capacity values are different from operational cache failures. They indicate
+a programmer/configuration defect and must fail closed (for example, by
+throwing the invariant error through the existing internal-error boundary),
+not be hidden as endless cache misses. B1 must not call EngineClient with an
+input whose key cannot be constructed deterministically.
+
+### 11.3 Result compatibility boundary
+
+B1 owns cache-envelope compatibility, cloning, and the exact configured
+namespace/version comparisons. It does not interpret astronomy or invent a
+scientific validator. B2, at the EngineClient integration boundary, must
+confirm before `set` that the fresh value is structurally a complete
+`ChartResult`, that its `schemaVersion` matches the configured
+`chartResultContractVersion`, and that the active Engine binding's configured
+generation is compatible with the returned result metadata. For the current
+mock this preserves `engineVersion: "UI_FIXTURE_V1"`,
+`calculationStatus: "INCOMPLETE_RESEARCH"`, null scientific IDs, the research
+reason, and all warnings unchanged. Future production validation remains
+provider-neutral and must not rewrite or upgrade metadata.
+
+The current structural response guard is private to
+`packages/engine-client/src/http-engine-client.ts`, while the server chart
+route trusts its injected `EngineClient`. That is not a reason to add route
+work in B1: B2 owns the focused structural compatibility check or a small
+shared guard before cache storage. An incompatible fresh result is never
+cached and never repaired.
 
 ## 12. Concurrency and cancellation
 
@@ -636,14 +832,30 @@ persist a partial result or fail open to browser-supplied science.
 
 ## 15. Serialization and mutability
 
-The cache uses the existing JSON-compatible ChartResult representation. It
-must not create a second scientific serialization format or omit fields that
-are part of the contract.
+The current `ChartResult` contract is structurally JSON-compatible: its
+declared fields are strings, booleans, nullable values, numbers, and arrays or
+objects composed of those same JSON-shaped values. It contains no `Date`,
+`BigInt`, `Map`, `Set`, function, `undefined`, or open `unknown` field. The
+fixture is representative evidence, but this conclusion is based on the
+contract in `packages/contracts/src/chart.ts`, not on the fixture alone. A
+future non-JSON field would require a ChartResult contract-version change and
+a fresh cache compatibility decision. Runtime number values must still be
+finite; the existing structural result guard checks that property, and B2
+must retain that check before storage because TypeScript's `number` type alone
+does not exclude `NaN` or infinity.
+
+The cache uses the existing ChartResult object shape and must not create a
+second scientific serialization format or omit fields that are part of the
+contract. Because the repository already uses the platform `structuredClone`
+in `MockEngineClient` and targets ES2022/Node runtime types, B1 uses native
+`structuredClone` for both directions. It does not use a JSON round-trip, so
+it does not silently convert `undefined`, Date, BigInt, or special numeric
+values. The B2 result-compatibility boundary still rejects malformed or
+non-contract values before storage.
 
 The current TypeScript types contain mutable arrays even though the result is
 conceptually a snapshot. The future in-memory implementation must use
-clone-on-store and clone-on-read, using the built-in structured-clone
-capability or an equivalent small platform mechanism:
+clone-on-store and clone-on-read:
 
 - clone the complete result before placing it in the cache;
 - return a fresh clone on every cache hit; and
@@ -652,7 +864,9 @@ capability or an equivalent small platform mechanism:
 
 The cache must not rely on current consumers happening not to mutate a value.
 No heavyweight cloning library is required. A clone failure is a cache error
-and must fail open to a fresh calculation when possible.
+and must fail open to a fresh calculation when possible. Deep freezing is not
+required: the private Map is never exposed, and clone-on-store/read is the
+smallest sufficient immutability boundary.
 
 ## 16. HTTP/browser cache distinction
 
@@ -709,8 +923,9 @@ Feedback retention, or operational-log policies.
 
 ## 18. Observability
 
-Cache observability remains server-internal and bounded. The future request
-record may add:
+Cache observability remains server-internal and bounded. B1 adds no
+production logger dependency and emits no cache logs. The B2 route
+integration may extend the existing request record with:
 
 - cacheStatus: hit, miss, bypass, or error;
 - endpoint family: existing chart classification;
@@ -721,7 +936,8 @@ record may add:
 Where separately approved by the observability contract, bounded Engine
 metadata such as Engine version, ChartResult schema version, scientific
 configuration identity, provenance status, and warning count may be recorded.
-This task does not implement that observability extension.
+This task does not implement that observability extension. B1 tests may
+inspect cache return state, but production cache code does not own logging.
 
 Never log:
 
@@ -789,12 +1005,16 @@ The following bounded slices are intentionally deferred:
 
 ### WEB-CACHE-001B1
 
-Implement the provider-neutral canonical input serializer, versioned key
-derivation, and bounded process-local cache abstraction with clone-safe
-storage. Add focused unit tests for key determinism, version/namespace
-separation, TTL, capacity, eviction, and immutability.
+Implement the provider-neutral canonical input adapter, the exact ordered
+serializer, versioned key derivation, and bounded process-local
+`ChartResultCache` abstraction under `server/src/app/cache/`. It receives the
+explicit namespace/generation/ChartResult compatibility identity and existing
+Clock at construction, uses code-owned P0 TTL/capacity defaults, and provides
+clone-safe storage. Add only the focused unit tests listed in section 23.
 
-This slice must not integrate the cache into routes or add infrastructure.
+This slice must not integrate the cache into `/api/chart` or Vault routes,
+modify `ServerDependencies`/route middleware, change any EngineClient, add
+HTTP behavior, add infrastructure, or expose cache metadata publicly.
 
 ### WEB-CACHE-001B2
 
@@ -823,31 +1043,52 @@ remain targeted to the cache boundary.
 ### 23.1 Key tests
 
 - identical canonical inputs produce identical keys;
-- different date, time, timezone, coordinate, or house-system inputs produce
-  different keys;
+- every canonical field is explicit and a one-field difference changes the
+  canonical JSON/key;
 - known and unknown birth time produce different keys;
 - deterministic serialization does not depend on source object insertion
   order or locale;
 - coordinate serialization does not introduce rounding/tolerance;
-- cache format/version changes produce a new key family;
-- development and production namespaces cannot share entries; and
-- keys/log records contain no raw birth data.
+- negative zero is serialized as numeric zero;
+- reachable non-finite numbers are rejected rather than converted to JSON
+  `null`;
+- SHA-256 is deterministic and requires no dependency or secret;
+- cache format, runtime namespace, Engine generation, and ChartResult
+  contract-version changes each produce a different key family; and
+- no raw input value appears in a key.
 
 ### 23.2 Cache tests
 
+- an empty cache returns a miss;
+- set then get returns a compatible hit;
 - a compatible hit avoids an EngineClient call;
 - a miss calls EngineClient normally;
 - a successful complete result populates the cache;
-- errors and malformed results are not cached;
-- cache read failure falls back to fresh calculation;
-- cache write failure does not fail a successful response;
+- clone-on-store prevents mutation of the caller's result from changing the
+  stored value;
+- clone-on-read prevents mutation of one hit from changing a later hit;
+- a hit updates LRU recency but does not extend its expiry;
 - TTL expiration causes a miss;
-- the maximum entry bound is enforced;
+- expired entries are removed;
+- the hard maximum of 512 entries is never exceeded, including during rapid
+  insertion when expired entries exist;
 - least-recently-used eviction is bounded and deterministic;
-- restart starts with an empty process-local cache; and
-- clone-on-store/clone-on-read prevents cross-call mutation.
+- overwriting a key does not increase size;
+- restart starts with an empty process-local cache;
+- no background timer or scheduler is created; and
+- development and production namespaces remain isolated.
 
-### 23.3 HTTP and security tests
+### 23.3 B1 failure tests
+
+- a corrupt/incompatible entry is evicted and becomes a miss;
+- a clone failure on write skips the write without corrupting the cache;
+- a clone failure on read evicts the entry and exposes no internal object;
+- a cache read/write failure fails open where a fresh calculation can
+  proceed; and
+- canonicalization/configuration invariant failures are surfaced rather than
+  hidden as cache misses.
+
+### 23.4 HTTP and security tests
 
 - hit and miss success payloads are identical;
 - Cache-Control: no-store remains present;
@@ -856,7 +1097,7 @@ remain targeted to the cache boundary.
 - no public cached, cacheAge, or cacheKey field is introduced; and
 - fresh CALCULATION_UNAVAILABLE behavior remains unchanged.
 
-### 23.4 Privacy tests
+### 23.5 Privacy tests
 
 - no user, email, session, Vault, note, Feedback, IP, or request ID is stored
   in an entry;
@@ -866,22 +1107,33 @@ remain targeted to the cache boundary.
 - account deletion does not depend on finding identity-independent cache
   entries.
 
-## 24. Unresolved implementation details
+## 24. Frozen implementation boundaries and remaining deferrals
 
-The following are intentionally unresolved without weakening the frozen
-contract:
+The implementation-critical choices required by B1 are now frozen:
 
-1. the exact internal module path and dependency-injection shape for the
-   server-side cache service;
-2. the opaque deployment-specific runtimeNamespace and
-   engineResultGeneration values;
-3. the exact internal configuration mechanism for the 15-minute TTL and
-   512-entry bound; and
-4. any future AbortSignal integration or measured capacity adjustment.
+1. B1 owns `server/src/app/cache/chart-result-cache.ts` and the internal
+   `ChartResultCache` abstraction;
+2. the cache receives explicit `runtimeNamespace`,
+   `engineResultGeneration`, and `chartResultContractVersion` values before
+   lookup, with current mock values mapped from
+   `ENGINE_CLIENT_MODE=development-mock` as documented in section 8;
+3. the canonical serializer is the explicit ordered `JSON.stringify` object
+   in section 8, with finite-number and negative-zero invariants;
+4. `Clock`, code-owned 15-minute/512-entry defaults, lazy expiry cleanup, and
+   hard-cap-before-insert behavior are fixed in section 10; and
+5. clone-on-store/read, operational fail-open behavior, and B1/B2 result
+   compatibility ownership are fixed in sections 11 and 15.
 
-These are implementation details for the bounded follow-up slices. No
-provider name, raw-input storage, shared persistent cache, or public cache
-metadata may be selected as a shortcut.
+The following remain intentionally deferred and do not reopen those B1
+choices:
+
+- route and Vault integration, public response behavior, and cache
+  observability extension (B2);
+- any future AbortSignal/single-flight behavior; and
+- measured capacity changes or a future shared/persistent cache review.
+
+No provider name, raw-input storage, shared persistent cache, mandatory cache
+environment variable, or public cache metadata may be selected as a shortcut.
 
 ## 25. Prohibited anti-patterns
 
@@ -922,9 +1174,12 @@ The following are explicitly prohibited under this contract:
 | Hash | SHA-256 of deterministic canonical JSON |
 | New secret | None |
 | User identity | Not part of scientific cache identity |
-| Development isolation | Mandatory separate runtime namespace |
+| Runtime identity | Explicit server-composition `runtimeNamespace`; current mock value `development-mock`, future production value must be distinct |
+| Engine generation | Explicit pre-call `engineResultGeneration`; current mock value `UI_FIXTURE_V1`, future production value is provider-neutral and deployment-owned |
+| ChartResult compatibility | `ChartResult.schemaVersion`; current value `1.0.0` |
 | TTL | 15-minute fixed, internal/configurable |
 | Capacity | 512 entries per process with TTL + LRU |
+| Expiry clock | Existing server `Clock`; no direct `Date.now()` |
 | Errors | Never cached |
 | In-flight deduplication | Deferred |
 | Cache failure | Fail open to fresh EngineClient calculation |
