@@ -68,6 +68,7 @@ export interface GoogleOAuthTransactionStartMaterial {
   readonly codeChallenge: string;
   readonly nonce: string;
   readonly browserBinding: string;
+  readonly expiresAt: string;
   readonly postAuthRedirect: typeof GOOGLE_OAUTH_POST_AUTH_REDIRECT;
 }
 
@@ -513,6 +514,7 @@ export class GoogleOAuthTransactionService {
       codeChallenge: deriveS256PkceCodeChallenge(pkceVerifier),
       nonce,
       browserBinding,
+      expiresAt: record.expiresAt,
       postAuthRedirect: GOOGLE_OAUTH_POST_AUTH_REDIRECT
     };
   }

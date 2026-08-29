@@ -13,6 +13,11 @@ export type {
 } from './account-data-export-repository.js';
 export type { AuthSessionRepository } from './auth-session-repository.js';
 export type {
+  GoogleAuthAccountSessionInput,
+  GoogleAuthAccountSessionLifecycle,
+  GoogleAuthAccountSessionResult
+} from './google-auth-account-session-lifecycle.js';
+export type {
   GoogleOAuthTransactionClaim,
   GoogleOAuthTransactionClaimInput,
   GoogleOAuthTransactionRepository,

@@ -2,6 +2,8 @@ import type { EngineClient } from '@natalnode/engine-client';
 import type {
   AuthenticationExpirationPolicy,
   EmailMagicLinkDelivery,
+  GoogleOidcProvider,
+  GoogleOAuthTransactionService,
   MagicLinkUrlBuilder,
   SecureTokenGenerator,
   SessionCookiePolicy,
@@ -11,6 +13,7 @@ import type {
   AccountErasureRepository,
   AccountDataExportRepository,
   EmailMagicLinkAuthLifecycle,
+  GoogleAuthAccountSessionLifecycle,
   PersistenceRepositories
 } from '../persistence/index.js';
 import type { RequestAuthenticator } from './auth/index.js';
@@ -35,4 +38,8 @@ export interface ServerDependencies {
   readonly emailMagicLinkDelivery: EmailMagicLinkDelivery;
   readonly magicLinkUrlBuilder: MagicLinkUrlBuilder;
   readonly sessionCookiePolicy: SessionCookiePolicy;
+  /** Optional until the externally gated Google provider is configured. */
+  readonly googleOidcProvider?: GoogleOidcProvider;
+  readonly googleOAuthTransactionService?: GoogleOAuthTransactionService;
+  readonly googleAuthAccountSessionLifecycle?: GoogleAuthAccountSessionLifecycle;
 }

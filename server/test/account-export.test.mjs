@@ -701,7 +701,7 @@ test('account export accepts a bodyless request without Content-Type and uses th
 test('unsupported identity representation and missing account fail before attachment headers', async () => {
   const unsupportedHarness = createHarness({
     snapshotFactory: () => {
-      throw new UnsupportedAccountDataExportIdentityError('GOOGLE');
+      throw new UnsupportedAccountDataExportIdentityError('UNSUPPORTED_PROVIDER');
     }
   });
   const unsupportedResponse = await postExport(unsupportedHarness.app);

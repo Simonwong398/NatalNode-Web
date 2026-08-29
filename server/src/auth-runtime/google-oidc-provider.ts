@@ -1,10 +1,14 @@
 /** The only external identity provider represented by the P0 Google boundary. */
 export const GOOGLE_OIDC_PROVIDER = 'GOOGLE' as const;
 
+/** The only scopes allowed by the P0 sign-in authorization request. */
+export const GOOGLE_OIDC_SCOPES = ['openid', 'email'] as const;
+
 export interface GoogleOidcAuthorizationRequestInput {
   readonly state: string;
   readonly codeChallenge: string;
   readonly nonce: string;
+  readonly scopes: typeof GOOGLE_OIDC_SCOPES;
   /** The exact environment-specific callback URI selected by the server. */
   readonly redirectUri: string;
 }

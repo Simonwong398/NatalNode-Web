@@ -42,9 +42,14 @@ export async function createServerBootstrap(
         accountErasure: postgresRuntime.accountErasure,
         emailMagicLinkAuthLifecycle:
           postgresRuntime.emailMagicLinkAuthLifecycle,
+        googleAuthAccountSessionLifecycle:
+          postgresRuntime.googleAuthAccountSessionLifecycle,
         engineClient: bindings.engineClient,
         chartResultCacheIdentity: bindings.chartResultCacheIdentity,
-        emailMagicLinkDelivery: bindings.emailMagicLinkDelivery
+        emailMagicLinkDelivery: bindings.emailMagicLinkDelivery,
+        googleOidcProvider: bindings.googleOidcProvider,
+        googleOAuthTransactionTtlSeconds:
+          bindings.googleOAuthTransactionTtlSeconds
       },
       environmentConfig.serverRuntimeConfig
     );

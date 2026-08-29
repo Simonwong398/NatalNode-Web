@@ -13,12 +13,22 @@ export interface AccountDataExportAccountMetadata {
   readonly updatedAt: string;
 }
 
-export interface AccountDataExportIdentity {
+export interface AccountDataExportEmailMagicLinkIdentity {
   readonly type: 'EMAIL_MAGIC_LINK';
   readonly email: string;
   readonly linkedAt: string;
   readonly updatedAt: string;
 }
+
+export interface AccountDataExportGoogleIdentity {
+  readonly type: 'GOOGLE';
+  readonly linkedAt: string;
+  readonly updatedAt: string;
+}
+
+export type AccountDataExportIdentity =
+  | AccountDataExportEmailMagicLinkIdentity
+  | AccountDataExportGoogleIdentity;
 
 export interface AccountDataExportAccount
   extends AccountDataExportAccountMetadata {
@@ -255,16 +265,24 @@ export function presentAccountDataExportAccount(
 export function presentAccountDataExportIdentity(
   source: AccountDataExportIdentityPresentationSource
 ): AccountDataExportIdentity {
-  if (source.provider !== 'EMAIL_MAGIC_LINK') {
-    throw new UnsupportedAccountDataExportIdentityError(source.provider);
+  if (source.provider === 'GOOGLE') {
+    return {
+      type: 'GOOGLE',
+      linkedAt: source.createdAt,
+      updatedAt: source.updatedAt
+    };
   }
 
-  return {
-    type: 'EMAIL_MAGIC_LINK',
-    email: source.providerSubject,
-    linkedAt: source.createdAt,
-    updatedAt: source.updatedAt
-  };
+  if (source.provider === 'EMAIL_MAGIC_LINK') {
+    return {
+      type: 'EMAIL_MAGIC_LINK',
+      email: source.providerSubject,
+      linkedAt: source.createdAt,
+      updatedAt: source.updatedAt
+    };
+  }
+
+  throw new UnsupportedAccountDataExportIdentityError(source.provider);
 }
 
 function assertStringArray(
@@ -338,7 +356,8 @@ export function presentAccountDataExportFeedback(
 
 /** Names used by the product contract remain available at this boundary. */
 export type NatalNodeAccountDataExportV1 = AccountDataExportV1;
-export type EmailMagicLinkExportIdentityV1 = AccountDataExportIdentity;
+export type EmailMagicLinkExportIdentityV1 = AccountDataExportEmailMagicLinkIdentity;
+export type GoogleExportIdentityV1 = AccountDataExportGoogleIdentity;
 export type AccountChartExportV1 = AccountDataExportChart;
 export type ChartNoteExportV1 = AccountDataExportNote;
 export type FeedbackExportV1 = AccountDataExportFeedback;

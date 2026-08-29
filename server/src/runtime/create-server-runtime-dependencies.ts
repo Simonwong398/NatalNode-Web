@@ -8,7 +8,11 @@ import {
 import { PublicWebOriginMagicLinkUrlBuilder } from '../auth-runtime/magic-link-url-builder.js';
 import { NodeSecureTokenGenerator } from '../auth-runtime/secure-token.js';
 import { Sha256TokenHasher } from '../auth-runtime/token-hasher.js';
+import {
+  GoogleOAuthTransactionService
+} from '../auth-runtime/google-oauth-transaction.js';
 import { createPostgresPersistence } from '../persistence/postgres/create-postgres-persistence.js';
+import { PostgresGoogleOAuthTransactionRepository } from '../persistence/postgres/postgres-google-oauth-transaction-repository.js';
 import { DurationAuthenticationExpirationPolicy } from './duration-authentication-expiration-policy.js';
 import type { ServerRuntimeBindings } from './server-runtime-bindings.js';
 import type { ServerRuntimeConfig } from './server-runtime-config.js';
@@ -66,6 +70,15 @@ export function createServerRuntimeDependencies(
     cookiePolicy: sessionCookiePolicy
   });
 
+  const googleOAuthTransactionService =
+    bindings.googleOidcProvider === undefined
+      ? undefined
+      : createGoogleOAuthTransactionService(bindings, {
+          idGenerator,
+          secureTokenGenerator,
+          tokenHasher
+        });
+
   return {
     publicWebOrigin: config.publicWebOrigin,
     authenticator,
@@ -83,6 +96,43 @@ export function createServerRuntimeDependencies(
     authenticationExpirationPolicy,
     emailMagicLinkDelivery: bindings.emailMagicLinkDelivery,
     magicLinkUrlBuilder,
-    sessionCookiePolicy
+    sessionCookiePolicy,
+    googleOidcProvider: bindings.googleOidcProvider,
+    googleOAuthTransactionService,
+    googleAuthAccountSessionLifecycle:
+      bindings.googleAuthAccountSessionLifecycle
   };
+}
+
+function createGoogleOAuthTransactionService(
+  bindings: ServerRuntimeBindings,
+  dependencies: {
+    readonly idGenerator: NodeIdGenerator;
+    readonly secureTokenGenerator: NodeSecureTokenGenerator;
+    readonly tokenHasher: Sha256TokenHasher;
+  }
+): GoogleOAuthTransactionService {
+  if (bindings.googleOAuthTransactionTtlSeconds === undefined) {
+    throw new Error(
+      'Google OAuth transaction TTL is required with an injected provider.'
+    );
+  }
+
+  if (bindings.googleAuthAccountSessionLifecycle === undefined) {
+    throw new Error(
+      'Google authentication account/session lifecycle is unavailable.'
+    );
+  }
+
+  return new GoogleOAuthTransactionService({
+    repository: new PostgresGoogleOAuthTransactionRepository(
+      bindings.sqlExecutor
+    ),
+    idGenerator: dependencies.idGenerator,
+    secureTokenGenerator: dependencies.secureTokenGenerator,
+    tokenHasher: dependencies.tokenHasher,
+    policy: {
+      ttlSeconds: bindings.googleOAuthTransactionTtlSeconds
+    }
+  });
 }

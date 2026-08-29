@@ -13,6 +13,7 @@ import { enforceSameOriginUnsafeApiRequests } from './security/enforce-same-orig
 import { createChartRoute } from './routes/chart.js';
 import { createProblemDetailsContextResponse } from './problem-details/context-response.js';
 import { registerEmailAuthenticationRoutes } from './routes/auth-email.js';
+import { registerGoogleAuthenticationRoutes } from './routes/google-auth.js';
 import { registerSessionAuthenticationRoutes } from './routes/auth-session.js';
 import { registerFeedbackRoutes } from './routes/feedback.js';
 import { registerSkyRoutes } from './routes/sky.js';
@@ -66,6 +67,7 @@ export function createApp(
   app.post('/api/chart', createChartRoute(dependencies));
   registerSkyRoutes(app, dependencies);
   registerEmailAuthenticationRoutes(app, dependencies);
+  registerGoogleAuthenticationRoutes(app, dependencies);
   registerSessionAuthenticationRoutes(app, dependencies);
   registerAccountRoutes(app, dependencies);
   registerAccountExportRoutes(app, dependencies, rateLimiter);

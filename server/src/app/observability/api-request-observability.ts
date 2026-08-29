@@ -13,6 +13,8 @@ export type EndpointFamily =
   | 'sky.events'
   | 'auth.email.request'
   | 'auth.email.complete'
+  | 'auth.google.start'
+  | 'auth.google.callback'
   | 'auth.session'
   | 'auth.logout'
   | 'account.delete'
@@ -88,6 +90,8 @@ export function classifyApiEndpointFamily(pathname: string): EndpointFamily {
   if (pathname === '/api/sky/events') return 'sky.events';
   if (pathname === '/api/auth/email/request') return 'auth.email.request';
   if (pathname === '/api/auth/email/complete') return 'auth.email.complete';
+  if (pathname === '/api/auth/google/start') return 'auth.google.start';
+  if (pathname === '/api/auth/google/callback') return 'auth.google.callback';
   if (pathname === '/api/auth/session') return 'auth.session';
   if (pathname === '/api/auth/logout') return 'auth.logout';
   if (pathname === '/api/account') return 'account.delete';

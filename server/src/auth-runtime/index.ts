@@ -23,6 +23,7 @@ export type { TokenHasher } from './token-hasher.js';
 
 export {
   GOOGLE_OIDC_PROVIDER,
+  GOOGLE_OIDC_SCOPES,
   GoogleOidcProviderError,
   type GoogleOidcAuthorizationCodeExchangeInput,
   type GoogleOidcAuthorizationRequest,
@@ -31,6 +32,23 @@ export {
   type GoogleOidcProviderErrorCode,
   type VerifiedGoogleIdentity
 } from './google-oidc-provider.js';
+
+export {
+  assertVerifiedGoogleIdentity,
+  completeGoogleAuthentication
+} from './google-authentication.js';
+export type {
+  CompleteGoogleAuthenticationInput,
+  CompletedGoogleAuthentication,
+  GoogleAuthenticationResult
+} from './google-authentication.js';
+
+export {
+  extractGoogleOAuthCorrelationCookie,
+  GOOGLE_OAUTH_CORRELATION_COOKIE_NAME,
+  serializeClearedGoogleOAuthCorrelationCookie,
+  serializeGoogleOAuthCorrelationCookie
+} from './google-correlation-cookie.js';
 
 export {
   deriveS256PkceCodeChallenge,

@@ -303,6 +303,12 @@ test('export presenters expose only approved fields and copy persisted JSON safe
     createdAt: '2026-01-01T00:00:00.000Z',
     updatedAt: '2026-08-27T00:00:00.000Z'
   });
+  const googleIdentity = presentAccountDataExportIdentity({
+    provider: 'GOOGLE',
+    providerSubject: 'google-subject-secret',
+    createdAt: '2026-01-02T00:00:00.000Z',
+    updatedAt: '2026-08-27T00:00:00.000Z'
+  });
   const chart = presentAccountDataExportChart({
     displayName: 'Stored chart',
     category: 'SELF',
@@ -336,6 +342,11 @@ test('export presenters expose only approved fields and copy persisted JSON safe
     linkedAt: '2026-01-01T00:00:00.000Z',
     updatedAt: '2026-08-27T00:00:00.000Z'
   });
+  assert.deepEqual(googleIdentity, {
+    type: 'GOOGLE',
+    linkedAt: '2026-01-02T00:00:00.000Z',
+    updatedAt: '2026-08-27T00:00:00.000Z'
+  });
   assert.deepEqual(chart.normalizedChartRequest, sourceJson);
   assert.deepEqual(chart.notes, [{
     content: 'private note',
@@ -351,6 +362,8 @@ test('export presenters expose only approved fields and copy persisted JSON safe
   assert.equal('userId' in account, false);
   assert.equal('identityId' in identity, false);
   assert.equal('providerSubject' in identity, false);
+  assert.equal('providerSubject' in googleIdentity, false);
+  assert.equal('email' in googleIdentity, false);
   assert.equal('chartId' in chart, false);
   assert.equal('userId' in chart, false);
   assert.equal('noteId' in chart.notes[0], false);
@@ -376,7 +389,7 @@ test('unsupported identity providers fail closed before any identity is presente
   pool.state.identities.push({
     identity_id: 'identity-google',
     user_id: USER_A,
-    provider: 'GOOGLE',
+    provider: 'UNSUPPORTED_PROVIDER',
     provider_subject: 'provider-secret',
     created_at: '2026-08-27T07:00:00.000Z',
     updated_at: '2026-08-27T07:00:00.000Z'
@@ -386,7 +399,7 @@ test('unsupported identity providers fail closed before any identity is presente
     () => repository.openSnapshot(USER_A),
     (error) => {
       assert.equal(error instanceof UnsupportedAccountDataExportIdentityError, true);
-      assert.equal(error.provider, 'GOOGLE');
+      assert.equal(error.provider, 'UNSUPPORTED_PROVIDER');
       assert.doesNotMatch(error.message, /provider-secret|identity-google|user-a/iu);
       return true;
     }

@@ -233,6 +233,14 @@ export function selectP0StagingRateLimitPolicy(
     return P0_STAGING_RATE_LIMIT_POLICIES.authEmailComplete;
   }
 
+  if (method === 'POST' && pathname === '/api/auth/google/start') {
+    return P0_STAGING_RATE_LIMIT_POLICIES.authEmailRequest;
+  }
+
+  if (method === 'GET' && pathname === '/api/auth/google/callback') {
+    return P0_STAGING_RATE_LIMIT_POLICIES.authEmailComplete;
+  }
+
   if (method === 'POST' && pathname === '/api/chart') {
     return P0_STAGING_RATE_LIMIT_POLICIES.chartCalculation;
   }

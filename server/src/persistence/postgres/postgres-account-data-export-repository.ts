@@ -669,7 +669,10 @@ export class PostgresAccountDataExportRepository
       assertSnapshotNotAborted(signal);
 
       for (const providerRow of providerResult.rows) {
-        if (providerRow.provider !== 'EMAIL_MAGIC_LINK') {
+        if (
+          providerRow.provider !== 'EMAIL_MAGIC_LINK' &&
+          providerRow.provider !== 'GOOGLE'
+        ) {
           throw new UnsupportedAccountDataExportIdentityError(
             providerRow.provider
           );
