@@ -134,7 +134,17 @@ function requestFacts(context: Context): {
     ...(problemCode === undefined ? {} : { problemCode }),
     ...(calculationObservability === undefined
       ? {}
-      : calculationObservability)
+      : {
+          cacheStatus: calculationObservability.cacheStatus,
+          engineResultGeneration:
+            calculationObservability.engineResultGeneration,
+          chartResultContractVersion:
+            calculationObservability.chartResultContractVersion,
+          scientificStatus: calculationObservability.scientificStatus,
+          ...(calculationObservability.engineDurationMs === undefined
+            ? {}
+            : { engineDurationMs: calculationObservability.engineDurationMs })
+        })
   };
 }
 

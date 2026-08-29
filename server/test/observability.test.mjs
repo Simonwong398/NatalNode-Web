@@ -298,6 +298,65 @@ test('records canonical ProblemCodes without raw paths or request data', async (
   }
 });
 
+test('projects only approved calculation fields into the completion record', async () => {
+  const sink = createSink();
+  const dependencies = createDependencies();
+  dependencies.chartCalculator.calculateChartWithOutcome = async () => ({
+    chart: { ok: true },
+    observability: {
+      cacheStatus: 'miss',
+      engineResultGeneration: 'test-generation',
+      chartResultContractVersion: 'test-contract',
+      scientificStatus: 'INCOMPLETE_RESEARCH',
+      engineDurationMs: 0,
+      requestId: 'spoofed-request-id',
+      method: 'DELETE',
+      endpointFamily: 'unknown-api',
+      problemCode: 'INTERNAL_ERROR',
+      cacheKey: 'private-cache-key-sentinel',
+      chartRequest: 'private-chart-request-sentinel',
+      userId: 'private-user-id-sentinel'
+    }
+  });
+  const app = createApp(dependencies, { observabilitySink: sink });
+
+  const response = await postJson(app, '/api/chart', {
+    chart: createChartRequest('private birth label')
+  });
+
+  assert.equal(response.status, 200);
+  assert.equal(sink.records.length, 1);
+  const [record] = sink.records;
+  assert.equal(record.event, 'api.request.completed');
+  assert.equal(record.requestId, response.headers.get('X-Request-Id'));
+  assert.equal(record.method, 'POST');
+  assert.equal(record.endpointFamily, 'chart');
+  assert.equal(record.problemCode, undefined);
+  assert.equal(record.cacheStatus, 'miss');
+  assert.equal(record.engineResultGeneration, 'test-generation');
+  assert.equal(record.chartResultContractVersion, 'test-contract');
+  assert.equal(record.scientificStatus, 'INCOMPLETE_RESEARCH');
+  assert.equal(record.engineDurationMs, 0);
+
+  for (const field of [
+    'cacheKey',
+    'chartRequest',
+    'userId'
+  ]) {
+    assert.equal(Object.prototype.hasOwnProperty.call(record, field), false, field);
+  }
+
+  const serializedRecord = JSON.stringify(record);
+  for (const sentinel of [
+    'spoofed-request-id',
+    'private-cache-key-sentinel',
+    'private-chart-request-sentinel',
+    'private-user-id-sentinel'
+  ]) {
+    assert.equal(serializedRecord.includes(sentinel), false, sentinel);
+  }
+});
+
 test('maps an unexpected API failure to one redacted 500 completion', async () => {
   const { app, sink } = createHarness({
     authenticate: async () => ({
