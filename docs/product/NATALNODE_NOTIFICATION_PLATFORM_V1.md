@@ -893,6 +893,14 @@ trigger, and live gates must not be hidden in local code.
 
 These are bounded candidates and are not executed by `WEB-NOTIFY-001A`:
 
+Current implementation status:
+
+- `WEB-NOTIFY-001B1` — **IMPLEMENTED LOCALLY**: typed domain primitives,
+  owner-scoped preferences, and PostgreSQL PushSubscription persistence
+  foundation only. Runtime composition, routes, browser registration, and
+  delivery remain deferred.
+- `WEB-NOTIFY-001B2` — **NOT STARTED**.
+
 ### `WEB-NOTIFY-001B1` — Typed notification domain and owner state
 
 Implement the bounded registry, intent shape, minimal preferences, and
@@ -993,15 +1001,15 @@ recommended policy checkpoint.
 
 ## 49. Recommended next action
 
-After product/security acceptance, the next single local technical action is:
+After the local foundation implementation, the next single technical action is:
 
-**`WEB-NOTIFY-001B1` — Implement the typed notification domain, owner-scoped
-preferences, and PushSubscription persistence contracts.**
+**`WEB-NOTIFY-001B1-R1` — Focused PushSubscription ownership, concurrency, and
+sensitive-credential persistence review.**
 
 This action must remain bounded, provider-neutral, and free of billing,
 astrology-trigger, service-worker, transport, or live credential work unless
 the corresponding slice is separately authorized. Do not execute it
-automatically as part of `001A`.
+automatically as part of `001B1`.
 
 ## 50. Runtime-source, dependency, and migration integrity
 

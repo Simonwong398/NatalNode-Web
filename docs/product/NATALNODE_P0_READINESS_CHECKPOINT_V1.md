@@ -427,10 +427,12 @@ implementation gap, and it does not reopen the checkpoint conclusion that no
 safe unblocked local P0 gap was identified for the previously frozen scope.
 
 `WEB-NOTIFY-001A` freezes the provider-neutral technical contract at
-`docs/product/NATALNODE_NOTIFICATION_PLATFORM_V1.md`. Its implementation is
-deferred: no notification runtime, PushSubscription storage, service worker,
-VAPID credential, worker, scheduler, subscription/payment logic, provider, or
-dependency is authorized by that contract task.
+`docs/product/NATALNODE_NOTIFICATION_PLATFORM_V1.md`. The bounded
+`WEB-NOTIFY-001B1` implementation now provides only typed notification domain
+primitives, owner-scoped preferences, and PushSubscription persistence. No
+notification runtime, service worker, VAPID credential, worker, scheduler,
+subscription/payment logic, provider, or dependency is introduced by that
+foundation slice; `WEB-NOTIFY-001B2` remains **NOT STARTED**.
 
 The historical P0 decision task `WEB-P0-POLICY-001A` remains **NOT EXECUTED /
 DEFERRED**. It is not recreated or executed here; its additional policy and
