@@ -2,6 +2,7 @@ import { randomUUID } from 'node:crypto';
 import { performance } from 'node:perf_hooks';
 import type { Context, MiddlewareHandler } from 'hono';
 import type { ProblemCode } from '../problem-details/index.js';
+import type { CalculationObservability } from './calculation-observability.js';
 
 export const REQUEST_ID_HEADER = 'X-Request-Id';
 
@@ -36,6 +37,7 @@ export type HttpMethod =
 interface ApiRequestContextVariables {
   requestId: string;
   problemCode: ProblemCode | undefined;
+  calculationObservability: CalculationObservability | undefined;
 }
 
 declare module 'hono' {
@@ -52,6 +54,11 @@ export interface OperationalRequestRecord {
   readonly status: number;
   readonly durationMs: number;
   readonly problemCode?: ProblemCode;
+  readonly cacheStatus?: CalculationObservability['cacheStatus'];
+  readonly engineResultGeneration?: string;
+  readonly chartResultContractVersion?: string;
+  readonly scientificStatus?: CalculationObservability['scientificStatus'];
+  readonly engineDurationMs?: number;
 }
 
 export interface ObservabilitySink {
@@ -111,14 +118,23 @@ function requestFacts(context: Context): {
   readonly method: HttpMethod;
   readonly endpointFamily: EndpointFamily;
   readonly problemCode?: ProblemCode;
+  readonly cacheStatus?: CalculationObservability['cacheStatus'];
+  readonly engineResultGeneration?: string;
+  readonly chartResultContractVersion?: string;
+  readonly scientificStatus?: CalculationObservability['scientificStatus'];
+  readonly engineDurationMs?: number;
 } {
   const problemCode = context.get('problemCode');
+  const calculationObservability = context.get('calculationObservability');
 
   return {
     requestId: context.get('requestId'),
     method: boundedMethod(context.req.raw.method),
     endpointFamily: classifyApiEndpointFamily(context.req.path),
-    ...(problemCode === undefined ? {} : { problemCode })
+    ...(problemCode === undefined ? {} : { problemCode }),
+    ...(calculationObservability === undefined
+      ? {}
+      : calculationObservability)
   };
 }
 

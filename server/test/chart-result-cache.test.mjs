@@ -340,22 +340,45 @@ test('identity components reject cache-key delimiter ambiguity', () => {
   }
 });
 
+test('identity components reject control and line-separator characters', () => {
+  for (const name of [
+    'runtimeNamespace',
+    'engineResultGeneration',
+    'chartResultContractVersion'
+  ]) {
+    for (const value of ['generation\nnext', 'generation\u2028next']) {
+      assert.throws(
+        () =>
+          createChartResultCacheKey(BASE_REQUEST, {
+            ...BASE_IDENTITY,
+            [name]: value
+          }),
+        new RegExp(`${name}.*control characters`, 'u')
+      );
+    }
+  }
+});
+
 test('cache starts with a miss and returns cloned values after set', () => {
   const { clock } = createFakeClock();
   const cache = createCache(clock);
   const request = createRequest();
   const result = createChartResult();
 
-  assert.equal(cache.get(request), undefined);
-  assert.equal(cache.set(request, result), true);
+  assert.deepEqual(cache.lookup(request), { status: 'miss' });
+  assert.deepEqual(cache.store(request, result), { status: 'stored' });
 
   result.bodies[0].longitude = 999;
-  const firstHit = cache.get(request);
+  const firstLookup = cache.lookup(request);
+  assert.equal(firstLookup.status, 'hit');
+  const firstHit = firstLookup.value;
 
   assert.equal(firstHit.bodies[0].longitude, 45.25);
   firstHit.bodies[0].longitude = 888;
 
-  const secondHit = cache.get(request);
+  const secondLookup = cache.lookup(request);
+  assert.equal(secondLookup.status, 'hit');
+  const secondHit = secondLookup.value;
   assert.equal(secondHit.bodies[0].longitude, 45.25);
   assert.notStrictEqual(secondHit, firstHit);
 });
@@ -514,7 +537,9 @@ test('clone-on-store failure leaves existing cache state intact', () => {
     unsupported: () => undefined
   };
 
-  assert.equal(cache.set(request, unserializableResult), false);
+  assert.deepEqual(cache.store(request, unserializableResult), {
+    status: 'error'
+  });
   assert.equal(cache.get(request).bodies[0].longitude, 45.25);
 });
 
@@ -538,7 +563,7 @@ test('clone-on-read failure evicts the entry and exposes no internal object', ()
       }
     });
 
-    assert.equal(cache.get(request), undefined);
+    assert.deepEqual(cache.lookup(request), { status: 'error' });
   } finally {
     restoreGlobalProperty('structuredClone', descriptor);
   }

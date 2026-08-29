@@ -34,6 +34,10 @@ function assertNonEmptyBoundedString(
   if (value.includes(':')) {
     throw new Error(`${name} must not contain ':' as a cache key delimiter.`);
   }
+
+  if (/[\u0000-\u001F\u007F-\u009F\u2028\u2029]/u.test(value)) {
+    throw new Error(`${name} must not contain control characters.`);
+  }
 }
 
 export function assertChartResultCacheIdentity(

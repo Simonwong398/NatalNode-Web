@@ -23,7 +23,12 @@ export function createChartRoute(dependencies: ServerDependencies) {
     }
 
     try {
-      const chart = await dependencies.chartCalculator.calculateChart(payload.chart);
+      const outcome =
+        await dependencies.chartCalculator.calculateChartWithOutcome(
+          payload.chart
+        );
+      context.set('calculationObservability', outcome.observability);
+      const { chart } = outcome;
       const response: ChartCalculationApiResponse = { chart };
 
       return context.json(response);

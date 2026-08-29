@@ -2,16 +2,28 @@ import {
   isChartResult,
   type EngineClient
 } from '@natalnode/engine-client';
+import { performance } from 'node:perf_hooks';
 import type { ChartRequest, ChartResult } from '@natalnode/contracts';
 import type { Clock } from '../creation-boundaries.js';
-import { ChartResultCache } from './chart-result-cache.js';
+import {
+  ChartResultCache
+} from './chart-result-cache.js';
 import type { ChartResultCacheIdentity } from './chart-result-cache-key.js';
+import type { CalculationObservability } from '../observability/calculation-observability.js';
 
 const INCOMPATIBLE_CHART_RESULT_ERROR =
   'Chart calculation result is incompatible.';
 
 export interface ChartCalculationService {
   calculateChart(request: ChartRequest): Promise<ChartResult>;
+  calculateChartWithOutcome(
+    request: ChartRequest
+  ): Promise<ChartCalculationOutcome>;
+}
+
+export interface ChartCalculationOutcome {
+  readonly chart: ChartResult;
+  readonly observability: CalculationObservability;
 }
 
 export interface CachedChartCalculatorConfig {
@@ -38,13 +50,29 @@ export class CachedChartCalculator implements ChartCalculationService {
   }
 
   public async calculateChart(request: ChartRequest): Promise<ChartResult> {
-    const cachedResult = this.cache.get(request);
+    const outcome = await this.calculateChartWithOutcome(request);
+    return outcome.chart;
+  }
 
-    if (cachedResult !== undefined) {
-      return cachedResult;
+  public async calculateChartWithOutcome(
+    request: ChartRequest
+  ): Promise<ChartCalculationOutcome> {
+    const cacheLookup = this.cache.lookup(request);
+
+    if (cacheLookup.status === 'hit') {
+      return {
+        chart: cacheLookup.value,
+        observability: this.createCalculationObservability(
+          'hit',
+          cacheLookup.value,
+          undefined
+        )
+      };
     }
 
+    const engineStartedAt = performance.now();
     const freshResult = await this.engineClient.calculateChart(request);
+    const engineDurationMs = this.engineDurationMs(engineStartedAt);
 
     if (
       !isChartResult(freshResult) ||
@@ -54,7 +82,41 @@ export class CachedChartCalculator implements ChartCalculationService {
       throw new Error(INCOMPATIBLE_CHART_RESULT_ERROR);
     }
 
-    this.cache.set(request, freshResult);
-    return freshResult;
+    const cacheStore = this.cache.store(request, freshResult);
+    const cacheStatus =
+      cacheLookup.status === 'error' || cacheStore.status === 'error'
+        ? 'error'
+        : 'miss';
+
+    return {
+      chart: freshResult,
+      observability: this.createCalculationObservability(
+        cacheStatus,
+        freshResult,
+        engineDurationMs
+      )
+    };
+  }
+
+  private createCalculationObservability(
+    cacheStatus: CalculationObservability['cacheStatus'],
+    chart: ChartResult,
+    engineDurationMs: number | undefined
+  ): CalculationObservability {
+    return {
+      cacheStatus,
+      engineResultGeneration: this.engineResultGeneration,
+      chartResultContractVersion: this.chartResultContractVersion,
+      scientificStatus: chart.calculationStatus,
+      ...(engineDurationMs === undefined ? {} : { engineDurationMs })
+    };
+  }
+
+  private engineDurationMs(startedAt: number): number {
+    const durationMs = Math.round(performance.now() - startedAt);
+
+    return Number.isSafeInteger(durationMs) && durationMs >= 0
+      ? durationMs
+      : 0;
   }
 }

@@ -83,6 +83,18 @@ function createDependencies({
     chartCalculator: {
       async calculateChart(request) {
         return calculateChart(request);
+      },
+      async calculateChartWithOutcome(request) {
+        return {
+          chart: await calculateChart(request),
+          observability: {
+            cacheStatus: 'miss',
+            engineResultGeneration: 'test-generation',
+            chartResultContractVersion: 'test-contract',
+            scientificStatus: 'INCOMPLETE_RESEARCH',
+            engineDurationMs: 0
+          }
+        };
       }
     },
     clock: {

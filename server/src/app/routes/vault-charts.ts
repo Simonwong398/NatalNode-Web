@@ -75,7 +75,12 @@ export function registerVaultChartRoutes(app: Hono, dependencies: ServerDependen
       let canonicalChartResult: ChartResult;
 
       try {
-        canonicalChartResult = await dependencies.chartCalculator.calculateChart(request.chart);
+        const outcome =
+          await dependencies.chartCalculator.calculateChartWithOutcome(
+            request.chart
+          );
+        context.set('calculationObservability', outcome.observability);
+        canonicalChartResult = outcome.chart;
       } catch (_error) {
         return createProblemDetailsContextResponse(context, {
           code: 'CALCULATION_UNAVAILABLE'

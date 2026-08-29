@@ -25,6 +25,26 @@ interface ChartResultCacheEntry {
   readonly chartResult: ChartResult;
 }
 
+export type ChartResultCacheLookup =
+  | {
+      readonly status: 'hit';
+      readonly value: ChartResult;
+    }
+  | {
+      readonly status: 'miss';
+    }
+  | {
+      readonly status: 'error';
+    };
+
+export type ChartResultCacheStore =
+  | {
+      readonly status: 'stored';
+    }
+  | {
+      readonly status: 'error';
+    };
+
 function isRecord(value: unknown): value is Record<string, unknown> {
   return (
     typeof value === 'object' &&
@@ -109,23 +129,23 @@ export class ChartResultCache {
     this.maxEntries = maxEntries;
   }
 
-  public get(request: ChartRequest): ChartResult | undefined {
+  public lookup(request: ChartRequest): ChartResultCacheLookup {
     const key = createChartResultCacheKey(request, this.identity);
     const nowMs = this.currentTimeMs();
     const entry = this.entries.get(key);
 
     if (entry === undefined) {
-      return undefined;
+      return { status: 'miss' };
     }
 
     if (!isCompatibleEntry(entry, this.identity)) {
       this.entries.delete(key);
-      return undefined;
+      return { status: 'miss' };
     }
 
     if (nowMs >= entry.expiresAtMs) {
       this.entries.delete(key);
-      return undefined;
+      return { status: 'miss' };
     }
 
     let clonedResult: ChartResult;
@@ -134,27 +154,35 @@ export class ChartResultCache {
       clonedResult = structuredClone(entry.chartResult);
     } catch (_error) {
       this.entries.delete(key);
-      return undefined;
+      return { status: 'error' };
     }
 
     this.entries.delete(key);
     this.entries.set(key, entry);
 
-    return clonedResult;
+    return { status: 'hit', value: clonedResult };
+  }
+
+  public get(request: ChartRequest): ChartResult | undefined {
+    const lookup = this.lookup(request);
+    return lookup.status === 'hit' ? lookup.value : undefined;
   }
 
   /**
    * Stores a result only after cloning it. The caller is responsible for
    * passing a structurally validated complete ChartResult at the B2 boundary.
    */
-  public set(request: ChartRequest, chartResult: ChartResult): boolean {
+  public store(
+    request: ChartRequest,
+    chartResult: ChartResult
+  ): ChartResultCacheStore {
     const key = createChartResultCacheKey(request, this.identity);
     let clonedResult: ChartResult;
 
     try {
       clonedResult = structuredClone(chartResult);
     } catch (_error) {
-      return false;
+      return { status: 'error' };
     }
 
     const nowMs = this.currentTimeMs();
@@ -175,7 +203,11 @@ export class ChartResultCache {
       chartResult: clonedResult
     });
 
-    return true;
+    return { status: 'stored' };
+  }
+
+  public set(request: ChartRequest, chartResult: ChartResult): boolean {
+    return this.store(request, chartResult).status === 'stored';
   }
 
   private currentTimeMs(): number {
