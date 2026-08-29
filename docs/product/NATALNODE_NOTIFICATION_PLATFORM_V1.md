@@ -2,9 +2,9 @@
 
 | Field | Value |
 |---|---|
-| Status | **APPROVED TECHNICAL CONTRACT / B2 IMPLEMENTED LOCALLY / DELIVERY DEFERRED** |
-| Task | `WEB-NOTIFY-001B2` |
-| Reviewed baseline | `6fb0029b9a18e11a5df2fdc4ded0f32044e006f5` (`docs: separate consumer and developer notifications`) |
+| Status | **APPROVED TECHNICAL CONTRACT / B3 IMPLEMENTED LOCALLY / VISUAL ACCEPTANCE REQUIRED / LIVE WEB PUSH DELIVERY NOT IMPLEMENTED** |
+| Task | `WEB-NOTIFY-001B3` |
+| Reviewed baseline | `ce3a46400b704022a4456f92ac9ba82876e80246` (`fix: harden consumer notification APIs`) |
 | Date | 2026-08-29 |
 | Scope | Provider-neutral notification platform and future subscription foundation |
 | Initial channel | Web Push, standards-based and provider-neutral |
@@ -12,14 +12,17 @@
 | Deployment | `PAUSED` / future external gates remain open |
 
 This document freezes the technical/product boundary for the NatalNode
-notification platform. It does not authorize notification delivery, browser
-permission UX, a service worker, a worker, a scheduler, a provider, payments,
-or any Developer operational-notification implementation. B1 remains the local
-Consumer/account-owned persistence foundation; B2 adds only the authenticated
-Consumer Web Push registration, removal, preference, and safe-export API
-boundary. This is an implementation handoff and product foundation contract,
-not a legal notice, retention schedule, billing decision, or production-
-readiness claim.
+notification platform. B1 remains the local Consumer/account-owned
+persistence foundation; B2 provides the authenticated Consumer Web Push
+registration, removal, preference, and safe-export API boundary; B3 adds only
+the local Account Notifications settings surface, explicit permission flow,
+dedicated Service Worker, browser subscription choreography, server-owned
+public-key capability, bounded payload/click handling, and safe account
+switching behavior. Live Web Push delivery, private VAPID credentials,
+provider selection, workers, schedulers, payments, and Developer operational-
+notification implementation remain outside this slice. This is an
+implementation handoff and product foundation contract, not a legal notice,
+retention schedule, billing decision, or production-readiness claim.
 
 The platform deliberately separates:
 
@@ -124,14 +127,18 @@ Current findings relevant to notifications:
   credential, endpoint, and user-content data.
 - The committed B1 foundation provides typed Consumer notification primitives,
   owner-scoped preferences, and account-owned PushSubscription persistence. B2
-  now provides only authenticated account routes, safe metadata presentation,
-  and safe Account Export projection. No VAPID, service-worker push, browser
-  permission, delivery worker, notification scheduler, or Developer
-  operational-notification infrastructure exists. The only scheduler-like
-  boundary is the short-lived Auth lifecycle maintenance executable; it is not
-  notification infrastructure.
-- The Web application is a static Astro artifact with React islands. No
-  service-worker or web-manifest implementation is present.
+  provides authenticated account routes, safe metadata presentation, and safe
+  Account Export projection. B3 now provides the Account Notifications UI,
+  explicit user-gesture permission flow, root-scoped Service Worker, browser
+  registration/removal choreography, server-owned public capability, and
+  bounded click/payload policy. No private VAPID, provider, delivery worker,
+  scheduler, or Developer operational-notification infrastructure exists. The
+  only scheduler-like boundary is the short-lived Auth lifecycle maintenance
+  executable; it is not notification infrastructure.
+- The Web application is a static Astro artifact with React islands. B3 adds
+  one narrow root-hosted notification Service Worker; it does not add a
+  web-manifest, fetch/cache layer, offline behavior, or background delivery
+  worker.
 - The accepted deployment direction uses one browser-visible origin with static
   Astro content and `/api` traffic owned by the Website API/BFF. HTTPS,
   service-worker scope, credentials, background execution, and live browser
@@ -313,8 +320,8 @@ This contract does not authorize:
   chart facts, provider selection, or access to `C:\\NatalNode`;
 - a Web Push vendor, Firebase, Google notification service, OneSignal, Pusher,
   AWS SNS, or a specific npm Web Push library;
-- a service worker, Push API registration, Notification permission request,
-  VAPID key generation, or live delivery;
+- live Web Push delivery, private VAPID key generation or management, a
+  provider, or any automatic permission request;
 - an in-app inbox/history for the initial Web Push foundation;
 - arbitrary user-controlled title/body/URL dispatch;
 - quiet hours, a delivery timezone, birth-chart timezone reuse, or a
@@ -1055,8 +1062,8 @@ approval.
 | Typed categories, intent, preferences | `IMPLEMENTED LOCALLY / CONSUMER ACCOUNT-OWNED FOUNDATION` | Focused provider-neutral domain; no billing or astrology types invented |
 | Owner-bound PushSubscription persistence | `IMPLEMENTED LOCALLY / CONSUMER ACCOUNT-OWNED FOUNDATION` | Typed repository/migration slice; sensitive fields and account ownership fixed here |
 | Registration/unsubscribe API boundary | `IMPLEMENTED LOCALLY / CONSUMER AUTHENTICATED API` | Auth principal, same-origin, bounded validation, account-key rate limiting, safe metadata |
-| Permission UX/settings UI | `LOCAL IMPLEMENTATION READY / LIVE-EXTERNAL-GATED` | Local browser code possible; real permission/Push API needs HTTPS/live acceptance |
-| Service worker | `LOCAL IMPLEMENTATION READY / LIVE-EXTERNAL-GATED` | Narrow handler later; no current worker or public-development fake |
+| Permission UX/settings UI | `IMPLEMENTED LOCALLY / VISUAL ACCEPTANCE REQUIRED` | Account Notifications UI uses explicit user gestures and all supported/denied/unavailable states |
+| Service worker | `IMPLEMENTED LOCALLY / VISUAL ACCEPTANCE REQUIRED` | Root-hosted narrow push/click worker; no fetch/cache/offline or public-development fake |
 | Web Push adapter | `OPERATIONS-GATED / PROVIDER-DEPENDENT` | Library/provider decision, credentials, error mapping, operations |
 | Durable outbox/worker | `OPERATIONS-GATED` | Persistence, worker/scheduler ownership, claiming, retry, deployment |
 | Entitlement integration | `FUTURE SUBSCRIPTION-GATED` | Approved product/billing entitlement source required |
@@ -1086,6 +1093,14 @@ Current implementation status:
   PUSH / PREFERENCE API**: authenticated account routes, owner-scoped
   registration/removal, safe metadata responses, and privacy-safe Account
   Export projection. Browser permission and delivery remain deferred.
+- `WEB-NOTIFY-001B3` — **IMPLEMENTED LOCALLY / VISUAL ACCEPTANCE REQUIRED /
+  LIVE WEB PUSH DELIVERY NOT IMPLEMENTED**: Account Notifications settings,
+  explicit permission flow, root-hosted Service Worker, browser
+  registration/removal choreography, safe public-key capability, bounded
+  payload/click handling, and conflict-safe account switching. No server
+  delivery or private VAPID credential is implemented.
+- `WEB-NOTIFY-001B4` — **NOT STARTED**: outbox, delivery worker, Web Push
+  adapter, private VAPID operations, and live delivery remain deferred.
 - Developer operational notification domain — **CONTRACT REQUIRED BEFORE
   IMPLEMENTATION** after Subscription/Entitlement and Developer Organization
   architecture are frozen.
@@ -1107,15 +1122,22 @@ service worker or transport.
 
 ### `WEB-NOTIFY-001B3` — Service worker, permission UX, and settings
 
-Implement the narrow payload/click boundary, explicit user-gesture permission
-flow, all permission states, and minimal Account / Settings / Notifications UI.
-Keep public-development unavailable and avoid an inbox/paywall.
+Implemented locally with visual acceptance still required. The Account
+Notifications surface uses an explicit user-gesture-only permission flow,
+separately detects Notification, Service Worker, and PushManager support,
+registers the root-hosted worker only after permission is granted, maps only
+the native endpoint and p256dh/auth keys to the B2 registration API, and keeps
+account switching/disable conflicts fail-closed. The worker accepts only the
+bounded V1 payload and approved same-origin paths, has no fetch/cache/offline
+behavior, and uses a generic fallback for invalid payloads. No automatic
+permission prompt, private VAPID credential, server delivery, provider, or
+public-development fake is included. **VISUAL ACCEPTANCE REQUIRED.**
 
 ### `WEB-NOTIFY-001B4` — Outbox, worker, and Web Push adapter
 
-Implement delivery records, bounded claiming, retries/backoff, invalidation,
-server-owned templates, and an isolated standards-based adapter only after
-operations/provider/credential decisions. No arbitrary dispatch API.
+**NOT STARTED.** Implement delivery records, bounded claiming, retries/backoff,
+invalidation, server-owned templates, and an isolated standards-based adapter
+only after operations/provider/credential decisions. No arbitrary dispatch API.
 
 ### `WEB-NOTIFY-001C` — Focused security/privacy/reliability review
 
@@ -1154,7 +1176,8 @@ The following remain open and receive no invented defaults:
 1. active notification types, especially astrology/transit semantics;
 2. entitlement policy, plan names, paid UX, and billing source;
 3. preference schema and locale/delivery-timezone policy;
-4. service-worker registration/cache scope and static deployment details;
+4. production service-worker cache scope and static deployment details beyond
+   the narrow B3 root-hosted worker;
 5. Web Push library/provider and browser compatibility;
 6. VAPID ownership, storage, rotation, and secret operations;
 7. subscription encryption-at-rest, grants, and backup access;
@@ -1197,45 +1220,53 @@ recommended policy checkpoint.
 
 ## 49. Recommended next action
 
-After the local Consumer API implementation, the next single technical action
-is:
+After this local browser foundation, the next required action is:
 
-**`WEB-NOTIFY-001B2-R1` — Focused Consumer Notification API Authorization / CSRF
-/ Credential-Exposure Review.**
+**`PRODUCT-OWNER VISUAL ACCEPTANCE` — review desktop and mobile Account
+Notifications states, including default, denied, and connected states only
+when legitimately available.**
 
-This action must remain bounded, provider-neutral, and free of billing,
-astrology-trigger, service-worker, transport, or live credential work unless
-the corresponding slice is separately authorized. Do not execute it
-automatically as part of this contract amendment. It must also verify that the
-Consumer/account-owned B1 foundation remains additive-compatible with a future
-Developer operational notification domain.
+This is a visual/product gate for the local B3 surface. It does not authorize
+B4 delivery, private VAPID credentials, a provider, an inbox, billing,
+astrology-trigger work, or Developer operational notifications. Do not execute
+`WEB-NOTIFY-001B4` automatically.
 
 ## 50. Runtime-source, dependency, and migration integrity
 
-`WEB-NOTIFY-001A` is documentation-only. Its completion boundary is:
+`WEB-NOTIFY-001B3` is a local browser-foundation implementation. Its completion
+boundary is:
 
-- no `server/src` changes;
-- no `apps/web/src` changes;
-- no `packages` changes;
-- no tests or test framework;
+- additive server-owned public-key capability and notification response type;
+- Account Notifications UI and browser orchestration only;
+- one root-hosted static Service Worker with push/click handlers only;
+- focused characterization tests without a new test framework;
+- no new package dependency or lockfile change;
 - no database migration or schema change;
-- no package manifest, dependency, or lockfile change;
-- no service worker, browser permission request, worker, scheduler, or
-  deployment configuration;
-- no EngineClient, HTTP, provider, astronomy, chart, Auth, Vault, or BFF
+- no delivery worker, scheduler, provider, private VAPID credential, or
+  server-side push send;
+- no EngineClient, HTTP, astronomy, chart, Auth, Vault, BFF, or unrelated page
   implementation change; and
 - no access to or modification of `C:\\NatalNode`.
 
-Only this contract and the narrow post-checkpoint roadmap note are task-owned
-documentation changes.
+The existing B1/B2 persistence and API contracts remain additive-compatible;
+Account Export, Account Deletion, Privacy Access Audit, and historical P0
+documentation are not reopened by B3.
 
 ## 51. Validation boundary
 
-This documentation-only task uses only the targeted repository checks:
-`git diff --check`, `git diff --stat`, `git diff --name-status`, and
-`git status --short`. Tests, `npm run check`, builds, typecheck, install,
-browser validation, `dev:public`, database/migration/deployment commands, and
-provider calls are intentionally not run.
+This implementation uses only focused notification tests, source checks,
+workspace checks/builds, the static worker artifact check, and:
+
+- `npm run check`;
+- focused browser and Service Worker characterization tests;
+- focused server capability and notification-route tests;
+- `npm run build:server` because server runtime configuration changed;
+- `npm run build` because the Astro application changed; and
+- `git diff --check`, `git diff --stat`, `git diff --name-status`, and
+  `git status --short`.
+
+Broad unrelated suites, database/migration commands, live Web Push delivery,
+provider calls, and browser permission automation are intentionally not run.
 
 ## 52. Freeze conclusion
 
@@ -1251,11 +1282,13 @@ provider calls are intentionally not run.
     Provider/library selection          = DEFERRED
     Billing/subscription implementation = DEFERRED
     Astrology trigger implementation    = DEFERRED
-    Runtime implementation              = B2 CONSUMER API LOCAL; DELIVERY DEFERRED
-    Live/deployment acceptance          = EXTERNAL-GATED
-    Historical P0 status                = PRESERVED; NEW SCOPE AFTER WEB-P0-READY-003
-    WEB-P0-POLICY-001A                  = NOT EXECUTED / DEFERRED
+    Runtime implementation             = B3 LOCAL BROWSER FOUNDATION; LIVE DELIVERY NOT IMPLEMENTED
+    Live/deployment acceptance          = VISUAL ACCEPTANCE REQUIRED / LIVE EXTERNAL GATES OPEN
+    Historical P0 status               = PRESERVED; NEW SCOPE AFTER WEB-P0-READY-003
+    WEB-P0-POLICY-001A                 = NOT EXECUTED / DEFERRED
+    WEB-NOTIFY-001B4                   = NOT STARTED
 
-The contract is complete at the technical-boundary level. No notification is
-sent, no browser permission is requested, and no subscription/payment or
-provider decision is implied by this document.
+The B3 foundation is complete locally at the implementation boundary. No
+automatic browser permission is requested, no notification is sent, and no
+subscription/payment/provider decision or live delivery acceptance is implied
+by this document.

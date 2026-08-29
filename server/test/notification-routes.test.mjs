@@ -13,6 +13,10 @@ import {
 const PUBLIC_WEB_ORIGIN = 'https://natalnode.example';
 const API_ORIGIN = 'http://localhost';
 const AUTH_SESSION_CREATED_AT = '2026-08-29T00:00:00.000Z';
+const WEB_PUSH_CAPABILITY = {
+  configured: false,
+  applicationServerKey: null
+};
 
 function createClock() {
   const timestamps = [
@@ -186,7 +190,8 @@ function createDependencies({ service } = {}) {
       notificationPreferences: preferences,
       pushSubscriptions: subscriptions,
       idGenerator,
-      clock
+      clock,
+      webPushCapability: WEB_PUSH_CAPABILITY
     });
 
   return {
@@ -425,6 +430,7 @@ test('safe notification state is owner scoped and preserves missing preferences'
   });
   const stateA = await responseJson(response);
   assert.deepEqual(stateA, {
+    webPushCapability: WEB_PUSH_CAPABILITY,
     channelPreferences: { WEB_PUSH: true },
     categoryPreferences: {
       ACCOUNT: false,
@@ -450,6 +456,7 @@ test('safe notification state is owner scoped and preserves missing preferences'
     user: 'user-c'
   });
   assert.deepEqual(await responseJson(response), {
+    webPushCapability: WEB_PUSH_CAPABILITY,
     channelPreferences: { WEB_PUSH: null },
     categoryPreferences: {
       ACCOUNT: null,

@@ -24,12 +24,17 @@ import { toPushSubscriptionSafeMetadata } from './push-subscription.js';
 import type { NotificationPreferenceRepository, PushSubscriptionRepository } from './repositories.js';
 import type { PushSubscriptionRecord, PushSubscriptionRegistration } from './push-subscription.js';
 import type { Clock, IdGenerator } from '../app/creation-boundaries.js';
+import {
+  createWebPushCapability
+} from './web-push-capability.js';
+import type { WebPushCapabilityApiResponse } from '@natalnode/contracts';
 
 export interface NotificationAccountServiceDependencies {
   readonly notificationPreferences: NotificationPreferenceRepository;
   readonly pushSubscriptions: PushSubscriptionRepository;
   readonly idGenerator: IdGenerator;
   readonly clock: Clock;
+  readonly webPushCapability?: WebPushCapabilityApiResponse;
 }
 
 export type RegisterNotificationPushSubscriptionResult =
@@ -104,6 +109,8 @@ export class NotificationAccountService {
       categoryPreferences;
 
     return {
+      webPushCapability: this.dependencies.webPushCapability ??
+        createWebPushCapability(undefined),
       channelPreferences: {
         WEB_PUSH: channelPreference?.enabled ?? null
       },

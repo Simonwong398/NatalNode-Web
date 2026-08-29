@@ -19,6 +19,7 @@ import type { ServerRuntimeConfig } from './server-runtime-config.js';
 import { NodeIdGenerator } from './node-id-generator.js';
 import { SystemClock } from './system-clock.js';
 import { NotificationAccountService } from '../notification-platform/notification-account-service.js';
+import { createWebPushCapability } from '../notification-platform/web-push-capability.js';
 
 function assertValidTtl(seconds: number, name: string): void {
   if (!Number.isFinite(seconds) || !Number.isInteger(seconds) || seconds <= 0) {
@@ -68,7 +69,10 @@ export function createServerRuntimeDependencies(
     notificationPreferences: persistence.notificationPreferences,
     pushSubscriptions: persistence.pushSubscriptions,
     idGenerator,
-    clock
+    clock,
+    webPushCapability: createWebPushCapability(
+      config.webPush.applicationServerKey
+    )
   });
   const authenticator = new SessionRequestAuthenticator({
     authSessions: persistence.authSessions,

@@ -65,6 +65,12 @@ export type {
 } from './notification-account-service.js';
 
 export {
+  createWebPushCapability,
+  isValidWebPushApplicationServerKey,
+  WEB_PUSH_APPLICATION_SERVER_KEY_ENVIRONMENT_VARIABLE
+} from './web-push-capability.js';
+
+export {
   PostgresNotificationPreferenceRepository,
   PostgresPushSubscriptionRepository
 } from './postgres/index.js';

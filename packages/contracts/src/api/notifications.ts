@@ -56,7 +56,17 @@ export interface SafePushSubscriptionMetadata {
   readonly invalidatedAt: string | null;
 }
 
+/**
+ * Server-owned browser capability. The private VAPID credential is never part
+ * of this response.
+ */
+export interface WebPushCapabilityApiResponse {
+  readonly configured: boolean;
+  readonly applicationServerKey: string | null;
+}
+
 export interface NotificationStateApiResponse {
+  readonly webPushCapability: WebPushCapabilityApiResponse;
   readonly channelPreferences: {
     readonly WEB_PUSH: boolean | null;
   };

@@ -3,6 +3,10 @@ import type {
   ServerEnvironmentConfig
 } from './server-environment-config.js';
 import { ServerEnvironmentConfigurationError } from './server-environment-configuration-error.js';
+import {
+  createWebPushCapability,
+  WEB_PUSH_APPLICATION_SERVER_KEY_ENVIRONMENT_VARIABLE
+} from '../../notification-platform/web-push-capability.js';
 
 const CANONICAL_NON_NEGATIVE_INTEGER = /^(?:0|[1-9]\d*)$/u;
 const CANONICAL_POSITIVE_INTEGER = /^[1-9]\d*$/u;
@@ -209,6 +213,9 @@ export function parseServerEnvironment(
     'AUTH_SESSION_COOKIE_SECURE'
   );
   const publicWebOrigin = parsePublicWebOrigin(env);
+  const webPushCapability = createWebPushCapability(
+    env[WEB_PUSH_APPLICATION_SERVER_KEY_ENVIRONMENT_VARIABLE]
+  );
   const hostname = readRequired(env, 'HOST');
 
   if (hostname !== hostname.trim()) {
@@ -220,6 +227,9 @@ export function parseServerEnvironment(
   return {
     serverRuntimeConfig: {
       publicWebOrigin,
+      webPush: {
+        applicationServerKey: webPushCapability.applicationServerKey
+      },
       authentication: {
         magicLinkTtlSeconds,
         sessionTtlSeconds,

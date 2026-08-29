@@ -45,6 +45,149 @@ const seo: SeoMetadata = {
       <div class="max-w-2xl" data-account-content hidden>
         <section
           class="nn-surface nn-surface--elevated p-6 sm:p-8"
+          data-account-notifications
+          aria-labelledby="account-notifications-title"
+          aria-busy="true"
+        >
+          <p class="nn-eyebrow">Notifications</p>
+          <h2 class="nn-type-section-title mt-3" id="account-notifications-title">
+            Browser notifications
+          </h2>
+          <p class="nn-type-body-small mt-3 max-w-xl" id="account-notifications-description">
+            Get notifications from NatalNode on this browser.
+          </p>
+          <p class="nn-type-metadata mt-3 max-w-xl" id="account-notifications-privacy">
+            Browser notifications may appear on your lock screen or on a shared device.
+            Review the notification preview settings on your device before enabling them.
+          </p>
+
+          <p class="nn-async-state mt-6" data-notifications-loading role="status" aria-live="polite">
+            Loading notification settings…
+          </p>
+
+          <div data-notifications-content hidden>
+            <div class="mt-6 border-t border-[var(--nn-border-subtle)] pt-6">
+              <p class="nn-type-label">This browser</p>
+              <p
+                class="nn-type-body-small mt-2"
+                data-notifications-permission
+                id="account-notifications-permission"
+              ></p>
+              <p
+                class="nn-type-body-small mt-2"
+                data-notifications-connection
+                id="account-notifications-connection"
+              ></p>
+
+              <div class="mt-5 flex flex-wrap gap-3">
+                <button
+                  class="nn-button nn-button--primary"
+                  data-notifications-enable
+                  type="button"
+                  aria-describedby="account-notifications-description account-notifications-permission account-notifications-error"
+                >
+                  Enable on this browser
+                </button>
+                <button
+                  class="nn-button nn-button--secondary"
+                  data-notifications-disable
+                  type="button"
+                  aria-describedby="account-notifications-connection account-notifications-error"
+                  hidden
+                >
+                  Disable on this browser
+                </button>
+              </div>
+            </div>
+
+            <fieldset class="mt-8 border-t border-[var(--nn-border-subtle)] pt-6" data-notifications-categories>
+              <legend class="nn-type-label">Notification categories</legend>
+              <p class="nn-type-body-small mt-2" id="account-notifications-category-help">
+                Choose which account-owned categories may use the Web Push channel when available.
+                Categories do not create a browser subscription.
+              </p>
+
+              <div class="mt-5 grid gap-4">
+                <label class="flex min-w-0 items-start gap-3" for="account-notifications-category-account">
+                  <input
+                    class="nn-checkbox mt-1 shrink-0"
+                    id="account-notifications-category-account"
+                    data-notifications-category="ACCOUNT"
+                    type="checkbox"
+                    aria-describedby="account-notifications-category-account-help account-notifications-category-help"
+                  />
+                  <span class="min-w-0">
+                    <span class="flex flex-wrap items-baseline gap-x-3 gap-y-1">
+                      <span class="nn-type-label">Account</span>
+                      <span class="nn-type-metadata" data-notifications-category-state="ACCOUNT">Not set</span>
+                    </span>
+                    <span class="nn-type-body-small mt-1 block" id="account-notifications-category-account-help">
+                      Account and product updates when available.
+                    </span>
+                  </span>
+                </label>
+
+                <label class="flex min-w-0 items-start gap-3" for="account-notifications-category-system">
+                  <input
+                    class="nn-checkbox mt-1 shrink-0"
+                    id="account-notifications-category-system"
+                    data-notifications-category="SYSTEM"
+                    type="checkbox"
+                    aria-describedby="account-notifications-category-system-help account-notifications-category-help"
+                  />
+                  <span class="min-w-0">
+                    <span class="flex flex-wrap items-baseline gap-x-3 gap-y-1">
+                      <span class="nn-type-label">System</span>
+                      <span class="nn-type-metadata" data-notifications-category-state="SYSTEM">Not set</span>
+                    </span>
+                    <span class="nn-type-body-small mt-1 block" id="account-notifications-category-system-help">
+                      Important NatalNode system updates when available.
+                    </span>
+                  </span>
+                </label>
+
+                <label class="flex min-w-0 items-start gap-3" for="account-notifications-category-astrology-alert">
+                  <input
+                    class="nn-checkbox mt-1 shrink-0"
+                    id="account-notifications-category-astrology-alert"
+                    data-notifications-category="ASTROLOGY_ALERT"
+                    type="checkbox"
+                    aria-describedby="account-notifications-category-astrology-alert-help account-notifications-category-help"
+                  />
+                  <span class="min-w-0">
+                    <span class="flex flex-wrap items-baseline gap-x-3 gap-y-1">
+                      <span class="nn-type-label">Astrology alerts</span>
+                      <span class="nn-type-metadata" data-notifications-category-state="ASTROLOGY_ALERT">Not set</span>
+                    </span>
+                    <span class="nn-type-body-small mt-1 block" id="account-notifications-category-astrology-alert-help">
+                      Future astrology alerts when available.
+                    </span>
+                  </span>
+                </label>
+              </div>
+            </fieldset>
+
+            <p
+              class="nn-status mt-5"
+              data-notifications-status
+              id="account-notifications-status"
+              role="status"
+              aria-live="polite"
+              hidden
+            ></p>
+            <p
+              class="nn-notice nn-notice--error mt-5"
+              data-notifications-error
+              id="account-notifications-error"
+              role="alert"
+              tabindex="-1"
+              hidden
+            ></p>
+          </div>
+        </section>
+
+        <section
+          class="nn-surface nn-surface--elevated mt-8 p-6 sm:p-8"
           data-account-export
           aria-labelledby="account-export-title"
         >
@@ -243,8 +386,10 @@ const seo: SeoMetadata = {
 </SiteLayout>
 
 <script>
+  import type { NotificationCategory } from '@natalnode/contracts';
   import { initializeAccountExport } from '@/features/account/account-export';
   import { initializeAccountDeletion } from '@/features/account/account-deletion';
+  import { initializeNotificationSettings } from '@/features/notifications/notification-settings';
 
   const root = document.querySelector<HTMLElement>('[data-account-page]');
   const loading = root?.querySelector<HTMLElement>('[data-account-loading]');
@@ -265,6 +410,35 @@ const seo: SeoMetadata = {
   const exportError = root?.querySelector<HTMLElement>('[data-account-export-error]');
   const exportReauthStatus = root?.querySelector<HTMLElement>('[data-account-export-reauth]');
   const exportResponseFrame = root?.querySelector<HTMLIFrameElement>('[data-account-export-response]');
+  const notificationsRoot = root?.querySelector<HTMLElement>('[data-account-notifications]');
+  const notificationsLoading = notificationsRoot?.querySelector<HTMLElement>('[data-notifications-loading]');
+  const notificationsContent = notificationsRoot?.querySelector<HTMLElement>('[data-notifications-content]');
+  const notificationsPermission = notificationsRoot?.querySelector<HTMLElement>('[data-notifications-permission]');
+  const notificationsConnection = notificationsRoot?.querySelector<HTMLElement>('[data-notifications-connection]');
+  const notificationsEnable = notificationsRoot?.querySelector<HTMLButtonElement>('[data-notifications-enable]');
+  const notificationsDisable = notificationsRoot?.querySelector<HTMLButtonElement>('[data-notifications-disable]');
+  const notificationsStatus = notificationsRoot?.querySelector<HTMLElement>('[data-notifications-status]');
+  const notificationsError = notificationsRoot?.querySelector<HTMLElement>('[data-notifications-error]');
+  const notificationCategoryControls = Array.from(
+    notificationsRoot?.querySelectorAll<HTMLInputElement>('[data-notifications-category]') ?? []
+  ).flatMap((input) => {
+    const category = input.dataset.notificationsCategory;
+    const categoryState = category === undefined
+      ? null
+      : notificationsRoot?.querySelector<HTMLElement>(
+          `[data-notifications-category-state="${category}"]`
+        );
+
+    if (
+      (category !== 'ACCOUNT' && category !== 'SYSTEM' && category !== 'ASTROLOGY_ALERT') ||
+      categoryState === null ||
+      categoryState === undefined
+    ) {
+      return [];
+    }
+
+    return [{ category: category as NotificationCategory, input, state: categoryState }];
+  });
 
   if (
     root && loading && sessionError && accountContent && openButton &&
@@ -300,6 +474,25 @@ const seo: SeoMetadata = {
       errorStatus: exportError,
       reauthStatus: exportReauthStatus,
       responseFrame: exportResponseFrame
+    });
+  }
+
+  if (
+    notificationsRoot && notificationsLoading && notificationsContent &&
+    notificationsPermission && notificationsConnection && notificationsEnable &&
+    notificationsDisable && notificationsStatus && notificationsError
+  ) {
+    initializeNotificationSettings({
+      root: notificationsRoot,
+      loading: notificationsLoading,
+      content: notificationsContent,
+      permissionStatus: notificationsPermission,
+      connectionStatus: notificationsConnection,
+      enableButton: notificationsEnable,
+      disableButton: notificationsDisable,
+      status: notificationsStatus,
+      error: notificationsError,
+      categoryControls: notificationCategoryControls
     });
   }
 </script>
