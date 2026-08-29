@@ -417,3 +417,22 @@ interaction, legal/public-copy inputs, backup/restore reconciliation,
 observability sink/retention ownership, processor boundaries, and Auth
 maintenance scheduler ownership. It is a decision-only recommendation; this
 checkpoint does not execute it, start another task, or make those decisions.
+
+## 12. Post-checkpoint new scope: Notification Platform / Subscription Foundation
+
+After `WEB-P0-READY-003`, the product owner introduced the new
+**Notification Platform / Subscription Foundation** capability for future
+proactive notification features. This is new scope, not a retroactive P0
+implementation gap, and it does not reopen the checkpoint conclusion that no
+safe unblocked local P0 gap was identified for the previously frozen scope.
+
+`WEB-NOTIFY-001A` freezes the provider-neutral technical contract at
+`docs/product/NATALNODE_NOTIFICATION_PLATFORM_V1.md`. Its implementation is
+deferred: no notification runtime, PushSubscription storage, service worker,
+VAPID credential, worker, scheduler, subscription/payment logic, provider, or
+dependency is authorized by that contract task.
+
+The historical P0 decision task `WEB-P0-POLICY-001A` remains **NOT EXECUTED /
+DEFERRED**. It is not recreated or executed here; its additional policy and
+external decision inputs are evaluated only after the notification foundation
+is understood.
