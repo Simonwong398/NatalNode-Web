@@ -3,6 +3,7 @@ import { readFile } from 'node:fs/promises';
 import test from 'node:test';
 
 import {
+  assertWebPushPayloadV1,
   NotificationEnqueueService,
   NotificationPayloadValidationError,
   PostgresNotificationEnqueueRepository,
@@ -71,6 +72,8 @@ class FakePool {
     this.state = createState();
     this.advisoryLocks = new Map();
     this.failDeliveryInsertAt = null;
+    this.hideNextIntentLookup = false;
+    this.forceUniqueConflict = false;
   }
 
   async connect() {
@@ -211,6 +214,10 @@ class FakePoolClient {
         'SELECT intent_id, owner_id, category, channel, notification_type_key'
       )
     ) {
+      if (this.pool.hideNextIntentLookup) {
+        this.pool.hideNextIntentLookup = false;
+        return { rows: [] };
+      }
       const row = Array.from(this.state.intents.values()).find(
         (intent) =>
           intent.owner_id === params[0] &&
@@ -307,10 +314,14 @@ class FakePoolClient {
           existing.dedupe_key === intent.dedupe_key
       );
       if (duplicate) {
+        if (this.pool.forceUniqueConflict) {
+          this.pool.forceUniqueConflict = false;
+          return { rows: [] };
+        }
         throw new Error('duplicate notification intent');
       }
       this.state.intents.set(intent.intent_id, intent);
-      return { rows: [] };
+      return { rows: [{ intent_id: intent.intent_id }] };
     }
 
     if (normalized.startsWith('INSERT INTO notification_deliveries')) {
@@ -384,10 +395,10 @@ function createHarness({
   pool.addUser(OWNER_ID);
   pool.addUser(OTHER_OWNER_ID);
 
-  if (channelPreference !== null) {
+  if (channelPreference !== 'missing') {
     pool.setChannelPreference(OWNER_ID, channelPreference);
   }
-  if (categoryPreference !== null) {
+  if (categoryPreference !== 'missing') {
     pool.setCategoryPreference(OWNER_ID, CATEGORY, categoryPreference);
   }
   for (const [index, subscription] of subscriptions.entries()) {
@@ -511,6 +522,11 @@ test('0009 migration freezes the B4B1 tables, indexes, cascades, and privacy bou
 test('enqueue gates fail closed for missing or disabled preferences, eligibility, and subscriptions', async () => {
   const cases = [
     {
+      name: 'missing channel preference',
+      options: { channelPreference: 'missing' },
+      reason: 'CHANNEL_NOT_ENABLED'
+    },
+    {
       name: 'null channel preference',
       options: { channelPreference: null },
       reason: 'CHANNEL_NOT_ENABLED'
@@ -519,6 +535,11 @@ test('enqueue gates fail closed for missing or disabled preferences, eligibility
       name: 'false channel preference',
       options: { channelPreference: false },
       reason: 'CHANNEL_NOT_ENABLED'
+    },
+    {
+      name: 'missing category preference',
+      options: { categoryPreference: 'missing' },
+      reason: 'CATEGORY_NOT_ENABLED'
     },
     {
       name: 'null category preference',
@@ -539,6 +560,15 @@ test('enqueue gates fail closed for missing or disabled preferences, eligibility
     {
       name: 'no active subscription',
       options: { subscriptions: [] },
+      reason: 'NO_ACTIVE_SUBSCRIPTIONS'
+    },
+    {
+      name: 'only invalidated subscriptions',
+      options: {
+        subscriptions: [
+          { subscriptionId: 'subscription-invalidated', status: 'INVALIDATED' }
+        ]
+      },
       reason: 'NO_ACTIVE_SUBSCRIPTIONS'
     }
   ];
@@ -646,6 +676,24 @@ test('unsafe payload is rejected before any persistence', async () => {
   assert.equal(harness.renderCount.value, 1);
 });
 
+test('payload Unicode bounds count code points and reject over-bound emoji', () => {
+  const valid = assertWebPushPayloadV1({
+    version: 1,
+    title: '😀'.repeat(80),
+    body: '🪐'.repeat(160)
+  });
+  assert.equal(Array.from(valid.title).length, 80);
+  assert.equal(Array.from(valid.body).length, 160);
+
+  assert.throws(() => {
+    assertWebPushPayloadV1({
+      version: 1,
+      title: '😀'.repeat(81),
+      body: 'Within the bound.'
+    });
+  }, NotificationPayloadValidationError);
+});
+
 test('duplicate enqueue reuses the existing intent without re-rendering or refanning', async () => {
   const harness = createHarness({
     subscriptions: [
@@ -670,16 +718,33 @@ test('duplicate enqueue reuses the existing intent without re-rendering or refan
 
 test('concurrent duplicate enqueue serializes the frozen dedupe tuple', async () => {
   const harness = createHarness();
-  const [first, second] = await Promise.all([
-    harness.enqueue(),
-    harness.enqueue()
-  ]);
+  const results = await Promise.all(
+    Array.from({ length: 5 }, () => harness.enqueue())
+  );
 
   assert.deepEqual(
-    [first.outcome, second.outcome].sort(),
-    ['CREATED', 'DUPLICATE']
+    results.map((result) => result.outcome).sort(),
+    ['CREATED', 'DUPLICATE', 'DUPLICATE', 'DUPLICATE', 'DUPLICATE']
   );
   assert.equal(harness.renderCount.value, 1);
+  assert.equal(harness.pool.state.intents.size, 1);
+  assert.equal(harness.pool.state.deliveries.size, 1);
+});
+
+test('database unique conflict is resolved without leaving the transaction aborted', async () => {
+  const harness = createHarness();
+  const first = await harness.enqueue();
+
+  harness.pool.hideNextIntentLookup = true;
+  harness.pool.forceUniqueConflict = true;
+  const conflicted = await harness.enqueue();
+  const afterConflict = await harness.enqueue();
+
+  assert.equal(first.outcome, 'CREATED');
+  assert.equal(conflicted.outcome, 'DUPLICATE');
+  assert.equal(afterConflict.outcome, 'DUPLICATE');
+  assert.equal(conflicted.intent.intentId, first.intent.intentId);
+  assert.equal(afterConflict.intent.intentId, first.intent.intentId);
   assert.equal(harness.pool.state.intents.size, 1);
   assert.equal(harness.pool.state.deliveries.size, 1);
 });
@@ -691,7 +756,7 @@ test('intent and fan-out creation roll back atomically on delivery failure', asy
       { subscriptionId: 'subscription-b', status: 'ACTIVE' }
     ]
   });
-  harness.pool.failDeliveryInsertAt = 1;
+  harness.pool.failDeliveryInsertAt = 2;
 
   await assert.rejects(harness.enqueue());
   assert.equal(harness.pool.state.intents.size, 0);

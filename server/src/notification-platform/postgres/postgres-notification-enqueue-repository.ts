@@ -47,6 +47,10 @@ interface NotificationIntentRow {
   readonly completed_at: Date | string | null;
 }
 
+interface InsertedIntentRow {
+  readonly intent_id: string;
+}
+
 interface NotificationDeliveryRow {
   readonly delivery_id: string;
   readonly intent_id: string;
@@ -172,7 +176,15 @@ const INSERT_INTENT_SQL = `
     updated_at,
     completed_at
   )
-  VALUES ($1, $2, $3, 'WEB_PUSH', $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)`;
+  VALUES ($1, $2, $3, 'WEB_PUSH', $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
+  ON CONFLICT (
+    owner_id,
+    category,
+    channel,
+    notification_type_key,
+    dedupe_key
+  ) DO NOTHING
+  RETURNING intent_id`;
 
 const INSERT_DELIVERY_SQL = `
   INSERT INTO notification_deliveries (
@@ -260,6 +272,44 @@ function mapIntentRow(row: NotificationIntentRow): NotificationIntentRecord {
     updatedAt: toTimestampString(row.updated_at),
     completedAt: toNullableTimestampString(row.completed_at)
   });
+}
+
+type DuplicateNotificationEnqueueResult = Extract<
+  NotificationEnqueueResult,
+  { readonly outcome: 'DUPLICATE' }
+>;
+
+async function findExistingEnqueueResult(
+  executor: PostgresClientSqlExecutor,
+  identity: Pick<
+    NotificationEnqueuePersistenceInput,
+    'ownerId' | 'category' | 'notificationTypeKey' | 'dedupeKey'
+  >
+): Promise<DuplicateNotificationEnqueueResult | null> {
+  const existingIntentResult =
+    await executor.query<NotificationIntentRow>(FIND_INTENT_BY_DEDUPE_SQL, [
+      identity.ownerId,
+      identity.category,
+      identity.notificationTypeKey,
+      identity.dedupeKey
+    ]);
+  const existingIntentRow = existingIntentResult.rows[0];
+
+  if (existingIntentRow === undefined) {
+    return null;
+  }
+
+  const existingIntent = mapIntentRow(existingIntentRow);
+  const existingDeliveryResult = await executor.query<NotificationDeliveryRow>(
+    FIND_DELIVERIES_BY_INTENT_SQL,
+    [existingIntent.intentId]
+  );
+
+  return {
+    outcome: 'DUPLICATE',
+    intent: existingIntent,
+    deliveries: existingDeliveryResult.rows.map(mapDeliveryRow)
+  };
 }
 
 function nullableFailureClass(
@@ -365,29 +415,16 @@ export class PostgresNotificationEnqueueRepository
         lockKeyPartB
       ]);
 
-      const existingIntentResult =
-        await executor.query<NotificationIntentRow>(FIND_INTENT_BY_DEDUPE_SQL, [
-          ownerId,
-          category,
-          notificationTypeKey,
-          dedupeKey
-        ]);
-      const existingIntentRow = existingIntentResult.rows[0];
+      const existingResult = await findExistingEnqueueResult(executor, {
+        ownerId,
+        category,
+        notificationTypeKey,
+        dedupeKey
+      });
 
-      if (existingIntentRow !== undefined) {
-        const existingIntent = mapIntentRow(existingIntentRow);
-        const existingDeliveryResult =
-          await executor.query<NotificationDeliveryRow>(
-            FIND_DELIVERIES_BY_INTENT_SQL,
-            [existingIntent.intentId]
-          );
-        const deliveries = existingDeliveryResult.rows.map(mapDeliveryRow);
+      if (existingResult !== null) {
         await client.query('COMMIT');
-        return {
-          outcome: 'DUPLICATE',
-          intent: existingIntent,
-          deliveries
-        };
+        return existingResult;
       }
 
       if (!input.trustedEligibility) {
@@ -446,6 +483,42 @@ export class PostgresNotificationEnqueueRepository
         updatedAt: createdAt,
         completedAt: null
       });
+      const insertedIntentResult = await executor.query<InsertedIntentRow>(
+        INSERT_INTENT_SQL,
+        [
+          intent.intentId,
+          intent.ownerId,
+          intent.category,
+          intent.notificationTypeKey,
+          intent.templateKey,
+          intent.templateVersion,
+          intent.payloadVersion,
+          intent.payload,
+          intent.dedupeKey,
+          intent.deliverAt,
+          intent.createdAt,
+          intent.updatedAt,
+          intent.completedAt
+        ]
+      );
+
+      if (insertedIntentResult.rows.length === 0) {
+        const conflictedResult = await findExistingEnqueueResult(executor, {
+          ownerId,
+          category,
+          notificationTypeKey,
+          dedupeKey
+        });
+        if (conflictedResult === null) {
+          throw new Error(
+            'Notification intent uniqueness conflict could not be resolved.'
+          );
+        }
+
+        await client.query('COMMIT');
+        return conflictedResult;
+      }
+
       const deliveries = activeSubscriptions.rows.map((subscription) => {
         if (subscription.user_id !== ownerId) {
           throw new Error('Notification subscription owner does not match.');
@@ -470,22 +543,6 @@ export class PostgresNotificationEnqueueRepository
           terminalAt: null
         });
       });
-
-      await executor.query<never>(INSERT_INTENT_SQL, [
-        intent.intentId,
-        intent.ownerId,
-        intent.category,
-        intent.notificationTypeKey,
-        intent.templateKey,
-        intent.templateVersion,
-        intent.payloadVersion,
-        intent.payload,
-        intent.dedupeKey,
-        intent.deliverAt,
-        intent.createdAt,
-        intent.updatedAt,
-        intent.completedAt
-      ]);
 
       for (const delivery of deliveries) {
         await executor.query<never>(INSERT_DELIVERY_SQL, [
