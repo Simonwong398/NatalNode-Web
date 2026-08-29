@@ -2,9 +2,9 @@
 
 | Field | Value |
 |---|---|
-| Status | **APPROVED TECHNICAL CONTRACT / B3 IMPLEMENTED LOCALLY / B4A FROZEN / IMPLEMENTATION DEFERRED / LIVE WEB PUSH DELIVERY NOT IMPLEMENTED** |
-| Task | `WEB-NOTIFY-001B4A` |
-| Reviewed baseline | `e4d435d0846ad5a8027ddb4cdf754eeb7365e780` (`fix: harden consumer web push settings`) |
+| Status | **PASS / CONTRACT AMENDMENT CLOSED / APPROVED TECHNICAL CONTRACT / B3 IMPLEMENTED LOCALLY / B4A FROZEN / IMPLEMENTATION DEFERRED / LIVE WEB PUSH DELIVERY NOT IMPLEMENTED** |
+| Task | `WEB-NOTIFY-001B4A-R1` |
+| Reviewed baseline | `9d188bbe491d5f4038e49fe920cacd720c9a8d33` (`docs: define web push delivery contract`) |
 | Date | 2026-08-29 |
 | Scope | Consumer Web Push delivery, durable outbox, retry, and VAPID contract |
 | Initial channel | Web Push, standards-based and provider-neutral |
@@ -19,7 +19,9 @@ the local Account Notifications settings surface, explicit permission flow,
 dedicated Service Worker, browser subscription choreography, server-owned
 public-key capability, bounded payload/click handling, and safe account
 switching behavior. B4A now freezes the Consumer delivery, outbox, retry,
-fan-out, transport, and server-only VAPID contract, but adds no implementation.
+fan-out, transport, and server-only VAPID contract, with the R1 amendment
+  closing the remaining concurrency and database-shape ambiguities but adding
+  no implementation.
 Private VAPID credentials, provider/library selection, workers, schedulers,
 migrations, live delivery, payments, and Developer operational-notification
 implementation remain deferred. This is an implementation handoff and product
@@ -905,9 +907,9 @@ follow repository conventions, but the invariants may not be weakened.
 | `notification_type_key` | Server-owned bounded registry key; never an arbitrary client string |
 | `template_key`, `template_version` | Server-owned template identity, immutable for this intent |
 | `payload_version`, `payload_json` | Immutable validated V1 safe payload; no credentials or raw event data |
-| `dedupe_key` | Nullable bounded typed event identity supplied by a trusted producer |
+| `dedupe_key` | `NOT NULL` bounded opaque typed event identity supplied by a trusted producer; it contains no raw private event data |
 | `deliver_at` | Server-side planning timestamp; no user timezone semantics |
-| `created_at`, `updated_at`, `completed_at` | Creation/update timestamps; `completed_at` is set only when all child deliveries are terminal |
+| `created_at`, `updated_at`, `completed_at` | Creation/update timestamps; `completed_at` is set only when all surviving child deliveries are terminal or approved cascades have removed the target work and no delivery work remains |
 
 `notification_deliveries` is proposed with:
 
@@ -933,6 +935,24 @@ PushSubscription record at delivery time. The owner and subscription checks
 are repeated at send time so an old delivery row cannot select a credential
 from another account.
 
+The target relationship is intentionally exact: deleting a
+`push_subscriptions` row cascades to every `notification_deliveries` row whose
+`subscription_id` references it. A hard subscription removal therefore leaves
+no pending or retryable work that requires the deleted browser/device target;
+it may also erase that target's delivered, dead, or cancelled operational row
+early. This is privacy-safe and creates no obligation to preserve per-device
+delivery history after subscription removal. The parent
+`notification_intents` row is not deleted merely because one target is
+removed, and delivery rows for other devices are unaffected. Account deletion
+continues to cascade all account-owned notification data from the `users` root.
+
+Subscription invalidation is not a hard delete. Invalidating a
+`PushSubscription` preserves its row, and the affected delivery may become
+terminal under the invalid-subscription policy. Only actual deletion triggers
+the foreign-key cascade. Completion bookkeeping must treat a cascaded target
+row as removed work, never recreate or replay it, while retaining the parent
+intent for its remaining targets and normal retention lifecycle.
+
 The future migration must enforce, at minimum:
 
 - foreign keys and `ON DELETE CASCADE` from account-owned intent/delivery state;
@@ -940,9 +960,10 @@ The future migration must enforce, at minimum:
   claim-field shape, and terminal-field shape;
 - an exact-payload application boundary plus database JSONB size/key checks
   sufficient to prevent an unbounded record;
-- a partial unique index on
-  `(owner_id, category, channel, notification_type_key, dedupe_key)` where
-  `dedupe_key IS NOT NULL`;
+- an ordinary database `UNIQUE` constraint or ordinary unique index over
+  exactly `(owner_id, category, channel, notification_type_key, dedupe_key)`;
+  `dedupe_key` is `NOT NULL`, so the uniqueness is unconditional and uses no
+  predicate;
 - an index on `(next_attempt_at, delivery_id)` for `PENDING`/`RETRYABLE`
   rows;
 - an index on `(claim_expires_at, delivery_id)` for expired `PROCESSING`
@@ -960,9 +981,10 @@ repository and is not rewritten by B4A.
 attempt may be tried again at `next_attempt_at`. `PROCESSING` means an active
 worker lease, not successful delivery. `DELIVERED` means the transport
 accepted the send at its server boundary. `DEAD` is terminal work that cannot
-be retried under the policy. `CANCELLED` is terminal work intentionally made
-non-sendable before successful completion, such as a disabled gate or an
-invalidated target.
+be retried under the policy, including a transport attempt that proves its
+target subscription invalid. `CANCELLED` is terminal work intentionally made
+non-sendable by a local authority or lifecycle decision before transport, such
+as a disabled gate or a target observed as already non-`ACTIVE`.
 
 Legal transitions are:
 
@@ -973,8 +995,21 @@ Legal transitions are:
 
 `DELIVERED`, `DEAD`, and `CANCELLED` have no outgoing transitions. A lease
 recovery transition uses the same bounded attempt policy; it does not create a
-second delivery identity. `CANCELLED` is deliberately limited to lifecycle or
-target invalidation decisions, not used to hide a retryable transport failure.
+second delivery identity. `CANCELLED` is deliberately limited to local
+lifecycle or authority decisions made before transport, not used to hide a
+retryable or terminal transport failure.
+
+`CANCELLED` is justified for delivery work that was once valid or planned but
+became intentionally non-sendable before transport: the `WEB_PUSH` channel
+preference is no longer explicitly `true`, the relevant category preference is
+no longer explicitly `true`, trusted eligibility was revoked, or a still-
+existing target `PushSubscription` is no longer `ACTIVE`. Account deletion and
+hard PushSubscription deletion use database cascades instead of preserving a
+`CANCELLED` row. A transport failure is never converted to `CANCELLED`;
+transport outcomes remain `DELIVERED`, `RETRYABLE`, or `DEAD` under the bounded
+failure taxonomy. In particular, endpoint-specific proof that a subscription
+is invalid produces a terminal transport outcome and targeted invalidation,
+not a policy cancellation.
 
 ### 25.3 PostgreSQL claim and lease protocol
 
@@ -999,6 +1034,62 @@ workers intentionally process the same actively leased row. A transport
 timeout or crash can still produce a duplicate at the protocol boundary, as
 described below.
 
+### 25.4 Final-send serialization and revalidation
+
+The PostgreSQL claim phase and the final send phase are separate bounded
+transactions. The claim phase atomically claims due rows, commits
+`PROCESSING` plus a fresh `claim_token` and lease, and does not remain open
+during transport. The final-send phase starts immediately before one delivery
+attempt, acquires the authority locks below, revalidates claim ownership and
+current local authority, performs the bounded transport attempt, records the
+bounded outcome, and then releases the locks.
+
+Every final-send transaction uses this deterministic logical lock order:
+
+    1. owner `users` row
+    2. `WEB_PUSH` channel-preference row
+    3. relevant category-preference row
+    4. target `PushSubscription` row
+    5. claimed `notification_deliveries` row
+
+The preferred PostgreSQL row-lock modes are:
+
+    owner users row                 FOR KEY SHARE
+    channel/category preference     FOR SHARE
+    target PushSubscription         FOR SHARE
+    claimed delivery                FOR UPDATE
+
+`FOR KEY SHARE` on the owner conflicts with the existing account-erasure
+transaction's `FOR UPDATE` root lock. `FOR SHARE` on a preference row conflicts
+with its status-changing `UPDATE`, and `FOR SHARE` on a PushSubscription row
+conflicts with its hard `DELETE` and status-changing `UPDATE`. The delivery row
+uses `FOR UPDATE` so the worker can validate `PROCESSING` state and
+`claim_token`, then persist the attempt outcome without allowing another claim
+or completion update to interleave. If a required preference or subscription
+row is absent, there is no row to lock; the worker fails closed and does not
+send.
+
+After acquiring all five locks and before calling `WebPushTransport`, the
+worker must revalidate all authoritative local state: the owner still exists;
+trusted eligibility is still true; the `WEB_PUSH` channel preference is
+explicitly `true`; the relevant category preference is explicitly `true`; the
+target subscription still exists, is owned by that account, and is `ACTIVE`;
+the delivery remains `PROCESSING`; the `claim_token` still matches; and the
+lease remains valid enough for the bounded attempt and its outcome update under
+the frozen worker rules. Any missing row, `null` preference, `false` preference,
+revoked eligibility, ownership mismatch, non-`ACTIVE` target, claim mismatch,
+or insufficient lease fails closed and must not initiate transport. A delivery
+that is still owned by the worker may be marked `CANCELLED` with a bounded
+authority reason in that case; it must not be retried merely because local
+consent or ownership disappeared.
+
+The final-send transaction intentionally holds these row locks across the
+external transport attempt because the product requires an orderable
+consent/deletion boundary. The attempt timeout remains no more than
+`30 seconds`, and no unbounded network call may occur while the locks are held.
+The claim `2 minute` lease, claim-token fencing, and stale-claim recovery remain
+in force. A stale worker must not overwrite a newer claim.
+
 ## 26. Fan-out, deduplication, and delivery semantics
 
 B4A chooses fan-out model **A: one account-level intent expands into one
@@ -1018,23 +1109,26 @@ This model is selected because it provides:
 
 The fan-out snapshot is taken after all enqueue gates pass. A subscription
 registered later does not receive that existing intent. If one device returns a
-known invalid-subscription result, only its delivery row is cancelled after
-that subscription is invalidated; other rows continue. Partial multi-device
-success is therefore expected and unambiguous: an intent is complete when all
-of its delivery rows are terminal, and its outcome may be partial internally.
-There is no delete-all-device behavior and no automatic transfer to another
-account.
+known invalid-subscription result, only that subscription is invalidated and
+its delivery row becomes `DEAD` with the bounded `SUBSCRIPTION_INVALID` failure
+class; other rows continue. This is a terminal transport outcome, not a
+`CANCELLED` policy decision. Partial multi-device success is therefore
+expected and unambiguous: an intent is complete when all of its surviving
+delivery rows are terminal or have been removed by an approved account or hard
+subscription cascade, and its outcome may be partial internally. There is no
+delete-all-device behavior and no automatic transfer to another account.
 
 Deduplication is supplied by the trusted server-side trigger/enqueue boundary.
-For event types that can be evaluated repeatedly, it supplies a stable opaque
-typed `dedupe_key`; the key is scoped by owner, category, channel, and
-notification type. The partial unique index described above applies for the
-whole time the intent row exists, including delivered, dead, and cancelled
-rows. A duplicate enqueue returns the existing logical intent/result and does
-not render a new payload or create new delivery rows. If policy-approved
-retention later deletes the old row, a later enqueue is a new lifecycle and
-must use the then-current event identity. No raw event data, chart data,
-endpoint, browser key, or provider message ID is a dedupe key.
+Every trusted internal enqueue supplies a required, bounded, opaque typed
+`dedupe_key`; the key is scoped by owner, category, channel, and notification
+type. The ordinary unique constraint/index described above applies for the
+whole time the intent row exists, including `DELIVERED`, `DEAD`, and
+`CANCELLED` rows. A duplicate enqueue inside that uniqueness domain returns or
+reuses the existing logical intent/result and does not re-render a payload or
+re-fan-out delivery rows. Retention deletion of the old intent ends that
+uniqueness lifetime, after which a later enqueue may begin a new lifecycle. No
+raw event data, chart data, endpoint, browser key, or provider message ID is a
+dedupe key.
 
 Internal enqueue and claim transitions are idempotent within the database
 identity. End-to-end browser delivery is not exactly once: Web Push transport
@@ -1079,7 +1173,7 @@ classes and never exposes the raw remote response:
 | Class | Examples | Delivery row | PushSubscription |
 |---|---|---|---|
 | `ACCEPTED` | Upstream accepted the send request | `DELIVERED` | Remains `ACTIVE`; update success timestamp only if justified |
-| `SUBSCRIPTION_INVALID` | 404/410 gone/expired endpoint, or endpoint-specific proof of invalid subscription credentials | `CANCELLED` with bounded invalidation reason | Conditional `ACTIVE -> INVALIDATED` for that subscription only |
+| `SUBSCRIPTION_INVALID` | 404/410 gone/expired endpoint, or endpoint-specific proof of invalid subscription credentials | `DEAD` with bounded `SUBSCRIPTION_INVALID` failure class; no retry | Conditional `ACTIVE -> INVALIDATED` for that subscription only |
 | `THROTTLED` | 429 or an explicit bounded throttling response | `RETRYABLE` under backoff | Remains `ACTIVE` |
 | `TRANSIENT_UPSTREAM` | Bounded 5xx/upstream service failure | `RETRYABLE` or `DEAD` at limit | Remains `ACTIVE` |
 | `TIMEOUT_AMBIGUOUS` | Local timeout or lost response with unknown acceptance | `RETRYABLE` or `DEAD` at limit | Remains `ACTIVE` |
@@ -1091,11 +1185,16 @@ classes and never exposes the raw remote response:
 attribute the evidence to the endpoint/subscription. A sender-wide VAPID
 authorization or key mismatch is `CONFIGURATION_UNAVAILABLE` or a bounded
 permanent configuration failure and must not invalidate every subscription.
-No transport failure automatically invalidates a subscription. Invalidation
-sets only the affected account-owned row to `INVALIDATED`, prevents future
-delivery attempts to it, leaves other devices and preferences unchanged, and
-allows later explicit authenticated re-subscription to create or refresh a
-valid owner-bound record.
+No generic transport failure automatically invalidates a subscription. When a
+transport attempt supplies endpoint-specific proof of invalidity, the worker
+conditionally sets only the affected account-owned row to `INVALIDATED`,
+prevents future delivery attempts to it, and records that delivery as terminal
+`DEAD`; other devices and preferences remain unchanged. A local final-gate
+observation that a still-existing target is already non-`ACTIVE` may instead
+mark its delivery `CANCELLED` before transport. Thus transport failures use
+`DELIVERED`, `RETRYABLE`, or `DEAD`; `CANCELLED` remains reserved for local
+pre-transport authority decisions. Later explicit authenticated
+re-subscription may create or refresh a valid owner-bound record.
 
 ## 29. Internal enqueue and worker boundary
 
@@ -1149,21 +1248,42 @@ removed with that root:
 - any future account-owned delivery-attempt rows; and
 - no separate account-owned delivery archive.
 
-To close the race between a worker and successful deletion, the final
-pre-send transaction must acquire a share lock on the owner `users` row, verify
-the owner and ACTIVE subscription, and hold that bounded transaction through
-the transport attempt and its state update. The existing erasure transaction's
+To close the race between a worker and successful deletion, the final-send
+transaction uses the exact lock order and preferred modes in section 25.4:
+owner `users` `FOR KEY SHARE`, then the channel and category preference rows
+`FOR SHARE`, then the target `PushSubscription` `FOR SHARE`, and finally the
+claimed delivery `FOR UPDATE`. It holds that bounded transaction through the
+transport attempt and its state update. The existing erasure transaction's
 `FOR UPDATE` root lock therefore either wins first (the worker observes no
 owner and sends nothing) or waits until the bounded send transaction finishes
-(the send began before deletion could successfully commit). Future preference
-mutation and subscription-removal implementations must use the same owner/
-subscription lock ordering for their final-gate race. A stale or deleted
-owner cannot be reselected from a delivery row.
+(the send began before deletion could successfully commit). Account deletion
+continues to acquire the owner root before cascading dependent data.
+
+The same ordering is required of future local authority mutations: a channel
+or category Disable/Off operation must serialize through the owner row before
+updating its preference row, and PushSubscription removal or invalidation must
+serialize through the owner row before changing or deleting its target row.
+Their changed preference/target row must use an update/delete-conflicting lock
+appropriate to the operation. This keeps preference updates, subscription
+deletion, subscription invalidation, and account deletion compatible with the
+final-send order and reduces deadlock risk; no distributed lock is introduced.
+
+The ordering guarantee is precise: if the worker obtains and validates the
+final-send locks first, a concurrent Disable/Off, subscription removal or
+invalidation, or account deletion may wait for that strictly bounded send
+attempt to finish. If the user mutation or account deletion commits first, a
+later worker obtains the locks only after that commit and observes the changed
+or missing authority state, so it must not initiate transport. Once a
+Disable/Off, subscription-removal, or account-deletion operation has
+successfully committed, no later worker may initiate transport based on the
+stale state that existed before that commit.
 
 This is a concurrency ordering guarantee for the active database, not a claim
-that a browser can retract a notification already accepted/displayed before
-deletion. Provider history, operating-system notification surfaces, host logs,
-backups, and external platform copies remain outside the transaction. No
+that an already accepted Web Push notification can be recalled from a browser
+or operating system. It does not revoke a notification accepted by the push
+transport before Disable or deletion completed, and it does not claim exactly
+once behavior. Provider history, operating-system notification surfaces, host
+logs, backups, and external platform copies remain outside the transaction. No
 notification is intentionally sent after successful account deletion, and no
 backup-retention policy is invented here. Future Developer organization/member
 semantics remain separate.
@@ -1190,14 +1310,20 @@ operational delivery records whose purpose is bounded delivery processing and
 diagnostics. Active/invalidated PushSubscriptions and preferences retain their
 existing Consumer classification. Pending/retryable rows are kept only while
 needed for bounded delivery correctness; delivered, dead, and cancelled rows
-become deletable after their approved operational purpose ends. Cleanup may be
-deferred until the policy value is available.
+become deletable after their approved operational purpose ends. The approved
+retention policy defines when completed operational rows may or must be
+cleaned; cleanup may be deferred until that policy value is available. That
+policy does not prevent earlier privacy-safe deletion caused by the account
+erasure cascade or by a hard PushSubscription deletion cascading its
+target-specific delivery rows.
 
 The exact duration, owner, exceptions, backup behavior, and deletion treatment
 remain `POLICY REQUIRED` under `NATALNODE_DATA_RETENTION_V1.md`. No numeric
 retention period, hidden permanent-retention default, or backup erasure rule is
 introduced by B4A. Retry correctness must not depend on indefinite retention;
-the unique dedupe lifetime is only the lifetime of the active database record.
+the unique dedupe lifetime is only the lifetime of the active database record,
+and hard target deletion may end the lifetime of its delivery row before
+ordinary operational cleanup.
 Account deletion remains immediate active-database cascade erasure as above.
 Provider/platform copies and operational sinks require their own approved
 retention/operations treatment. Developer operational history is not covered
@@ -1410,7 +1536,8 @@ trigger, and live gates must not be hidden in local code.
 
 ## 45. Future implementation slices
 
-These are bounded candidates and are not executed by `WEB-NOTIFY-001B4A`:
+These are bounded candidates and are not executed by `WEB-NOTIFY-001B4A` or
+this `WEB-NOTIFY-001B4A-R1` contract amendment:
 
 Current implementation status:
 
@@ -1429,7 +1556,12 @@ Current implementation status:
   explicit permission flow, root-hosted Service Worker, browser
   registration/removal choreography, safe public-key capability, bounded
   payload/click handling, and conflict-safe account switching. No server
-  delivery or private VAPID credential is implemented.
+   delivery or private VAPID credential is implemented.
+- `WEB-NOTIFY-001B4A-R1` — **PASS / CONTRACT AMENDMENT CLOSED**: closes the
+  deduplication uniqueness, target foreign-key deletion, final-send
+  preference/subscription/account race, lock-ordering, cancellation, claim
+  phase, and retention-shape ambiguities without changing the deferred
+  implementation boundary.
 - `WEB-NOTIFY-001B4A` — **APPROVED TECHNICAL CONTRACT / IMPLEMENTATION
   DEFERRED**: Consumer delivery, outbox, fan-out, claim/lease, retry,
   invalidation, payload/template, transport, private VAPID, deletion/export,
@@ -1613,8 +1745,8 @@ separate gate and is not silently replaced by this contract.
 
 ## 50. Runtime-source, dependency, and migration integrity
 
-`WEB-NOTIFY-001B4A` is a documentation-only delivery-contract freeze. Its
-completion boundary is:
+`WEB-NOTIFY-001B4A` and `WEB-NOTIFY-001B4A-R1` are documentation-only
+delivery-contract freezes. Their completion boundary is:
 
 - no runtime source under `apps/web` or `server/src` changed;
 - no package source, test, migration, package manifest, lockfile, Service
@@ -1664,6 +1796,7 @@ unrelated source inspection are intentionally not run.
     Live/deployment acceptance          = PRODUCT-OWNER VISUAL RE-ACCEPTANCE REQUIRED / LIVE EXTERNAL GATES OPEN
     Historical P0 status               = PRESERVED; NEW SCOPE AFTER WEB-P0-READY-003
     WEB-P0-POLICY-001A                 = NOT EXECUTED / DEFERRED
+    WEB-NOTIFY-001B4A-R1               = PASS / CONTRACT AMENDMENT CLOSED
     WEB-NOTIFY-001B4A                  = APPROVED TECHNICAL CONTRACT / IMPLEMENTATION DEFERRED
     WEB-NOTIFY-001B4B1/B4B2/B4B3/B4B4  = NOT STARTED
 
