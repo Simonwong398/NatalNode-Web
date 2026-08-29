@@ -18,7 +18,7 @@
     "db:migrate": "npm run migrate --workspace=server",
     "predev:local": "npm run build",
     "dev:local": "npm run local --workspace=server",
-    "predev:public": "npm run build",
+    "predev:public": "node scripts/build-public-development.mjs",
     "dev:public": "npm run public --workspace=server"
   }
 }
