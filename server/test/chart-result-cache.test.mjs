@@ -323,6 +323,23 @@ test('version and isolation dimensions change the key family', () => {
   );
 });
 
+test('identity components reject cache-key delimiter ambiguity', () => {
+  for (const name of [
+    'runtimeNamespace',
+    'engineResultGeneration',
+    'chartResultContractVersion'
+  ]) {
+    assert.throws(
+      () =>
+        createChartResultCacheKey(BASE_REQUEST, {
+          ...BASE_IDENTITY,
+          [name]: 'left:right'
+        }),
+      new RegExp(`${name}.*cache key delimiter`, 'u')
+    );
+  }
+});
+
 test('cache starts with a miss and returns cloned values after set', () => {
   const { clock } = createFakeClock();
   const cache = createCache(clock);

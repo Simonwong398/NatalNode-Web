@@ -30,6 +30,10 @@ function assertNonEmptyBoundedString(
   ) {
     throw new Error(`${name} must be a non-empty bounded string.`);
   }
+
+  if (value.includes(':')) {
+    throw new Error(`${name} must not contain ':' as a cache key delimiter.`);
+  }
 }
 
 export function assertChartResultCacheIdentity(
