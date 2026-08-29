@@ -2,7 +2,7 @@
 
 | Field | Value |
 |---|---|
-| Status | **PASS / CONTRACT AMENDMENT CLOSED / APPROVED TECHNICAL CONTRACT / B3 IMPLEMENTED LOCALLY / B4A FROZEN / IMPLEMENTATION DEFERRED / LIVE WEB PUSH DELIVERY NOT IMPLEMENTED** |
+| Status | **PASS / CONTRACT AMENDMENT CLOSED / APPROVED TECHNICAL CONTRACT / B3 IMPLEMENTED LOCALLY / B4A FROZEN / B4B1 IMPLEMENTED LOCALLY / SECURITY REVIEW REQUIRED / B4B2-B4B4 IMPLEMENTATION DEFERRED / LIVE WEB PUSH DELIVERY NOT IMPLEMENTED** |
 | Task | `WEB-NOTIFY-001B4A-R1` |
 | Reviewed baseline | `9d188bbe491d5f4038e49fe920cacd720c9a8d33` (`docs: define web push delivery contract`) |
 | Date | 2026-08-29 |
@@ -1506,8 +1506,9 @@ The first usable foundation is limited to:
 
 It excludes inbox/history, arbitrary test messages, a general messaging bus,
 astrology trigger semantics, paid plan logic, provider-specific UI, and live
-delivery. B4A freezes the delivery contract only; each implementation item
-remains deferred until its separately authorized slice and gates exist.
+delivery. B4A freezes the delivery contract only; B4B1 now provides the local
+persistence and enqueue foundation, while B4B2-B4B4 remain deferred until
+their separately authorized slices and gates exist.
 
 ## 44. Implementation-readiness matrix
 
@@ -1522,7 +1523,7 @@ approval.
 | Permission UX/settings UI | `IMPLEMENTED LOCALLY / PRODUCT-OWNER VISUAL RE-ACCEPTANCE REQUIRED` | Account Notifications UI uses explicit user gestures and all supported/denied/unavailable states |
 | Service worker | `IMPLEMENTED LOCALLY / PRODUCT-OWNER VISUAL RE-ACCEPTANCE REQUIRED` | Root-hosted narrow push/click worker; no fetch/cache/offline or public-development fake |
 | Web Push adapter | `CONTRACT FROZEN / IMPLEMENTATION DEFERRED` | Provider/library and complete server-only VAPID configuration remain operational gates |
-| Durable outbox/worker | `CONTRACT FROZEN / IMPLEMENTATION DEFERRED` | Future migration, repository, worker executable, deployment invocation, and live acceptance |
+| Durable outbox/worker | `IMPLEMENTED LOCALLY / SECURITY REVIEW REQUIRED` | B4B1 migration, repository, and typed enqueue foundation; worker executable, deployment invocation, and live acceptance remain deferred |
 | Entitlement integration | `FUTURE SUBSCRIPTION-GATED` | Approved product/billing entitlement source required |
 | Astrology alert producers | `ENGINE/TRIGGER-GATED` | Separate source-grounded trigger/scientific contract required |
 | Notification retention/enforcement | `POLICY-GATED / OPERATIONS-GATED` | Durations, owners, exceptions, backup/restore, deletion, scheduler |
@@ -1568,8 +1569,10 @@ Current implementation status:
   retention, and observability boundaries are frozen in this amendment. No
   runtime, migration, dependency, worker, or live-delivery implementation is
   included.
-- `WEB-NOTIFY-001B4B1` — **NOT STARTED**: persistence/repository, future
-  migration, and typed internal enqueue foundation.
+- `WEB-NOTIFY-001B4B1` — **IMPLEMENTED LOCALLY / SECURITY REVIEW REQUIRED**:
+  PostgreSQL persistence/repository, future-worker schema support, typed
+  server-internal enqueue, eligibility/preference gates, immutable safe
+  payload persistence, durable dedupe, and active-subscription fan-out only.
 - `WEB-NOTIFY-001B4B2` — **NOT STARTED**: provider-neutral `WebPushTransport`
   implementation and server-only VAPID configuration/readiness.
 - `WEB-NOTIFY-001B4B3` — **NOT STARTED**: worker claim/recovery, bounded
@@ -1622,11 +1625,11 @@ send endpoint.
 
 ### `WEB-NOTIFY-001B4B1` — Persistence and enqueue foundation
 
-**NOT STARTED.** Implement only the documented PostgreSQL tables, repositories,
-typed server-internal enqueue transaction, eligibility/preference gates,
-server-owned template rendering, immutable payload persistence, dedupe
-constraint, and account-deletion-compatible foreign keys. Do not implement
-transport or live delivery in this slice.
+**IMPLEMENTED LOCALLY / SECURITY REVIEW REQUIRED.** This slice implements only
+the documented PostgreSQL tables, repositories, typed server-internal enqueue
+transaction, eligibility/preference gates, server-owned template rendering,
+immutable payload persistence, dedupe constraint, and account-deletion-
+compatible foreign keys. Transport and live delivery remain deferred.
 
 ### `WEB-NOTIFY-001B4B2` — WebPushTransport and VAPID configuration
 
@@ -1792,16 +1795,18 @@ unrelated source inspection are intentionally not run.
     Delivery guarantee                  = BOUNDED BEST-EFFORT / AT-LEAST-ONCE-STYLE; NOT EXACTLY ONCE
     Billing/subscription implementation = DEFERRED
     Astrology trigger implementation    = DEFERRED
-    Runtime implementation             = B3 LOCAL BROWSER FOUNDATION; B4A CONTRACT ONLY; LIVE DELIVERY NOT IMPLEMENTED
+    Runtime implementation             = B3 LOCAL BROWSER FOUNDATION; B4B1 LOCAL PERSISTENCE/ENQUEUE FOUNDATION; B4B2-B4B4 DEFERRED; LIVE DELIVERY NOT IMPLEMENTED
     Live/deployment acceptance          = PRODUCT-OWNER VISUAL RE-ACCEPTANCE REQUIRED / LIVE EXTERNAL GATES OPEN
     Historical P0 status               = PRESERVED; NEW SCOPE AFTER WEB-P0-READY-003
     WEB-P0-POLICY-001A                 = NOT EXECUTED / DEFERRED
     WEB-NOTIFY-001B4A-R1               = PASS / CONTRACT AMENDMENT CLOSED
     WEB-NOTIFY-001B4A                  = APPROVED TECHNICAL CONTRACT / IMPLEMENTATION DEFERRED
-    WEB-NOTIFY-001B4B1/B4B2/B4B3/B4B4  = NOT STARTED
+    WEB-NOTIFY-001B4B1               = IMPLEMENTED LOCALLY / SECURITY REVIEW REQUIRED
+    WEB-NOTIFY-001B4B2/B4B3/B4B4     = NOT STARTED
 
-The B3 foundation is complete locally at its implementation boundary and B4A
-is complete at the contract boundary only. No automatic browser permission is
-requested, no notification is sent, no private secret is configured, and no
-subscription/payment/provider decision or live delivery acceptance is implied
-by this document.
+The B3 foundation and B4B1 persistence/enqueue boundary are complete locally
+at their respective implementation boundaries, while B4A remains complete at
+the contract boundary and B4B2-B4B4 remain deferred. No automatic browser
+permission is requested, no notification is sent, no private secret is
+configured, and no subscription/payment/provider decision or live delivery
+acceptance is implied by this document.

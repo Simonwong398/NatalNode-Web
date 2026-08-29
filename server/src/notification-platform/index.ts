@@ -31,6 +31,54 @@ export type {
 } from './notification-domain.js';
 
 export {
+  NOTIFICATION_CANCEL_REASONS,
+  NOTIFICATION_DELIVERY_STATES,
+  NOTIFICATION_FAILURE_CLASSES,
+  MAX_NOTIFICATION_TEMPLATE_VERSION,
+  assertNotificationTemplateVersion,
+  createNotificationDeliveryRecord,
+  createNotificationIntentRecord,
+  isNotificationCancelReason,
+  isNotificationDeliveryState,
+  isNotificationFailureClass
+} from './notification-delivery-domain.js';
+export type {
+  NotificationCancelReason,
+  NotificationDeliveryRecord,
+  NotificationDeliveryState,
+  NotificationEnqueueResult,
+  NotificationFailureClass,
+  NotificationIntentRecord,
+  NotificationNotEnqueuedReason
+} from './notification-delivery-domain.js';
+
+export type {
+  NotificationEnqueuePersistenceInput,
+  NotificationEnqueueRepository,
+  ServerOwnedNotificationTemplate,
+  ServerOwnedNotificationTemplateRegistry
+} from './notification-enqueue-repository.js';
+
+export {
+  NotificationEnqueueService,
+  NotificationTemplateUnavailableError
+} from './notification-enqueue-service.js';
+export type {
+  NotificationEnqueueInput,
+  NotificationEnqueueServiceDependencies
+} from './notification-enqueue-service.js';
+
+export {
+  assertWebPushPayloadV1,
+  isSafeNotificationPath,
+  NOTIFICATION_BODY_MAXIMUM_LENGTH,
+  NOTIFICATION_PATH_MAXIMUM_LENGTH,
+  NOTIFICATION_TITLE_MAXIMUM_LENGTH,
+  NotificationPayloadValidationError
+} from './web-push-payload.js';
+export type { WebPushPayloadV1 } from './web-push-payload.js';
+
+export {
   createNotificationCategoryPreference,
   createNotificationChannelPreference
 } from './preferences.js';
@@ -72,5 +120,6 @@ export {
 
 export {
   PostgresNotificationPreferenceRepository,
+  PostgresNotificationEnqueueRepository,
   PostgresPushSubscriptionRepository
 } from './postgres/index.js';
