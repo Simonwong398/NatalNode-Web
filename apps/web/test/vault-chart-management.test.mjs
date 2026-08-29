@@ -773,6 +773,28 @@ test('chart duplication failures preserve the source chart and release the actio
   }
 });
 
+test('chart duplication aborts on unmount and ignores a late response', async () => {
+  const duplication = deferred();
+  const duplicate = makeVaultChart({ chartId: 'late-chart-copy' });
+
+  await withVaultChartManagement({}, async (scope) => {
+    await mountWithNotes(scope, scope.chart);
+    scope.fetch.enqueue('POST', duplicateUrl(scope.chart), duplication.promise);
+    await scope.click(scope.button('Duplicate chart'));
+
+    const request = scope.fetch.calls[1];
+    assert.equal(request.init.signal.aborted, false);
+
+    await scope.unmount();
+    assert.equal(request.init.signal.aborted, true);
+
+    duplication.resolve(jsonResponse({ chart: duplicate }, 201));
+    await scope.flush();
+
+    assert.deepEqual(scope.locationReplaceCalls, []);
+  });
+});
+
 test('chart deletion pending state suppresses repeats, leaves other sections operable, and delegates success exactly once', async () => {
   const deletion = deferred();
 

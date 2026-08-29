@@ -1,4 +1,4 @@
-import { useId, useState } from 'react';
+import { useEffect, useId, useRef, useState } from 'react';
 import { duplicateVaultChart } from './vault-management.js';
 
 const SIGN_IN_PATH = '/auth/sign-in';
@@ -18,7 +18,18 @@ export default function VaultChartDuplicationPanel({
     'idle' | 'duplicating' | 'error'
   >('idle');
   const [duplicateError, setDuplicateError] = useState<string | null>(null);
+  const duplicationRequestRef = useRef<AbortController | null>(null);
   const duplicationTitleId = useId();
+
+  useEffect(() => {
+    setDuplicateStatus('idle');
+    setDuplicateError(null);
+
+    return () => {
+      duplicationRequestRef.current?.abort();
+      duplicationRequestRef.current = null;
+    };
+  }, [chartId]);
 
   const handleDuplicateChart = async () => {
     if (duplicateStatus === 'duplicating') {
@@ -28,7 +39,17 @@ export default function VaultChartDuplicationPanel({
     setDuplicateStatus('duplicating');
     setDuplicateError(null);
 
-    const result = await duplicateVaultChart(chartId);
+    const abortController = new AbortController();
+    duplicationRequestRef.current = abortController;
+    const result = await duplicateVaultChart(chartId, abortController.signal);
+
+    if (abortController.signal.aborted) {
+      return;
+    }
+
+    if (duplicationRequestRef.current === abortController) {
+      duplicationRequestRef.current = null;
+    }
 
     if (result.status === 'success') {
       window.location.replace(
