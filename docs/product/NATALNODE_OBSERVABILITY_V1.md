@@ -2,6 +2,8 @@
 
 Task ID: WEB-OBS-001A
 
+Review: WEB-OBS-001A-R1
+
 Status: APPROVED TECHNICAL DIRECTION
 
 Runtime status: RUNTIME IMPLEMENTATION DEFERRED
@@ -48,10 +50,10 @@ PROVIDER DECISION DEFERRED
 
 ## 2. Source of truth and observed repository baseline
 
-The repository baseline for this contract was:
+The repository baseline for this R1 review was:
 
-- Commit: 0ecd07429a6531d5b2b1b1fba382972e3d459c57
-- Message: feat: integrate chart result cache
+- Commit: 2655dc0b856ba54458fb86dc4d1c2e13f288881a
+- Message: docs: define p0 observability contract
 - Working tree: clean before this documentation-only patch
 
 The following sources were read in full or inspected at the minimum relevant
@@ -85,10 +87,10 @@ properties:
    performance.now().
 3. A normal request emits a JSON-lines completion record named
    api.request.completed.
-4. An unhandled API error can emit an auxiliary api.request.error record from
-   the application error handler and can also be followed by the normal
-   completion record. The current behavior therefore does not promise exactly
-   one total record for every failed request.
+4. An unhandled API error currently emits an auxiliary api.request.error record
+   from the application error handler and can also be followed by the normal
+   completion record. This is a current duplicate-accounting behavior, not the
+   approved P0 target.
 5. The current record level is info for a completion status below 500 and
    error for a completion status of 500 or above. The auxiliary error event is
    error. Expected 4xx and 429 outcomes are not currently elevated to error.
@@ -106,11 +108,14 @@ properties:
    emitted by the observability middleware.
 10. The current cache is server-internal. Cache hits return clones, misses
     call the configured EngineClient, and cache writes are best effort. Cache
-    outcomes are not currently connected to the request record.
+    outcomes are not currently connected to the request record. The current
+    cache API does not preserve enough outcome information to distinguish every
+    operational error from a normal miss.
 
-The current names are preserved below. Future work may add bounded fields, but
-must not silently rename endpointFamily, requestId, durationMs, event, or the
-two current event names.
+The current field names are preserved below. Future work may add bounded
+fields, but must not silently rename endpointFamily, requestId, durationMs, or
+the canonical completion event. The current auxiliary error event is
+explicitly retired by the B1 decision above.
 
 ## 3. PRD gap matrix
 
@@ -123,22 +128,24 @@ direction. A row marked partial or missing is not implemented by this task.
 | HTTP method | Bounded known-method set with OTHER fallback exists | IMPLEMENTED | Preserve the allowlist and OTHER. Never log an unbounded method string. |
 | Route or endpoint | Bounded endpointFamily classifier exists | PARTIAL | Treat endpointFamily as the canonical operational route dimension. Do not log raw URL, pathname, query, or route parameters. B1 owns coverage. |
 | HTTP status | Completion and auxiliary error records include numeric status | IMPLEMENTED | Preserve actual response status. 429 and expected 4xx remain observable outcomes. |
-| Request duration | Completion records include rounded durationMs; auxiliary error records currently omit it | PARTIAL | Require durationMs on completion records. Keep the current auxiliary error behavior truthful; any additive normalization is B1 design work. |
+| Request duration | Completion records include rounded durationMs; auxiliary error records currently omit it | PARTIAL | Require durationMs on the one canonical completion record. B1 removes the auxiliary error record rather than normalizing a duplicate. |
 | Structured operational format | One JSON object per line is written to stdout/stderr | IMPLEMENTED | Preserve JSON-lines records and bounded schemas. No vendor-specific format is selected. |
-| API failure visibility | 5xx completion level and auxiliary error event exist | PARTIAL | Preserve api.request.completed and api.request.error. Add only bounded problemCode when a central source is available. |
-| Error code | Problem Details has a finite ProblemCode registry, but the logger does not receive it | PARTIAL | Add optional problemCode in a future slice from the canonical error boundary. Never parse detail or exception text. |
-| Cache status | Cache behavior exists but is not instrumented | MISSING | Add optional internal-only cacheStatus on calculation-bearing chart paths in B2. Never expose it publicly or log a cache key. |
+| API failure visibility | 5xx completion level and a duplicate auxiliary error event exist | PARTIAL | Make api.request.completed the only canonical request event. B1 removes api.request.error. Add only bounded problemCode to completion records. |
+| Error code | Problem Details has a finite ProblemCode registry, but the logger does not receive it | PARTIAL | B1 carries the typed code through request-local Hono context from the existing canonical response helper. Never parse detail or exception text. |
+| Cache status | Cache behavior exists but is not instrumented | MISSING | Add optional internal-only cacheStatus on calculation-bearing chart paths in B2. First add typed cache outcome reporting; do not emit error until it is observable. Never expose it publicly or log a cache key. |
 | Engine version or generation | Runtime/cache configuration has trusted generation information, but the logger does not receive it | MISSING | Use provider-neutral engineResultGeneration as the canonical bounded field. B2 owns propagation. |
 | Chart schema version | ChartResult/cache configuration has a contract version, but the logger does not receive it | MISSING | Add optional chartResultContractVersion on calculation-bearing paths. B2 owns propagation. |
-| Scientific/provenance status | ChartResult has bounded calculation status and provenance metadata, but the logger does not receive a status projection | MISSING | Add scientificStatus and provenanceStatus only; never emit the full result metadata or provenance envelope identifier. B2 owns propagation. |
+| Scientific status | ChartResult has a bounded calculationStatus field, but the logger does not receive a status projection | MISSING | Add scientificStatus only as a stable projection of ChartResult.calculationStatus, with source-defined values. B2 owns propagation. |
+| Provenance status | ChartResult has provenance identifiers but no existing provenanceStatus field or shared status taxonomy | DEFERRED | Do not invent a new observability taxonomy. Defer provenanceStatus until a source-level contract exists; never emit provenanceEnvelopeId. |
 | Engine request duration | Only whole API duration is currently measured | MISSING | Add optional engineDurationMs only at a trusted calculator/Engine boundary. Do not infer it from whole-request duration. B2 owns propagation. |
-| Warning count | ChartResult warnings exist, but no count is emitted | MISSING | Add optional non-negative warningCount without warning text. B2 owns propagation. |
+| Warning count | ChartResult warnings exist, but the current validator has no finite warning-array bound | MISSING | Defer warningCount until a finite source-level bound is defined. Do not emit an unbounded count merely because it is numeric. |
 | Metrics | No metrics backend or exporter is installed | MISSING | Keep structured logs as the P0 transport. Define derived metric dimensions in implementation work only; do not add a vendor or exporter here. |
 | Privacy minimization | Current middleware omits sensitive request and response data | PARTIAL | Freeze the prohibited-data table in this document. B1 and B2 must test it. |
 | Retention | No operational-log retention duration is frozen in the inspected sources | DEFERRED | RETENTION DURATION DEFERRED TO RETENTION/POLICY TRACK. |
 | Privacy access audit | Not implemented by request observability | INTENTIONALLY SEPARATE | Do not use operational request logs as access-audit evidence. Define a separate audit contract. |
 | Account export and deletion | Routes exist and are operationally classifiable; content and identity are not logged | PARTIAL | Record bounded outcome and endpoint family only. Define legal, retention, and audit interaction separately. |
-| Streaming/export truthfulness | Server can observe response and stream lifecycle, not verified client receipt | PARTIAL | Never claim complete client download from a request completion record. |
+| Streaming/export truthfulness | The current middleware observes the response after the handler returns; it does not consume or verify the returned stream | PARTIAL | Describe only server response-boundary completion. Never claim stream consumption or client download. |
+| Safe sink boundary | The current writer is private and directly selects process stdout/stderr; it is not injectable | MISSING | B1 adds only a narrow synchronous ObservabilitySink.write(record) boundary with a process-stream default. It is not a logging framework or delivery subsystem. |
 
 ## 4. Operational-observability objective
 
@@ -154,8 +161,9 @@ recovering personal data:
 - Are cache operational failures distinct from Engine calculation failures?
 - Are validation, authentication, origin, and rate-limit outcomes visible
   without revealing the input that produced them?
-- Are Engine-result contract, generation, scientific-status, and warning-count
-  differences visible in an approved bounded form?
+- Are Engine-result contract, generation, and source-defined scientific-status
+  differences visible in an approved bounded form? Warning-count visibility
+  remains deferred until its source bound is defined.
 - Can a request be correlated using a server-issued requestId without
   correlating it to a user identity?
 
@@ -166,19 +174,25 @@ chart, the Vault, or the account itself.
 
 ### 5.1 Canonical event names
 
-The canonical event-name set is exactly:
+The P0 canonical event-name set is exactly:
 
 - api.request.completed
-- api.request.error
 
-No endpoint-specific event names are required for P0. A future metric or
-dashboard may group the canonical records by bounded fields; it must not
-invent uncontrolled event names from URL paths, error text, provider names, or
-user input.
+api.request.error is a legacy current implementation event, not a second P0
+canonical event. B1 removes its emission. No endpoint-specific event names are
+required for P0. A future metric or dashboard may group canonical completion
+records by bounded fields; it must not invent uncontrolled event names from
+URL paths, error text, provider names, or user input.
 
 ### 5.2 Completion record
 
-Every normal request completion record must contain these fields:
+Every observable API request must have exactly one canonical completion record
+emission attempt, including success, expected client/security outcomes, cache
+or calculation failures, and an unexpected API error converted by the central
+Hono error boundary. A sink failure can suppress delivery, but it must never
+create a duplicate or change the API result.
+
+The completion record must contain these fields:
 
 | Field | Required | Meaning |
 | --- | --- | --- |
@@ -191,24 +205,44 @@ Every normal request completion record must contain these fields:
 | status | Yes | Numeric HTTP response status |
 | durationMs | Yes | Non-negative integer for elapsed API request time |
 
-The current implementation already provides this completion shape. The
-contract does not require the current response header to be removed or
-changed.
+The current implementation already provides this completion shape for the
+completion event. The contract does not require the current response header to
+be removed or changed.
 
-### 5.3 Auxiliary error record
+Expected completion outcomes are:
 
-api.request.error is an exceptional, auxiliary record for an unhandled API
-error. Its current required fields are timestamp, level, event, requestId,
-method, endpointFamily, and status. The current implementation does not add
-durationMs to this record. That behavior is documented rather than hidden.
+| Outcome | Completion level | Status | Optional problemCode |
+| --- | --- | --- | --- |
+| Successful request | info | Actual 2xx/3xx status | Omit unless a canonical problem exists |
+| Invalid request | info | 400 | INVALID_REQUEST |
+| Unauthorized | info | 401 | UNAUTHORIZED |
+| Forbidden, including origin rejection | info | 403 | FORBIDDEN |
+| Not found | info | 404 | NOT_FOUND |
+| Conflict | info | 409 only if a future route introduces it | No current 409 ProblemCode exists; do not infer one from status |
+| Rate limited | info | 429 | RATE_LIMITED |
+| Unexpected internal failure | error | 500 | INTERNAL_ERROR |
+| Calculation unavailable | error | 503 | CALCULATION_UNAVAILABLE |
 
-Future implementation may add durationMs to the auxiliary record as an
-additive improvement if it can do so without changing error handling
-semantics. It must not turn the auxiliary record into a second copy of the
-request or exception.
+Status and level are separate dimensions. A client/security outcome is not a
+server error merely because it is non-2xx.
 
-One failed request may therefore produce one auxiliary error record and one
-completion record. The completion record remains the request-outcome record.
+### 5.3 Auxiliary error record decision
+
+The current source emits api.request.error in app.onError and then can emit
+api.request.completed when the middleware resumes. The current error record
+contains no message, stack, constructor name, database text, provider text,
+or request data, but it repeats the same bounded request facts.
+
+R1 decision: api.request.error provides no necessary P0 value once the
+canonical completion record contains final status, level, and typed
+problemCode. B1 MUST remove its emission and the associated duplicate event
+type. R1 does not remove runtime code.
+
+After B1, exactly one completion event is the request-volume, request-error,
+status, and latency accounting record. Any legacy api.request.error observed
+during rollout must be treated as an auxiliary migration signal and excluded
+from all request, 5xx, error, and latency counters. It must not be retained
+as a second diagnostic channel merely for tradition.
 
 ### 5.4 Authoritative field decision table
 
@@ -220,32 +254,32 @@ response headers.
 | --- | --- | --- | --- | --- | --- |
 | timestamp | Required | Server UTC ISO 8601 string | Time-shaped and bounded; no client-supplied timestamp | All API records | Implemented |
 | level | Required | Allowlist: info, error | Two values only; no dynamic severity | All API records | Implemented |
-| event | Required | Allowlist: api.request.completed, api.request.error | Two values only | All API records | Implemented |
+| event | Required | Fixed value api.request.completed; legacy api.request.error is removed in B1 | One canonical value | All API records | Partial |
 | requestId | Required | Server-generated UUID | High-cardinality correlation value; never joined to account/user identity | All API records | Implemented |
 | method | Required | GET, HEAD, OPTIONS, POST, PUT, PATCH, DELETE, or OTHER | Eight bounded values | All API records | Implemented |
 | endpointFamily | Required | Bounded taxonomy in section 6 | Low-cardinality operational dimension; never raw path | All API records | Implemented |
 | status | Required | Numeric HTTP status | Low-cardinality bounded status outcome; no body or detail | All API records | Implemented |
-| durationMs | Required on completion; optional on current auxiliary error | Server-measured non-negative integer | Numeric only; no timestamps or timing trace | All API records where measured | Partial |
-| problemCode | Optional | Finite ProblemCode registry from the canonical Problem Details boundary | Low-cardinality allowlist; no detail, title, stack, or raw error | Any API family returning a canonical problem | Future, B1 |
-| cacheStatus | Optional | hit, miss, error, or bypass under section 10 | Four bounded values; no key, digest, input, or cache payload | Calculation-bearing chart and Vault-create operations only | Future, B2 |
+| durationMs | Required on canonical completion | Server-measured non-negative integer | Numeric only; no timestamps or timing trace | All API records | Implemented for completion |
+| problemCode | Optional | Finite ProblemCode registry, carried through request-local typed Hono context by the canonical response helper | Low-cardinality allowlist; no detail, title, stack, or raw error | Any API family returning a canonical problem | Future, B1 |
+| cacheStatus | Optional | hit, miss, or error only after the B2 typed cache outcome extension; bypass is reserved | No key, digest, input, or cache payload | Calculation-bearing chart and Vault-create operations only | Future, B2 |
 | engineResultGeneration | Optional | Trusted runtime/calculation generation, bounded and allowlisted | Low-cardinality deployment/scientific dimension; no provider-specific secret or URL | Calculation-bearing operations only | Future, B2 |
 | chartResultContractVersion | Optional | Trusted ChartResult contract version | Bounded version string; no result body | Calculation-bearing operations only | Future, B2 |
-| scientificStatus | Optional | COMPLETE or INCOMPLETE_RESEARCH from the ChartResult status projection | Two bounded values; no scientific details | Calculation-bearing operations only | Future, B2 |
-| provenanceStatus | Optional | available or unavailable, derived as a boolean status projection | Two bounded values; never the provenance envelope identifier | Calculation-bearing operations only | Future, B2 |
-| warningCount | Optional | Count of bounded result warnings | Non-negative integer only; warning text is prohibited | Calculation-bearing operations only | Future, B2 |
-| engineDurationMs | Optional | Trusted duration measured around the calculator/Engine boundary | Non-negative integer; distinct from API duration | Calculation-bearing operations only | Future, B2 |
-| astronomyConfigurationId | Conditional optional | Only a trusted, bounded, non-user-controlled scientific configuration identifier approved by a later privacy review | Must not be a cache key, request-derived value, raw provider payload, or unrestricted identifier; omit when conditions are not proven | Calculation-bearing operations only | Deferred pending B2 review |
+| scientificStatus | Optional | Stable observability projection of ChartResult.calculationStatus: COMPLETE or INCOMPLETE_RESEARCH | Two source-defined values; no scientific details | Calculation-bearing operations only | Future, B2 |
+| provenanceStatus | Deferred | No existing source-level field or shared taxonomy with this exact semantic | Do not invent a new status; provenanceEnvelopeId remains prohibited | Calculation-bearing operations only | Deferred |
+| warningCount | Deferred | ChartResult.warnings exists, but the validator defines no finite warning-array bound | Do not emit an unbounded count; warning text is prohibited | Calculation-bearing operations only | Deferred |
+| engineDurationMs | Optional | Trusted duration measured around the EngineClient call only | Non-negative integer; absent on cache hit; distinct from API duration | Calculation-bearing operations only | Future, B2 |
+| astronomyConfigurationId | Deferred conditional | Only a trusted, bounded, non-user-controlled scientific configuration identifier approved by a later privacy review | Must not be a cache key, request-derived value, raw provider payload, or unrestricted identifier; omit until approved | Calculation-bearing operations only | Deferred; does not block B1 |
 
 engineResultGeneration is the canonical provider-neutral replacement for a
 free-form provider or engine label. A separate providerName, provider URL, or
 credential-bearing engine field is not part of this contract.
 
 The PRD permits an astronomyConfigurationId as ordinary operational metadata.
-This contract does not approve arbitrary values merely because they have an
-identifier-shaped name. A later implementation may emit that field only after
-proving the bounded-source, syntax, cardinality, and privacy conditions in the
-table. Until then, provenanceStatus and the other bounded status/version
-fields are the safe projection.
+This R1 review keeps it explicitly deferred and not implementation-ready for
+P0. A later implementation may emit it only after proving the bounded-source,
+syntax, cardinality, and privacy conditions in the table. Until then, no
+provenanceStatus substitute is invented and the safe projections are limited
+to source-defined scientificStatus and the approved generation/version fields.
 
 ## 6. Endpoint-family taxonomy
 
@@ -320,7 +354,7 @@ detail, request payload, or dependency error.
 
 durationMs is whole API request elapsed time measured by the request
 middleware. It is a non-negative rounded integer. It is required on
-api.request.completed and is currently absent from api.request.error.
+api.request.completed, which is the only canonical P0 event after B1.
 
 engineDurationMs, if implemented later, measures only a trusted
 calculator/Engine boundary. It must not be substituted for durationMs or
@@ -337,7 +371,6 @@ The level allowlist remains info and error:
 
 - Completion status below 500: info.
 - Completion status 500 or above: error.
-- api.request.error: error.
 
 Expected 4xx and 429 responses must remain visible as status outcomes without
 being mislabeled as server errors. No warn, debug, trace, or dynamically
@@ -348,7 +381,8 @@ constructed level is added to this P0 contract.
 Event names are fixed constants:
 
 - api.request.completed is the canonical request outcome.
-- api.request.error is an auxiliary unhandled-error notification.
+- api.request.error is a legacy event removed by B1; it is not part of the P0
+  event stream after B1.
 
 Do not construct names from path segments, Problem Details titles, exception
 messages, provider names, cache keys, or user input.
@@ -369,10 +403,25 @@ The current repository has a finite ProblemCode registry:
 - CALCULATION_UNAVAILABLE
 
 The current observability middleware does not receive the canonical code.
-This contract approves an optional problemCode field for a future
-implementation only when the code is passed from the canonical route/error
-boundary or an equivalent typed result. It must be one of the finite registry
-values above.
+The implementation-ready B1 handoff is request-local typed Hono context:
+
+1. The existing createProblemDetailsContextResponse helper sets a
+   problemCode context variable from input.code before it creates the
+   response.
+2. The existing ProblemCode type is the only source of the context variable;
+   no duplicate registry is created.
+3. observeApiRequests reads the optional context variable when it emits the
+   single completion record.
+4. app.onError must use the canonical Problem Details context helper before
+   returning its sanitized INTERNAL_ERROR response, so unexpected API errors
+   also receive INTERNAL_ERROR without parsing a response body.
+5. The context variable is request-local and typed. It is not global mutable
+   state, a response-body parser, a string matcher, or a status-to-code
+   guess.
+
+This makes problemCode optional on successful records and present when a
+canonical Problem Details response was selected. It must be one of the finite
+registry values above.
 
 The logger must not parse a Problem Details response body to discover the
 code. It must not record type, title, detail, instance, response body, or
@@ -380,7 +429,7 @@ the internal ProblemDetailKey/detail registry. This document does not migrate
 the current response envelope to another RFC version and does not change the
 public API contract.
 
-## 11. Error-sanitization policy
+## 11. Error-sanitization and safe sink policy
 
 Operational records may describe that a bounded endpoint family returned a
 status or approved problemCode. They must not describe the sensitive reason
@@ -408,24 +457,83 @@ Prohibited:
 Unexpected internal failures must remain sanitized at the public API boundary
 and in the operational stream.
 
+### 11.1 Safe sink boundary
+
+The current writeOperationalRecord function is private, synchronous, and
+directly selects process.stdout or process.stderr. It is not injectable, so
+focused tests cannot use a repository-owned writer boundary without patching
+process globals.
+
+B1 adds the smallest safe boundary:
+
+ObservabilitySink.write(record): void
+
+The record argument is the typed, bounded operational record defined by this
+document. The default implementation preserves the current stdout/stderr
+selection and JSON-lines format. observeApiRequests accepts an optional sink
+through its middleware options, defaulting to the process-stream
+implementation. A focused test may inject a synchronous in-memory sink. The
+interface must not grow into a generic logger, APM abstraction, async delivery
+queue, retry engine, buffering subsystem, or global mutable sink.
+
+The request middleware owns the fail-open call boundary. It catches a sink
+throw and continues the authoritative request flow. The default sink also
+serializes only the approved record fields; it does not accept arbitrary
+objects and does not use a general redactor.
+
 ## 12. Cache-observability decision
 
 The cache remains an internal optimization and compatibility boundary. Cache
 observability is approved only as a bounded internal outcome; it is not public
 response metadata.
 
-The approved cacheStatus values are:
+The B2 cacheStatus vocabulary is:
 
 - hit: a compatible cached ChartResult was returned to the calculator caller.
 - miss: no usable compatible entry was available and the calculator proceeded
   toward a fresh Engine calculation without a cache operational failure.
 - error: a cache read, clone, write, or equivalent cache operation had an
   operational failure, while the request could continue or fail separately.
+  This value is not implementation-ready in the current APIs.
 - bypass: a future explicitly supported path intentionally did not consult the
   cache. The current runtime has no general bypass mode and must not emit this
   value until one exists.
 
-Precedence and failure truthfulness:
+The current ChartResultCache APIs cannot truthfully distinguish all of these
+states:
+
+- get returns undefined both for an empty/stale/incompatible entry and after
+  some clone failures;
+- set returns false for a clone failure, but CachedChartCalculator currently
+  ignores that boolean;
+- key/clock failures can throw rather than return a typed cache outcome.
+
+R1 decision: choose the minimal internal outcome extension in B2. B2 must add
+a private discriminated cache outcome at the cache/calculator boundary, for
+example a lookup result with hit, miss, and error variants and a store result
+that distinguishes stored from error. The exact type name may follow the
+repository convention, but it must be request-local, typed, and returned
+through an internal calculation outcome. ChartResultCache remains free of
+logging.
+
+The B2 calculator outcome direction is:
+
+1. ChartResultCache reports a typed lookup outcome. A compatible cloned entry
+   is hit; a normal empty, stale, or incompatible entry is miss; an actual
+   cache operation failure is error.
+2. ChartResultCache reports whether a fresh-result store succeeded. A store
+   failure changes the final cache outcome to error, rather than being
+   silently discarded.
+3. B2 adds a server-internal ChartCalculationOutcome and an internal
+   calculateChartWithOutcome operation to the chart-calculation service.
+   Existing calculateChart remains a ChartResult-returning compatibility
+   operation that unwraps the outcome. Calculation-bearing routes use the
+   outcome only to populate request-local observability context and continue
+   returning only the ChartResult in public API responses.
+4. No global mutable last-outcome state is used, and no low-level cache module
+   emits a log.
+
+Once the typed outcome exists, precedence and failure truthfulness are:
 
 1. A compatible returned entry is hit.
 2. A cache operational failure is error, even if a fresh calculation later
@@ -455,23 +563,62 @@ projections:
 
 | Field | Approved meaning | Source rule |
 | --- | --- | --- |
-| engineResultGeneration | Trusted result/runtime generation, such as the current mock generation UI fixture marker | Read from the trusted calculator/runtime boundary, never from request input |
-| chartResultContractVersion | ChartResult contract version accepted by the calculator | Read after contract validation or from the trusted runtime binding |
-| scientificStatus | COMPLETE or INCOMPLETE_RESEARCH | Project only the ChartResult calculation status |
-| provenanceStatus | available or unavailable | Project only presence/absence status; never the envelope identifier |
-| warningCount | Number of result warnings | Count only; do not emit warning messages |
-| engineDurationMs | Time spent at the calculator/Engine boundary | Measure at the trusted dependency boundary |
-| astronomyConfigurationId | Conditional scientific configuration identity | Emit only after the later bounded-identity review in section 5.4 |
+| engineResultGeneration | Trusted result/runtime generation | Use the runtime-injected cache identity described below; never use request input or provider name |
+| chartResultContractVersion | ChartResult contract version accepted by the calculator | Use the same runtime-injected cache identity used by CachedChartCalculator; do not hard-code a second version |
+| scientificStatus | Stable observability projection of ChartResult.calculationStatus | Use exactly COMPLETE or INCOMPLETE_RESEARCH |
+| provenanceStatus | No implementation-ready decision | Defer; no new observability taxonomy is introduced |
+| warningCount | Count of result warnings | Defer until ChartResult validation defines a finite warning-array bound |
+| engineDurationMs | Time spent in the actual EngineClient call | Measure only around the EngineClient call on a cache miss; omit on cache hit |
+| astronomyConfigurationId | Conditional scientific configuration identity | Defer until a separate bounded-source/privacy decision |
+
+The trusted pre-calculation source for engineResultGeneration and
+chartResultContractVersion is the same runtime-injected
+chartResultCacheIdentity used by CachedChartCalculator:
+
+1. create-executable-server-bindings.ts supplies the provider-neutral
+   chartResultCacheIdentity.
+2. create-server-runtime-dependencies.ts passes that identity to
+   CachedChartCalculator.
+3. CachedChartCalculator uses engineResultGeneration to validate
+   ChartResult.engineVersion and chartResultContractVersion to validate
+   ChartResult.schemaVersion.
+4. B2 reads the same trusted identity for observability; it does not duplicate
+   or derive either value from the request or an unvalidated Engine response.
+
+In the current development composition these values are UI_FIXTURE_V1 and
+1.0.0. That is a development binding fact, not a production provider
+decision.
 
 These fields are not a license to serialize ChartResult metadata. In
 particular, do not emit planets, signs, houses, aspects, retrograde state,
-coordinates, calculation inputs, full warnings, provenanceEnvelopeId, or
-provider-specific response details.
+coordinates, calculation inputs, full warnings, provenanceEnvelopeId,
+provider-specific response details, or a fabricated provenanceStatus.
+
+scientificStatus is intentionally an observability field name whose source is
+the existing ChartResult.calculationStatus field. It adds no new values or
+scientific taxonomy.
 
 No provider name, provider URL, API key, provider request ID, or provider
 diagnostic payload is part of the P0 record. The generation field is intended
 to reveal approved compatibility differences without disclosing provider
 internals.
+
+## 13.1 Trusted metadata string policy
+
+Generation and version values are trusted runtime strings, not global
+hard-coded logger allowlists. Before they can enter an operational record,
+they must satisfy all of these conditions:
+
+- sourced from the validated runtime composition/cache identity;
+- non-empty and no longer than 256 characters, matching the current cache
+  identity bound;
+- free of control characters, line separators, and JSON delimiter injection;
+- not supplied by request input or copied from an arbitrary provider payload;
+- emitted as a single bounded field with no dynamic field names or labels.
+
+Legitimate opaque deployments therefore do not require editing the logger for
+each new generation, while unsafe or untrusted values are omitted/rejected at
+the typed boundary.
 
 ## 14. Surface-specific observability policies
 
@@ -523,8 +670,9 @@ contract.
 ### 14.6 Account export
 
 Export preparation and export streaming must remain separate endpoint
-families. A future record may show that the server handled the preparation or
-entered/completed a response stream boundary. It must not log exported
+families. The current middleware emits its completion record after the export
+handler returns a Response containing a ReadableStream. It does not consume
+the stream and has no client-receipt signal. It must not log exported
 contents, filenames derived from user data, account identity, chart/note
 records, stream bytes, or response payloads.
 
@@ -555,15 +703,15 @@ Structured operational logs are the P0 transport already present in the
 repository. This task does not install or select a metrics, tracing, APM, or
 log-vendor backend.
 
-Future dashboards may derive bounded counters and histograms from the event
-stream, including:
+Future dashboards may derive bounded counters and histograms from canonical
+completion events, including:
 
 - request count by endpointFamily, method, status class, and level
 - latency distribution by endpointFamily
 - error count by endpointFamily and problemCode
 - cache hit/miss/error count on calculation-bearing operations
 - compatibility count by approved generation or contract version
-- warning-status count by scientificStatus
+- scientific-status count by scientificStatus, when B2 approves that field
 
 These are logical metric definitions, not implementation or exporter
 requirements. They must not add unrestricted labels such as request body,
@@ -590,12 +738,13 @@ not accept arbitrary metadata maps from routes.
 | status | Numeric HTTP status, operationally bounded |
 | level/event | Fixed allowlists |
 | problemCode | Finite registry |
-| cacheStatus | Four values |
+| cacheStatus | hit, miss, or error after B2 outcome reporting; bypass is reserved and not emitted |
 | engineResultGeneration | Trusted bounded allowlist |
 | chartResultContractVersion | Bounded version value |
-| scientificStatus/provenanceStatus | Two values each |
-| warningCount/durations | Numeric values without raw labels |
-| astronomyConfigurationId | Conditional and separately reviewed; omit unless bounded |
+| scientificStatus | COMPLETE or INCOMPLETE_RESEARCH |
+| provenanceStatus | Deferred; not an accepted dimension |
+| warningCount/durations | Durations are numeric; warningCount is deferred until bounded |
+| astronomyConfigurationId | Deferred and separately reviewed; omit |
 
 No unrestricted request or account dimension is accepted as a label, field,
 or dynamic event name.
@@ -611,7 +760,7 @@ normal and error paths against it.
 | Birthplace text, latitude, longitude, altitude, or exact location | PROHIBITED | endpointFamily, status, bounded problemCode |
 | Resolved timezone, offset, or timezone-resolution input | PROHIBITED | status only; no resolution detail |
 | Full ChartRequest | PROHIBITED | cacheStatus and approved Engine projections |
-| ChartResult body, planets, signs, houses, aspects, angles, retrograde state | PROHIBITED | chartResultContractVersion, scientificStatus, warningCount |
+| ChartResult body, planets, signs, houses, aspects, angles, retrograde state | PROHIBITED | chartResultContractVersion and scientificStatus; warningCount remains deferred |
 | Interpretation text, labels, or generated content | PROHIBITED | status and duration |
 | Vault chart IDs, note IDs, labels, tags, names, favorites, notes, requests, results | PROHIBITED | vault endpointFamily and status |
 | Feedback category, message, request body, or account identity | PROHIBITED | feedback endpointFamily and status |
@@ -620,7 +769,7 @@ normal and error paths against it.
 | Raw Origin, Referer, full URL, query string, route parameter | PROHIBITED | endpointFamily and method |
 | Raw exception, stack, SQL error, provider response, credential, or secret | PROHIBITED | status and finite problemCode |
 | Cache key, canonical input, digest, request hash, or cache payload | PROHIBITED | cacheStatus |
-| provenanceEnvelopeId or unrestricted scientific identity | PROHIBITED | provenanceStatus; conditional configuration status only |
+| provenanceEnvelopeId or unrestricted scientific identity | PROHIBITED | source-defined scientificStatus and approved generation/version only |
 | Export contents, stream bytes, filename content, or client download state | PROHIBITED | export endpointFamily and server boundary status |
 | Arbitrary metadata objects or unbounded labels | PROHIBITED | fixed schema and allowlists |
 
@@ -684,10 +833,19 @@ Observability is non-authoritative. A serialization or sink write failure
 must not change the API response, expose a new error to the caller, or cause
 chart calculation, Vault persistence, auth, export, or deletion to fail.
 
-The current writer catches its own serialization/write failure and does not
-retry or buffer records. Future implementation may improve sink isolation,
-but must preserve fail-open request behavior and must not add a synchronous
-fallback that logs prohibited data.
+Serialization failure and sink failure have the same fail-open result:
+
+- Serialization receives only the fixed, bounded record object. If
+  JSON.stringify fails, the emission attempt is dropped.
+- If the process stream or injected ObservabilitySink.write throws, the
+  emission attempt is dropped.
+- Neither failure changes the authoritative response, retries, buffers, or
+  writes sensitive fallback text.
+- Logger failure is never recursively logged.
+
+The current writer catches its own serialization/write failure. B1 preserves
+that behavior at the narrow sink call boundary while making the sink
+injectable for focused tests.
 
 ## 19. Future implementation slices
 
@@ -699,28 +857,33 @@ WEB-OBS-001B1 READY
 
 Implement only the request-boundary portion:
 
+- emit exactly one canonical api.request.completed record per observable API
+  request
+- remove api.request.error emission and its duplicate event type
 - preserve the current JSON-lines transport and field names
 - verify all endpoint families and fallback behavior
 - verify server-generated request IDs and response header behavior
-- preserve completion plus auxiliary-error semantics unless an explicit
-  additive change is justified
-- introduce a typed/safe handoff for problemCode if needed
+- set problemCode through the existing canonical Problem Details context
+  helper and request-local typed Hono context
+- add the narrow synchronous ObservabilitySink.write(record): void boundary
+  with the current process-stream writer as the default
 - keep all privacy exclusions and allowlists centralized
-- do not add cache or Engine fields unless the slice explicitly includes the
-  approved boundary handoff
+- do not add cache or Engine metadata
+- do not modify route bodies merely to carry ProblemCode; the central response
+  helper is the handoff point
 
 ### WEB-OBS-001B2 — Add calculation/cache/Engine projections
 
 Coordinate with the existing chart result cache contract to add only:
 
-- cacheStatus
+- cacheStatus after the typed cache outcome extension, with bypass still
+  non-emittable
 - engineResultGeneration
 - chartResultContractVersion
 - scientificStatus
-- provenanceStatus
-- warningCount
 - engineDurationMs
-- the conditionally reviewed astronomyConfigurationId, if approved
+- do not add provenanceStatus, warningCount, or astronomyConfigurationId
+  unless their deferred source/boundary decisions are separately approved
 
 Keep the fields internal and bounded. Do not modify the public ChartResult
 or API response contract.
@@ -734,15 +897,17 @@ focused review, not a broad application audit.
 
 ## 20. Focused future test plan
 
-No tests are added or run by WEB-OBS-001A. The following tests are the
+No tests are added or run by WEB-OBS-001A-R1. The following tests are the
 implementation handoff plan.
 
 ### Request-boundary tests
 
-- A normal API request emits one api.request.completed record.
-- An unhandled API error preserves the observed auxiliary
-  api.request.error plus completion behavior, or documents and tests any
-  additive normalization.
+- Every observable API request emits exactly one canonical
+  api.request.completed record when the sink is healthy.
+- An unexpected API error is converted by the central error boundary and
+  produces one completion record with status 500, level error, and
+  problemCode INTERNAL_ERROR.
+- No api.request.error record is emitted after B1.
 - Every emitted record has the required fields for its event kind.
 - requestId is server-generated, stable within a request, and returned in
   X-Request-Id.
@@ -767,22 +932,26 @@ implementation handoff plan.
 ### Outcome tests
 
 - 4xx and 429 remain observable without becoming server-error level records.
-- 5xx completion and auxiliary error records are error level.
-- Canonical ProblemCode values can be attached only from the typed error
-  boundary; arbitrary body text cannot become problemCode.
+- 500 and 503 completion records are error level.
+- 400, 401, 403, 404, and 429 completion records are info level.
+- Canonical ProblemCode values are attached only through the typed context
+  handoff; arbitrary body text cannot become problemCode.
 - Auth outcomes preserve anti-enumeration behavior.
 - Rate-limit and origin-rejection records contain no limiter identity or raw
   headers.
 
 ### Cache and Engine tests
 
-- Cache hit, miss, operational error, and unsupported bypass map to the
-  approved cacheStatus values.
+- Cache hit and normal miss map to their approved cacheStatus values.
+- Cache operational error maps to error only after B2 adds typed cache outcome
+  reporting; the current APIs must not fabricate that value.
+- bypass is never emitted until an explicit runtime bypass exists.
 - Cache keys, digests, input, and result bodies never appear.
 - Engine generation and ChartResult contract version come from trusted
   boundaries, not request input.
-- scientificStatus and provenanceStatus are bounded projections.
-- warningCount is numeric and warning text is absent.
+- scientificStatus is projected from ChartResult.calculationStatus using only
+  COMPLETE or INCOMPLETE_RESEARCH.
+- Deferred provenanceStatus and warningCount are not emitted.
 - Engine duration is distinct from API duration.
 - Provider name, provider URL, provider request ID, and response payload are
   absent.
@@ -798,27 +967,37 @@ implementation handoff plan.
 
 ## 21. Unresolved technical decisions
 
-The following are deliberately deferred and must be resolved in the named
-implementation or policy track before runtime use:
+R1 resolves the implementation-critical B1/B2 architecture:
 
-1. The exact typed handoff from route/error handling to problemCode.
-2. The exact safe sink abstraction, if one is needed, while preserving the
-   current stdout/stderr JSON-lines behavior.
-3. The exact propagation mechanism for cacheStatus across the calculator
-   boundary without changing public ChartResult or API response contracts.
-4. The exact trusted source and allowlist for engineResultGeneration and
-   chartResultContractVersion in each runtime composition.
-5. Whether astronomyConfigurationId can satisfy the bounded identity
-   conditions. Until approved, omit it and use safe status projections.
-6. The production sink, access control, backup behavior, and retention
-   duration.
-7. The separate privacy-access-audit schema and its relationship to account
+- Canonical accounting uses one completion event.
+- api.request.error is removed in B1.
+- ProblemCode uses the existing ProblemCode type through request-local typed
+  Hono context set by the canonical Problem Details response helper.
+- B1 uses a narrow synchronous ObservabilitySink.write(record): void boundary.
+- B2 carries calculation metadata through a request-local internal calculation
+  outcome; it does not use global mutable state or low-level cache logging.
+- B2 first extends cache outcome reporting before emitting cacheStatus=error.
+- Generation and ChartResult contract version use the existing trusted cache
+  identity binding.
+- scientificStatus uses ChartResult.calculationStatus.
+- provenanceStatus, warningCount, and astronomyConfigurationId remain
+  deferred and do not block B1.
+- engineDurationMs is measured only around an actual EngineClient call and is
+  absent on cache hit.
+
+The remaining decisions are external or explicitly deferred policy items:
+
+1. Production sink deployment, access control, and backup behavior.
+2. Retention duration and operational-log deletion behavior.
+3. The separate privacy-access-audit schema and its relationship to account
    export/deletion.
-8. Whether derived metrics will be built from logs or from a future internal
-   metrics path. No vendor is selected here.
+4. Whether a future metrics path derives from logs or a separate internal
+   stream. No vendor is selected here.
+5. Whether astronomyConfigurationId can satisfy the bounded identity
+   conditions. Until approved, omit it.
 
-These unresolved items do not block the documentation baseline. They do block
-runtime claims beyond the current implementation.
+These remaining items do not block B1 implementation. They block production
+deployment claims beyond the current source and the approved bounded schema.
 
 ## 22. Anti-patterns expressly rejected
 
@@ -840,11 +1019,11 @@ runtime claims beyond the current implementation.
 - Changing the public Problem Details or chart response contract as part of
   observability.
 - Adding runtime code, dependencies, tests, migrations, or configuration in
-  WEB-OBS-001A.
+  WEB-OBS-001A-R1.
 
 ## 23. Integrity and completion boundary
 
-WEB-OBS-001A is complete only when the following remain true:
+WEB-OBS-001A-R1 is complete only when the following remain true:
 
 - Runtime source under server/src is unchanged.
 - Frontend source under apps/web/src is unchanged.
@@ -852,7 +1031,7 @@ WEB-OBS-001A is complete only when the following remain true:
   unchanged.
 - Brand files and scientific/provider logic are unchanged.
 - C:\NatalNode is untouched.
-- Exactly this contract document is added.
+- Only this contract document is modified by R1.
 - No HTTP Engine integration, MockEngineClient change, chart calculation,
   Vault/Auth/feedback implementation, or P1/P2/P3 functionality is added.
 
@@ -868,4 +1047,4 @@ because no runtime or dependency change is authorized.
 
 Recommended next action:
 
-REVIEW WEB-OBS-001A CONTRACT BEFORE IMPLEMENTATION.
+WEB-OBS-001B1 — Complete Privacy-Minimized Request Observability
