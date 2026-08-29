@@ -139,6 +139,13 @@ export type {
   EmailMagicLinkAuthLifecycle,
   FeedbackSubmissionRecord,
   FeedbackSubmissionRepository,
+  PrivacyAccessAuditAccountResourceCategory,
+  PrivacyAccessAuditAction,
+  PrivacyAccessAuditActorType,
+  PrivacyAccessAuditEvent,
+  PrivacyAccessAuditOutcome,
+  PrivacyAccessAuditRepository,
+  PrivacyAccessAuditResourceCategory,
   PersistenceRepositories,
   UserRepository,
   VaultChartMetadataUpdate,
@@ -158,6 +165,7 @@ export {
   PostgresEmailMagicLinkChallengeRepository,
   PostgresEmailMagicLinkAuthLifecycle,
   PostgresFeedbackSubmissionRepository,
+  PostgresPrivacyAccessAuditRepository,
   PostgresUserRepository,
   PostgresVaultChartRepository
 } from './persistence/postgres/index.js';

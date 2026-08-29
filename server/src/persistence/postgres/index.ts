@@ -9,5 +9,6 @@ export { PostgresChartNoteRepository } from './postgres-chart-note-repository.js
 export { PostgresEmailMagicLinkChallengeRepository } from './postgres-email-magic-link-challenge-repository.js';
 export { PostgresEmailMagicLinkAuthLifecycle } from './postgres-email-magic-link-auth-lifecycle.js';
 export { PostgresFeedbackSubmissionRepository } from './postgres-feedback-submission-repository.js';
+export { PostgresPrivacyAccessAuditRepository } from './postgres-privacy-access-audit-repository.js';
 export { PostgresUserRepository } from './postgres-user-repository.js';
 export { PostgresVaultChartRepository } from './postgres-vault-chart-repository.js';

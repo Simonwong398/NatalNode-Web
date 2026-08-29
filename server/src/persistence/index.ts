@@ -38,6 +38,15 @@ export type {
   FeedbackSubmissionRecord,
   FeedbackSubmissionRepository
 } from './feedback-submission-repository.js';
+export type {
+  PrivacyAccessAuditAccountResourceCategory,
+  PrivacyAccessAuditAction,
+  PrivacyAccessAuditActorType,
+  PrivacyAccessAuditEvent,
+  PrivacyAccessAuditOutcome,
+  PrivacyAccessAuditRepository,
+  PrivacyAccessAuditResourceCategory
+} from './privacy-access-audit-repository.js';
 export type { PersistenceRepositories } from './persistence-repositories.js';
 export type { VaultChartRepository } from './vault-chart-repository.js';
 export type { UserRepository } from './user-repository.js';
