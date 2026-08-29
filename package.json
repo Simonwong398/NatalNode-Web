@@ -17,6 +17,8 @@
     "predb:migrate": "npm run build:server",
     "db:migrate": "npm run migrate --workspace=server",
     "predev:local": "npm run build",
-    "dev:local": "npm run local --workspace=server"
+    "dev:local": "npm run local --workspace=server",
+    "predev:public": "npm run build",
+    "dev:public": "npm run public --workspace=server"
   }
 }

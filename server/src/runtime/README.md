@@ -146,9 +146,14 @@ compiler. The supported root commands are:
   PostgreSQL migration runner as a separate operation.
 - `npm run dev:local` — build the static Astro artifact and server runtime, then
   start one local public edge plus the internal Hono listener.
+- `npm run dev:public` — build the static Astro artifact and server runtime,
+  then start one public-development local edge plus a reduced Hono listener
+  that uses the existing development fixtures without PostgreSQL or email
+  credentials.
 
-All three commands use the existing required server environment variables
-listed above. API and local execution additionally require:
+`npm run server:start`, `npm run db:migrate`, and `npm run dev:local` use the
+existing required server environment variables listed above. API and local
+execution additionally require:
 
 - `RESEND_API_KEY`
 - `AUTH_EMAIL_FROM`
@@ -164,6 +169,22 @@ Local composition additionally requires `LOCAL_PUBLIC_PORT` and requires
 differ from `LOCAL_PUBLIC_PORT`. The local edge serves `apps/web/dist` for
 normal routes and assets and proxies every `/api` and `/api/*` request without
 adding CORS. Build and startup are separate from database migration execution.
+
+Public-development composition is intentionally separate from the complete
+local composition. It uses code-owned defaults and one canonical browser
+origin:
+
+```text
+http://localhost:4321
+```
+
+The public edge listens on `localhost:4321` and proxies to a loopback-only
+Hono listener on `127.0.0.1:4322`. `npm run dev` remains the Astro-only
+frontend preview and does not provide BFF behavior. Public-development mode is
+anonymous: `/api/auth/session` reports `authenticated: false`, protected
+routes remain unauthorized, and magic-link authentication is unavailable.
+Open the public-development runtime at the canonical localhost origin rather
+than the internal API port or an alternate `127.0.0.1:4321` browser origin.
 
 ## Explicit PostgreSQL migration runtime
 
