@@ -119,6 +119,39 @@ export {
 } from './web-push-capability.js';
 
 export {
+  createWebPushVapidReadiness,
+  isValidWebPushVapidPrivateKey,
+  isValidWebPushVapidSubject,
+  MAX_WEB_PUSH_VAPID_SUBJECT_LENGTH,
+  WEB_PUSH_VAPID_PRIVATE_KEY_ENVIRONMENT_VARIABLE,
+  WEB_PUSH_VAPID_READINESS_STATES,
+  WEB_PUSH_VAPID_SUBJECT_ENVIRONMENT_VARIABLE
+} from './web-push-vapid.js';
+export type {
+  WebPushVapidConfiguration,
+  WebPushVapidConfigurationInput,
+  WebPushVapidReadiness,
+  WebPushVapidReadinessState
+} from './web-push-vapid.js';
+
+export {
+  createWebPushTransport,
+  DefaultWebPushTransport,
+  WEB_PUSH_TRANSPORT_OUTCOMES
+} from './web-push-transport.js';
+export type {
+  WebPushProtocolClient,
+  WebPushProtocolRequest,
+  WebPushProtocolSubscription,
+  WebPushTransport,
+  WebPushTransportInput,
+  WebPushTransportOptions,
+  WebPushTransportOutcome,
+  WebPushTransportOutcomeKind,
+  WebPushTransportSubscription
+} from './web-push-transport.js';
+
+export {
   PostgresNotificationPreferenceRepository,
   PostgresNotificationEnqueueRepository,
   PostgresPushSubscriptionRepository

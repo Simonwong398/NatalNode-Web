@@ -7,6 +7,11 @@ import {
   createWebPushCapability,
   WEB_PUSH_APPLICATION_SERVER_KEY_ENVIRONMENT_VARIABLE
 } from '../../notification-platform/web-push-capability.js';
+import {
+  createWebPushVapidReadiness,
+  WEB_PUSH_VAPID_PRIVATE_KEY_ENVIRONMENT_VARIABLE,
+  WEB_PUSH_VAPID_SUBJECT_ENVIRONMENT_VARIABLE
+} from '../../notification-platform/web-push-vapid.js';
 
 const CANONICAL_NON_NEGATIVE_INTEGER = /^(?:0|[1-9]\d*)$/u;
 const CANONICAL_POSITIVE_INTEGER = /^[1-9]\d*$/u;
@@ -216,6 +221,11 @@ export function parseServerEnvironment(
   const webPushCapability = createWebPushCapability(
     env[WEB_PUSH_APPLICATION_SERVER_KEY_ENVIRONMENT_VARIABLE]
   );
+  const webPushDeliveryReadiness = createWebPushVapidReadiness({
+    publicKey: env[WEB_PUSH_APPLICATION_SERVER_KEY_ENVIRONMENT_VARIABLE],
+    privateKey: env[WEB_PUSH_VAPID_PRIVATE_KEY_ENVIRONMENT_VARIABLE],
+    subject: env[WEB_PUSH_VAPID_SUBJECT_ENVIRONMENT_VARIABLE]
+  });
   const hostname = readRequired(env, 'HOST');
 
   if (hostname !== hostname.trim()) {
@@ -228,7 +238,8 @@ export function parseServerEnvironment(
     serverRuntimeConfig: {
       publicWebOrigin,
       webPush: {
-        applicationServerKey: webPushCapability.applicationServerKey
+        applicationServerKey: webPushCapability.applicationServerKey,
+        deliveryReadiness: webPushDeliveryReadiness
       },
       authentication: {
         magicLinkTtlSeconds,

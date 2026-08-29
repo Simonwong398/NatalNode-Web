@@ -2,7 +2,7 @@
 
 | Field | Value |
 |---|---|
-| Status | **PASS / CONTRACT AMENDMENT CLOSED / APPROVED TECHNICAL CONTRACT / B3 IMPLEMENTED LOCALLY / B4A FROZEN / B4B1 IMPLEMENTED LOCALLY / SECURITY REVIEW REQUIRED / B4B2-B4B4 IMPLEMENTATION DEFERRED / LIVE WEB PUSH DELIVERY NOT IMPLEMENTED** |
+| Status | **PASS / CONTRACT AMENDMENT CLOSED / APPROVED TECHNICAL CONTRACT / B3 IMPLEMENTED LOCALLY / B4A FROZEN / B4B1 IMPLEMENTED LOCALLY / B4B2 IMPLEMENTED LOCALLY / SECURITY REVIEW REQUIRED / B4B3-B4B4 IMPLEMENTATION DEFERRED / LIVE WEB PUSH DELIVERY NOT IMPLEMENTED** |
 | Task | `WEB-NOTIFY-001B4A-R1` |
 | Reviewed baseline | `9d188bbe491d5f4038e49fe920cacd720c9a8d33` (`docs: define web push delivery contract`) |
 | Date | 2026-08-29 |
@@ -22,8 +22,8 @@ switching behavior. B4A now freezes the Consumer delivery, outbox, retry,
 fan-out, transport, and server-only VAPID contract, with the R1 amendment
   closing the remaining concurrency and database-shape ambiguities but adding
   no implementation.
-Private VAPID credentials, provider/library selection, workers, schedulers,
-migrations, live delivery, payments, and Developer operational-notification
+Private VAPID credential management, workers, schedulers, migrations, live
+delivery, payments, provider decisions, and Developer operational-notification
 implementation remain deferred. This is an implementation handoff and product
 foundation contract, not a legal notice, retention schedule, billing decision,
 or production-readiness claim.
@@ -135,9 +135,10 @@ Current findings relevant to notifications:
   Account Export projection. B3 now provides the Account Notifications UI,
   explicit user-gesture permission flow, root-scoped Service Worker, browser
   registration/removal choreography, server-owned public capability, and
-  bounded click/payload policy. No private VAPID, provider, delivery worker,
-  durable outbox, scheduler, or Developer operational-notification
-  infrastructure exists. B4A freezes their future boundary only. The only
+  bounded click/payload policy. No private VAPID credential is configured, and
+  no delivery worker, durable scheduler, or Developer operational-notification
+  infrastructure exists. B4B2 adds only the server-internal readiness and
+  transport foundation; B4A freezes the remaining future boundary. The only
   scheduler-like boundary is the short-lived Auth lifecycle maintenance
   executable; it is not notification infrastructure.
 - The Web application is a static Astro artifact with React islands. B3 adds
@@ -1500,14 +1501,14 @@ The first usable foundation is limited to:
 - one provider-neutral Web Push channel;
 - bounded type/category registry;
 - narrow entitlement hook with no billing implementation;
-- a frozen durable outbox/fan-out/claim/retry/transport contract with no
-  runtime implementation; and
+- a frozen durable outbox/fan-out/claim/retry contract plus the bounded B4B2
+  transport/readiness foundation; and
 - privacy-minimized content and account lifecycle interaction.
 
 It excludes inbox/history, arbitrary test messages, a general messaging bus,
 astrology trigger semantics, paid plan logic, provider-specific UI, and live
 delivery. B4A freezes the delivery contract only; B4B1 now provides the local
-persistence and enqueue foundation, while B4B2-B4B4 remain deferred until
+persistence and enqueue foundation, while B4B3-B4B4 remain deferred until
 their separately authorized slices and gates exist.
 
 ## 44. Implementation-readiness matrix
@@ -1522,7 +1523,7 @@ approval.
 | Registration/unsubscribe API boundary | `IMPLEMENTED LOCALLY / CONSUMER AUTHENTICATED API` | Auth principal, same-origin, bounded validation, account-key rate limiting, safe metadata |
 | Permission UX/settings UI | `IMPLEMENTED LOCALLY / PRODUCT-OWNER VISUAL RE-ACCEPTANCE REQUIRED` | Account Notifications UI uses explicit user gestures and all supported/denied/unavailable states |
 | Service worker | `IMPLEMENTED LOCALLY / PRODUCT-OWNER VISUAL RE-ACCEPTANCE REQUIRED` | Root-hosted narrow push/click worker; no fetch/cache/offline or public-development fake |
-| Web Push adapter | `CONTRACT FROZEN / IMPLEMENTATION DEFERRED` | Provider/library and complete server-only VAPID configuration remain operational gates |
+| Web Push adapter | `IMPLEMENTED LOCALLY / SECURITY REVIEW REQUIRED` | Provider-neutral `web-push` protocol seam, complete server-only VAPID readiness, bounded outcomes, and redaction; no live send route |
 | Durable outbox/worker | `IMPLEMENTED LOCALLY / SECURITY REVIEW REQUIRED` | B4B1 migration, repository, and typed enqueue foundation; worker executable, deployment invocation, and live acceptance remain deferred |
 | Entitlement integration | `FUTURE SUBSCRIPTION-GATED` | Approved product/billing entitlement source required |
 | Astrology alert producers | `ENGINE/TRIGGER-GATED` | Separate source-grounded trigger/scientific contract required |
@@ -1573,8 +1574,10 @@ Current implementation status:
   PostgreSQL persistence/repository, future-worker schema support, typed
   server-internal enqueue, eligibility/preference gates, immutable safe
   payload persistence, durable dedupe, and active-subscription fan-out only.
-- `WEB-NOTIFY-001B4B2` — **NOT STARTED**: provider-neutral `WebPushTransport`
-  implementation and server-only VAPID configuration/readiness.
+- `WEB-NOTIFY-001B4B2` — **IMPLEMENTED LOCALLY / SECURITY REVIEW REQUIRED**:
+  provider-neutral `WebPushTransport`, per-call VAPID configuration/readiness,
+  P-256 public/private match validation, bounded protocol outcomes, and
+  redaction. No worker or live send route exists.
 - `WEB-NOTIFY-001B4B3` — **NOT STARTED**: worker claim/recovery, bounded
   retry/backoff, final-gate revalidation, and subscription invalidation.
 - `WEB-NOTIFY-001B4B4` — **NOT STARTED**: bounded integration validation and
@@ -1629,14 +1632,17 @@ send endpoint.
 the documented PostgreSQL tables, repositories, typed server-internal enqueue
 transaction, eligibility/preference gates, server-owned template rendering,
 immutable payload persistence, dedupe constraint, and account-deletion-
-compatible foreign keys. Transport and live delivery remain deferred.
+compatible foreign keys. Worker execution and live delivery remain deferred.
 
 ### `WEB-NOTIFY-001B4B2` — WebPushTransport and VAPID configuration
 
-**NOT STARTED.** Implement the provider-neutral transport adapter, complete
-server-only VAPID validation/readiness, bounded protocol outcome mapping, and
-secret redaction. Do not add a hosted provider, arbitrary send API, or worker
-claim loop.
+**IMPLEMENTED LOCALLY / SECURITY REVIEW REQUIRED.** This slice adds the
+provider-neutral transport boundary, a per-call `web-push@3.6.7` protocol
+implementation, complete server-only VAPID readiness with P-256 key-pair
+matching, bounded outcome classification, and secret/error redaction. It adds
+no hosted provider, arbitrary send API, worker claim loop, or live delivery.
+The implementation passes VAPID details per protocol call and bounds the
+library socket timeout to the future worker's 30-second attempt limit.
 
 ### `WEB-NOTIFY-001B4B3` — Worker, retry, and invalidation
 
@@ -1795,18 +1801,20 @@ unrelated source inspection are intentionally not run.
     Delivery guarantee                  = BOUNDED BEST-EFFORT / AT-LEAST-ONCE-STYLE; NOT EXACTLY ONCE
     Billing/subscription implementation = DEFERRED
     Astrology trigger implementation    = DEFERRED
-    Runtime implementation             = B3 LOCAL BROWSER FOUNDATION; B4B1 LOCAL PERSISTENCE/ENQUEUE FOUNDATION; B4B2-B4B4 DEFERRED; LIVE DELIVERY NOT IMPLEMENTED
+    Runtime implementation             = B3 LOCAL BROWSER FOUNDATION; B4B1 LOCAL PERSISTENCE/ENQUEUE FOUNDATION; B4B2 LOCAL VAPID/TRANSPORT FOUNDATION; B4B3-B4B4 DEFERRED; LIVE DELIVERY NOT IMPLEMENTED
     Live/deployment acceptance          = PRODUCT-OWNER VISUAL RE-ACCEPTANCE REQUIRED / LIVE EXTERNAL GATES OPEN
     Historical P0 status               = PRESERVED; NEW SCOPE AFTER WEB-P0-READY-003
     WEB-P0-POLICY-001A                 = NOT EXECUTED / DEFERRED
     WEB-NOTIFY-001B4A-R1               = PASS / CONTRACT AMENDMENT CLOSED
     WEB-NOTIFY-001B4A                  = APPROVED TECHNICAL CONTRACT / IMPLEMENTATION DEFERRED
     WEB-NOTIFY-001B4B1               = IMPLEMENTED LOCALLY / SECURITY REVIEW REQUIRED
-    WEB-NOTIFY-001B4B2/B4B3/B4B4     = NOT STARTED
+    WEB-NOTIFY-001B4B2               = IMPLEMENTED LOCALLY / SECURITY REVIEW REQUIRED
+    WEB-NOTIFY-001B4B3/B4B4         = NOT STARTED
 
-The B3 foundation and B4B1 persistence/enqueue boundary are complete locally
-at their respective implementation boundaries, while B4A remains complete at
-the contract boundary and B4B2-B4B4 remain deferred. No automatic browser
-permission is requested, no notification is sent, no private secret is
-configured, and no subscription/payment/provider decision or live delivery
-acceptance is implied by this document.
+The B3 foundation, B4B1 persistence/enqueue boundary, and B4B2
+VAPID/transport foundation are complete locally at their respective
+implementation boundaries, while B4A remains complete at the contract
+boundary and B4B3-B4B4 remain deferred. No automatic browser permission is
+requested, no notification is sent, no private secret is configured, and no
+subscription/payment/provider decision or live delivery acceptance is implied
+by this document.

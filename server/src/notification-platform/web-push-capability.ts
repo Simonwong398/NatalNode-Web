@@ -11,20 +11,20 @@ const UNCONFIGURED_WEB_PUSH_CAPABILITY: WebPushCapabilityApiResponse =
   });
 
 /**
- * Checks the transport-neutral shape advertised by the browser Push API. This
- * intentionally does not perform elliptic-curve point validation or expose a
- * private VAPID credential.
+ * Decodes the public application-server key after applying the one canonical
+ * browser-facing validation rule. The returned Buffer is a fresh value so the
+ * server-only readiness check cannot mutate the public capability state.
  */
-export function isValidWebPushApplicationServerKey(
+export function decodeWebPushApplicationServerKey(
   value: unknown
-): value is string {
+): Buffer | null {
   if (
     typeof value !== 'string' ||
     value.length === 0 ||
     value.trim() !== value ||
     !/^[A-Za-z0-9_-]+$/u.test(value)
   ) {
-    return false;
+    return null;
   }
 
   let decoded: Buffer;
@@ -32,14 +32,29 @@ export function isValidWebPushApplicationServerKey(
   try {
     decoded = Buffer.from(value, 'base64url');
   } catch (_error) {
-    return false;
+    return null;
   }
 
-  return (
-    decoded.length === 65 &&
-    decoded[0] === 0x04 &&
-    decoded.toString('base64url') === value
-  );
+  if (
+    decoded.length !== 65 ||
+    decoded[0] !== 0x04 ||
+    decoded.toString('base64url') !== value
+  ) {
+    return null;
+  }
+
+  return decoded;
+}
+
+/**
+ * Checks the transport-neutral shape advertised by the browser Push API. This
+ * intentionally does not perform elliptic-curve point validation or expose a
+ * private VAPID credential.
+ */
+export function isValidWebPushApplicationServerKey(
+  value: unknown
+): value is string {
+  return decodeWebPushApplicationServerKey(value) !== null;
 }
 
 /**
