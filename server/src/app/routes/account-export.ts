@@ -328,7 +328,7 @@ export function registerAccountExportRoutes(
           return internalError();
         }
 
-        const initialNotificationData = await awaitAccountExportOperation(
+        const initialNotificationPage = await awaitAccountExportOperation(
           () => openedSnapshot.listNotifications(),
           deadline.signal
         );
@@ -341,7 +341,7 @@ export function registerAccountExportRoutes(
           snapshot,
           initialIdentityPage,
           exportedAt,
-          initialNotificationData
+          initialNotificationPage
         );
 
         if (deadline.signal.aborted) {
@@ -352,7 +352,7 @@ export function registerAccountExportRoutes(
         const body = createAccountExportStream({
           snapshot,
           initialIdentityPage,
-          initialNotificationData,
+          initialNotificationPage,
           exportedAt,
           signal: deadline.signal,
           onSuccess: cleanupSuccess,

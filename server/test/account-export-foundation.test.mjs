@@ -360,13 +360,21 @@ class FakeClient {
     }
 
     if (normalized.includes('FROM PUSH_SUBSCRIPTIONS')) {
+      const rows = this.snapshot.push_subscriptions
+        .filter((row) => row.user_id === copiedParams[0])
+        .sort((left, right) =>
+          left.created_at.localeCompare(right.created_at) ||
+          left.subscription_id.localeCompare(right.subscription_id)
+        );
+
       return {
-        rows: this.snapshot.push_subscriptions
-          .filter((row) => row.user_id === copiedParams[0])
-          .sort((left, right) =>
-            left.created_at.localeCompare(right.created_at) ||
-            left.subscription_id.localeCompare(right.subscription_id)
-          )
+        rows: sortedPage(
+          rows,
+          copiedParams[1],
+          copiedParams[2],
+          'subscription_id',
+          copiedParams[3]
+        )
           .map((row) => ({
             subscription_id: row.subscription_id,
             status: row.status,
@@ -589,23 +597,26 @@ test('account root, identity, chart, note, and feedback reads are strictly scope
       createdAt: '2026-08-27T07:01:00.000Z',
       updatedAt: '2026-08-27T07:01:00.000Z'
     }],
-    pushSubscriptions: [{
-      subscriptionId: 'subscription-a-active',
-      channel: 'WEB_PUSH',
-      status: 'ACTIVE',
-      createdAt: '2026-08-27T07:02:00.000Z',
-      updatedAt: '2026-08-27T07:02:00.000Z',
-      lastSuccessAt: null,
-      invalidatedAt: null
-    }, {
-      subscriptionId: 'subscription-a-invalidated',
-      channel: 'WEB_PUSH',
-      status: 'INVALIDATED',
-      createdAt: '2026-08-27T07:03:00.000Z',
-      updatedAt: '2026-08-27T07:04:00.000Z',
-      lastSuccessAt: '2026-08-27T07:03:30.000Z',
-      invalidatedAt: '2026-08-27T07:04:00.000Z'
-    }]
+    pushSubscriptions: {
+      items: [{
+        subscriptionId: 'subscription-a-active',
+        channel: 'WEB_PUSH',
+        status: 'ACTIVE',
+        createdAt: '2026-08-27T07:02:00.000Z',
+        updatedAt: '2026-08-27T07:02:00.000Z',
+        lastSuccessAt: null,
+        invalidatedAt: null
+      }, {
+        subscriptionId: 'subscription-a-invalidated',
+        channel: 'WEB_PUSH',
+        status: 'INVALIDATED',
+        createdAt: '2026-08-27T07:03:00.000Z',
+        updatedAt: '2026-08-27T07:04:00.000Z',
+        lastSuccessAt: '2026-08-27T07:03:30.000Z',
+        invalidatedAt: '2026-08-27T07:04:00.000Z'
+      }],
+      nextCursor: null
+    }
   });
 
   const serialized = JSON.stringify({

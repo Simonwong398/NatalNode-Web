@@ -5,7 +5,6 @@ import {
   presentAccountDataExportFeedback,
   presentAccountDataExportIdentity,
   presentAccountDataExportNote,
-  presentAccountDataExportNotifications,
   UnsupportedAccountDataExportIdentityError
 } from '../../account/account-data-export.js';
 import type {
@@ -14,7 +13,7 @@ import type {
   AccountDataExportFeedback,
   AccountDataExportIdentity,
   AccountDataExportNote,
-  AccountDataExportNotifications
+  AccountDataExportNotificationPushSubscription
 } from '../../account/account-data-export.js';
 import { PostgresClientSqlExecutor } from './postgres-client-sql-executor.js';
 import type {
@@ -49,6 +48,7 @@ import type {
   AccountDataExportCursor,
   AccountDataExportPage,
   AccountDataExportRepository,
+  AccountDataExportNotificationsPage,
   AccountDataExportSnapshot,
   AccountDataExportSnapshotOpenOptions,
   AccountDataExportSnapshotOpenResult
@@ -131,6 +131,20 @@ function createPage<Row extends { readonly created_at: Date | string }, Item>(
             internalId: internalId(lastRow)
           })
         : null
+  };
+}
+
+function presentNotificationPushSubscription(
+  row: AccountDataExportPushSubscriptionRow
+): AccountDataExportNotificationPushSubscription {
+  return {
+    subscriptionId: row.subscription_id,
+    channel: 'WEB_PUSH',
+    status: row.status,
+    createdAt: toTimestampString(row.created_at),
+    updatedAt: toTimestampString(row.updated_at),
+    lastSuccessAt: toNullableTimestampString(row.last_success_at),
+    invalidatedAt: toNullableTimestampString(row.invalidated_at)
   };
 }
 
@@ -431,7 +445,7 @@ class PostgresAccountDataExportSnapshot implements AccountDataExportSnapshot {
     });
   }
 
-  public listNotifications(): Promise<AccountDataExportNotifications> {
+  public listNotifications(): Promise<AccountDataExportNotificationsPage> {
     return this.read(async () => {
       const channelResult =
         await this.executor.query<AccountDataExportNotificationChannelPreferenceRow>(
@@ -443,13 +457,8 @@ class PostgresAccountDataExportSnapshot implements AccountDataExportSnapshot {
           ACCOUNT_DATA_EXPORT_NOTIFICATION_CATEGORY_PREFERENCES_SQL,
           [this.userId]
         );
-      const subscriptionResult =
-        await this.executor.query<AccountDataExportPushSubscriptionRow>(
-          ACCOUNT_DATA_EXPORT_PUSH_SUBSCRIPTIONS_SQL,
-          [this.userId]
-        );
 
-      return presentAccountDataExportNotifications({
+      return {
         channelPreferences: channelResult.rows.map((row) => ({
           channel: row.channel,
           enabled: row.enabled,
@@ -462,17 +471,32 @@ class PostgresAccountDataExportSnapshot implements AccountDataExportSnapshot {
           createdAt: toTimestampString(row.created_at),
           updatedAt: toTimestampString(row.updated_at)
         })),
-        pushSubscriptions: subscriptionResult.rows.map((row) => ({
-          subscriptionId: row.subscription_id,
-          channel: 'WEB_PUSH',
-          status: row.status,
-          createdAt: toTimestampString(row.created_at),
-          updatedAt: toTimestampString(row.updated_at),
-          lastSuccessAt: toNullableTimestampString(row.last_success_at),
-          invalidatedAt: toNullableTimestampString(row.invalidated_at)
-        }))
-      });
+        pushSubscriptions: await this.readNotificationPushSubscriptions()
+      };
     });
+  }
+
+  public listNotificationPushSubscriptions(
+    cursor?: AccountDataExportCursor
+  ): Promise<AccountDataExportPage<AccountDataExportNotificationPushSubscription>> {
+    return this.read(() => this.readNotificationPushSubscriptions(cursor));
+  }
+
+  private async readNotificationPushSubscriptions(
+    cursor?: AccountDataExportCursor
+  ): Promise<AccountDataExportPage<AccountDataExportNotificationPushSubscription>> {
+    const position = decodeCursor(cursor);
+    const result = await this.executor.query<AccountDataExportPushSubscriptionRow>(
+      ACCOUNT_DATA_EXPORT_PUSH_SUBSCRIPTIONS_SQL,
+      [this.userId, ...cursorParams(position), NORMAL_PAGE_SIZE]
+    );
+
+    return createPage(
+      result.rows,
+      NORMAL_PAGE_SIZE,
+      presentNotificationPushSubscription,
+      (row) => row.subscription_id
+    );
   }
 
   public commit(): Promise<void> {

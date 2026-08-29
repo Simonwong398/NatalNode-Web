@@ -119,6 +119,14 @@ function createSnapshot(options = {}) {
       invalidatedAt: null
     }]
   };
+  const initialNotificationPage = options.notificationPages?.initial ?? {
+    channelPreferences: notificationData.channelPreferences,
+    categoryPreferences: notificationData.categoryPreferences,
+    pushSubscriptions: {
+      items: notificationData.pushSubscriptions,
+      nextCursor: null
+    }
+  };
   let commits = 0;
   let rollbacks = 0;
 
@@ -178,7 +186,18 @@ function createSnapshot(options = {}) {
         throw new Error('private notification query failure');
       }
 
-      return notificationData;
+      return initialNotificationPage;
+    },
+    async listNotificationPushSubscriptions(cursor) {
+      events.push(`notifications:${cursor}`);
+      if (options.failNotificationPushSubscriptions) {
+        throw new Error('private notification subscription query failure');
+      }
+
+      return options.notificationPages?.[cursor] ?? {
+        items: [],
+        nextCursor: null
+      };
     },
     async commit() {
       commits += 1;
@@ -1000,10 +1019,67 @@ test('snapshot pagination is consumed in order and commit failure prevents final
   const failedStream = await readStreamUntilFailure(failingResponse);
   assert.equal(failingResponse.status, 200);
   assert.equal(failedStream.failure, null);
-  assert.notEqual(failedStream.text.endsWith(']}'), true);
+  assert.notEqual(failedStream.text.endsWith('}}'), true);
   assert.throws(() => JSON.parse(failedStream.text));
   assert.equal(failingHarness.snapshots[0].commits, 1);
   assert.equal(failingHarness.snapshots[0].rollbacks, 0);
+});
+
+test('notification subscription metadata is streamed in bounded pages before commit', async () => {
+  const firstSubscription = {
+    subscriptionId: 'subscription-first',
+    channel: 'WEB_PUSH',
+    status: 'ACTIVE',
+    createdAt: '2026-08-27T04:02:00.000Z',
+    updatedAt: '2026-08-27T04:02:00.000Z',
+    lastSuccessAt: null,
+    invalidatedAt: null
+  };
+  const secondSubscription = {
+    subscriptionId: 'subscription-second',
+    channel: 'WEB_PUSH',
+    status: 'INVALIDATED',
+    createdAt: '2026-08-27T04:03:00.000Z',
+    updatedAt: '2026-08-27T04:04:00.000Z',
+    lastSuccessAt: '2026-08-27T04:03:30.000Z',
+    invalidatedAt: '2026-08-27T04:04:00.000Z'
+  };
+  const harness = createHarness({
+    snapshotFactory: () => createSnapshot({
+      notificationPages: {
+        initial: {
+          channelPreferences: [],
+          categoryPreferences: [],
+          pushSubscriptions: {
+            items: [firstSubscription],
+            nextCursor: 'notification-next'
+          }
+        },
+        'notification-next': {
+          items: [secondSubscription],
+          nextCursor: null
+        }
+      }
+    })
+  });
+
+  const response = await postExport(harness.app);
+  assert.equal(response.status, 200);
+  const exportValue = JSON.parse(await response.text());
+
+  assert.deepEqual(exportValue.notifications, {
+    channelPreferences: [],
+    categoryPreferences: [],
+    pushSubscriptions: [firstSubscription, secondSubscription]
+  });
+  assert.deepEqual(harness.snapshots[0].events, [
+    'identities:initial',
+    'notifications:initial',
+    'charts:initial',
+    'feedback:initial',
+    'notifications:notification-next',
+    'commit'
+  ]);
 });
 
 test('reader cancellation aborts production, rolls back once, and releases active capacity', async () => {

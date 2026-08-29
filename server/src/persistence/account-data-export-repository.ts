@@ -4,7 +4,9 @@ import type {
   AccountDataExportFeedback,
   AccountDataExportIdentity,
   AccountDataExportNote,
-  AccountDataExportNotifications
+  AccountDataExportNotificationCategoryPreference,
+  AccountDataExportNotificationChannelPreference,
+  AccountDataExportNotificationPushSubscription
 } from '../account/account-data-export.js';
 
 declare const accountDataExportCursorBrand: unique symbol;
@@ -17,6 +19,12 @@ export type AccountDataExportCursor = string & {
 export interface AccountDataExportPage<Item> {
   readonly items: readonly Item[];
   readonly nextCursor: AccountDataExportCursor | null;
+}
+
+export interface AccountDataExportNotificationsPage {
+  readonly channelPreferences: readonly AccountDataExportNotificationChannelPreference[];
+  readonly categoryPreferences: readonly AccountDataExportNotificationCategoryPreference[];
+  readonly pushSubscriptions: AccountDataExportPage<AccountDataExportNotificationPushSubscription>;
 }
 
 export interface AccountDataExportChartPageItem {
@@ -37,7 +45,10 @@ export interface AccountDataExportSnapshot {
   listFeedback(
     cursor?: AccountDataExportCursor
   ): Promise<AccountDataExportPage<AccountDataExportFeedback>>;
-  listNotifications(): Promise<AccountDataExportNotifications>;
+  listNotifications(): Promise<AccountDataExportNotificationsPage>;
+  listNotificationPushSubscriptions(
+    cursor?: AccountDataExportCursor
+  ): Promise<AccountDataExportPage<AccountDataExportNotificationPushSubscription>>;
   commit(): Promise<void>;
   rollback(): Promise<void>;
 }

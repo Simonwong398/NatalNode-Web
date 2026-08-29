@@ -6,6 +6,7 @@ export type {
   AccountDataExportChartPageItem,
   AccountDataExportCursor,
   AccountDataExportPage,
+  AccountDataExportNotificationsPage,
   AccountDataExportRepository,
   AccountDataExportSnapshot,
   AccountDataExportSnapshotOpenOptions,

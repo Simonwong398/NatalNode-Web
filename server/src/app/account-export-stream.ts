@@ -3,13 +3,13 @@ import {
   type AccountDataExportChartMetadata,
   type AccountDataExportFeedback,
   type AccountDataExportIdentity,
-  type AccountDataExportNote,
-  type AccountDataExportNotifications
+  type AccountDataExportNote
 } from '../account/account-data-export.js';
 import type {
   AccountDataExportCursor,
   AccountDataExportPage,
-  AccountDataExportSnapshot
+  AccountDataExportSnapshot,
+  AccountDataExportNotificationsPage
 } from '../persistence/index.js';
 import { awaitAccountExportOperation } from './account-export-lifecycle.js';
 
@@ -18,7 +18,7 @@ const STREAM_STOPPED_ERROR = new Error('Account export stream stopped.');
 export interface AccountExportStreamOptions {
   readonly snapshot: AccountDataExportSnapshot;
   readonly initialIdentityPage: AccountDataExportPage<AccountDataExportIdentity>;
-  readonly initialNotificationData: AccountDataExportNotifications;
+  readonly initialNotificationPage: AccountDataExportNotificationsPage;
   readonly exportedAt: string;
   readonly signal: AbortSignal;
   readonly onSuccess: () => Promise<void>;
@@ -41,7 +41,7 @@ export function validateAccountExportInitialRepresentation(
   snapshot: AccountDataExportSnapshot,
   initialIdentityPage: AccountDataExportPage<AccountDataExportIdentity>,
   exportedAt: string,
-  notificationData: AccountDataExportNotifications
+  notificationPage: AccountDataExportNotificationsPage
 ): void {
   serializeAccountExportValue(ACCOUNT_DATA_EXPORT_SCHEMA_VERSION);
   serializeAccountExportValue(exportedAt);
@@ -52,7 +52,9 @@ export function validateAccountExportInitialRepresentation(
     serializeAccountExportValue(identity);
   }
 
-  serializeAccountExportValue(notificationData);
+  serializeAccountExportValue(notificationPage.channelPreferences);
+  serializeAccountExportValue(notificationPage.categoryPreferences);
+  serializeAccountExportValue(notificationPage.pushSubscriptions.items);
 }
 
 function assertStreamActive(signal: AbortSignal): void {
@@ -200,13 +202,41 @@ async function* accountExportChunks(
   }
 
   assertStreamActive(signal);
+  yield (
+    '],"notifications":{"channelPreferences":' +
+    serialize(options.initialNotificationPage.channelPreferences) +
+    ',"categoryPreferences":' +
+    serialize(options.initialNotificationPage.categoryPreferences) +
+    ',"pushSubscriptions":['
+  );
+
+  let notificationFirst = true;
+  let notificationPage = options.initialNotificationPage.pushSubscriptions;
+
+  while (true) {
+    for (const subscription of notificationPage.items) {
+      assertStreamActive(signal);
+      yield (notificationFirst ? '' : ',') + serialize(subscription);
+      notificationFirst = false;
+    }
+
+    if (notificationPage.nextCursor === null) {
+      break;
+    }
+
+    assertStreamActive(signal);
+    const nextNotificationCursor = notificationPage.nextCursor;
+    notificationPage = await awaitAccountExportOperation(
+      () => snapshot.listNotificationPushSubscriptions(nextNotificationCursor),
+      signal
+    );
+  }
+
+  yield ']}';
+  assertStreamActive(signal);
   await options.onSuccess();
   assertStreamActive(signal);
-  yield (
-    '],"notifications":' +
-    serialize(options.initialNotificationData) +
-    '}'
-  );
+  yield '}';
 }
 
 export function createAccountExportStream(

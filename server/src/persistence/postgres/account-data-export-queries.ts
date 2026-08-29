@@ -128,7 +128,12 @@ export const ACCOUNT_DATA_EXPORT_PUSH_SUBSCRIPTIONS_SQL = `
     invalidated_at
   FROM push_subscriptions
   WHERE user_id = $1
-  ORDER BY created_at ASC, subscription_id ASC`;
+    AND (
+      $2::timestamptz IS NULL
+      OR (created_at, subscription_id) > ($2::timestamptz, $3::text)
+    )
+  ORDER BY created_at ASC, subscription_id ASC
+  LIMIT $4`;
 
 export interface AccountDataExportUserRow {
   readonly user_id: string;
