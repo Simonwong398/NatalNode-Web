@@ -23,11 +23,29 @@ function createVapidConfiguration(subject = 'mailto:notifications@natalnode.exam
   };
 }
 
+function createSubscriptionP256dh() {
+  const curve = createECDH('prime256v1');
+  curve.generateKeys();
+  return curve.getPublicKey(undefined, 'uncompressed').toString('base64url');
+}
+
+function createNonCanonicalBase64Url(value) {
+  const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_';
+  const lastIndex = alphabet.indexOf(value.at(-1));
+  const unusedBits = value.length % 4 === 2 ? 4 : value.length % 4 === 3 ? 2 : 0;
+  const lowBitMask = (1 << unusedBits) - 1;
+  const lowBits = lastIndex & lowBitMask;
+  const alternateLowBits = lowBits === lowBitMask ? lowBits - 1 : lowBits + 1;
+  const alternateIndex = (lastIndex & ~lowBitMask) | alternateLowBits;
+
+  return `${value.slice(0, -1)}${alphabet[alternateIndex]}`;
+}
+
 function createTransportInput(overrides = {}) {
   return {
     subscription: {
       endpoint: 'https://push.example.test/send/subscription-1',
-      p256dh: Buffer.alloc(65, 0x01).toString('base64url'),
+      p256dh: createSubscriptionP256dh(),
       auth: Buffer.alloc(16, 0x02).toString('base64url')
     },
     payload: {
@@ -98,10 +116,32 @@ test('VAPID readiness is fail-closed and distinguishes absent from invalid confi
   }), {
     status: 'INVALID_CONFIGURATION'
   });
+  for (const partialConfiguration of [
+    {
+      publicKey: configuration.publicKey,
+      privateKey: configuration.privateKey
+    },
+    {
+      publicKey: configuration.publicKey,
+      subject: configuration.subject
+    },
+    {
+      privateKey: configuration.privateKey,
+      subject: configuration.subject
+    }
+  ]) {
+    assert.deepEqual(
+      createWebPushVapidReadiness(partialConfiguration),
+      { status: 'INVALID_CONFIGURATION' }
+    );
+  }
   assert.deepEqual(createWebPushVapidReadiness(configuration), {
-    status: 'READY',
-    configuration
+    status: 'READY'
   });
+  assert.equal(
+    'configuration' in createWebPushVapidReadiness(configuration),
+    false
+  );
 });
 
 test('VAPID public/private validation uses P-256 derivation and rejects malformed or mismatched keys', () => {
@@ -109,11 +149,27 @@ test('VAPID public/private validation uses P-256 derivation and rejects malforme
   const differentConfiguration = createVapidConfiguration();
   const zeroPrivateKey = Buffer.alloc(32).toString('base64url');
   const outOfRangePrivateKey = Buffer.alloc(32, 0xff).toString('base64url');
+  const shortPrivateKey = Buffer.alloc(31, 0x01).toString('base64url');
+  const longPrivateKey = Buffer.alloc(33, 0x01).toString('base64url');
+  const p256Order = Buffer.from(
+    'FFFFFFFF00000000FFFFFFFFFFFFFFFFBCE6FAADA7179E84F3B9CAC2FC632551',
+    'hex'
+  ).toString('base64url');
+  const aboveP256Order = Buffer.from(
+    'FFFFFFFF00000000FFFFFFFFFFFFFFFFBCE6FAADA7179E84F3B9CAC2FC632552',
+    'hex'
+  ).toString('base64url');
 
   assert.equal(isValidWebPushVapidPrivateKey(configuration.privateKey), true);
   assert.equal(isValidWebPushVapidPrivateKey(`${configuration.privateKey}=`), false);
+  assert.equal(isValidWebPushVapidPrivateKey(` ${configuration.privateKey}`), false);
+  assert.equal(isValidWebPushVapidPrivateKey('not-base64url!'), false);
+  assert.equal(isValidWebPushVapidPrivateKey(shortPrivateKey), false);
+  assert.equal(isValidWebPushVapidPrivateKey(longPrivateKey), false);
   assert.equal(isValidWebPushVapidPrivateKey(zeroPrivateKey), false);
   assert.equal(isValidWebPushVapidPrivateKey(outOfRangePrivateKey), false);
+  assert.equal(isValidWebPushVapidPrivateKey(p256Order), false);
+  assert.equal(isValidWebPushVapidPrivateKey(aboveP256Order), false);
   assert.deepEqual(createWebPushVapidReadiness({
     ...configuration,
     privateKey: `${configuration.privateKey}=`
@@ -125,6 +181,14 @@ test('VAPID public/private validation uses P-256 derivation and rejects malforme
   assert.deepEqual(createWebPushVapidReadiness({
     ...configuration,
     privateKey: outOfRangePrivateKey
+  }), { status: 'INVALID_CONFIGURATION' });
+  assert.deepEqual(createWebPushVapidReadiness({
+    ...configuration,
+    privateKey: p256Order
+  }), { status: 'INVALID_CONFIGURATION' });
+  assert.deepEqual(createWebPushVapidReadiness({
+    ...configuration,
+    privateKey: aboveP256Order
   }), { status: 'INVALID_CONFIGURATION' });
   assert.deepEqual(createWebPushVapidReadiness({
     ...configuration,
@@ -147,6 +211,12 @@ test('VAPID subject validation is bounded to credential-free https and address-l
     'data:text/plain,hello',
     '//natalnode.example/contact',
     'https://user:password@natalnode.example/contact',
+    'https://natalnode.example/a b',
+    'https://natalnode.example/a%20b',
+    'https://natalnode.example/a%09b',
+    'https://natalnode.example/a\u0001b',
+    'https://natalnode.example/a%00b',
+    'https://natalnode.example/%ZZ',
     'https://natalnode.example/contact?secret=value',
     'https://natalnode.example/contact#fragment',
     'mailto:',
@@ -203,6 +273,10 @@ test('public B3 capability remains public-key-only while complete readiness stay
     completeEnvironment.serverRuntimeConfig.webPush.deliveryReadiness.status,
     'READY'
   );
+  assert.doesNotMatch(
+    JSON.stringify(completeEnvironment.serverRuntimeConfig),
+    /privateKey|NATALNODE_WEB_PUSH_VAPID_PRIVATE_KEY/u
+  );
 });
 
 test('transport sends only the validated V1 payload and subscription material to the injected protocol seam', async () => {
@@ -229,6 +303,29 @@ test('transport sends only the validated V1 payload and subscription material to
   assert.equal(calls[0].payload, JSON.stringify(input.payload));
   assert.equal(calls[0].timeoutMillis, 2_500);
   assert.deepEqual(calls[0].vapidDetails, configuration);
+});
+
+test('transport instances keep per-call VAPID configuration isolated', async () => {
+  const firstConfiguration = createVapidConfiguration();
+  const secondConfiguration = createVapidConfiguration();
+  const first = createProtocolClient(() => ({ statusCode: 201, headers: {} }));
+  const second = createProtocolClient(() => ({ statusCode: 201, headers: {} }));
+  const firstTransport = createTransport(first.protocolClient, firstConfiguration);
+  const secondTransport = createTransport(second.protocolClient, secondConfiguration);
+
+  await Promise.all([
+    firstTransport.send(createTransportInput()),
+    secondTransport.send(createTransportInput())
+  ]);
+
+  assert.equal(first.calls.length, 1);
+  assert.equal(second.calls.length, 1);
+  assert.equal(first.calls[0].vapidDetails.publicKey, firstConfiguration.publicKey);
+  assert.equal(second.calls[0].vapidDetails.publicKey, secondConfiguration.publicKey);
+  assert.notEqual(
+    first.calls[0].vapidDetails.publicKey,
+    second.calls[0].vapidDetails.publicKey
+  );
 });
 
 test('transport maps bounded protocol statuses without exposing response bodies or headers', async () => {
@@ -261,6 +358,14 @@ test('transport maps bounded protocol statuses without exposing response bodies 
   }
 });
 
+test('unknown successful protocol results remain ambiguous', async () => {
+  const { calls, protocolClient } = createProtocolClient(() => ({}));
+  const result = await createTransport(protocolClient).send(createTransportInput());
+
+  assert.deepEqual(result, { outcome: 'TIMEOUT_AMBIGUOUS' });
+  assert.equal(calls.length, 1);
+});
+
 test('transport returns bounded Retry-After metadata only for valid throttling values', async () => {
   const withRetryAfter = createProtocolClient(() => {
     throw Object.assign(new Error('raw throttled response'), {
@@ -276,6 +381,20 @@ test('transport returns bounded Retry-After metadata only for valid throttling v
       body: 'raw response body'
     });
   });
+  const duplicateRetryAfter = createProtocolClient(() => {
+    throw Object.assign(new Error('raw duplicate throttled response'), {
+      statusCode: 429,
+      headers: { 'retry-after': '120', 'Retry-After': '121' },
+      body: 'raw response body'
+    });
+  });
+  const arrayRetryAfter = createProtocolClient(() => {
+    throw Object.assign(new Error('raw array throttled response'), {
+      statusCode: 429,
+      headers: { 'retry-after': ['120', '121'] },
+      body: 'raw response body'
+    });
+  });
 
   assert.deepEqual(
     await createTransport(withRetryAfter.protocolClient).send(createTransportInput()),
@@ -283,6 +402,14 @@ test('transport returns bounded Retry-After metadata only for valid throttling v
   );
   assert.deepEqual(
     await createTransport(withoutRetryAfter.protocolClient).send(createTransportInput()),
+    { outcome: 'THROTTLED' }
+  );
+  assert.deepEqual(
+    await createTransport(duplicateRetryAfter.protocolClient).send(createTransportInput()),
+    { outcome: 'THROTTLED' }
+  );
+  assert.deepEqual(
+    await createTransport(arrayRetryAfter.protocolClient).send(createTransportInput()),
     { outcome: 'THROTTLED' }
   );
 });
@@ -361,9 +488,36 @@ test('invalid payload and unavailable VAPID configuration stop before the protoc
   assert.equal(invalidConfigurationProtocol.calls.length, 0);
 });
 
-test('invalid persisted subscription material is bounded to a target invalid outcome', async () => {
+test('hostile input accessors stay within bounded outcomes', async () => {
+  const protocol = createProtocolClient(() => ({ statusCode: 201, headers: {} }));
+  const transport = createTransport(protocol.protocolClient);
+  const validSubscription = createTransportInput().subscription;
+  const payloadGetterInput = { subscription: validSubscription };
+  Object.defineProperty(payloadGetterInput, 'payload', {
+    get() {
+      throw new Error('payload must stay internal');
+    }
+  });
+  const subscriptionGetterInput = { payload: { version: 1, title: 'Title', body: 'Body' } };
+  Object.defineProperty(subscriptionGetterInput, 'subscription', {
+    get() {
+      throw new Error('subscription must stay internal');
+    }
+  });
+
+  assert.deepEqual(await transport.send(payloadGetterInput), {
+    outcome: 'PAYLOAD_INVALID'
+  });
+  assert.deepEqual(await transport.send(subscriptionGetterInput), {
+    outcome: 'PERMANENT_FAILURE'
+  });
+  assert.equal(protocol.calls.length, 0);
+});
+
+test('invalid persisted subscription material is terminal without remote invalidation evidence', async () => {
   const { calls, protocolClient } = createProtocolClient(() => ({ statusCode: 201 }));
   const transport = createTransport(protocolClient);
+  const validSubscription = createTransportInput().subscription;
 
   for (const subscription of [
     {
@@ -373,18 +527,34 @@ test('invalid persisted subscription material is bounded to a target invalid out
     },
     {
       endpoint: 'https://@push.example.test/send/1',
-      p256dh: Buffer.alloc(65, 0x01).toString('base64url'),
-      auth: Buffer.alloc(16, 0x02).toString('base64url')
+      p256dh: validSubscription.p256dh,
+      auth: validSubscription.auth
     },
     {
       endpoint: 'https://push.example.test/send/1#',
-      p256dh: Buffer.alloc(65, 0x01).toString('base64url'),
-      auth: Buffer.alloc(16, 0x02).toString('base64url')
+      p256dh: validSubscription.p256dh,
+      auth: validSubscription.auth
+    },
+    {
+      ...validSubscription,
+      p256dh: 'A'
+    },
+    {
+      ...validSubscription,
+      p256dh: createNonCanonicalBase64Url(validSubscription.p256dh)
+    },
+    {
+      ...validSubscription,
+      auth: createNonCanonicalBase64Url(validSubscription.auth)
+    },
+    {
+      ...validSubscription,
+      p256dh: Buffer.concat([Buffer.from([0x04]), Buffer.alloc(64, 0x01)]).toString('base64url')
     }
   ]) {
     const result = await transport.send(createTransportInput({ subscription }));
 
-    assert.deepEqual(result, { outcome: 'SUBSCRIPTION_INVALID' });
+    assert.deepEqual(result, { outcome: 'PERMANENT_FAILURE' });
     assert.doesNotMatch(JSON.stringify(result), /not-https|not-base64|push\.example/u);
   }
 
@@ -398,5 +568,9 @@ test('transport source uses per-call VAPID details and contains no global setter
   );
 
   assert.doesNotMatch(source, /webpush\.setVapidDetails/u);
+  assert.doesNotMatch(source, /webpush\.sendNotification/u);
+  assert.match(source, /webpush\.generateRequestDetails/u);
+  assert.match(source, /abortController\.signal/u);
+  assert.doesNotMatch(source, /Promise\.race/u);
   assert.doesNotMatch(source, /console\.(?:log|warn|error)/u);
 });

@@ -128,7 +128,6 @@ export {
   WEB_PUSH_VAPID_SUBJECT_ENVIRONMENT_VARIABLE
 } from './web-push-vapid.js';
 export type {
-  WebPushVapidConfiguration,
   WebPushVapidConfigurationInput,
   WebPushVapidReadiness,
   WebPushVapidReadinessState
@@ -140,12 +139,9 @@ export {
   WEB_PUSH_TRANSPORT_OUTCOMES
 } from './web-push-transport.js';
 export type {
-  WebPushProtocolClient,
-  WebPushProtocolRequest,
   WebPushProtocolSubscription,
   WebPushTransport,
   WebPushTransportInput,
-  WebPushTransportOptions,
   WebPushTransportOutcome,
   WebPushTransportOutcomeKind,
   WebPushTransportSubscription

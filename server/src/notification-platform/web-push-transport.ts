@@ -1,3 +1,6 @@
+import { ECDH } from 'node:crypto';
+import { request as httpsRequest } from 'node:https';
+import { performance } from 'node:perf_hooks';
 import * as webpush from 'web-push';
 import {
   assertAuthKey,
@@ -9,7 +12,7 @@ import {
   type WebPushPayloadV1
 } from './web-push-payload.js';
 import {
-  createWebPushVapidReadiness,
+  createWebPushVapidConfiguration,
   type WebPushVapidConfiguration
 } from './web-push-vapid.js';
 
@@ -18,6 +21,9 @@ const DEFAULT_ATTEMPT_TIMEOUT_MILLISECONDS = 30_000;
 const MAXIMUM_ATTEMPT_TIMEOUT_MILLISECONDS = 30_000;
 const MINIMUM_ATTEMPT_TIMEOUT_MILLISECONDS = 1;
 const DECIMAL_SECONDS_PATTERN = /^(?:0|[1-9]\d*)$/u;
+const BASE64URL_PATTERN = /^[A-Za-z0-9_-]+$/u;
+const P256DH_KEY_LENGTH = 65;
+const AUTH_KEY_LENGTH = 16;
 
 const TIMEOUT_ERROR_CODES = new Set([
   'ABORT_ERR',
@@ -84,7 +90,7 @@ export interface WebPushProtocolSubscription {
   };
 }
 
-/** Internal protocol request; credentials and VAPID secrets never leave this server boundary. */
+/** @internal Protocol request; credentials and VAPID secrets stay in this server boundary. */
 export interface WebPushProtocolRequest {
   readonly subscription: WebPushProtocolSubscription;
   readonly payload: string;
@@ -92,17 +98,18 @@ export interface WebPushProtocolRequest {
   readonly timeoutMillis: number;
 }
 
-/** Injectable protocol seam used by focused tests; the default uses the standards library. */
+/** @internal Injectable seam used by focused tests; the default uses the standards library. */
 export interface WebPushProtocolClient {
   send(request: WebPushProtocolRequest): Promise<unknown>;
 }
 
+/** @internal Server-side construction options; never use in browser-facing code. */
 export interface WebPushTransportOptions {
   /** Complete VAPID configuration; omitted configuration is unavailable by design. */
   readonly vapidConfiguration?: WebPushVapidConfiguration | null;
   /** Optional fake/protocol seam for tests; production construction uses web-push. */
   readonly protocolClient?: WebPushProtocolClient;
-  /** Per-attempt socket timeout, bounded to the future worker's 30-second limit. */
+  /** Per-attempt wall-clock timeout, bounded to the future worker's 30-second limit. */
   readonly attemptTimeoutMillis?: number;
 }
 
@@ -171,16 +178,24 @@ function readRetryAfterHeader(headers: unknown): string | undefined {
   }
 
   try {
+    let retryAfter: string | undefined;
+    let sawRetryAfter = false;
+
     for (const [name, value] of Object.entries(headers)) {
-      if (name.toLowerCase() === 'retry-after' && typeof value === 'string') {
-        return value;
+      if (name.toLowerCase() === 'retry-after') {
+        if (sawRetryAfter || typeof value !== 'string') {
+          return undefined;
+        }
+
+        sawRetryAfter = true;
+        retryAfter = value;
       }
     }
+
+    return retryAfter;
   } catch (_error) {
     return undefined;
   }
-
-  return undefined;
 }
 
 function parseRetryAfterSeconds(headers: unknown): number | undefined {
@@ -245,7 +260,7 @@ function classifyProtocolResult(result: unknown): WebPushTransportOutcome {
   const statusCode = readStatusCode(result);
 
   return statusCode === null
-    ? ACCEPTED_OUTCOME
+    ? TIMEOUT_AMBIGUOUS_OUTCOME
     : classifyStatusCode(statusCode, readProperty(result, 'headers'));
 }
 
@@ -288,6 +303,57 @@ function classifyProtocolError(error: unknown): WebPushTransportOutcome {
   return TIMEOUT_AMBIGUOUS_OUTCOME;
 }
 
+function decodeCanonicalBase64Url(
+  value: string,
+  expectedLength: number
+): Buffer | null {
+  if (
+    value.length === 0 ||
+    value.trim() !== value ||
+    !BASE64URL_PATTERN.test(value)
+  ) {
+    return null;
+  }
+
+  let decoded: Buffer;
+
+  try {
+    decoded = Buffer.from(value, 'base64url');
+  } catch (_error) {
+    return null;
+  }
+
+  return decoded.length === expectedLength &&
+    decoded.toString('base64url') === value
+    ? decoded
+    : null;
+}
+
+function isValidSubscriptionP256dh(value: string): boolean {
+  const publicKey = decodeCanonicalBase64Url(value, P256DH_KEY_LENGTH);
+
+  if (publicKey === null || publicKey[0] !== 0x04) {
+    return false;
+  }
+
+  try {
+    ECDH.convertKey(
+      publicKey,
+      'prime256v1',
+      undefined,
+      undefined,
+      'uncompressed'
+    );
+    return true;
+  } catch (_error) {
+    return false;
+  }
+}
+
+function isValidSubscriptionAuth(value: string): boolean {
+  return decodeCanonicalBase64Url(value, AUTH_KEY_LENGTH) !== null;
+}
+
 function validateSubscription(
   value: unknown
 ): WebPushProtocolSubscription | null {
@@ -299,6 +365,11 @@ function validateSubscription(
     const endpoint = assertPushSubscriptionEndpoint(value.endpoint);
     const p256dh = assertP256dhKey(value.p256dh);
     const auth = assertAuthKey(value.auth);
+
+    if (!isValidSubscriptionP256dh(p256dh) || !isValidSubscriptionAuth(auth)) {
+      return null;
+    }
+
     const authority = endpoint.slice('https://'.length).split(/[\/?#]/u, 1)[0];
 
     if (authority.includes('@') || endpoint.includes('#')) {
@@ -328,15 +399,118 @@ function readAttemptTimeoutMillis(value: number | undefined): number {
   return timeoutMillis;
 }
 
+function createTimeoutError(): Error {
+  const error = new Error('Web Push attempt timed out.');
+
+  Object.defineProperty(error, 'code', {
+    value: 'ETIMEDOUT',
+    enumerable: false
+  });
+
+  return error;
+}
+
+function sendBoundedWebPushRequest(
+  request: WebPushProtocolRequest
+): Promise<unknown> {
+  return new Promise((resolve, reject) => {
+    const abortController = new AbortController();
+    const startedAt = performance.now();
+    const timeoutError = createTimeoutError();
+    let settled = false;
+    let timer: ReturnType<typeof setTimeout> | undefined;
+
+    const finish = (callback: () => void): void => {
+      if (settled) {
+        return;
+      }
+
+      settled = true;
+
+      if (timer !== undefined) {
+        clearTimeout(timer);
+      }
+
+      callback();
+    };
+    const finishResolve = (value: unknown): void => {
+      finish(() => resolve(value));
+    };
+    const finishReject = (error: unknown): void => {
+      finish(() => reject(error));
+    };
+    const expire = (): void => {
+      if (settled) {
+        return;
+      }
+
+      abortController.abort();
+      finishReject(timeoutError);
+    };
+
+    try {
+      // web-push supplies encryption, VAPID headers, and the request shape
+      // without starting network activity. Its sendNotification timeout is a
+      // socket-inactivity timeout, so the transport owns the wall-clock bound.
+      const requestDetails = webpush.generateRequestDetails(
+        request.subscription,
+        request.payload,
+        { vapidDetails: request.vapidDetails }
+      );
+      const remainingMillis = request.timeoutMillis -
+        (performance.now() - startedAt);
+
+      if (remainingMillis <= 0) {
+        expire();
+        return;
+      }
+
+      timer = setTimeout(expire, remainingMillis);
+      const endpoint = new URL(requestDetails.endpoint);
+      const pushRequest = httpsRequest(
+        {
+          protocol: endpoint.protocol,
+          hostname: endpoint.hostname,
+          ...(endpoint.port.length === 0 ? {} : { port: endpoint.port }),
+          path: `${endpoint.pathname}${endpoint.search}`,
+          method: requestDetails.method,
+          headers: requestDetails.headers,
+          signal: abortController.signal
+        },
+        (pushResponse) => {
+          pushResponse.once('error', finishReject);
+          pushResponse.once('aborted', () => {
+            finishReject(new Error('Web Push response was aborted.'));
+          });
+          pushResponse.once('end', () => {
+            finishResolve({
+              statusCode: pushResponse.statusCode,
+              headers: pushResponse.headers
+            });
+          });
+          pushResponse.resume();
+        }
+      );
+
+      pushRequest.once('error', finishReject);
+
+      if (requestDetails.body === null) {
+        pushRequest.end();
+      } else {
+        pushRequest.end(requestDetails.body);
+      }
+    } catch (error: unknown) {
+      finishReject(error);
+    }
+  });
+}
+
 function createDefaultWebPushProtocolClient(): WebPushProtocolClient {
   return {
     send(request): Promise<unknown> {
-      // VAPID details are supplied per call; the library's global setters are
-      // intentionally never used.
-      return webpush.sendNotification(request.subscription, request.payload, {
-        vapidDetails: request.vapidDetails,
-        timeout: request.timeoutMillis
-      });
+      // VAPID details are supplied per request; the library's global setters
+      // are intentionally never used.
+      return sendBoundedWebPushRequest(request);
     }
   };
 }
@@ -351,7 +525,9 @@ export class DefaultWebPushTransport implements WebPushTransport {
   private readonly attemptTimeoutMillis: number;
 
   public constructor(options: WebPushTransportOptions = {}) {
-    this.vapidConfiguration = options.vapidConfiguration ?? null;
+    this.vapidConfiguration = createWebPushVapidConfiguration(
+      options.vapidConfiguration
+    );
     this.protocolClient =
       options.protocolClient ?? DEFAULT_WEB_PUSH_PROTOCOL_CLIENT;
     this.attemptTimeoutMillis = readAttemptTimeoutMillis(
@@ -360,15 +536,7 @@ export class DefaultWebPushTransport implements WebPushTransport {
   }
 
   public async send(input: WebPushTransportInput): Promise<WebPushTransportOutcome> {
-    let readiness;
-
-    try {
-      readiness = createWebPushVapidReadiness(this.vapidConfiguration);
-    } catch (_error) {
-      return CONFIGURATION_UNAVAILABLE_OUTCOME;
-    }
-
-    if (readiness.status !== 'READY') {
+    if (this.vapidConfiguration === null) {
       return CONFIGURATION_UNAVAILABLE_OUTCOME;
     }
 
@@ -376,25 +544,27 @@ export class DefaultWebPushTransport implements WebPushTransport {
 
     try {
       payload = assertWebPushPayloadV1(
-        isRecord(input) ? input.payload : undefined
+        readProperty(input, 'payload')
       );
     } catch (_error) {
       return PAYLOAD_INVALID_OUTCOME;
     }
 
     const subscription = validateSubscription(
-      isRecord(input) ? input.subscription : undefined
+      readProperty(input, 'subscription')
     );
 
     if (subscription === null) {
-      return SUBSCRIPTION_INVALID_OUTCOME;
+      // Local persisted-shape failure is not evidence that the remote
+      // subscription expired, so do not authorize future target invalidation.
+      return PERMANENT_FAILURE_OUTCOME;
     }
 
     try {
       const result = await this.protocolClient.send({
         subscription,
         payload: JSON.stringify(payload),
-        vapidDetails: readiness.configuration,
+        vapidDetails: this.vapidConfiguration,
         timeoutMillis: this.attemptTimeoutMillis
       });
 

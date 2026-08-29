@@ -28,7 +28,7 @@ export interface WebPushVapidConfigurationInput {
   readonly subject?: unknown;
 }
 
-/** A validated, immutable configuration used only at the server transport boundary. */
+/** @internal A validated, immutable configuration used only at the server transport boundary. */
 export interface WebPushVapidConfiguration {
   readonly publicKey: string;
   readonly privateKey: string;
@@ -42,10 +42,7 @@ export type WebPushVapidReadiness =
   | {
       readonly status: 'INVALID_CONFIGURATION';
     }
-  | {
-      readonly status: 'READY';
-      readonly configuration: WebPushVapidConfiguration;
-    };
+  | { readonly status: 'READY' };
 
 const UNCONFIGURED_READINESS: WebPushVapidReadiness = Object.freeze({
   status: 'UNCONFIGURED'
@@ -53,6 +50,10 @@ const UNCONFIGURED_READINESS: WebPushVapidReadiness = Object.freeze({
 
 const INVALID_CONFIGURATION_READINESS: WebPushVapidReadiness = Object.freeze({
   status: 'INVALID_CONFIGURATION'
+});
+
+const READY_READINESS: WebPushVapidReadiness = Object.freeze({
+  status: 'READY'
 });
 
 function isAbsent(value: unknown): boolean {
@@ -174,36 +175,22 @@ export function isValidWebPushVapidSubject(value: unknown): value is string {
   );
 }
 
-/**
- * Builds the server-only VAPID readiness result. It deliberately returns no
- * parse detail for invalid input and never places secret material in errors.
- */
-export function createWebPushVapidReadiness(
-  input: WebPushVapidConfigurationInput | null | undefined
-): WebPushVapidReadiness {
-  const source = input ?? {};
-
-  if (
-    isAbsent(source.publicKey) &&
-    isAbsent(source.privateKey) &&
-    isAbsent(source.subject)
-  ) {
-    return UNCONFIGURED_READINESS;
-  }
-
+function readValidatedWebPushVapidConfiguration(
+  source: WebPushVapidConfigurationInput
+): WebPushVapidConfiguration | null {
   if (
     typeof source.publicKey !== 'string' ||
     typeof source.privateKey !== 'string' ||
     typeof source.subject !== 'string'
   ) {
-    return INVALID_CONFIGURATION_READINESS;
+    return null;
   }
 
   const publicKey = decodeWebPushApplicationServerKey(source.publicKey);
   const privateKey = decodeCanonicalBase64Url(source.privateKey, 32);
 
   if (publicKey === null || privateKey === null) {
-    return INVALID_CONFIGURATION_READINESS;
+    return null;
   }
 
   const derivedPublicKey = deriveP256PublicKey(privateKey);
@@ -213,15 +200,49 @@ export function createWebPushVapidReadiness(
     !derivedPublicKey.equals(publicKey) ||
     !isValidWebPushVapidSubject(source.subject)
   ) {
-    return INVALID_CONFIGURATION_READINESS;
+    return null;
   }
 
   return Object.freeze({
-    status: 'READY' as const,
-    configuration: Object.freeze({
-      publicKey: source.publicKey,
-      privateKey: source.privateKey,
-      subject: source.subject
-    })
+    publicKey: source.publicKey,
+    privateKey: source.privateKey,
+    subject: source.subject
   });
+}
+
+/** @internal Creates the validated secret-bearing config only at transport construction. */
+export function createWebPushVapidConfiguration(
+  input: WebPushVapidConfigurationInput | null | undefined
+): WebPushVapidConfiguration | null {
+  try {
+    return readValidatedWebPushVapidConfiguration(input ?? {});
+  } catch (_error) {
+    return null;
+  }
+}
+
+/**
+ * Builds the server-only VAPID readiness result. It deliberately returns no
+ * parse detail for invalid input and never places secret material in errors.
+ */
+export function createWebPushVapidReadiness(
+  input: WebPushVapidConfigurationInput | null | undefined
+): WebPushVapidReadiness {
+  const source = input ?? {};
+
+  try {
+    if (
+      isAbsent(source.publicKey) &&
+      isAbsent(source.privateKey) &&
+      isAbsent(source.subject)
+    ) {
+      return UNCONFIGURED_READINESS;
+    }
+
+    return createWebPushVapidConfiguration(source) === null
+      ? INVALID_CONFIGURATION_READINESS
+      : READY_READINESS;
+  } catch (_error) {
+    return INVALID_CONFIGURATION_READINESS;
+  }
 }

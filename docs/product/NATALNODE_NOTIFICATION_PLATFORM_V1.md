@@ -563,6 +563,11 @@ is configuration/permanent failure instead. The boundary remains independent
 from Stripe, Firebase, Google services, hosting providers, Web Push vendors,
 and any specific npm library.
 
+Local malformed persisted subscription material is not remote evidence that a
+browser subscription expired. The B4B2 adapter therefore classifies that
+boundary failure as `PERMANENT_FAILURE` and reserves `SUBSCRIPTION_INVALID`
+for bounded remote endpoint evidence; B4B2 does not invalidate subscriptions.
+
 No dependency is added now. Future selection criteria are standards support,
 VAPID, payload encryption, Node/ESM compatibility, minimal dependency surface,
 bounded error behavior, and active maintenance.
@@ -1641,8 +1646,13 @@ provider-neutral transport boundary, a per-call `web-push@3.6.7` protocol
 implementation, complete server-only VAPID readiness with P-256 key-pair
 matching, bounded outcome classification, and secret/error redaction. It adds
 no hosted provider, arbitrary send API, worker claim loop, or live delivery.
-The implementation passes VAPID details per protocol call and bounds the
-library socket timeout to the future worker's 30-second attempt limit.
+The implementation passes VAPID details per protocol call and owns a monotonic
+wall-clock cancellation boundary no longer than the future worker's 30-second
+attempt limit. The review also confirms that `web-push@3.6.7` defaults Web Push
+TTL to four weeks when no `TTL` option is supplied; the product transport TTL
+is therefore intentionally **NOT FROZEN / B4B3 BLOCKED** until a bounded value
+is explicitly approved. No implicit library retention default is accepted as a
+NatalNode product policy.
 
 ### `WEB-NOTIFY-001B4B3` — Worker, retry, and invalidation
 
