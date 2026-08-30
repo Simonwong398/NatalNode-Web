@@ -447,25 +447,25 @@ RETURNS trigger
 LANGUAGE plpgsql
 AS $$
 DECLARE
-    event_authority_id TEXT;
-    event_source_type TEXT;
-    event_type TEXT;
+    resolved_event_authority_id TEXT;
+    resolved_event_source_type TEXT;
+    resolved_event_type TEXT;
 BEGIN
     SELECT
-        commercial_authority_id,
-        source_type,
-        event_type
+        ce.commercial_authority_id,
+        ce.source_type,
+        ce.event_type
     INTO
-        event_authority_id,
-        event_source_type,
-        event_type
-    FROM commercial_events
-    WHERE event_id = NEW.last_reconciled_event_id;
+        resolved_event_authority_id,
+        resolved_event_source_type,
+        resolved_event_type
+    FROM commercial_events AS ce
+    WHERE ce.event_id = NEW.last_reconciled_event_id;
 
     IF NOT FOUND
-        OR event_authority_id IS DISTINCT FROM NEW.commercial_authority_id
-        OR event_source_type <> 'PAID'
-        OR event_type NOT IN (
+        OR resolved_event_authority_id IS DISTINCT FROM NEW.commercial_authority_id
+        OR resolved_event_source_type <> 'PAID'
+        OR resolved_event_type NOT IN (
             'PAID_RELATIONSHIP_OPENED',
             'PAID_FIRST_PURCHASE_FAILED',
             'PAID_CANCELLATION_SCHEDULED',
@@ -553,15 +553,15 @@ DECLARE
     reversal_event_type TEXT;
 BEGIN
     SELECT
-        commercial_authority_id,
-        source_type,
-        event_type
+        ce.commercial_authority_id,
+        ce.source_type,
+        ce.event_type
     INTO
         success_authority_id,
         success_source_type,
         success_event_type
-    FROM commercial_events
-    WHERE event_id = NEW.success_event_id;
+    FROM commercial_events AS ce
+    WHERE ce.event_id = NEW.success_event_id;
 
     IF NOT FOUND
         OR success_authority_id IS DISTINCT FROM NEW.commercial_authority_id
@@ -577,15 +577,15 @@ BEGIN
 
     IF NEW.reversal_event_id IS NOT NULL THEN
         SELECT
-            commercial_authority_id,
-            source_type,
-            event_type
+            ce.commercial_authority_id,
+            ce.source_type,
+            ce.event_type
         INTO
             reversal_authority_id,
             reversal_source_type,
             reversal_event_type
-        FROM commercial_events
-        WHERE event_id = NEW.reversal_event_id;
+        FROM commercial_events AS ce
+        WHERE ce.event_id = NEW.reversal_event_id;
 
         IF NOT FOUND
             OR reversal_authority_id IS DISTINCT FROM NEW.commercial_authority_id
@@ -615,9 +615,9 @@ RETURNS trigger
 LANGUAGE plpgsql
 AS $$
 DECLARE
-    event_authority_id TEXT;
-    event_source_type TEXT;
-    event_type TEXT;
+    resolved_event_authority_id TEXT;
+    resolved_event_source_type TEXT;
+    resolved_event_type TEXT;
 BEGIN
     IF TG_OP = 'UPDATE' THEN
         IF NEW.paid_coverage_reversal_id IS DISTINCT FROM OLD.paid_coverage_reversal_id
@@ -642,20 +642,20 @@ BEGIN
     END IF;
 
     SELECT
-        commercial_authority_id,
-        source_type,
-        event_type
+        ce.commercial_authority_id,
+        ce.source_type,
+        ce.event_type
     INTO
-        event_authority_id,
-        event_source_type,
-        event_type
-    FROM commercial_events
-    WHERE event_id = NEW.reversal_event_id;
+        resolved_event_authority_id,
+        resolved_event_source_type,
+        resolved_event_type
+    FROM commercial_events AS ce
+    WHERE ce.event_id = NEW.reversal_event_id;
 
     IF NOT FOUND
-        OR event_authority_id IS DISTINCT FROM NEW.commercial_authority_id
-        OR event_source_type <> 'PAID'
-        OR event_type NOT IN (
+        OR resolved_event_authority_id IS DISTINCT FROM NEW.commercial_authority_id
+        OR resolved_event_source_type <> 'PAID'
+        OR resolved_event_type NOT IN (
             'PAID_COVERAGE_REFUNDED',
             'PAID_COVERAGE_CHARGEBACKED',
             'COMMERCIAL_CORRECTION_RECORDED'

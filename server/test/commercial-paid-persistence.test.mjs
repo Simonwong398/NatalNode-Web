@@ -30,6 +30,17 @@ function normalizeSql(sql) {
   return sql.replace(/\s+/gu, ' ').trim();
 }
 
+function extractMigrationFunctionBody(migration, functionName) {
+  const match = migration.match(
+    new RegExp(
+      `CREATE OR REPLACE FUNCTION ${functionName}\\(\\)[\\s\\S]*?AS \\$\\$([\\s\\S]*?)\\$\\$;`,
+      'u'
+    )
+  );
+  assert.ok(match, `Expected migration function ${functionName}`);
+  return match[1];
+}
+
 function clone(value) {
   return value === undefined ? undefined : structuredClone(value);
 }
@@ -631,6 +642,53 @@ test('migration 0012 is the single forward D2 migration with bounded paid source
   assert.equal(migrationArtifact?.filename, '0012_paid_billing_coverage.sql');
   assert.match(migrationArtifact?.checksumSha256 ?? '', /^[0-9a-f]{64}$/u);
   assert.doesNotMatch(migrationArtifact?.executableSql ?? '', /\b(?:BEGIN|COMMIT)\s*;/u);
+});
+
+test('migration 0012 event guards qualify commercial event columns without conflicting locals', async () => {
+  const migration = await readFile(MIGRATION_PATH, 'utf8');
+  const guardedLookups = [
+    {
+      functionName: 'enforce_paid_relationship_event_v1',
+      eventReference: 'last_reconciled_event_id'
+    },
+    {
+      functionName: 'enforce_paid_coverage_reversal_intent_update_v1',
+      eventReference: 'reversal_event_id'
+    }
+  ];
+
+  for (const { functionName, eventReference } of guardedLookups) {
+    const body = extractMigrationFunctionBody(migration, functionName);
+    assert.match(body, /resolved_event_authority_id TEXT;/u);
+    assert.match(body, /resolved_event_source_type TEXT;/u);
+    assert.match(body, /resolved_event_type TEXT;/u);
+    assert.doesNotMatch(
+      body,
+      /^\s*(?:commercial_authority_id|source_type|event_type)\s+TEXT;/mu
+    );
+    assert.match(
+      body,
+      new RegExp(
+        `SELECT\\s+ce\\.commercial_authority_id,\\s+ce\\.source_type,\\s+ce\\.event_type[\\s\\S]*?FROM commercial_events AS ce\\s+WHERE ce\\.event_id = NEW\\.${eventReference};`,
+        'u'
+      )
+    );
+  }
+
+  const coverageEventBody = extractMigrationFunctionBody(
+    migration,
+    'enforce_paid_coverage_event_v1'
+  );
+  assert.equal(
+    coverageEventBody.match(/FROM commercial_events AS ce/gu)?.length,
+    2
+  );
+  assert.equal(
+    coverageEventBody.match(
+      /SELECT\s+ce\.commercial_authority_id,\s+ce\.source_type,\s+ce\.event_type/gu
+    )?.length,
+    2
+  );
 });
 
 test('relationship creation is owner-scoped and preserves first-payment pending state', async () => {
