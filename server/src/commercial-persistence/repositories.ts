@@ -516,6 +516,7 @@ export interface ReferralRewardRecord {
   readonly qualifyingPaidCoverageId: string;
   readonly state: ReferralRewardState;
   readonly qualifyingPaymentAt: string;
+  readonly admittedAt: string;
   readonly maturesAt: string;
   readonly earnedAt: string | null;
   readonly appliedAt: string | null;
@@ -551,6 +552,7 @@ export interface CreatePendingReferralRewardInput {
   readonly referralAttributionId: string;
   readonly qualifyingPaidCoverageId: string;
   readonly qualifyingPaymentAt: CommercialTimestampInput;
+  readonly admittedAt: CommercialTimestampInput;
   readonly pendingEventId: string;
   readonly sourceRevision: string;
 }
@@ -601,7 +603,7 @@ export interface ReferralRewardRepository {
   ): Promise<readonly ReferralRewardRecord[]>;
   lockCapWindow(
     referrerAuthorityId: string,
-    qualifyingPaymentAt: CommercialTimestampInput
+    admittedAt: CommercialTimestampInput
   ): Promise<readonly ReferralRewardRecord[]>;
   createPending(
     input: CreatePendingReferralRewardInput

@@ -384,6 +384,7 @@ CREATE TABLE referral_rewards (
     qualifying_paid_coverage_id TEXT NOT NULL,
     state TEXT NOT NULL DEFAULT 'PENDING',
     qualifying_payment_at TIMESTAMPTZ NOT NULL,
+    admitted_at TIMESTAMPTZ NOT NULL,
     matures_at TIMESTAMPTZ NOT NULL,
     earned_at TIMESTAMPTZ,
     applied_at TIMESTAMPTZ,
@@ -627,7 +628,7 @@ CREATE INDEX referral_rewards_referrer_order_idx
 CREATE INDEX referral_rewards_cap_window_idx
     ON referral_rewards (
         referrer_authority_id,
-        qualifying_payment_at,
+        admitted_at,
         referral_reward_id
     );
 
@@ -675,6 +676,7 @@ BEGIN
             OR NEW.referral_attribution_id IS DISTINCT FROM OLD.referral_attribution_id
             OR NEW.qualifying_paid_coverage_id IS DISTINCT FROM OLD.qualifying_paid_coverage_id
             OR NEW.qualifying_payment_at IS DISTINCT FROM OLD.qualifying_payment_at
+            OR NEW.admitted_at IS DISTINCT FROM OLD.admitted_at
             OR NEW.matures_at IS DISTINCT FROM OLD.matures_at
             OR NEW.granted_duration_us IS DISTINCT FROM OLD.granted_duration_us
             OR NEW.pending_event_id IS DISTINCT FROM OLD.pending_event_id

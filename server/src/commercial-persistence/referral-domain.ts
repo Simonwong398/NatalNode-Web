@@ -51,9 +51,10 @@ export const REFERRAL_GIVE_OFFER_OUTCOMES = [
 export type ReferralGiveOfferOutcome =
   (typeof REFERRAL_GIVE_OFFER_OUTCOMES)[number];
 
-/** The frozen standard reward cap is twelve admissions in twelve UTC months. */
+/** The frozen standard reward cap is twelve admissions in a rolling 360-day window. */
 export const REFERRAL_REWARD_CAP = 12;
-export const REFERRAL_REWARD_WINDOW_MONTHS = 12;
+export const REFERRAL_REWARD_WINDOW_DAYS = 360;
+export const REFERRAL_REWARD_WINDOW_DURATION_US = '31104000000000';
 export const REFERRAL_REWARD_MATURATION_DAYS = 14;
 export const REFERRAL_REWARD_DURATION_DAYS = 30;
 
@@ -62,6 +63,7 @@ export const REFERRAL_REWARD_DURATION_US = '2592000000000';
 export const REFERRAL_REWARD_MATURATION_DURATION_US = '1209600000000';
 
 const MAX_INT64 = 9223372036854775807n;
+const REFERRAL_FRACTION_PATTERN = /\.(\d+)(?=(?:Z|[+-]\d{2}:?\d{2})$)/u;
 
 function invalid(fieldName: string): never {
   throw new CommercialDomainValidationError(`${fieldName} is invalid.`);
@@ -137,6 +139,28 @@ export function assertReferralReason(
   fieldName: string
 ): string {
   return assertCommercialIdentifier(value, fieldName);
+}
+
+/**
+ * Normalizes a Referral timestamp without discarding a supplied PostgreSQL
+ * microsecond fraction. JavaScript Date values remain millisecond-precise.
+ */
+export function assertReferralTimestamp(
+  value: unknown,
+  fieldName: string
+): string {
+  const canonical = assertCommercialTimestamp(value, fieldName);
+  if (value instanceof Date || typeof value !== 'string') {
+    return canonical;
+  }
+  const match = value.match(REFERRAL_FRACTION_PATTERN);
+  if (match === null) {
+    return canonical;
+  }
+  if (match[1].length > 6) {
+    return invalid(fieldName);
+  }
+  return `${canonical.slice(0, 19)}.${match[1].padEnd(6, '0')}Z`;
 }
 
 export function exactReferralMaturesAt(qualifyingPaymentAtInput: unknown): string {

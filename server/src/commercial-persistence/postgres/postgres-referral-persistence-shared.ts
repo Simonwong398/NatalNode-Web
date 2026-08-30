@@ -17,7 +17,8 @@ import {
   assertReferralPublicIdentityStatus,
   assertReferralReason,
   assertReferralRewardState,
-  assertReferralStandardRewardDuration
+  assertReferralStandardRewardDuration,
+  assertReferralTimestamp
 } from '../referral-domain.js';
 import type {
   ReferralAttributionRecord,
@@ -60,6 +61,7 @@ export interface ReferralRewardRow {
   readonly qualifying_paid_coverage_id: string;
   readonly state: string;
   readonly qualifying_payment_at: Date | string;
+  readonly admitted_at: Date | string;
   readonly matures_at: Date | string;
   readonly earned_at: Date | string | null;
   readonly applied_at: Date | string | null;
@@ -108,37 +110,55 @@ export const REFERRAL_ATTRIBUTION_COLUMNS_SQL = `
   updated_at
 `;
 
+const REFERRAL_REWARD_COLUMN_NAMES = [
+  'referral_reward_id',
+  'referrer_authority_id',
+  'referral_attribution_id',
+  'qualifying_paid_coverage_id',
+  'state',
+  'qualifying_payment_at',
+  'admitted_at',
+  'matures_at',
+  'earned_at',
+  'applied_at',
+  'revoked_at',
+  'granted_duration_us',
+  'earned_duration_us',
+  'applied_duration_us',
+  'consumed_duration_us',
+  'revoked_duration_us',
+  'active_consumption_started_at',
+  'revocation_reason',
+  'reversal_event_id',
+  'pending_event_id',
+  'maturation_event_id',
+  'application_event_id',
+  'source_revision',
+  'created_at',
+  'updated_at'
+] as const;
+
+const REFERRAL_REWARD_TIMESTAMP_FORMAT =
+  `'YYYY-MM-DD"T"HH24:MI:SS.US"Z"'`;
+
+function referralRewardColumnsSql(qualifier: string | null): string {
+  const prefix = qualifier === null ? '' : `${qualifier}.`;
+  return REFERRAL_REWARD_COLUMN_NAMES
+    .map((column) =>
+      column === 'admitted_at'
+        ? `to_char(${prefix}admitted_at AT TIME ZONE 'UTC', ${REFERRAL_REWARD_TIMESTAMP_FORMAT}) AS admitted_at`
+        : `${prefix}${column}`
+    )
+    .join(',\n  ');
+}
+
 export const REFERRAL_REWARD_COLUMNS_SQL = `
-  referral_reward_id,
-  referrer_authority_id,
-  referral_attribution_id,
-  qualifying_paid_coverage_id,
-  state,
-  qualifying_payment_at,
-  matures_at,
-  earned_at,
-  applied_at,
-  revoked_at,
-  granted_duration_us,
-  earned_duration_us,
-  applied_duration_us,
-  consumed_duration_us,
-  revoked_duration_us,
-  active_consumption_started_at,
-  revocation_reason,
-  reversal_event_id,
-  pending_event_id,
-  maturation_event_id,
-  application_event_id,
-  source_revision,
-  created_at,
-  updated_at
+  ${referralRewardColumnsSql(null)}
 `;
 
-export const REFERRAL_REWARD_COLUMNS_QUALIFIED_SQL = REFERRAL_REWARD_COLUMNS_SQL
-  .split(',')
-  .map((column) => `rr.${column.trim()}`)
-  .join(',\n    ');
+export const REFERRAL_REWARD_COLUMNS_QUALIFIED_SQL = `
+  ${referralRewardColumnsSql('rr')}
+`;
 
 function optionalIdentifier(value: unknown, fieldName: string): string | null {
   return value === null || value === undefined
@@ -296,6 +316,7 @@ export function mapReferralRewardRow(row: ReferralRewardRow): ReferralRewardReco
       row.qualifying_payment_at,
       'qualifyingPaymentAt'
     ),
+    admittedAt: assertReferralTimestamp(row.admitted_at, 'admittedAt'),
     maturesAt: assertCommercialTimestamp(row.matures_at, 'maturesAt'),
     earnedAt: assertOptionalCommercialTimestamp(row.earned_at, 'earnedAt'),
     appliedAt: assertOptionalCommercialTimestamp(row.applied_at, 'appliedAt'),

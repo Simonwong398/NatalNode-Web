@@ -30,6 +30,18 @@ const MIGRATION_PATH = new URL(
   'server/db/migrations/0014_referral_persistence.sql',
   REPOSITORY_ROOT
 );
+const REWARD_REPOSITORY_SOURCE_PATH = new URL(
+  'server/src/commercial-persistence/postgres/postgres-referral-reward-repository.ts',
+  REPOSITORY_ROOT
+);
+const LOCKING_SOURCE_PATH = new URL(
+  'server/src/commercial-persistence/postgres/postgres-referral-locking.ts',
+  REPOSITORY_ROOT
+);
+const RECONCILIATION_SOURCE_PATH = new URL(
+  'server/src/commercial-persistence/postgres/postgres-referral-reconciliation-primitives.ts',
+  REPOSITORY_ROOT
+);
 const NOW = '2026-08-30T12:00:00.000Z';
 const PAYMENT_AT = '2026-08-16T12:00:00.000Z';
 const MATURITY_AT = exactReferralMaturesAt(PAYMENT_AT);
@@ -42,9 +54,17 @@ const ATTRIBUTION_ID = 'attribution-a';
 const COVERAGE_ID = 'coverage-a';
 const PURCHASE_EVENT_ID = 'purchase-event-a';
 const REVERSAL_EVENT_ID = 'reversal-event-a';
+const REFERRAL_REWARD_WINDOW_US = 360n * 24n * 60n * 60n * 1_000_000n;
 
 function normalizeSql(sql) {
   return sql.replace(/\s+/gu, ' ').trim();
+}
+
+function toMicros(value) {
+  const normalized = value instanceof Date ? value.toISOString() : value;
+  const [whole, fraction = '000'] = normalized.replace(/Z$/u, '').split('.');
+  return BigInt(Date.parse(`${whole}Z`)) * 1000n +
+    BigInt(fraction.padEnd(6, '0'));
 }
 
 function authority(id, ownerId, entitlementRevision = '0') {
@@ -142,6 +162,8 @@ function attributionRecord(overrides = {}) {
 
 function rewardRecord(overrides = {}) {
   const state = overrides.state ?? 'PENDING';
+  const qualifyingPaymentAt = overrides.qualifyingPaymentAt ?? PAYMENT_AT;
+  const maturesAt = overrides.maturesAt ?? MATURITY_AT;
   const earnedDurationUs =
     overrides.earnedDurationUs ??
     (state === 'EARNED' || state === 'APPLIED' ? REFERRAL_REWARD_DURATION_US : '0');
@@ -163,8 +185,9 @@ function rewardRecord(overrides = {}) {
     referralAttributionId: ATTRIBUTION_ID,
     qualifyingPaidCoverageId: COVERAGE_ID,
     state,
-    qualifyingPaymentAt: PAYMENT_AT,
-    maturesAt: MATURITY_AT,
+    qualifyingPaymentAt,
+    admittedAt: overrides.admittedAt ?? '2026-08-30T11:00:00.000Z',
+    maturesAt,
     earnedAt,
     appliedAt,
     revokedAt,
@@ -266,6 +289,10 @@ class ReferralExecutor {
     this.calls.push({ sql: normalized, params: [...params] });
 
     if (normalized === 'SELECT CURRENT_TIMESTAMP AS now') {
+      return { rows: [{ now: this.now }] };
+    }
+
+    if (normalized.includes('clock_timestamp()') && normalized.includes('to_char(')) {
       return { rows: [{ now: this.now }] };
     }
 
@@ -566,8 +593,20 @@ class FakeRewardRepository {
       .filter((value) => value !== undefined);
   }
 
-  async lockCapWindow() {
-    return this.capRows;
+  async lockCapWindow(_referrerAuthorityId, admittedAt) {
+    const candidate = toMicros(admittedAt);
+    return this.capRows
+      .filter((row) => {
+        const admission = toMicros(row.admittedAt);
+        return admission >= candidate - REFERRAL_REWARD_WINDOW_US &&
+          admission < candidate;
+      })
+      .sort((left, right) => {
+        const leftAdmission = toMicros(left.admittedAt);
+        const rightAdmission = toMicros(right.admittedAt);
+        return leftAdmission < rightAdmission ? -1 : leftAdmission > rightAdmission ? 1 :
+          left.referralRewardId.localeCompare(right.referralRewardId);
+      });
   }
 
   async createPending(input) {
@@ -577,6 +616,7 @@ class FakeRewardRepository {
       referralAttributionId: input.referralAttributionId,
       qualifyingPaidCoverageId: input.qualifyingPaidCoverageId,
       qualifyingPaymentAt: input.qualifyingPaymentAt,
+      admittedAt: input.admittedAt,
       maturesAt: exactReferralMaturesAt(input.qualifyingPaymentAt),
       pendingEventId: input.pendingEventId,
       sourceRevision: input.sourceRevision
@@ -697,6 +737,12 @@ test('migration 0014 is the single forward Referral migration and is loader-vali
   assert.match(migration, /referral_attributions_not_self_check/u);
   assert.match(migration, /referral_rewards_one_active_consumption_idx/u);
   assert.match(migration, /referral_rewards_standard_duration_check/u);
+  assert.match(migration, /admitted_at TIMESTAMPTZ NOT NULL/u);
+  assert.match(
+    migration,
+    /referrer_authority_id,\s*admitted_at,\s*referral_reward_id/u
+  );
+  assert.match(migration, /NEW\.admitted_at IS DISTINCT FROM OLD\.admitted_at/u);
   assert.match(migration, /REFERRAL_REWARD_CAP_REJECTED/u);
   assert.match(migration, /Referral rewards must be created in PENDING state/u);
   assert.match(migration, /ON DELETE CASCADE/u);
@@ -711,6 +757,112 @@ test('migration 0014 is the single forward Referral migration and is loader-vali
   assert.equal(artifact?.filename, '0014_referral_persistence.sql');
   assert.match(artifact?.checksumSha256 ?? '', /^[0-9a-f]{64}$/u);
   assert.doesNotMatch(artifact?.executableSql ?? '', /\b(?:BEGIN|COMMIT)\s*;/u);
+});
+
+test('Referral cap uses admitted_at, exact 360 elapsed days, and every lifecycle state', async () => {
+  const rewardRepositorySource = await readFile(REWARD_REPOSITORY_SOURCE_PATH, 'utf8');
+  const capSql = rewardRepositorySource.match(
+    /const LOCK_CAP_WINDOW_SQL = `([\s\S]*?)`;/u
+  )?.[1];
+  assert.ok(capSql);
+  assert.match(capSql, /rr\.admitted_at\s+>=/u);
+  assert.match(capSql, /INTERVAL '360 days'/u);
+  assert.match(capSql, /rr\.admitted_at\s+<\s+\$2::timestamptz/u);
+  assert.doesNotMatch(capSql, /12 months|qualifying_payment_at|rr\.state/iu);
+
+  const candidate = '2025-03-01T00:00:00.000000Z';
+  const exactLowerBoundary = '2024-03-06T00:00:00.000000Z';
+  const justOutside = '2024-03-05T23:59:59.999999Z';
+  const harness = makeHarness({
+    capRows: [
+      rewardRecord({
+        referralRewardId: 'pending-boundary',
+        admittedAt: exactLowerBoundary,
+        state: 'PENDING'
+      }),
+      rewardRecord({
+        referralRewardId: 'earned-revoked',
+        admittedAt: '2025-02-28T23:59:59.999999Z',
+        state: 'REVOKED',
+        earnedAt: MATURITY_AT,
+        earnedDurationUs: REFERRAL_REWARD_DURATION_US,
+        revokedDurationUs: REFERRAL_REWARD_DURATION_US
+      }),
+      rewardRecord({
+        referralRewardId: 'applied',
+        admittedAt: '2025-02-28T12:00:00.000000Z',
+        state: 'APPLIED',
+        earnedAt: MATURITY_AT,
+        appliedAt: MATURITY_AT,
+        earnedDurationUs: REFERRAL_REWARD_DURATION_US,
+        appliedDurationUs: REFERRAL_REWARD_DURATION_US
+      }),
+      rewardRecord({
+        referralRewardId: 'pending-revoked',
+        admittedAt: '2025-02-28T00:00:00.000001Z',
+        state: 'REVOKED',
+        revokedAt: NOW,
+        revocationReason: 'QUALIFYING_PURCHASE_REVERSED',
+        reversalEventId: REVERSAL_EVENT_ID
+      }),
+      rewardRecord({
+        referralRewardId: 'outside-boundary',
+        admittedAt: justOutside,
+        state: 'EARNED',
+        earnedAt: MATURITY_AT,
+        earnedDurationUs: REFERRAL_REWARD_DURATION_US
+      })
+    ]
+  });
+  const locked = await harness.rewardRepository.lockCapWindow(
+    REFERRER_AUTHORITY_ID,
+    candidate
+  );
+  assert.deepEqual(
+    locked.map((reward) => reward.referralRewardId),
+    ['pending-boundary', 'pending-revoked', 'applied', 'earned-revoked']
+  );
+  assert.equal(locked.some((reward) => reward.referralRewardId === 'outside-boundary'), false);
+});
+
+test('admission uses a post-lock database wall clock with microsecond text precision', async () => {
+  const lockingSource = await readFile(LOCKING_SOURCE_PATH, 'utf8');
+  const admissionStart = lockingSource.indexOf('export async function referralAdmissionNow');
+  assert.notEqual(admissionStart, -1);
+  const admissionSource = lockingSource.slice(admissionStart);
+  assert.match(admissionSource, /clock_timestamp\(\)/u);
+  assert.match(admissionSource, /AT TIME ZONE 'UTC'/u);
+  assert.match(admissionSource, /to_char\(/u);
+  assert.doesNotMatch(admissionSource, /CURRENT_TIMESTAMP/u);
+
+  const reconciliationSource = await readFile(RECONCILIATION_SOURCE_PATH, 'utf8');
+  const qualificationStart = reconciliationSource.indexOf(
+    'public async qualifyFirstPurchase'
+  );
+  assert.notEqual(qualificationStart, -1);
+  const qualificationSource = reconciliationSource.slice(qualificationStart);
+  const ownerLockIndex = qualificationSource.indexOf('await lockReferralOwners');
+  const admissionIndex = qualificationSource.indexOf('const candidateAdmittedAt');
+  const capLockIndex = qualificationSource.indexOf('await this.rewards.lockCapWindow');
+  assert.ok(ownerLockIndex >= 0 && ownerLockIndex < admissionIndex);
+  assert.ok(admissionIndex < capLockIndex);
+
+  const harness = makeHarness({
+    attribution: attributionRecord(),
+    now: '2026-08-30T12:00:00.123456Z'
+  });
+  const result = await harness.service.qualifyFirstPurchase({
+    referrerOwnerId: REFERRER_OWNER_ID,
+    referredOwnerId: REFERRED_OWNER_ID,
+    referralAttributionId: ATTRIBUTION_ID,
+    qualifyingPaidCoverageId: COVERAGE_ID
+  });
+  assert.equal(result.outcome, 'APPLIED');
+  assert.equal(
+    harness.rewardRepository.createCalls[0].admittedAt,
+    '2026-08-30T12:00:00.123456Z'
+  );
+  assert.notEqual(harness.rewardRepository.createCalls[0].admittedAt, PAYMENT_AT);
 });
 
 test('0014 trigger bodies use qualified table aliases and erasure deletes authority before user', async () => {
@@ -942,6 +1094,7 @@ test('successful first qualifying purchase creates one referrer-owned PENDING re
   assert.equal(result.reward?.referralAttributionId, ATTRIBUTION_ID);
   assert.equal(result.reward?.qualifyingPaidCoverageId, COVERAGE_ID);
   assert.equal(result.reward?.grantedDurationUs, REFERRAL_REWARD_DURATION_US);
+  assert.equal(result.reward?.admittedAt, NOW.replace('.000Z', '.000000Z'));
   assert.equal(result.attribution.state, 'LOCKED');
   assert.equal(result.attribution.qualifyingPaidCoverageId, COVERAGE_ID);
   assert.equal(harness.rewardRepository.createCalls.length, 1);
@@ -957,6 +1110,18 @@ test('successful first qualifying purchase creates one referrer-owned PENDING re
     [REFERRER_OWNER_ID, REFERRED_OWNER_ID]
   );
   assert.equal(harness.authorityRepository.advanceCalls.length, 2);
+  assert.equal(
+    harness.authorityRepository.advanceCalls.find(
+      (value) => value.ownerId === REFERRED_OWNER_ID
+    ).expectedRevision,
+    '0'
+  );
+  assert.equal(
+    harness.authorityRepository.advanceCalls.find(
+      (value) => value.ownerId === REFERRER_OWNER_ID
+    ).expectedRevision,
+    '0'
+  );
 });
 
 test('failed, pending, renewal, reversed, and second purchases never qualify a Referral reward', async () => {
@@ -1204,6 +1369,7 @@ test('reward row mapper exposes non-negative derived balances and D4A never crea
     qualifying_paid_coverage_id: COVERAGE_ID,
     state: 'PENDING',
     qualifying_payment_at: PAYMENT_AT,
+    admitted_at: '2026-08-30T11:00:00.123456Z',
     matures_at: MATURITY_AT,
     earned_at: null,
     applied_at: null,
@@ -1227,5 +1393,6 @@ test('reward row mapper exposes non-negative derived balances and D4A never crea
   ensureD4ARewardShape(mapped);
   assert.equal(mapped.remainingUnconsumedDurationUs, '0');
   assert.equal(mapped.availableDurationUs, '0');
+  assert.equal(mapped.admittedAt, '2026-08-30T11:00:00.123456Z');
   assert.equal(Object.isFrozen(mapped), true);
 });

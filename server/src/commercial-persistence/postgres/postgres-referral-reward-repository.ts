@@ -13,7 +13,8 @@ import {
 } from '../commercial-persistence-errors.js';
 import {
   REFERRAL_REWARD_DURATION_US,
-  assertReferralReason
+  assertReferralReason,
+  assertReferralTimestamp
 } from '../referral-domain.js';
 import type {
   CreatePendingReferralRewardInput,
@@ -108,21 +109,20 @@ const LOCK_BY_IDS_SQL = `
 `;
 
 /*
- * The frozen persistence contract defines the rolling boundary as twelve
- * calendar months in UTC. Explicit UTC conversion keeps the result stable
- * even if a connection's session timezone was changed by a caller.
+ * The rolling boundary is an exact 360 elapsed-day interval. Explicit UTC
+ * conversion keeps the result stable even if a connection's session timezone
+ * was changed by a caller.
  */
 const LOCK_CAP_WINDOW_SQL = `
   SELECT ${REFERRAL_REWARD_COLUMNS_SQL}
   FROM referral_rewards AS rr
   WHERE rr.referrer_authority_id = $1
-    AND rr.qualifying_payment_at >= (
-      (($2::timestamptz AT TIME ZONE 'UTC') - INTERVAL '12 months')
+    AND rr.admitted_at >= (
+      (($2::timestamptz AT TIME ZONE 'UTC') - INTERVAL '360 days')
       AT TIME ZONE 'UTC'
     )
-    AND rr.qualifying_payment_at < $2::timestamptz
-    AND (rr.state <> 'REVOKED' OR rr.earned_at IS NOT NULL)
-  ORDER BY rr.qualifying_payment_at ASC, rr.referral_reward_id ASC
+    AND rr.admitted_at < $2::timestamptz
+  ORDER BY rr.admitted_at ASC, rr.referral_reward_id ASC
   FOR UPDATE
 `;
 
@@ -134,6 +134,7 @@ const INSERT_PENDING_SQL = `
     qualifying_paid_coverage_id,
     state,
     qualifying_payment_at,
+    admitted_at,
     matures_at,
     granted_duration_us,
     earned_duration_us,
@@ -150,14 +151,15 @@ const INSERT_PENDING_SQL = `
     $4,
     'PENDING',
     $5::timestamptz,
+    $6::timestamptz,
     ((($5::timestamptz AT TIME ZONE 'UTC') + INTERVAL '14 days') AT TIME ZONE 'UTC'),
-    $6::bigint,
+    $7::bigint,
     0,
     0,
     0,
     0,
-    $7,
-    $8::bigint
+    $8,
+    $9::bigint
   )
   RETURNING ${REFERRAL_REWARD_COLUMNS_SQL}
 `;
@@ -219,6 +221,7 @@ function normalizeCreateInput(input: CreatePendingReferralRewardInput) {
       input.qualifyingPaymentAt,
       'qualifyingPaymentAt'
     ),
+    admittedAt: assertReferralTimestamp(input.admittedAt, 'admittedAt'),
     pendingEventId: assertCommercialIdentifier(input.pendingEventId, 'pendingEventId'),
     sourceRevision: assertCommercialRevision(input.sourceRevision)
   };
@@ -368,20 +371,20 @@ export class PostgresReferralRewardRepository
 
   public async lockCapWindow(
     referrerAuthorityIdInput: string,
-    qualifyingPaymentAtInput: string | Date
+    admittedAtInput: string | Date
   ): Promise<readonly ReferralRewardRecord[]> {
     const referrerAuthorityId = assertCommercialIdentifier(
       referrerAuthorityIdInput,
       'referrerAuthorityId'
     );
-    const qualifyingPaymentAt = assertCommercialTimestamp(
-      qualifyingPaymentAtInput,
-      'qualifyingPaymentAt'
+    const admittedAt = assertReferralTimestamp(
+      admittedAtInput,
+      'admittedAt'
     );
     try {
       const result = await this.executor.query<ReferralRewardRow>(
         LOCK_CAP_WINDOW_SQL,
-        [referrerAuthorityId, qualifyingPaymentAt]
+        [referrerAuthorityId, admittedAt]
       );
       return Object.freeze(result.rows.map(mapReferralRewardRow));
     } catch (error) {
@@ -407,6 +410,7 @@ export class PostgresReferralRewardRepository
           normalized.referralAttributionId,
           normalized.qualifyingPaidCoverageId,
           normalized.qualifyingPaymentAt,
+          normalized.admittedAt,
           REFERRAL_REWARD_DURATION_US,
           normalized.pendingEventId,
           normalized.sourceRevision

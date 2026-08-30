@@ -4,6 +4,7 @@ import {
   assertCommercialRevision,
   assertCommercialTimestamp
 } from '../commercial-domain.js';
+import { assertReferralTimestamp } from '../referral-domain.js';
 import {
   CommercialAuthorityUnavailableError,
   CommercialOwnerNotFoundError,
@@ -370,4 +371,26 @@ export async function databaseNow(executor: SqlExecutor): Promise<string> {
     throw new CommercialPersistenceIntegrityError();
   }
   return assertCommercialTimestamp(row.now, 'authoritativeNow');
+}
+
+/**
+ * Captures the admission instant after the caller has acquired its
+ * deterministic owner/authority serialization locks. The text projection is
+ * intentional: node-postgres otherwise converts timestamptz to a Date and
+ * discards PostgreSQL's microsecond precision.
+ */
+export async function referralAdmissionNow(
+  executor: SqlExecutor
+): Promise<string> {
+  const result = await executor.query<{ now: string }>(
+    `SELECT to_char(
+       clock_timestamp() AT TIME ZONE 'UTC',
+       'YYYY-MM-DD"T"HH24:MI:SS.US"Z"'
+     ) AS now`
+  );
+  const row = result.rows[0];
+  if (row === undefined) {
+    throw new CommercialPersistenceIntegrityError();
+  }
+  return assertReferralTimestamp(row.now, 'referralAdmissionAt');
 }

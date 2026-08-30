@@ -54,6 +54,7 @@ import {
   lockReferralPaidCoverages,
   requirePaidPurchaseSuccessEvent,
   requirePaidReversalEvent,
+  referralAdmissionNow,
   type LockedReferralOwner
 } from './postgres-referral-locking.js';
 
@@ -445,9 +446,10 @@ export class PostgresReferralReconciliationPrimitives
       throw new ReferralNotEligibleError();
     }
 
+    const candidateAdmittedAt = await referralAdmissionNow(this.executor);
     const capRows = await this.rewards.lockCapWindow(
       referrerAuthority.commercialAuthorityId,
-      purchaseEvent.effectiveAt
+      candidateAdmittedAt
     );
     const lockedAt = await databaseNow(this.executor);
     const referredNextRevision = incrementRevision(
@@ -533,6 +535,7 @@ export class PostgresReferralReconciliationPrimitives
       referralAttributionId,
       qualifyingPaidCoverageId,
       qualifyingPaymentAt: purchaseEvent.effectiveAt,
+      admittedAt: candidateAdmittedAt,
       pendingEventId: pendingEvent.eventId,
       sourceRevision: referrerNextRevision
     });

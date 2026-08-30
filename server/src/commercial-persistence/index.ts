@@ -47,7 +47,8 @@ export {
   REFERRAL_REWARD_MATURATION_DAYS,
   REFERRAL_REWARD_MATURATION_DURATION_US,
   REFERRAL_REWARD_STATES,
-  REFERRAL_REWARD_WINDOW_MONTHS,
+  REFERRAL_REWARD_WINDOW_DAYS,
+  REFERRAL_REWARD_WINDOW_DURATION_US,
   assertReferralAttributionState,
   assertReferralDurationMicroseconds,
   assertReferralGiveOfferClass,
@@ -55,6 +56,7 @@ export {
   assertReferralReason,
   assertReferralRewardState,
   assertReferralStandardRewardDuration,
+  assertReferralTimestamp,
   exactReferralMaturesAt,
   getReferralGiveOfferEligibility
 } from './referral-domain.js';
