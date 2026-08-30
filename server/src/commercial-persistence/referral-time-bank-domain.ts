@@ -493,10 +493,15 @@ export function settleReferralTimeBank(input: {
       (isCurrent && currentStart !== null
         ? referralEpochMicrosecondsToTimestamp(currentStart)
         : null);
+    const applicationTimestamp =
+      reward.appliedAt ??
+      (reward.state === 'EARNED' && hasApplied
+        ? asOf
+        : applicationBoundary);
     return Object.freeze({
       referralRewardId: reward.referralRewardId,
       state,
-      appliedAt: reward.appliedAt ?? (hasApplied ? applicationBoundary : null),
+      appliedAt: reward.appliedAt ?? (hasApplied ? applicationTimestamp : null),
       appliedDurationUs: hasApplied
         ? reward.earnedDuration.toString()
         : reward.appliedDurationUs,

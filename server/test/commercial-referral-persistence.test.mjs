@@ -30,6 +30,14 @@ const MIGRATION_PATH = new URL(
   'server/db/migrations/0014_referral_persistence.sql',
   REPOSITORY_ROOT
 );
+const TIME_BANK_MIGRATION_PATH = new URL(
+  'server/db/migrations/0015_referral_time_bank.sql',
+  REPOSITORY_ROOT
+);
+const TIMESTAMP_MIGRATION_PATH = new URL(
+  'server/db/migrations/0016_referral_timestamp_contract.sql',
+  REPOSITORY_ROOT
+);
 const REWARD_REPOSITORY_SOURCE_PATH = new URL(
   'server/src/commercial-persistence/postgres/postgres-referral-reward-repository.ts',
   REPOSITORY_ROOT
@@ -720,11 +728,11 @@ function makeHarness({
   };
 }
 
-test('frozen migration 0014 remains intact before loader-valid D4B migration 0015', async () => {
+test('frozen migrations 0014 and 0015 remain intact before loader-valid D4B migration 0016', async () => {
   const names = (await readdir(new URL('server/db/migrations/', REPOSITORY_ROOT)))
     .filter((name) => /^\d{4}_[a-z0-9_]+\.sql$/u.test(name))
     .sort();
-  assert.equal(names.at(-1), '0015_referral_time_bank.sql');
+  assert.equal(names.at(-1), '0016_referral_timestamp_contract.sql');
   assert.ok(names.includes('0011_commercial_persistence_foundation.sql'));
   assert.ok(names.includes('0012_paid_billing_coverage.sql'));
   assert.ok(names.includes('0013_entitlement_projection.sql'));
@@ -732,8 +740,17 @@ test('frozen migration 0014 remains intact before loader-valid D4B migration 001
     names.indexOf('0014_referral_persistence.sql') + 1,
     names.indexOf('0015_referral_time_bank.sql')
   );
+  assert.equal(
+    names.indexOf('0015_referral_time_bank.sql') + 1,
+    names.indexOf('0016_referral_timestamp_contract.sql')
+  );
+  assert.equal(names.some((name) => name.startsWith('0017_')), false);
 
-  const migration = await readFile(MIGRATION_PATH, 'utf8');
+  const [migration, timeBankMigration, timestampMigration] = await Promise.all([
+    readFile(MIGRATION_PATH, 'utf8'),
+    readFile(TIME_BANK_MIGRATION_PATH, 'utf8'),
+    readFile(TIMESTAMP_MIGRATION_PATH, 'utf8')
+  ]);
   assert.match(migration, /CREATE TABLE referral_public_identities/u);
   assert.match(migration, /CREATE TABLE referral_attributions/u);
   assert.match(migration, /CREATE TABLE referral_rewards/u);
@@ -757,6 +774,29 @@ test('frozen migration 0014 remains intact before loader-valid D4B migration 001
     migration,
     /\b(?:stripe|paddle|paypal|coupon|currency|birth_date|birth_time|chart_id|planet|aspect|ad_click|impression)\b/iu
   );
+  assert.match(
+    migration,
+    /active_consumption_started_at\s+IS NULL[\s\S]*active_consumption_started_at\s+>=\s+applied_at/u
+  );
+  assert.match(timeBankMigration, /CREATE TABLE referral_consumption_segments/u);
+  assert.match(timeBankMigration, /CREATE CONSTRAINT TRIGGER referral_consumption_segments_totals_guard/u);
+  assert.doesNotMatch(timeBankMigration, /\b(?:BEGIN|COMMIT)\s*;/u);
+  assert.match(
+    timestampMigration,
+    /ALTER TABLE referral_rewards\s+DROP CONSTRAINT referral_rewards_timestamp_order_check/u
+  );
+  assert.match(
+    timestampMigration,
+    /ALTER TABLE referral_rewards\s+ADD CONSTRAINT referral_rewards_timestamp_order_check/u
+  );
+  const correctedConstraint = timestampMigration.match(
+    /ADD CONSTRAINT referral_rewards_timestamp_order_check\s+CHECK\s*\(([\s\S]*?)\);/u
+  )?.[1];
+  assert.ok(correctedConstraint);
+  assert.match(correctedConstraint, /earned_at[\s\S]*applied_at[\s\S]*>=\s*earned_at/u);
+  assert.doesNotMatch(correctedConstraint, /active_consumption_started_at/u);
+  assert.doesNotMatch(timestampMigration, /\b(?:INSERT|UPDATE|DELETE)\b/iu);
+  assert.doesNotMatch(timestampMigration, /\b(?:BEGIN|COMMIT)\s*;/u);
 
   const loaded = await loadPostgresMigrations(MIGRATIONS_DIRECTORY);
   const artifact = loaded.find(({ version }) => version === '0014');
@@ -766,6 +806,10 @@ test('frozen migration 0014 remains intact before loader-valid D4B migration 001
   const timeBankArtifact = loaded.find(({ version }) => version === '0015');
   assert.equal(timeBankArtifact?.filename, '0015_referral_time_bank.sql');
   assert.match(timeBankArtifact?.checksumSha256 ?? '', /^[0-9a-f]{64}$/u);
+  const timestampArtifact = loaded.find(({ version }) => version === '0016');
+  assert.equal(timestampArtifact?.filename, '0016_referral_timestamp_contract.sql');
+  assert.match(timestampArtifact?.checksumSha256 ?? '', /^[0-9a-f]{64}$/u);
+  assert.doesNotMatch(timestampArtifact?.executableSql ?? '', /\b(?:BEGIN|COMMIT)\s*;/u);
 });
 
 test('Referral cap uses admitted_at, exact 360 elapsed days, and every lifecycle state', async () => {

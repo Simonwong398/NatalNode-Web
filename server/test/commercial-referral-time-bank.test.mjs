@@ -36,6 +36,12 @@ function at(day = 0, microseconds = 0n) {
   );
 }
 
+function preciseAt(day = 0, microseconds = 0n) {
+  const timestamp = at(day, microseconds).replace(/Z$/u, '');
+  const [whole, fraction = ''] = timestamp.split('.');
+  return `${whole}.${fraction.padEnd(6, '0')}Z`;
+}
+
 function days(value) {
   return (BigInt(value) * DAY_US).toString();
 }
@@ -45,6 +51,7 @@ function reward({
   state = 'EARNED',
   maturityDay = 0,
   admittedDay = -14,
+  earnedAt = state === 'PENDING' ? null : at(maturityDay),
   appliedAt = state === 'APPLIED' ? at(maturityDay) : null,
   revokedAt = null,
   consumedDurationUs = '0',
@@ -62,7 +69,7 @@ function reward({
     state,
     maturesAt: at(maturityDay),
     admittedAt: at(admittedDay),
-    earnedAt: state === 'PENDING' ? null : at(maturityDay),
+    earnedAt,
     appliedAt,
     revokedAt,
     earnedDurationUs: earned,
@@ -123,13 +130,55 @@ function activeElapsed(result) {
 test('matured reward applies lazily, remains APPLIED, and ordinary replay is deterministic', () => {
   const first = settle({ asOfDay: 5 });
   assert.equal(first.rewards[0].state, 'APPLIED');
-  assert.equal(first.rewards[0].appliedAt, at(0));
+  assert.equal(first.rewards[0].appliedAt, preciseAt(5));
   assert.equal(first.rewards[0].activeConsumptionStartedAt, at(0));
   assert.equal(first.rewards[0].consumedDurationUs, '0');
   assert.equal(first.source.currentReferralRewardId, 'reward-a');
   assert.equal(first.source.queuedReferralDurationUs, days(25));
   assert.equal(first.source.currentEffectiveUntil, at(30));
   assert.deepEqual(settle({ asOfDay: 5 }), first);
+});
+
+test('late catch-up separates application time from the historical consumption start', () => {
+  const lateReward = reward({
+    maturityDay: 0,
+    earnedAt: at(3)
+  });
+  const settled = settle({
+    asOfDay: 5,
+    rewards: [lateReward]
+  });
+  const application = settled.rewards[0];
+
+  assert.equal(application.state, 'APPLIED');
+  assert.equal(lateReward.maturesAt, at(0));
+  assert.equal(lateReward.earnedAt, at(3));
+  assert.equal(application.appliedAt, preciseAt(5));
+  assert.equal(application.activeConsumptionStartedAt, at(0));
+  assert.ok(
+    referralTimestampToEpochMicroseconds(lateReward.maturesAt, 'maturesAt') <
+      referralTimestampToEpochMicroseconds(lateReward.earnedAt, 'earnedAt')
+  );
+  assert.ok(
+    referralTimestampToEpochMicroseconds(lateReward.earnedAt, 'earnedAt') <=
+      referralTimestampToEpochMicroseconds(application.appliedAt, 'appliedAt')
+  );
+  assert.ok(
+    referralTimestampToEpochMicroseconds(application.activeConsumptionStartedAt, 'activeConsumptionStartedAt') <
+      referralTimestampToEpochMicroseconds(application.appliedAt, 'appliedAt')
+  );
+  assert.equal(application.appliedDurationUs, REFERRAL_REWARD_DURATION_US);
+  assert.equal(application.consumedDurationUs, '0');
+  assert.equal(application.revokedDurationUs, '0');
+});
+
+test('immediate application keeps application and active-start timestamps equal', () => {
+  const settled = settle({ asOfDay: 0 });
+  const application = settled.rewards[0];
+
+  assert.equal(application.state, 'APPLIED');
+  assert.equal(application.appliedAt, preciseAt(0));
+  assert.equal(application.activeConsumptionStartedAt, at(0));
 });
 
 test('Paid and grace block maturation consumption and Referral starts at exact Paid end', () => {
@@ -709,11 +758,14 @@ test('material application advances once and exact canonical replay advances zer
   });
   assert.equal(first.outcome, 'APPLIED');
   assert.equal(harness.reward.state, 'APPLIED');
+  assert.equal(harness.reward.appliedAt, preciseAt(1));
   assert.equal(harness.advances, 1);
-  assert.equal(
-    harness.events.filter(({ eventType }) => eventType === 'REFERRAL_REWARD_APPLIED').length,
-    1
+  const applicationEvent = harness.events.find(
+    ({ eventType }) => eventType === 'REFERRAL_REWARD_APPLIED'
   );
+  assert.ok(applicationEvent);
+  assert.equal(applicationEvent.occurredAt, preciseAt(1));
+  assert.equal(applicationEvent.effectiveAt, preciseAt(1));
 
   const replay = await harness.service.reconcileAfterAuthorityLock({
     ownerId: OWNER_ID,
@@ -722,6 +774,57 @@ test('material application advances once and exact canonical replay advances zer
   });
   assert.equal(replay.outcome, 'NO_OP');
   assert.equal(harness.advances, 1);
+});
+
+test('late application and Paid resume keep lifecycle and entitlement event times distinct', async () => {
+  const blockers = [paid(5, 15)];
+  const harness = reconciliationHarness({ blockers });
+
+  const applied = await harness.service.reconcileAfterAuthorityLock({
+    ownerId: OWNER_ID,
+    authority: harness.authority,
+    asOf: at(10)
+  });
+  assert.equal(applied.outcome, 'APPLIED');
+  assert.equal(harness.reward.state, 'APPLIED');
+  assert.equal(harness.reward.appliedAt, preciseAt(10));
+  assert.equal(harness.reward.activeConsumptionStartedAt, null);
+  assert.deepEqual(
+    harness.segments.map(({ consumedFrom, consumedUntil }) => [
+      consumedFrom,
+      consumedUntil
+    ]),
+    [[at(0), at(5)]]
+  );
+
+  const resumed = await harness.service.reconcileAfterAuthorityLock({
+    ownerId: OWNER_ID,
+    authority: applied.authority,
+    asOf: at(20)
+  });
+  assert.equal(resumed.outcome, 'APPLIED');
+  assert.equal(harness.reward.appliedAt, preciseAt(10));
+  assert.equal(harness.reward.activeConsumptionStartedAt, at(15));
+  assert.ok(
+    referralTimestampToEpochMicroseconds(harness.reward.appliedAt, 'appliedAt') <
+      referralTimestampToEpochMicroseconds(
+        harness.reward.activeConsumptionStartedAt,
+        'activeConsumptionStartedAt'
+      )
+  );
+
+  const applicationEvent = harness.events.find(
+    ({ eventType }) => eventType === 'REFERRAL_REWARD_APPLIED'
+  );
+  const consumptionStartEvent = harness.events.find(
+    ({ eventType }) => eventType === 'REFERRAL_REWARD_CONSUMPTION_STARTED'
+  );
+  assert.ok(applicationEvent);
+  assert.ok(consumptionStartEvent);
+  assert.equal(applicationEvent.occurredAt, preciseAt(10));
+  assert.equal(applicationEvent.effectiveAt, preciseAt(10));
+  assert.equal(consumptionStartEvent.occurredAt, preciseAt(20));
+  assert.equal(consumptionStartEvent.effectiveAt, at(15));
 });
 
 test('late Paid correction and partial reversal each advance exactly once, then replay no-op', async () => {
@@ -821,7 +924,10 @@ test('migration 0015 is loader-valid, rebuildable, collision-safe, and erasure-c
   assert.equal(artifact?.filename, '0015_referral_time_bank.sql');
   assert.match(artifact?.checksumSha256 ?? '', /^[0-9a-f]{64}$/u);
   assert.doesNotMatch(artifact?.executableSql ?? '', /\b(?:BEGIN|COMMIT)\s*;/u);
-  assert.equal(loaded.some(({ version }) => version === '0016'), false);
+  const timestampArtifact = loaded.find(({ version }) => version === '0016');
+  assert.equal(timestampArtifact?.filename, '0016_referral_timestamp_contract.sql');
+  assert.match(timestampArtifact?.checksumSha256 ?? '', /^[0-9a-f]{64}$/u);
+  assert.doesNotMatch(timestampArtifact?.executableSql ?? '', /\b(?:BEGIN|COMMIT)\s*;/u);
 
   const [projectionMigration, referralMigration, erasureRepository] =
     await Promise.all([

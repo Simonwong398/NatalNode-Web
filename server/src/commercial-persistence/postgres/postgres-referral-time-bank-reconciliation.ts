@@ -245,6 +245,7 @@ export class PostgresReferralTimeBankReconciliation
           eventType: 'REFERRAL_REWARD_APPLIED',
           sourceEntityId: planned.referralRewardId,
           idempotencyKey: `apply:${planned.referralRewardId}`,
+          occurredAt: asOf,
           effectiveAt: planned.appliedAt,
           attributes: {
             referral_reward_id: planned.referralRewardId,
@@ -265,6 +266,7 @@ export class PostgresReferralTimeBankReconciliation
           eventType: 'REFERRAL_REWARD_CONSUMPTION_STARTED',
           sourceEntityId: planned.referralRewardId,
           idempotencyKey: `start:${planned.referralRewardId}:${planned.activeConsumptionStartedAt}`,
+          occurredAt: asOf,
           effectiveAt: planned.activeConsumptionStartedAt,
           attributes: {
             referral_reward_id: planned.referralRewardId
@@ -290,6 +292,7 @@ export class PostgresReferralTimeBankReconciliation
           eventType: 'REFERRAL_REWARD_EXHAUSTED',
           sourceEntityId: planned.referralRewardId,
           idempotencyKey: `exhaust:${planned.referralRewardId}:${finalSegment.consumedUntil}`,
+          occurredAt: asOf,
           effectiveAt: finalSegment.consumedUntil,
           attributes: {
             referral_reward_id: planned.referralRewardId,
@@ -310,6 +313,7 @@ export class PostgresReferralTimeBankReconciliation
         eventType: 'COMMERCIAL_CORRECTION_RECORDED',
         sourceEntityId: commercialAuthorityId,
         idempotencyKey: `replay:${commercialAuthorityId}:${input.authority.entitlementRevision}:${asOf}`,
+        occurredAt: asOf,
         effectiveAt: asOf,
         attributes: {
           correction_class: 'PAID_PRECEDENCE_REPLAY',
@@ -368,6 +372,7 @@ export class PostgresReferralTimeBankReconciliation
     readonly eventType: CommercialEventType;
     readonly sourceEntityId: string;
     readonly idempotencyKey: string;
+    readonly occurredAt: string;
     readonly effectiveAt: string;
     readonly attributes: Readonly<Record<string, string | number>>;
   }) {
@@ -392,7 +397,7 @@ export class PostgresReferralTimeBankReconciliation
       idempotencyNamespace: IDEMPOTENCY_NAMESPACE,
       idempotencyKey: input.idempotencyKey,
       operationDigest,
-      occurredAt: input.effectiveAt,
+      occurredAt: input.occurredAt,
       effectiveAt: input.effectiveAt,
       causedByEventId: null,
       correctsEventId: null,
