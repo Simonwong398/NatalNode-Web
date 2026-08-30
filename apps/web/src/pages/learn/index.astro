@@ -33,14 +33,11 @@ function formatDate(date: Date): string {
     />
 
     <section class="mt-12 max-w-4xl border-t border-natal-border/70 pt-8 sm:mt-16 sm:pt-10" aria-labelledby="learn-articles-title">
-      <div class="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
-        <div class="nn-section-header">
-          <p class="nn-eyebrow">Start here</p>
-          <h2 class="nn-type-section-title" id="learn-articles-title">
-            Begin with the foundations
-          </h2>
-        </div>
-        <p class="nn-type-metadata">{articles.length} published article{articles.length === 1 ? '' : 's'}</p>
+      <div class="nn-section-header">
+        <p class="nn-eyebrow">Start here</p>
+        <h2 class="nn-type-section-title" id="learn-articles-title">
+          Begin with the foundations
+        </h2>
       </div>
 
       {articles.length > 0 ? (

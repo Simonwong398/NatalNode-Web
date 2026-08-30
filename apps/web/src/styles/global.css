@@ -463,6 +463,12 @@
     animation: nn-brand-orbit-silver 27s linear infinite;
   }
 
+  .nn-brand-instrument__core {
+    transform-box: fill-box;
+    transform-origin: center;
+    animation: nn-brand-instrument-core-rotation 24s linear infinite;
+  }
+
   .nn-brand-instrument__reference {
     pointer-events: none;
   }
@@ -476,6 +482,12 @@
   @keyframes nn-brand-orbit-silver {
     to {
       transform: rotate(-360deg);
+    }
+  }
+
+  @keyframes nn-brand-instrument-core-rotation {
+    to {
+      transform: rotate(360deg);
     }
   }
 
@@ -514,7 +526,7 @@
       inset: auto;
       width: 100%;
       height: clamp(220px, 58vw, 300px);
-      margin-top: -4px;
+      margin-top: clamp(16px, 5vw, 24px);
       align-items: flex-end;
       justify-content: center;
     }
@@ -526,7 +538,6 @@
     .nn-editorial-hero__instrument {
       width: min(100%, 22rem);
       max-width: 22rem;
-      transform: translateY(4%);
     }
 
     .nn-brand-instrument__reference {
@@ -541,6 +552,7 @@
   @media (prefers-reduced-motion: reduce) {
     .nn-brand-instrument__orbit--cyan,
     .nn-brand-instrument__orbit--silver,
+    .nn-brand-instrument__core,
     .nn-brand-mark--animated .nn-brand-mark__signal {
       animation: none;
     }
