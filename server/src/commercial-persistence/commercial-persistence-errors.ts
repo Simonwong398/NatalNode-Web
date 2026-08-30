@@ -54,6 +54,55 @@ export class CommercialPersistenceIntegrityError extends Error {
   }
 }
 
+export class PaidCommercialEventNotFoundError extends Error {
+  public constructor() {
+    super('Paid reconciliation event is unavailable.');
+    this.name = 'PaidCommercialEventNotFoundError';
+  }
+}
+
+export class PaidRelationshipNotFoundError extends Error {
+  public constructor() {
+    super('Paid billing relationship is unavailable.');
+    this.name = 'PaidRelationshipNotFoundError';
+  }
+}
+
+export class PaidRelationshipConflictError extends Error {
+  public constructor() {
+    super('Paid billing relationship conflicts with existing source state.');
+    this.name = 'PaidRelationshipConflictError';
+  }
+}
+
+export class PaidRelationshipTransitionConflictError extends Error {
+  public constructor() {
+    super('Paid billing relationship transition conflicts with current state.');
+    this.name = 'PaidRelationshipTransitionConflictError';
+  }
+}
+
+export class PaidCoverageNotFoundError extends Error {
+  public constructor() {
+    super('Paid coverage is unavailable.');
+    this.name = 'PaidCoverageNotFoundError';
+  }
+}
+
+export class PaidCoverageConflictError extends Error {
+  public constructor() {
+    super('Paid coverage conflicts with existing source state.');
+    this.name = 'PaidCoverageConflictError';
+  }
+}
+
+export class PaidCoverageReversalConflictError extends Error {
+  public constructor() {
+    super('Paid coverage reversal conflicts with existing source state.');
+    this.name = 'PaidCoverageReversalConflictError';
+  }
+}
+
 export class CommercialPersistenceUnavailableError extends Error {
   public constructor() {
     super('Commercial persistence is unavailable.');
@@ -84,6 +133,13 @@ export function mapCommercialPersistenceFailure(error: unknown): Error {
     error instanceof ProviderReceiptNotFoundError ||
     error instanceof InvalidCommercialStateTransitionError ||
     error instanceof CommercialPersistenceIntegrityError ||
+    error instanceof PaidCommercialEventNotFoundError ||
+    error instanceof PaidRelationshipNotFoundError ||
+    error instanceof PaidRelationshipConflictError ||
+    error instanceof PaidRelationshipTransitionConflictError ||
+    error instanceof PaidCoverageNotFoundError ||
+    error instanceof PaidCoverageConflictError ||
+    error instanceof PaidCoverageReversalConflictError ||
     error instanceof CommercialPersistenceUnavailableError
   ) {
     return error;

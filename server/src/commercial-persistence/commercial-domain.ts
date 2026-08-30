@@ -83,6 +83,56 @@ export const PROVIDER_RECEIPT_FAILURE_CLASSES = [
 export type ProviderReceiptFailureClass =
   (typeof PROVIDER_RECEIPT_FAILURE_CLASSES)[number];
 
+export const PAID_BILLING_INTERVALS = ['MONTHLY', 'ANNUAL'] as const;
+
+export type PaidBillingInterval = (typeof PAID_BILLING_INTERVALS)[number];
+
+export const PAID_RELATIONSHIP_LIFECYCLE_STATES = [
+  'PENDING_FIRST_PAYMENT',
+  'ACTIVE',
+  'RECOVERY_GRACE',
+  'ENDED',
+  'FIRST_PAYMENT_FAILED'
+] as const;
+
+export type PaidRelationshipLifecycleState =
+  (typeof PAID_RELATIONSHIP_LIFECYCLE_STATES)[number];
+
+export const PAID_RENEWAL_INTENTS = [
+  'ENABLED',
+  'CANCEL_AT_PERIOD_END',
+  'DISABLED'
+] as const;
+
+export type PaidRenewalIntent = (typeof PAID_RENEWAL_INTENTS)[number];
+
+export const PAID_COVERAGE_STATES = ['VALID', 'ENDED', 'REVERSED'] as const;
+
+export type PaidCoverageState = (typeof PAID_COVERAGE_STATES)[number];
+
+export const PAID_RELATIONSHIP_END_REASONS = [
+  'PERIOD_END',
+  'REFUND',
+  'CHARGEBACK',
+  'REVERSAL',
+  'TERMINATION',
+  'GRACE_EXPIRED'
+] as const;
+
+export type PaidRelationshipEndReason =
+  (typeof PAID_RELATIONSHIP_END_REASONS)[number];
+
+export const PAID_COVERAGE_REVERSAL_REASONS = [
+  'REFUND',
+  'CHARGEBACK',
+  'CORRECTION'
+] as const;
+
+export type PaidCoverageReversalReason =
+  (typeof PAID_COVERAGE_REVERSAL_REASONS)[number];
+
+export const PAID_RENEWAL_GRACE_HOURS = 7 * 24;
+
 export const COMMERCIAL_EVENT_SCHEMA_VERSION = 1 as const;
 export const MAX_COMMERCIAL_IDENTIFIER_LENGTH = 256;
 export const MAX_COMMERCIAL_PROVIDER_EVENT_ID_LENGTH = 512;
@@ -288,6 +338,50 @@ export function assertProviderReceiptFailureClass(
   return isFrom(PROVIDER_RECEIPT_FAILURE_CLASSES, value)
     ? value
     : invalid('failureClass');
+}
+
+export function assertPaidBillingInterval(
+  value: unknown
+): PaidBillingInterval {
+  return isFrom(PAID_BILLING_INTERVALS, value)
+    ? value
+    : invalid('billingInterval');
+}
+
+export function assertPaidRelationshipLifecycleState(
+  value: unknown
+): PaidRelationshipLifecycleState {
+  return isFrom(PAID_RELATIONSHIP_LIFECYCLE_STATES, value)
+    ? value
+    : invalid('lifecycleState');
+}
+
+export function assertPaidRenewalIntent(value: unknown): PaidRenewalIntent {
+  return isFrom(PAID_RENEWAL_INTENTS, value)
+    ? value
+    : invalid('renewalIntent');
+}
+
+export function assertPaidCoverageState(value: unknown): PaidCoverageState {
+  return isFrom(PAID_COVERAGE_STATES, value)
+    ? value
+    : invalid('coverageState');
+}
+
+export function assertPaidRelationshipEndReason(
+  value: unknown
+): PaidRelationshipEndReason {
+  return isFrom(PAID_RELATIONSHIP_END_REASONS, value)
+    ? value
+    : invalid('endReason');
+}
+
+export function assertPaidCoverageReversalReason(
+  value: unknown
+): PaidCoverageReversalReason {
+  return isFrom(PAID_COVERAGE_REVERSAL_REASONS, value)
+    ? value
+    : invalid('reversalReason');
 }
 
 function normalizeAttributeValue(

@@ -5,8 +5,16 @@ import type {
   CommercialSourceType,
   ProviderProcessingStatus,
   ProviderReceiptFailureClass,
-  ProviderVerificationStatus
+  ProviderVerificationStatus,
+  PaidBillingInterval,
+  PaidCoverageReversalReason,
+  PaidCoverageState,
+  PaidRelationshipEndReason,
+  PaidRelationshipLifecycleState,
+  PaidRenewalIntent
 } from './commercial-domain.js';
+
+export type CommercialTimestampInput = string | Date;
 
 export interface CommercialAuthorityRecord {
   readonly commercialAuthorityId: string;
@@ -193,8 +201,316 @@ export interface ProviderIngestionReceiptRepository {
   ): Promise<ProviderIngestionReceiptRecord | null>;
 }
 
+export interface PaidBillingRelationshipRecord {
+  readonly paidRelationshipId: string;
+  readonly commercialAuthorityId: string;
+  readonly providerNamespace: string | null;
+  readonly providerContext: string | null;
+  readonly providerRelationshipRef: string | null;
+  readonly billingInterval: PaidBillingInterval;
+  readonly lifecycleState: PaidRelationshipLifecycleState;
+  readonly renewalIntent: PaidRenewalIntent;
+  readonly currentPeriodStart: string | null;
+  readonly currentPeriodEnd: string | null;
+  readonly graceStartedAt: string | null;
+  readonly graceUntil: string | null;
+  readonly failedRenewalIdentity: string | null;
+  readonly endedAt: string | null;
+  readonly endReason: PaidRelationshipEndReason | null;
+  readonly lastReconciledEventId: string;
+  readonly sourceRevision: string;
+  readonly createdAt: string;
+  readonly updatedAt: string;
+}
+
+export interface PaidRelationshipOwnerScope {
+  readonly ownerId: string;
+  readonly commercialAuthorityId: string;
+  readonly paidRelationshipId: string;
+}
+
+export interface CreatePendingPaidBillingRelationshipInput {
+  readonly ownerId: string;
+  readonly commercialAuthorityId: string;
+  readonly paidRelationshipId: string;
+  readonly providerNamespace: string | null;
+  readonly providerContext: string | null;
+  readonly providerRelationshipRef: string | null;
+  readonly billingInterval: PaidBillingInterval;
+  readonly lastReconciledEventId: string;
+  readonly sourceRevision: string;
+}
+
+export interface TransitionPaidBillingRelationshipInput
+  extends PaidRelationshipOwnerScope {
+  readonly expectedLifecycleState: PaidRelationshipLifecycleState;
+  readonly expectedRenewalIntent: PaidRenewalIntent;
+  readonly nextLifecycleState: PaidRelationshipLifecycleState;
+  readonly nextRenewalIntent: PaidRenewalIntent;
+  readonly currentPeriodStart: CommercialTimestampInput | null;
+  readonly currentPeriodEnd: CommercialTimestampInput | null;
+  readonly graceStartedAt: CommercialTimestampInput | null;
+  readonly graceUntil: CommercialTimestampInput | null;
+  readonly failedRenewalIdentity: string | null;
+  readonly endedAt: CommercialTimestampInput | null;
+  readonly endReason: PaidRelationshipEndReason | null;
+  readonly lastReconciledEventId: string;
+  readonly sourceRevision: string;
+}
+
+/** Caller-owned transaction primitives for normalized paid relationship state. */
+export interface PaidBillingRelationshipRepository {
+  createPending(
+    input: CreatePendingPaidBillingRelationshipInput
+  ): Promise<PaidBillingRelationshipRecord>;
+  getById(
+    paidRelationshipId: string
+  ): Promise<PaidBillingRelationshipRecord | null>;
+  getByAuthority(
+    ownerId: string,
+    commercialAuthorityId: string
+  ): Promise<readonly PaidBillingRelationshipRecord[]>;
+  lockForUpdate(
+    input: PaidRelationshipOwnerScope
+  ): Promise<PaidBillingRelationshipRecord>;
+  transition(
+    input: TransitionPaidBillingRelationshipInput
+  ): Promise<PaidBillingRelationshipRecord>;
+}
+
+export interface PaidCoverageRecord {
+  readonly paidCoverageId: string;
+  readonly paidRelationshipId: string;
+  readonly commercialAuthorityId: string;
+  readonly purchaseNamespace: string;
+  readonly purchaseIdentity: string;
+  readonly billingInterval: PaidBillingInterval;
+  readonly coverageStartAt: string;
+  readonly scheduledCoverageEndAt: string;
+  readonly effectiveCoverageEndAt: string;
+  readonly coverageState: PaidCoverageState;
+  readonly successEventId: string;
+  readonly reversalEventId: string | null;
+  readonly reversedAt: string | null;
+  readonly reversalReason: PaidCoverageReversalReason | null;
+  readonly sourceRevision: string;
+  readonly createdAt: string;
+  readonly updatedAt: string;
+}
+
+export interface PaidCoverageReversalRecord {
+  readonly paidCoverageReversalId: string;
+  readonly paidCoverageId: string;
+  readonly paidRelationshipId: string;
+  readonly commercialAuthorityId: string;
+  readonly purchaseNamespace: string;
+  readonly purchaseIdentity: string;
+  readonly reversalEventId: string;
+  readonly reversedAt: string;
+  readonly reversalReason: PaidCoverageReversalReason;
+  readonly effectiveCoverageEndAt: string;
+  readonly sourceRevision: string;
+  readonly createdAt: string;
+  readonly updatedAt: string;
+}
+
+export interface PaidCoverageOwnerScope {
+  readonly ownerId: string;
+  readonly commercialAuthorityId: string;
+  readonly paidRelationshipId: string;
+  readonly paidCoverageId: string;
+}
+
+export interface CreatePaidCoverageInput {
+  readonly ownerId: string;
+  readonly commercialAuthorityId: string;
+  readonly paidRelationshipId: string;
+  readonly paidCoverageId: string;
+  readonly purchaseNamespace: string;
+  readonly purchaseIdentity: string;
+  readonly billingInterval: PaidBillingInterval;
+  readonly coverageStartAt: CommercialTimestampInput;
+  readonly scheduledCoverageEndAt: CommercialTimestampInput;
+  readonly effectiveCoverageEndAt: CommercialTimestampInput;
+  readonly successEventId: string;
+  readonly sourceRevision: string;
+}
+
+export interface CreatePendingPaidCoverageReversalInput
+  extends PaidReconciliationContext {
+  readonly paidCoverageReversalId: string;
+  readonly paidCoverageId: string;
+  readonly paidRelationshipId: string;
+  readonly purchaseNamespace: string;
+  readonly purchaseIdentity: string;
+  readonly reversalReason: PaidCoverageReversalReason;
+  readonly effectiveCoverageEndAt: CommercialTimestampInput;
+  readonly sourceRevision: string;
+}
+
+export interface ApplyPaidCoverageReversalInput
+  extends PaidCoverageOwnerScope {
+  readonly expectedCoverageState: PaidCoverageState;
+  readonly reversalEventId: string;
+  readonly reversedAt: CommercialTimestampInput;
+  readonly reversalReason: PaidCoverageReversalReason;
+  readonly effectiveCoverageEndAt: CommercialTimestampInput;
+  readonly sourceRevision: string;
+}
+
+export interface EndPaidCoverageInput extends PaidCoverageOwnerScope {
+  readonly expectedCoverageState: PaidCoverageState;
+  readonly endedAt: CommercialTimestampInput;
+  readonly effectiveCoverageEndAt: CommercialTimestampInput;
+  readonly sourceRevision: string;
+  readonly eventId: string;
+}
+
+/** Caller-owned transaction primitives for attributable paid intervals. */
+export interface PaidCoverageRepository {
+  createAttributable(
+    input: CreatePaidCoverageInput
+  ): Promise<PaidCoverageRecord>;
+  getById(paidCoverageId: string): Promise<PaidCoverageRecord | null>;
+  getByPurchaseIdentity(
+    commercialAuthorityId: string,
+    purchaseNamespace: string,
+    purchaseIdentity: string
+  ): Promise<PaidCoverageRecord | null>;
+  getPendingReversal(
+    commercialAuthorityId: string,
+    purchaseNamespace: string,
+    purchaseIdentity: string
+  ): Promise<PaidCoverageReversalRecord | null>;
+  recordPendingReversal(
+    input: CreatePendingPaidCoverageReversalInput
+  ): Promise<PaidCoverageReversalRecord>;
+  listByRelationship(
+    ownerId: string,
+    commercialAuthorityId: string,
+    paidRelationshipId: string
+  ): Promise<readonly PaidCoverageRecord[]>;
+  lockForUpdate(input: PaidCoverageOwnerScope): Promise<PaidCoverageRecord>;
+  applyReversal(
+    input: ApplyPaidCoverageReversalInput
+  ): Promise<PaidCoverageRecord>;
+  end(input: EndPaidCoverageInput): Promise<PaidCoverageRecord>;
+}
+
+export interface PaidReconciliationContext {
+  readonly ownerId: string;
+  readonly commercialAuthorityId: string;
+  readonly eventId: string;
+}
+
+export interface OpenPaidRelationshipInput extends PaidReconciliationContext {
+  readonly paidRelationshipId: string;
+  readonly providerNamespace: string | null;
+  readonly providerContext: string | null;
+  readonly providerRelationshipRef: string | null;
+  readonly billingInterval: PaidBillingInterval;
+}
+
+export interface PaidCoverageOperationInput extends PaidReconciliationContext {
+  readonly paidRelationshipId: string;
+  readonly paidCoverageId: string;
+  readonly purchaseNamespace: string;
+  readonly purchaseIdentity: string;
+  readonly billingInterval: PaidBillingInterval;
+  readonly coverageStartAt: CommercialTimestampInput;
+  readonly scheduledCoverageEndAt: CommercialTimestampInput;
+}
+
+export interface PaidRelationshipOperationInput
+  extends PaidReconciliationContext {
+  readonly paidRelationshipId: string;
+}
+
+export interface EnterPaidRecoveryInput extends PaidRelationshipOperationInput {
+  readonly failedRenewalIdentity: string;
+}
+
+export interface EndPaidRelationshipInput
+  extends PaidRelationshipOperationInput {
+  readonly endReason: PaidRelationshipEndReason;
+}
+
+export interface EndPaidCoverageOperationInput
+  extends PaidReconciliationContext {
+  readonly paidRelationshipId: string;
+  readonly paidCoverageId: string;
+  readonly effectiveCoverageEndAt: CommercialTimestampInput;
+}
+
+export interface ReversePaidCoverageInput
+  extends PaidReconciliationContext {
+  readonly paidRelationshipId: string;
+  readonly paidCoverageId: string;
+  readonly purchaseNamespace: string;
+  readonly purchaseIdentity: string;
+  readonly effectiveCoverageEndAt: CommercialTimestampInput;
+}
+
+export type PaidReconciliationOutcome = 'APPLIED' | 'DUPLICATE' | 'NO_OP';
+
+export interface PaidReconciliationResult {
+  readonly outcome: PaidReconciliationOutcome;
+  readonly authority: CommercialAuthorityRecord;
+  readonly relationship: PaidBillingRelationshipRecord | null;
+  readonly coverage: PaidCoverageRecord | null;
+}
+
+/**
+ * Bounded owner-scoped paid reconciliation surface. Every method uses the
+ * caller's transaction and advances the authority revision at most once.
+ */
+export interface PaidReconciliationPrimitives {
+  openFirstPaidRelationship(
+    input: OpenPaidRelationshipInput
+  ): Promise<PaidReconciliationResult>;
+  recordSuccessfulFirstPurchase(
+    input: PaidCoverageOperationInput
+  ): Promise<PaidReconciliationResult>;
+  recordFailedFirstPurchase(
+    input: PaidRelationshipOperationInput
+  ): Promise<PaidReconciliationResult>;
+  scheduleCancellation(
+    input: PaidRelationshipOperationInput
+  ): Promise<PaidReconciliationResult>;
+  restoreRenewal(
+    input: PaidRelationshipOperationInput
+  ): Promise<PaidReconciliationResult>;
+  recordSuccessfulRenewal(
+    input: PaidCoverageOperationInput
+  ): Promise<PaidReconciliationResult>;
+  enterRenewalRecovery(
+    input: EnterPaidRecoveryInput
+  ): Promise<PaidReconciliationResult>;
+  recoverFromRenewalRecovery(
+    input: PaidCoverageOperationInput
+  ): Promise<PaidReconciliationResult>;
+  expireRenewalRecovery(
+    input: PaidRelationshipOperationInput
+  ): Promise<PaidReconciliationResult>;
+  endPaidRelationship(
+    input: EndPaidRelationshipInput
+  ): Promise<PaidReconciliationResult>;
+  endPaidCoverage(
+    input: EndPaidCoverageOperationInput
+  ): Promise<PaidReconciliationResult>;
+  applyRefund(
+    input: ReversePaidCoverageInput
+  ): Promise<PaidReconciliationResult>;
+  applyChargeback(
+    input: ReversePaidCoverageInput
+  ): Promise<PaidReconciliationResult>;
+}
+
 export interface CommercialPersistenceRepositories {
   readonly authorities: CommercialAuthorityRepository;
   readonly events: CommercialEventRepository;
   readonly providerReceipts: ProviderIngestionReceiptRepository;
+  readonly paidBillingRelationships: PaidBillingRelationshipRepository;
+  readonly paidCoverages: PaidCoverageRepository;
+  readonly paidReconciliation: PaidReconciliationPrimitives;
 }
