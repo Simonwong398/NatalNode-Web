@@ -2,7 +2,7 @@
 
 | Field | Value |
 |---|---|
-| Status | **PASS / CONTRACT AMENDMENT CLOSED / APPROVED TECHNICAL CONTRACT / B3 IMPLEMENTED LOCALLY / B4A FROZEN / B4B1 IMPLEMENTED LOCALLY / B4B2 IMPLEMENTED LOCALLY / B4B3 IMPLEMENTED LOCALLY / B4B3-R1 PASS / CONCURRENCY & SECURITY REVIEW CLOSED / B4B4 DEFERRED / LIVE WEB PUSH DELIVERY NOT IMPLEMENTED** |
+| Status | **PASS / CONTRACT AMENDMENT CLOSED / APPROVED TECHNICAL CONTRACT / B3 IMPLEMENTED LOCALLY / B4A FROZEN / B4B1 IMPLEMENTED LOCALLY / B4B2 IMPLEMENTED LOCALLY / B4B3 IMPLEMENTED LOCALLY / B4B3-R1 PASS / CONCURRENCY & SECURITY REVIEW CLOSED / B4B4 PASS / LOCAL POSTGRESQL INTEGRATION ACCEPTANCE CLOSED / LIVE WEB PUSH DELIVERY NOT IMPLEMENTED** |
 | Task | `WEB-NOTIFY-001B4A-R1` |
 | Reviewed baseline | `9d188bbe491d5f4038e49fe920cacd720c9a8d33` (`docs: define web push delivery contract`) |
 | Date | 2026-08-29 |
@@ -1486,8 +1486,9 @@ complete VAPID configuration, and other required runtime inputs. That mode
 must use the same real ownership, payload, worker, and transport boundaries;
 it must not fabricate a PushSubscription, private VAPID key, transport result,
 or delivery success. No `DATABASE_URL`, mail credential, VAPID private key,
-local credential, or `.env` secret is committed. Any live local acceptance is
-deferred to B4B4 and must use explicit developer-owned configuration.
+local credential, or `.env` secret is committed. Any live browser/provider
+acceptance remains an external gate beyond the B4B4 local PostgreSQL closure
+and must use explicit developer-owned configuration.
 
 ## 40. Deployment and live requirements
 
@@ -1546,8 +1547,8 @@ The first usable foundation is limited to:
 It excludes inbox/history, arbitrary test messages, a general messaging bus,
 astrology trigger semantics, paid plan logic, provider-specific UI, and live
 delivery. B4A freezes the delivery contract only; B4B1 now provides the local
-persistence and enqueue foundation, while B4B4 remains deferred until its
-separately authorized validation gate exists.
+persistence and enqueue foundation, while B4B4 closes the separately
+authorized local PostgreSQL integration acceptance gate.
 
 ## 44. Implementation-readiness matrix
 
@@ -1625,9 +1626,10 @@ Current implementation status:
   delivery persistence, and exact-target subscription invalidation. Real
   PostgreSQL concurrency and live-delivery acceptance remain outside this
   local review and are not claimed here.
-- `WEB-NOTIFY-001B4B4` — **NOT STARTED**: bounded integration validation and
-  local live-delivery acceptance only when legitimate developer-owned
-  configuration exists.
+- `WEB-NOTIFY-001B4B4` — **PASS / LOCAL POSTGRESQL INTEGRATION ACCEPTANCE
+  CLOSED**: the bounded local PostgreSQL acceptance contract is closed. Live
+  browser/provider delivery, production deployment, scheduler operation,
+  credentials, and retention values remain external/product gates.
 - Developer operational notification domain — **CONTRACT REQUIRED BEFORE
   IMPLEMENTATION** after Subscription/Entitlement and Developer Organization
   architecture are frozen.
@@ -1716,15 +1718,43 @@ shutdown, and exact-target-only invalidation. The current eligibility source
 remains a required server-internal dependency and the executable fails closed
 when it is unavailable. Real PostgreSQL concurrency and live-delivery
 acceptance remain outside this local review. No Developer notifications, new
-astrology trigger semantics, live provider acceptance, or B4B4 implementation
-is included.
+astrology trigger semantics, or live provider acceptance is included; B4B4
+records the separate local PostgreSQL acceptance closure.
 
 ### `WEB-NOTIFY-001B4B4` — Bounded integration validation
 
-**NOT STARTED.** Validate the implemented boundary, account lifecycle, privacy
-and observability exclusions, concurrency/retry behavior, and local live Web
-Push only when explicit legitimate configuration and browser acceptance gates
-exist. No production deployment or hosted-provider decision is implied.
+**PASS / LOCAL POSTGRESQL INTEGRATION ACCEPTANCE CLOSED.** Real PostgreSQL
+acceptance covered migration `0010` and the `first_attempt_at` schema,
+first-attempt persistence, two-claimer `FOR UPDATE SKIP LOCKED` behavior,
+claim-token fencing, expired-claim recovery, Channel Off and Category Off
+serialization, account-erasure and PushSubscription hard-delete
+locking/cascade behavior, target-only subscription invalidation,
+`clock_timestamp` wall-clock behavior, lease-sufficiency refusal before
+transport, post-transport retry-time origin, `first_attempt_at` preservation,
+the exact 24-hour retry horizon, ACCEPTED-then-local-rollback /
+at-least-once ambiguity, multi-worker isolation, multi-device isolation, and
+disposable fixture cleanup.
+
+`WEB-NOTIFY-001B4B4` is closed locally. The authoritative current eligibility
+integration, actual product notification trigger semantics, legitimate
+production VAPID secret management, live browser/Push Service acceptance,
+production deployment and scheduler operation, and retention-policy values
+remain external/product/operational gates. They are not local B4 correctness
+defects and are not implemented by this closure.
+
+The defensive `CONFIGURATION_UNAVAILABLE` edge remains unchanged: if a READY
+worker receives it after claim, it performs no subscription invalidation and
+no DELIVERED mutation; the PROCESSING claim remains available for lease
+recovery. The notification worker remains a separate executable; HTTP server,
+`dev:local`, and `dev:public` do not start it automatically. No live Web Push
+acceptance is implied.
+
+Closure status:
+
+- `WEB-NOTIFY-001B4B4` — **PASS / LOCAL POSTGRESQL INTEGRATION ACCEPTANCE CLOSED**
+- `WEB-NOTIFY-001B4B3` — **CLOSED LOCALLY**
+- `WEB-NOTIFY-001B4B3-R1` — **PASS / CONCURRENCY & SECURITY REVIEW CLOSED**
+- Consumer Notification Platform V1 local engineering foundation — **CLOSED**
 
 ### `WEB-NOTIFY-001C` — Focused security/privacy/reliability review
 
@@ -1810,24 +1840,31 @@ recommended policy checkpoint.
 
 ## 49. Recommended next action
 
-After this B4A contract freeze, the next single implementation action is:
+After this local notification foundation closure, do not start another
+implementation automatically. The next single task is:
 
-**`WEB-NOTIFY-001B4B1` — implement the documented PostgreSQL persistence,
-repository, and typed internal enqueue foundation only.**
+**`WEB-BRAND-002B`**
 
-B4B1 must not begin WebPushTransport, private VAPID operations, worker
-claiming, live delivery, billing, astrology-trigger work, or Developer
-operational notifications. Product-owner visual re-acceptance of B3 remains a
-separate gate and is not silently replaced by this contract.
+Its deferred scope is the slow continuous inner-core Brand Instrument rotation
+(approximately 24 seconds per full rotation, linear and transform-only), with
+`prefers-reduced-motion` disabling motion, no hover acceleration, flashing,
+wobble, or loading-spinner resemblance. Desktop should remain largely
+unchanged; at 320px and 375px the Learn Hero Brand Instrument should move
+modestly lower through responsive normal-flow spacing rather than absolute
+positioning hacks, and the “1 published article” display should be removed.
+Visual balance must be verified at both mobile widths. This task is only a
+recommendation; `WEB-BRAND-002B` is not started by this closure.
 
 ## 50. Runtime-source, dependency, and migration integrity
 
 `WEB-NOTIFY-001B4A` and `WEB-NOTIFY-001B4A-R1` are documentation-only
-delivery-contract freezes. Their completion boundary is:
+delivery-contract freezes. `WEB-NOTIFY-001B4B4` is a documentation closure
+plus removal of its temporary untracked acceptance harness; it adds no
+production runtime behavior. Their completion boundary is:
 
 - no runtime source under `apps/web` or `server/src` changed;
-- no package source, test, migration, package manifest, lockfile, Service
-  Worker, environment file, or database changed;
+- no package source, production test source, migration, package manifest,
+  lockfile, Service Worker, environment file, or database changed;
 - no outbox/delivery rows, worker, scheduler, transport, provider, private
   VAPID secret, or server-side push send implemented;
 - no public arbitrary-send endpoint or Developer notification behavior;
@@ -1838,12 +1875,13 @@ delivery-contract freezes. Their completion boundary is:
 The existing B1/B2/B3 persistence, API, browser, and public capability
 contracts remain additive-compatible. Account Export, Account Deletion,
 Privacy Access Audit, retention policy, and historical P0 documentation are
-not modified by B4A; this document records the compatibility requirements for
-their future B4 implementation.
+not modified by B4A or the B4B4 closure; this document records the
+compatibility requirements for their future policy/operations work.
 
 ## 51. Validation boundary
 
-This is documentation-only. Validation is limited to:
+This is documentation-only closure plus temporary harness removal. Validation
+is limited to:
 
 - `git diff --check`;
 - `git diff --cached --check` before commit; and
@@ -1869,7 +1907,7 @@ unrelated source inspection are intentionally not run.
     Delivery guarantee                  = BOUNDED BEST-EFFORT / AT-LEAST-ONCE-STYLE; NOT EXACTLY ONCE
     Billing/subscription implementation = DEFERRED
     Astrology trigger implementation    = DEFERRED
-    Runtime implementation             = B3 LOCAL BROWSER FOUNDATION; B4B1 LOCAL PERSISTENCE/ENQUEUE FOUNDATION; B4B2 LOCAL VAPID/TRANSPORT FOUNDATION; B4B3 LOCAL WORKER FOUNDATION; B4B4 DEFERRED; LIVE DELIVERY NOT IMPLEMENTED
+    Runtime implementation             = B3 LOCAL BROWSER FOUNDATION; B4B1 LOCAL PERSISTENCE/ENQUEUE FOUNDATION; B4B2 LOCAL VAPID/TRANSPORT FOUNDATION; B4B3 LOCAL WORKER FOUNDATION; B4B4 LOCAL POSTGRESQL ACCEPTANCE CLOSED; LIVE DELIVERY NOT IMPLEMENTED
     Live/deployment acceptance          = PRODUCT-OWNER VISUAL RE-ACCEPTANCE REQUIRED / LIVE EXTERNAL GATES OPEN
     Historical P0 status               = PRESERVED; NEW SCOPE AFTER WEB-P0-READY-003
     WEB-P0-POLICY-001A                 = NOT EXECUTED / DEFERRED
@@ -1879,12 +1917,13 @@ unrelated source inspection are intentionally not run.
     WEB-NOTIFY-001B4B2               = IMPLEMENTED LOCALLY / SECURITY REVIEW REQUIRED
     WEB-NOTIFY-001B4B3               = IMPLEMENTED LOCALLY / B4B3-R1 PASS / CONCURRENCY & SECURITY REVIEW CLOSED
     WEB-NOTIFY-001B4B3-R1            = PASS / CONCURRENCY & SECURITY REVIEW CLOSED
-    WEB-NOTIFY-001B4B4               = NOT STARTED
+    WEB-NOTIFY-001B4B4               = PASS / LOCAL POSTGRESQL INTEGRATION ACCEPTANCE CLOSED
 
 The B3 foundation, B4B1 persistence/enqueue boundary, B4B2 VAPID/transport
 foundation, and B4B3 bounded worker boundary are complete locally at their
 respective implementation boundaries, while B4A remains complete at the
-contract boundary and B4B4 remains deferred. No automatic browser permission
-is requested, no live external notification is sent by local validation, no
-private secret is configured by this document, and no subscription/payment/
-provider decision or live delivery acceptance is implied by this document.
+contract boundary and B4B4 is closed at the local PostgreSQL acceptance
+boundary. No automatic browser permission is requested, no live external
+notification is sent by local validation, no private secret is configured by
+this document, and no subscription/payment/provider decision or live delivery
+acceptance is implied by this document.
