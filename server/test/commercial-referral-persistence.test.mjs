@@ -683,7 +683,8 @@ function makeHarness({
   paidEvents = [paidEventRow()],
   hasPurchase = false,
   hasOtherPurchase = false,
-  now = NOW
+  now = NOW,
+  timeBank = null
 } = {}) {
   const executor = new ReferralExecutor({
     authorities,
@@ -704,7 +705,8 @@ function makeHarness({
     eventRepository,
     identityRepository,
     attributionRepository,
-    rewardRepository
+    rewardRepository,
+    timeBank
   );
   return {
     executor,
@@ -713,19 +715,23 @@ function makeHarness({
     identityRepository,
     attributionRepository,
     rewardRepository,
+    timeBank,
     service
   };
 }
 
-test('migration 0014 is the single forward Referral migration and is loader-valid', async () => {
+test('frozen migration 0014 remains intact before loader-valid D4B migration 0015', async () => {
   const names = (await readdir(new URL('server/db/migrations/', REPOSITORY_ROOT)))
     .filter((name) => /^\d{4}_[a-z0-9_]+\.sql$/u.test(name))
     .sort();
-  assert.equal(names.at(-1), '0014_referral_persistence.sql');
+  assert.equal(names.at(-1), '0015_referral_time_bank.sql');
   assert.ok(names.includes('0011_commercial_persistence_foundation.sql'));
   assert.ok(names.includes('0012_paid_billing_coverage.sql'));
   assert.ok(names.includes('0013_entitlement_projection.sql'));
-  assert.equal(names.some((name) => name.startsWith('0015_')), false);
+  assert.equal(
+    names.indexOf('0014_referral_persistence.sql') + 1,
+    names.indexOf('0015_referral_time_bank.sql')
+  );
 
   const migration = await readFile(MIGRATION_PATH, 'utf8');
   assert.match(migration, /CREATE TABLE referral_public_identities/u);
@@ -757,6 +763,9 @@ test('migration 0014 is the single forward Referral migration and is loader-vali
   assert.equal(artifact?.filename, '0014_referral_persistence.sql');
   assert.match(artifact?.checksumSha256 ?? '', /^[0-9a-f]{64}$/u);
   assert.doesNotMatch(artifact?.executableSql ?? '', /\b(?:BEGIN|COMMIT)\s*;/u);
+  const timeBankArtifact = loaded.find(({ version }) => version === '0015');
+  assert.equal(timeBankArtifact?.filename, '0015_referral_time_bank.sql');
+  assert.match(timeBankArtifact?.checksumSha256 ?? '', /^[0-9a-f]{64}$/u);
 });
 
 test('Referral cap uses admitted_at, exact 360 elapsed days, and every lifecycle state', async () => {
@@ -946,7 +955,7 @@ test('Give eligibility and exact Referral elapsed durations are provider-neutral
   assert.equal(monthly.currency, undefined);
 });
 
-test('Referral persistence does not authorize Referral in the current D3 Paid-only evaluator', () => {
+test('D4A acquisition rows alone do not authorize without a D4B Referral source snapshot', () => {
   const result = evaluateEffectiveEntitlement({
     commercialAuthorityId: REFERRER_AUTHORITY_ID,
     entitlementRevision: '1',
@@ -1290,7 +1299,7 @@ test('maturation uses database time, exact boundary, one revision, and pre-matur
   assert.equal(revoked.rewards[0].consumedDurationUs, '0');
 });
 
-test('pre-consumption reversal revokes EARNED, replay is idempotent, and APPLIED reversal remains D4B work', async () => {
+test('pre-consumption reversal is idempotent and APPLIED reversal requires the D4B collaborator', async () => {
   const earned = rewardRecord({
     state: 'EARNED',
     earnedAt: MATURITY_AT,
@@ -1359,6 +1368,95 @@ test('pre-consumption reversal revokes EARNED, replay is idempotent, and APPLIED
     ReferralRewardNotRevocableError
   );
   assert.equal(applied.authorityRepository.advanceCalls.length, 0);
+});
+
+test('APPLIED reversal delegates corrected consumption to D4B with cross-owner provenance intact', async () => {
+  const appliedReward = rewardRecord({
+    state: 'APPLIED',
+    earnedAt: MATURITY_AT,
+    appliedAt: MATURITY_AT,
+    appliedDurationUs: REFERRAL_REWARD_DURATION_US,
+    consumedDurationUs: (12n * 24n * 60n * 60n * 1_000_000n).toString(),
+    maturationEventId: 'mature-event-a',
+    applicationEventId: 'application-event-a'
+  });
+  const coverage = paidCoverageRow({
+    coverage_state: 'REVERSED',
+    reversal_event_id: REVERSAL_EVENT_ID,
+    reversed_at: NOW,
+    reversal_reason: 'CHARGEBACK'
+  });
+  const timeBank = {
+    calls: [],
+    async reconcileAfterAuthorityLock(input) {
+      this.calls.push(input);
+      const consumed = BigInt(appliedReward.consumedDurationUs);
+      return {
+        outcome: 'APPLIED',
+        authority: {
+          ...input.authority,
+          entitlementRevision: (
+            BigInt(input.authority.entitlementRevision) + 1n
+          ).toString()
+        },
+        rewards: [
+          rewardRecord({
+            ...appliedReward,
+            state: 'REVOKED',
+            revokedAt: input.revocation.revokedAt,
+            revokedDurationUs: (
+              BigInt(REFERRAL_REWARD_DURATION_US) - consumed
+            ).toString(),
+            activeConsumptionStartedAt: null,
+            revocationReason: input.revocation.revocationReason,
+            reversalEventId: input.revocation.reversalEventId,
+            sourceRevision: (
+              BigInt(input.authority.entitlementRevision) + 1n
+            ).toString()
+          })
+        ],
+        source: null
+      };
+    }
+  };
+  const harness = makeHarness({
+    attribution: attributionRecord({ state: 'LOCKED' }),
+    reward: appliedReward,
+    coverages: [coverage],
+    paidEvents: [
+      paidEventRow(),
+      paidEventRow({
+        eventId: REVERSAL_EVENT_ID,
+        eventType: 'PAID_COVERAGE_CHARGEBACKED',
+        effectiveAt: NOW
+      })
+    ],
+    timeBank
+  });
+
+  const result = await harness.service.revokeForPaidReversal({
+    referrerOwnerId: REFERRER_OWNER_ID,
+    referralRewardId: appliedReward.referralRewardId
+  });
+  assert.equal(result.outcome, 'APPLIED');
+  assert.equal(result.reward.state, 'REVOKED');
+  assert.equal(result.reward.consumedDurationUs, appliedReward.consumedDurationUs);
+  assert.equal(
+    result.reward.revokedDurationUs,
+    (BigInt(REFERRAL_REWARD_DURATION_US) - BigInt(appliedReward.consumedDurationUs)).toString()
+  );
+  assert.equal(timeBank.calls.length, 1);
+  assert.equal(timeBank.calls[0].ownerId, REFERRER_OWNER_ID);
+  assert.equal(
+    timeBank.calls[0].authority.commercialAuthorityId,
+    REFERRER_AUTHORITY_ID
+  );
+  assert.equal(timeBank.calls[0].revocation.reversalEventId, REVERSAL_EVENT_ID);
+  assert.equal(
+    harness.eventRepository.appendCalls.at(-1).causedByEventId,
+    REVERSAL_EVENT_ID
+  );
+  assert.equal(harness.authorityRepository.advanceCalls.length, 0);
 });
 
 test('reward row mapper exposes non-negative derived balances and D4A never creates APPLIED', () => {

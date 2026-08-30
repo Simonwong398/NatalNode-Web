@@ -11,6 +11,8 @@ import { PostgresReferralAttributionRepository } from './postgres-referral-attri
 import { PostgresReferralPublicIdentityRepository } from './postgres-referral-public-identity-repository.js';
 import { PostgresReferralReconciliationPrimitives } from './postgres-referral-reconciliation-primitives.js';
 import { PostgresReferralRewardRepository } from './postgres-referral-reward-repository.js';
+import { PostgresReferralTimeBankRepository } from './postgres-referral-time-bank-repository.js';
+import { PostgresReferralTimeBankReconciliation } from './postgres-referral-time-bank-reconciliation.js';
 
 /**
  * Creates repositories over one executor. For reconciliation, pass a
@@ -30,6 +32,12 @@ export function createPostgresCommercialPersistence(
     executor
   );
   const referralRewards = new PostgresReferralRewardRepository(executor);
+  const referralTimeBank = new PostgresReferralTimeBankReconciliation(
+    executor,
+    authorities,
+    events,
+    new PostgresReferralTimeBankRepository(executor)
+  );
   return Object.freeze({
     authorities,
     events,
@@ -54,7 +62,9 @@ export function createPostgresCommercialPersistence(
       events,
       referralPublicIdentities,
       referralAttributions,
-      referralRewards
-    )
+      referralRewards,
+      referralTimeBank
+    ),
+    referralTimeBank
   });
 }

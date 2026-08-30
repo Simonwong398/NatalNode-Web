@@ -74,14 +74,16 @@ function evaluate({
   evaluatedAt = NOW,
   entitlementRevision = REVISION,
   paidBillingRelationships = [],
-  paidCoverages = []
+  paidCoverages = [],
+  referralSource = null
 } = {}) {
   return evaluateEffectiveEntitlement({
     commercialAuthorityId: AUTHORITY_ID,
     entitlementRevision,
     evaluatedAt,
     paidBillingRelationships,
-    paidCoverages
+    paidCoverages,
+    referralSource
   });
 }
 
@@ -519,7 +521,7 @@ class TransactionExecutor {
     ) {
       return { rows: [] };
     }
-    if (normalized === 'SELECT CURRENT_TIMESTAMP AS now') {
+    if (normalized === 'SELECT clock_timestamp() AS now') {
       return { rows: [{ now: this.now }] };
     }
     throw new Error(`Unexpected test SQL: ${normalized}`);
@@ -619,7 +621,7 @@ test('rebuild is revision-aware and does not increment CommercialAuthority', asy
   assert.equal(state.revisionAdvanceCount, 0);
   assert.deepEqual(executor.calls.slice(0, 2), [
     'BEGIN',
-    'SELECT CURRENT_TIMESTAMP AS now'
+    'SELECT clock_timestamp() AS now'
   ]);
   assert.equal(executor.calls.at(-1), 'COMMIT');
 });
@@ -677,13 +679,23 @@ test('account erasure cascade and bounded schema do not retain the projection', 
   assert.doesNotMatch(migration, /INSERT INTO entitlement_projections/u);
 });
 
-test('D3 adds one forward migration without changing 0011 or 0012', async () => {
+test('frozen D3 migration remains ordered before D4A and D4B migrations', async () => {
   const migrations = (
     await readdir(new URL('server/db/migrations/', REPOSITORY_ROOT))
   )
     .filter((name) => /^\d{4}_[a-z0-9_]+\.sql$/u.test(name))
     .sort();
-  assert.equal(migrations.at(-1), '0013_entitlement_projection.sql');
+  assert.ok(migrations.includes('0013_entitlement_projection.sql'));
+  assert.ok(migrations.includes('0014_referral_persistence.sql'));
+  assert.ok(migrations.includes('0015_referral_time_bank.sql'));
+  assert.ok(
+    migrations.indexOf('0013_entitlement_projection.sql') <
+      migrations.indexOf('0014_referral_persistence.sql')
+  );
+  assert.ok(
+    migrations.indexOf('0014_referral_persistence.sql') <
+      migrations.indexOf('0015_referral_time_bank.sql')
+  );
   assert.ok(migrations.includes('0011_commercial_persistence_foundation.sql'));
   assert.ok(migrations.includes('0012_paid_billing_coverage.sql'));
   const migration = await readFile(

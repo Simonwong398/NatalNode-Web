@@ -25,13 +25,18 @@ import type {
   EntitlementCapabilityDecision,
   EntitlementProjectionRecord
 } from './entitlement-types.js';
+import {
+  MAX_REFERRAL_TIME_BANK_REWARDS,
+  type ReferralTimeBankSourceSnapshot
+} from './referral-time-bank-domain.js';
+import { assertReferralTimestamp } from './referral-domain.js';
 import type {
   CommercialAuthorityRecord,
   CommercialPersistenceRepositories
 } from './repositories.js';
 import { createPostgresCommercialPersistence } from './postgres/create-postgres-commercial-persistence.js';
 
-const DATABASE_NOW_SQL = 'SELECT CURRENT_TIMESTAMP AS now';
+const DATABASE_NOW_SQL = 'SELECT clock_timestamp() AS now';
 
 interface DatabaseNowRow {
   now: Date | string;
@@ -43,7 +48,13 @@ export type EntitlementReadRepositories = Pick<
   | 'paidBillingRelationships'
   | 'paidCoverages'
   | 'entitlementProjections'
->;
+> &
+  Partial<
+    Pick<
+      CommercialPersistenceRepositories,
+      'referralReconciliation' | 'referralTimeBank'
+    >
+  >;
 
 export interface EntitlementReadService {
   getEffectiveEntitlement(ownerId: string): Promise<EffectiveEntitlementResult>;
@@ -130,14 +141,21 @@ export class PostgresEntitlementReadService implements EntitlementReadService {
     const ownerId = assertCommercialIdentifier(ownerIdInput, 'ownerId');
     try {
       return await this.withTransaction(async () => {
+        await this.matureReferralRewards(ownerId);
         const authority = await this.repositories.authorities.lockForUpdate(
           ownerId
         );
         const authoritativeNow = await this.databaseNow();
-        return this.rebuildWithinTransaction(
+        const referral = await this.reconcileReferralTimeBank(
           ownerId,
           authority,
           authoritativeNow
+        );
+        return this.rebuildWithinTransaction(
+          ownerId,
+          referral.authority,
+          authoritativeNow,
+          referral.source
         );
       });
     } catch (error) {
@@ -156,8 +174,15 @@ export class PostgresEntitlementReadService implements EntitlementReadService {
   private async readWithinTransaction(
     ownerId: string
   ): Promise<EffectiveEntitlementResult> {
-    const authority = await this.repositories.authorities.lockForUpdate(ownerId);
+    await this.matureReferralRewards(ownerId);
+    const lockedAuthority = await this.repositories.authorities.lockForUpdate(ownerId);
     const authoritativeNow = await this.databaseNow();
+    const referral = await this.reconcileReferralTimeBank(
+      ownerId,
+      lockedAuthority,
+      authoritativeNow
+    );
+    const authority = referral.authority;
     const projection =
       await this.repositories.entitlementProjections.getByAuthority(
         authority.commercialAuthorityId
@@ -187,13 +212,19 @@ export class PostgresEntitlementReadService implements EntitlementReadService {
       }
     }
 
-    return this.rebuildWithinTransaction(ownerId, authority, authoritativeNow);
+    return this.rebuildWithinTransaction(
+      ownerId,
+      authority,
+      authoritativeNow,
+      referral.source
+    );
   }
 
   private async rebuildWithinTransaction(
     ownerId: string,
     authority: CommercialAuthorityRecord,
-    authoritativeNow: string
+    authoritativeNow: string,
+    referralSource: ReferralTimeBankSourceSnapshot | null
   ): Promise<EffectiveEntitlementResult> {
     const relationships =
       await this.repositories.paidBillingRelationships.getByAuthority(
@@ -216,7 +247,8 @@ export class PostgresEntitlementReadService implements EntitlementReadService {
       entitlementRevision: authority.entitlementRevision,
       evaluatedAt: authoritativeNow,
       paidBillingRelationships: relationships,
-      paidCoverages: coverages
+      paidCoverages: coverages,
+      referralSource
     });
     const result = toEffectiveEntitlementResult(evaluation);
     if (evaluation.determination !== 'DETERMINATE') {
@@ -247,7 +279,36 @@ export class PostgresEntitlementReadService implements EntitlementReadService {
     if (row === undefined) {
       throw new EntitlementIntegrityError();
     }
-    return assertCommercialTimestamp(row.now, 'authoritativeNow');
+    return assertReferralTimestamp(row.now, 'authoritativeNow');
+  }
+
+  private async matureReferralRewards(ownerId: string): Promise<void> {
+    if (this.repositories.referralReconciliation === undefined) {
+      return;
+    }
+    await this.repositories.referralReconciliation.matureEligibleRewards({
+      ownerId,
+      limit: MAX_REFERRAL_TIME_BANK_REWARDS
+    });
+  }
+
+  private async reconcileReferralTimeBank(
+    ownerId: string,
+    authority: CommercialAuthorityRecord,
+    authoritativeNow: string
+  ): Promise<{
+    readonly authority: CommercialAuthorityRecord;
+    readonly source: ReferralTimeBankSourceSnapshot | null;
+  }> {
+    if (this.repositories.referralTimeBank === undefined) {
+      return Object.freeze({ authority, source: null });
+    }
+    const result = await this.repositories.referralTimeBank.reconcileAfterAuthorityLock({
+      ownerId,
+      authority,
+      asOf: authoritativeNow
+    });
+    return Object.freeze({ authority: result.authority, source: result.source });
   }
 
   private async withTransaction<Result>(

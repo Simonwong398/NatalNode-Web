@@ -180,8 +180,29 @@ export type {
   ReferralRewardRepository,
   RevokeReferralRewardForPaidReversalInput,
   RevokeReferralRewardInput,
-  RevokeReferralRewardResult
+  RevokeReferralRewardResult,
+  ReferralTimeBankReconciliationService,
+  ReferralTimeBankRevocationInput,
+  ReconcileReferralTimeBankInput,
+  ReconcileReferralTimeBankResult
 } from './repositories.js';
+
+export {
+  MAX_REFERRAL_PAID_BLOCKING_INTERVALS,
+  MAX_REFERRAL_TIME_BANK_REWARDS,
+  MAX_REFERRAL_TIME_BANK_SEGMENTS,
+  referralEpochMicrosecondsToTimestamp,
+  referralTimestampToEpochMicroseconds,
+  settleReferralTimeBank
+} from './referral-time-bank-domain.js';
+export type {
+  ReferralConsumptionSegmentPlan,
+  ReferralPaidBlockingInterval,
+  ReferralRewardSettlement,
+  ReferralTimeBankRewardInput,
+  ReferralTimeBankSettlement,
+  ReferralTimeBankSourceSnapshot
+} from './referral-time-bank-domain.js';
 
 export {
   EntitlementDomainValidationError,
@@ -253,5 +274,7 @@ export {
   PostgresReferralAttributionRepository,
   PostgresReferralPublicIdentityRepository,
   PostgresReferralReconciliationPrimitives,
-  PostgresReferralRewardRepository
+  PostgresReferralRewardRepository,
+  PostgresReferralTimeBankRepository,
+  PostgresReferralTimeBankReconciliation
 } from './postgres/index.js';

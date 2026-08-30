@@ -80,7 +80,8 @@ export type EntitlementIndeterminateReason =
   (typeof ENTITLEMENT_INDETERMINATE_REASONS)[number];
 
 export const ENTITLEMENT_PROJECTION_SCHEMA_VERSION = 1 as const;
-export const ENTITLEMENT_EVALUATOR_POLICY_VERSION = 'D3_PAID_V1' as const;
+export const ENTITLEMENT_EVALUATOR_POLICY_VERSION =
+  'D4B_PAID_REFERRAL_V1' as const;
 
 /** The stable, server-only entitlement contract consumed by product domains. */
 export interface EffectiveEntitlementDeterminate {

@@ -10,3 +10,5 @@ export { PostgresReferralAttributionRepository } from './postgres-referral-attri
 export { PostgresReferralPublicIdentityRepository } from './postgres-referral-public-identity-repository.js';
 export { PostgresReferralReconciliationPrimitives } from './postgres-referral-reconciliation-primitives.js';
 export { PostgresReferralRewardRepository } from './postgres-referral-reward-repository.js';
+export { PostgresReferralTimeBankRepository } from './postgres-referral-time-bank-repository.js';
+export { PostgresReferralTimeBankReconciliation } from './postgres-referral-time-bank-reconciliation.js';

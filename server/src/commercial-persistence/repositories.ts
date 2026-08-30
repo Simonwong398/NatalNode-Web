@@ -14,6 +14,7 @@ import type {
   PaidRenewalIntent
 } from './commercial-domain.js';
 import type { EntitlementProjectionRecord } from './entitlement-types.js';
+import type { ReferralTimeBankSourceSnapshot } from './referral-time-bank-domain.js';
 import type {
   ReferralAttributionState,
   ReferralGiveOfferEligibility,
@@ -685,6 +686,34 @@ export interface ReferralReconciliationService {
   ): Promise<RevokeReferralRewardResult>;
 }
 
+export interface ReferralTimeBankRevocationInput {
+  readonly referralRewardId: string;
+  readonly revokedAt: CommercialTimestampInput;
+  readonly revocationReason: string;
+  readonly reversalEventId: string;
+}
+
+export interface ReconcileReferralTimeBankInput {
+  readonly ownerId: string;
+  readonly authority: CommercialAuthorityRecord;
+  readonly asOf: CommercialTimestampInput;
+  readonly revocation?: ReferralTimeBankRevocationInput;
+}
+
+export interface ReconcileReferralTimeBankResult {
+  readonly outcome: 'APPLIED' | 'NO_OP';
+  readonly authority: CommercialAuthorityRecord;
+  readonly rewards: readonly ReferralRewardRecord[];
+  readonly source: ReferralTimeBankSourceSnapshot;
+}
+
+/** Caller-transaction-owned, authority-locked Referral settlement surface. */
+export interface ReferralTimeBankReconciliationService {
+  reconcileAfterAuthorityLock(
+    input: ReconcileReferralTimeBankInput
+  ): Promise<ReconcileReferralTimeBankResult>;
+}
+
 export interface PaidReconciliationContext {
   readonly ownerId: string;
   readonly commercialAuthorityId: string;
@@ -823,4 +852,5 @@ export interface CommercialPersistenceRepositories {
   readonly referralAttributions: ReferralAttributionRepository;
   readonly referralRewards: ReferralRewardRepository;
   readonly referralReconciliation: ReferralReconciliationService;
+  readonly referralTimeBank: ReferralTimeBankReconciliationService;
 }

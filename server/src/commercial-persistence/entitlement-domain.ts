@@ -16,6 +16,12 @@ import type {
   PaidCoverageRecord
 } from './repositories.js';
 import {
+  referralEpochMicrosecondsToTimestamp,
+  referralTimestampToEpochMicroseconds,
+  type ReferralTimeBankSourceSnapshot
+} from './referral-time-bank-domain.js';
+import { assertReferralTimestamp } from './referral-domain.js';
+import {
   ENTITLEMENT_ALERT_ELIGIBILITY_CLASSES,
   ENTITLEMENT_CAPABILITIES,
   ENTITLEMENT_EVALUATOR_POLICY_VERSION,
@@ -41,9 +47,10 @@ import {
   type EntitlementVaultCapacityClass
 } from './entitlement-types.js';
 
-const MILLISECONDS_PER_HOUR = 60 * 60 * 1000;
-const RENEWAL_GRACE_MILLISECONDS =
-  PAID_RENEWAL_GRACE_HOURS * MILLISECONDS_PER_HOUR;
+const MICROSECONDS_PER_HOUR = 60n * 60n * 1_000_000n;
+const RENEWAL_GRACE_MICROSECONDS =
+  BigInt(PAID_RENEWAL_GRACE_HOURS) * MICROSECONDS_PER_HOUR;
+const PRECISE_FRACTION_PATTERN = /\.\d{4,6}(?:Z|[+-]\d{2}:?\d{2})$/u;
 
 export class EntitlementDomainValidationError extends Error {
   public constructor(message: string) {
@@ -65,16 +72,23 @@ function fail(reason: EntitlementIndeterminateReason): never {
   throw new EvaluationFailure(reason);
 }
 
-function timestampMilliseconds(value: string): number {
-  const milliseconds = Date.parse(value);
-  if (!Number.isFinite(milliseconds)) {
-    fail('INVALID_SOURCE_STATE');
-  }
-  return milliseconds;
+function normalizeEntitlementTimestamp(value: unknown, fieldName: string): string {
+  const canonical = assertCommercialTimestamp(value, fieldName);
+  return typeof value === 'string' && PRECISE_FRACTION_PATTERN.test(value)
+    ? assertReferralTimestamp(value, fieldName)
+    : canonical;
 }
 
-function isoTimestamp(milliseconds: number): string {
-  return new Date(milliseconds).toISOString();
+function timestampMicroseconds(value: string): bigint {
+  try {
+    return referralTimestampToEpochMicroseconds(value, 'timestamp');
+  } catch {
+    return fail('INVALID_SOURCE_STATE');
+  }
+}
+
+function isoTimestamp(microseconds: bigint): string {
+  return referralEpochMicrosecondsToTimestamp(microseconds);
 }
 
 function uniqueSorted(values: readonly string[]): readonly string[] {
@@ -132,7 +146,9 @@ function normalizeOptionalTimestamp(
   value: string | null,
   fieldName: string
 ): string | null {
-  return assertOptionalCommercialTimestamp(value, fieldName);
+  return value === null
+    ? null
+    : normalizeEntitlementTimestamp(value, fieldName);
 }
 
 interface NormalizedRelationship {
@@ -157,11 +173,11 @@ function assertRelationshipShape(
   const periodStart =
     relationship.currentPeriodStart === null
       ? null
-      : timestampMilliseconds(relationship.currentPeriodStart);
+      : timestampMicroseconds(relationship.currentPeriodStart);
   const periodEnd =
     relationship.currentPeriodEnd === null
       ? null
-      : timestampMilliseconds(relationship.currentPeriodEnd);
+      : timestampMicroseconds(relationship.currentPeriodEnd);
 
   if (
     (periodStart === null) !== (periodEnd === null) ||
@@ -175,17 +191,17 @@ function assertRelationshipShape(
   const graceStart =
     relationship.graceStartedAt === null
       ? null
-      : timestampMilliseconds(relationship.graceStartedAt);
+      : timestampMicroseconds(relationship.graceStartedAt);
   const graceEnd =
     relationship.graceUntil === null
       ? null
-      : timestampMilliseconds(relationship.graceUntil);
+      : timestampMicroseconds(relationship.graceUntil);
 
   if (
     (graceStart === null) !== (graceEnd === null) ||
     (graceStart !== null &&
       graceEnd !== null &&
-      graceEnd - graceStart !== RENEWAL_GRACE_MILLISECONDS)
+      graceEnd - graceStart !== RENEWAL_GRACE_MICROSECONDS)
   ) {
     fail('INVALID_SOURCE_STATE');
   }
@@ -362,21 +378,21 @@ function normalizeCoverage(
 
   const billingInterval = assertPaidBillingInterval(coverage.billingInterval);
   const coverageState = assertPaidCoverageState(coverage.coverageState);
-  const coverageStartAt = assertCommercialTimestamp(
+  const coverageStartAt = normalizeEntitlementTimestamp(
     coverage.coverageStartAt,
     'coverageStartAt'
   );
-  const scheduledCoverageEndAt = assertCommercialTimestamp(
+  const scheduledCoverageEndAt = normalizeEntitlementTimestamp(
     coverage.scheduledCoverageEndAt,
     'scheduledCoverageEndAt'
   );
-  const effectiveCoverageEndAt = assertCommercialTimestamp(
+  const effectiveCoverageEndAt = normalizeEntitlementTimestamp(
     coverage.effectiveCoverageEndAt,
     'effectiveCoverageEndAt'
   );
-  const coverageStart = timestampMilliseconds(coverageStartAt);
-  const scheduledEnd = timestampMilliseconds(scheduledCoverageEndAt);
-  const effectiveEnd = timestampMilliseconds(effectiveCoverageEndAt);
+  const coverageStart = timestampMicroseconds(coverageStartAt);
+  const scheduledEnd = timestampMicroseconds(scheduledCoverageEndAt);
+  const effectiveEnd = timestampMicroseconds(effectiveCoverageEndAt);
   if (
     !(coverageStart < scheduledEnd) ||
     effectiveEnd < coverageStart ||
@@ -405,15 +421,15 @@ function normalizeCoverage(
 }
 
 interface PaidInterval {
-  readonly start: number;
-  readonly end: number;
+  readonly start: bigint;
+  readonly end: bigint;
   readonly sourceEntityId: string;
   readonly kind: 'COVERAGE' | 'GRACE';
 }
 
 interface MergedPaidSegment {
-  readonly start: number;
-  readonly end: number;
+  readonly start: bigint;
+  readonly end: bigint;
   readonly intervals: readonly PaidInterval[];
 }
 
@@ -422,23 +438,23 @@ function mergePaidIntervals(
 ): readonly MergedPaidSegment[] {
   const sorted = [...intervals].sort((left, right) => {
     if (left.start !== right.start) {
-      return left.start - right.start;
+      return left.start < right.start ? -1 : 1;
     }
     if (left.end !== right.end) {
-      return left.end - right.end;
+      return left.end < right.end ? -1 : 1;
     }
     return left.sourceEntityId.localeCompare(right.sourceEntityId);
   });
   const merged: Array<{
-    start: number;
-    end: number;
+    start: bigint;
+    end: bigint;
     intervals: PaidInterval[];
   }> = [];
 
   for (const interval of sorted) {
     const current = merged.at(-1);
     if (current !== undefined && interval.start <= current.end) {
-      current.end = Math.max(current.end, interval.end);
+      current.end = current.end > interval.end ? current.end : interval.end;
       current.intervals.push(interval);
       continue;
     }
@@ -474,6 +490,8 @@ function completeDeterminateEvaluation(input: {
   readonly graceUntil: string | null;
   readonly transitionToFreeAt: string | null;
   readonly nextEvaluationAt: string | null;
+  readonly queuedReferralDurationUs?: string | null;
+  readonly currentReferralRewardId?: string | null;
 }): DeterminateEntitlementEvaluation {
   const effectivePro = input.effectivePro;
   const tier: EntitlementTier = effectivePro ? 'PRO' : 'FREE';
@@ -499,8 +517,8 @@ function completeDeterminateEvaluation(input: {
     currentSourceEntityId: input.currentSourceEntityId,
     paidCoverageEndAt: input.paidCoverageEndAt,
     graceUntil: input.graceUntil,
-    queuedReferralDurationUs: null,
-    currentReferralRewardId: null,
+    queuedReferralDurationUs: input.queuedReferralDurationUs ?? null,
+    currentReferralRewardId: input.currentReferralRewardId ?? null,
     transitionToFreeAt: input.transitionToFreeAt,
     nextEvaluationAt: input.nextEvaluationAt
   });
@@ -512,6 +530,24 @@ export interface EffectiveEntitlementEvaluationInput {
   readonly evaluatedAt: CommercialTimestampInput;
   readonly paidBillingRelationships: readonly PaidBillingRelationshipRecord[];
   readonly paidCoverages: readonly PaidCoverageRecord[];
+  readonly referralSource?: ReferralTimeBankSourceSnapshot | null;
+}
+
+function earliestFutureTimestamp(
+  evaluatedAtMicroseconds: bigint,
+  values: readonly (string | null)[]
+): string | null {
+  const future = values
+    .filter((value): value is string => value !== null)
+    .map(timestampMicroseconds)
+    .filter((value) => value > evaluatedAtMicroseconds);
+  if (future.length === 0) {
+    return null;
+  }
+  const earliest = future.reduce((current, value) =>
+    value < current ? value : current
+  );
+  return isoTimestamp(earliest);
 }
 
 /**
@@ -535,11 +571,55 @@ export function evaluateEffectiveEntitlement(
     );
     entitlementRevision = assertCommercialRevision(input.entitlementRevision);
     const authorityRevision = BigInt(entitlementRevision);
-    const evaluatedAt = assertCommercialTimestamp(
+    const evaluatedAt = normalizeEntitlementTimestamp(
       input.evaluatedAt,
       'evaluatedAt'
     );
-    const evaluatedAtMilliseconds = timestampMilliseconds(evaluatedAt);
+    const evaluatedAtMicroseconds = timestampMicroseconds(evaluatedAt);
+    const referralSource = input.referralSource ?? null;
+    if (referralSource !== null) {
+      if (
+        assertCommercialIdentifier(
+          referralSource.commercialAuthorityId,
+          'commercialAuthorityId'
+        ) !== commercialAuthorityId ||
+        assertCommercialRevision(referralSource.sourceRevision) !==
+          entitlementRevision ||
+        timestampMicroseconds(referralSource.evaluatedAt) !==
+          evaluatedAtMicroseconds
+      ) {
+        fail('SOURCE_SCOPE_MISMATCH');
+      }
+      if (
+        BigInt(
+          assertCommercialRevision(referralSource.queuedReferralDurationUs)
+        ) < 0n ||
+        (referralSource.currentReferralRewardId === null) !==
+          (referralSource.currentEffectiveFrom === null) ||
+        (referralSource.currentReferralRewardId === null) !==
+          (referralSource.currentEffectiveUntil === null)
+      ) {
+        fail('INVALID_SOURCE_STATE');
+      }
+      if (referralSource.currentReferralRewardId !== null) {
+        assertCommercialIdentifier(
+          referralSource.currentReferralRewardId,
+          'currentReferralRewardId'
+        );
+        const referralStart = timestampMicroseconds(
+          referralSource.currentEffectiveFrom!
+        );
+        const referralEnd = timestampMicroseconds(
+          referralSource.currentEffectiveUntil!
+        );
+        if (
+          referralStart > evaluatedAtMicroseconds ||
+          referralEnd <= evaluatedAtMicroseconds
+        ) {
+          fail('INVALID_SOURCE_STATE');
+        }
+      }
+    }
 
     if (
       !Array.isArray(input.paidBillingRelationships) ||
@@ -611,8 +691,8 @@ export function evaluateEffectiveEntitlement(
         // interval remains eligible until effectiveCoverageEndAt, while an
         // already expired row naturally contributes nothing.
         paidIntervals.push({
-          start: timestampMilliseconds(coverage.coverageStartAt),
-          end: timestampMilliseconds(coverage.effectiveCoverageEndAt),
+          start: timestampMicroseconds(coverage.coverageStartAt),
+          end: timestampMicroseconds(coverage.effectiveCoverageEndAt),
           sourceEntityId: coverage.paidCoverageId,
           kind: 'COVERAGE'
         });
@@ -626,8 +706,8 @@ export function evaluateEffectiveEntitlement(
           fail('INVALID_SOURCE_STATE');
         }
         const graceInterval: PaidInterval = {
-          start: timestampMilliseconds(relationship.graceStartedAt),
-          end: timestampMilliseconds(relationship.graceUntil),
+          start: timestampMicroseconds(relationship.graceStartedAt),
+          end: timestampMicroseconds(relationship.graceUntil),
           sourceEntityId: relationship.paidRelationshipId,
           kind: 'GRACE'
         };
@@ -639,14 +719,42 @@ export function evaluateEffectiveEntitlement(
     const mergedSegments = mergePaidIntervals(paidIntervals);
     const currentSegment = mergedSegments.find(
       (segment) =>
-        segment.start <= evaluatedAtMilliseconds &&
-        evaluatedAtMilliseconds < segment.end
+        segment.start <= evaluatedAtMicroseconds &&
+        evaluatedAtMicroseconds < segment.end
     );
 
     if (currentSegment === undefined) {
       const nextSegment = mergedSegments.find(
-        (segment) => segment.start > evaluatedAtMilliseconds
+        (segment) => segment.start > evaluatedAtMicroseconds
       );
+      if (referralSource?.paidActive === true) {
+        fail('INVALID_SOURCE_STATE');
+      }
+      if (referralSource !== null && referralSource.currentReferralRewardId !== null) {
+        return completeDeterminateEvaluation({
+          commercialAuthorityId,
+          entitlementRevision,
+          evaluatedAt,
+          effectivePro: true,
+          effectiveFrom: referralSource.currentEffectiveFrom,
+          effectiveUntil: referralSource.currentEffectiveUntil,
+          currentSourceClass: 'REFERRAL',
+          currentSourceClasses: ['REFERRAL'],
+          currentSourceEntityId: referralSource.currentReferralRewardId,
+          paidCoverageEndAt: null,
+          graceUntil: null,
+          queuedReferralDurationUs: referralSource.queuedReferralDurationUs,
+          currentReferralRewardId: referralSource.currentReferralRewardId,
+          transitionToFreeAt: referralSource.currentEffectiveUntil,
+          nextEvaluationAt: earliestFutureTimestamp(
+            evaluatedAtMicroseconds,
+            [
+              nextSegment === undefined ? null : isoTimestamp(nextSegment.start),
+              referralSource.nextEvaluationAt
+            ]
+          )
+        });
+      }
       return completeDeterminateEvaluation({
         commercialAuthorityId,
         entitlementRevision,
@@ -660,15 +768,30 @@ export function evaluateEffectiveEntitlement(
         paidCoverageEndAt: null,
         graceUntil: null,
         transitionToFreeAt: null,
-        nextEvaluationAt:
-          nextSegment === undefined ? null : isoTimestamp(nextSegment.start)
+        queuedReferralDurationUs:
+          referralSource?.queuedReferralDurationUs ?? null,
+        currentReferralRewardId: null,
+        nextEvaluationAt: earliestFutureTimestamp(
+          evaluatedAtMicroseconds,
+          [
+            nextSegment === undefined ? null : isoTimestamp(nextSegment.start),
+            referralSource?.nextEvaluationAt ?? null
+          ]
+        )
       });
+    }
+
+    if (
+      referralSource !== null &&
+      (!referralSource.paidActive || referralSource.currentReferralRewardId !== null)
+    ) {
+      fail('INVALID_SOURCE_STATE');
     }
 
     const currentIntervals = currentSegment.intervals.filter(
       (interval) =>
-        interval.start <= evaluatedAtMilliseconds &&
-        evaluatedAtMilliseconds < interval.end
+        interval.start <= evaluatedAtMicroseconds &&
+        evaluatedAtMicroseconds < interval.end
     );
     const currentSourceEntityIds = uniqueSorted(
       currentIntervals.map((interval) => interval.sourceEntityId)
@@ -679,8 +802,8 @@ export function evaluateEffectiveEntitlement(
     const graceEnds = currentGraceIntervals
       .filter(
         (interval) =>
-          interval.start <= evaluatedAtMilliseconds &&
-          evaluatedAtMilliseconds < interval.end
+          interval.start <= evaluatedAtMicroseconds &&
+          evaluatedAtMicroseconds < interval.end
       )
       .map((interval) => interval.end);
 
@@ -700,11 +823,26 @@ export function evaluateEffectiveEntitlement(
       paidCoverageEndAt:
         coverageEnds.length === 0
           ? null
-          : isoTimestamp(Math.max(...coverageEnds)),
+          : isoTimestamp(
+              coverageEnds.reduce((current, value) =>
+                value > current ? value : current
+              )
+            ),
       graceUntil:
-        graceEnds.length === 0 ? null : isoTimestamp(Math.min(...graceEnds)),
+        graceEnds.length === 0
+          ? null
+          : isoTimestamp(
+              graceEnds.reduce((current, value) =>
+                value < current ? value : current
+              )
+            ),
       transitionToFreeAt: isoTimestamp(currentSegment.end),
-      nextEvaluationAt: isoTimestamp(currentSegment.end)
+      queuedReferralDurationUs: referralSource?.queuedReferralDurationUs ?? null,
+      currentReferralRewardId: null,
+      nextEvaluationAt: earliestFutureTimestamp(evaluatedAtMicroseconds, [
+        isoTimestamp(currentSegment.end),
+        referralSource?.nextEvaluationAt ?? null
+      ])
     });
   } catch (error) {
     if (error instanceof EvaluationFailure) {
@@ -818,7 +956,7 @@ export function evaluateEntitlementCapability(
     return 'INDETERMINATE';
   }
 
-  // Every bounded D3 capability is a current-Pro capability. The switch is
+  // Every bounded capability is a current-Pro capability. The switch is
   // intentionally explicit so a future capability cannot become allowed by
   // accident when this contract grows.
   switch (capability) {
@@ -863,12 +1001,12 @@ export function assessEntitlementProjectionFreshness(
     return 'STALE';
   }
 
-  const authoritativeNow = timestampMilliseconds(
-    assertCommercialTimestamp(authoritativeNowInput, 'authoritativeNow')
+  const authoritativeNow = timestampMicroseconds(
+    normalizeEntitlementTimestamp(authoritativeNowInput, 'authoritativeNow')
   );
   if (
     projection.nextEvaluationAt !== null &&
-    authoritativeNow >= timestampMilliseconds(projection.nextEvaluationAt)
+    authoritativeNow >= timestampMicroseconds(projection.nextEvaluationAt)
   ) {
     return 'STALE';
   }

@@ -34,6 +34,7 @@ import type {
   ReferralAttributionRepository,
   ReferralPublicIdentityRepository,
   ReferralReconciliationService,
+  ReferralTimeBankReconciliationService,
   ReferralRewardRecord,
   ReferralRewardRepository,
   RevokeReferralRewardForPaidReversalInput,
@@ -140,7 +141,8 @@ export class PostgresReferralReconciliationPrimitives
     private readonly attributions: PostgresReferralAttributionRepository =
       new PostgresReferralAttributionRepository(executor),
     private readonly rewards: PostgresReferralRewardRepository =
-      new PostgresReferralRewardRepository(executor)
+      new PostgresReferralRewardRepository(executor),
+    private readonly timeBank: ReferralTimeBankReconciliationService | null = null
   ) {}
 
   public async establishAttribution(input: {
@@ -818,18 +820,17 @@ export class PostgresReferralReconciliationPrimitives
       });
     }
     if (
-      reward.state === 'APPLIED' ||
-      reward.appliedDurationUs !== '0' ||
-      reward.consumedDurationUs !== '0'
+      reward.state !== 'PENDING' &&
+      reward.state !== 'EARNED' &&
+      reward.state !== 'APPLIED'
     ) {
       throw new ReferralRewardNotRevocableError();
     }
-    if (reward.state !== 'PENDING' && reward.state !== 'EARNED') {
-      throw new ReferralRewardNotRevocableError();
-    }
 
-    const now = await databaseNow(this.executor);
-    const nextRevision = incrementRevision(referrerAuthority.entitlementRevision);
+    const now =
+      reward.state === 'APPLIED'
+        ? await referralAdmissionNow(this.executor)
+        : await databaseNow(this.executor);
     await this.appendReferralEvent({
       ownerId: referrerOwnerId,
       commercialAuthorityId: referrerAuthority.commercialAuthorityId,
@@ -847,6 +848,35 @@ export class PostgresReferralReconciliationPrimitives
         reason: 'QUALIFYING_PURCHASE_REVERSED'
       }
     });
+    if (reward.state === 'APPLIED') {
+      if (this.timeBank === null) {
+        throw new ReferralRewardNotRevocableError();
+      }
+      const reconciled = await this.timeBank.reconcileAfterAuthorityLock({
+        ownerId: referrerOwnerId,
+        authority: referrerAuthority,
+        asOf: now,
+        revocation: {
+          referralRewardId: reward.referralRewardId,
+          revokedAt: now,
+          revocationReason: 'QUALIFYING_PURCHASE_REVERSED',
+          reversalEventId: coverage.reversalEventId
+        }
+      });
+      const revoked = reconciled.rewards.find(
+        (candidate) => candidate.referralRewardId === reward.referralRewardId
+      );
+      if (revoked === undefined || revoked.state !== 'REVOKED') {
+        throw new CommercialPersistenceIntegrityError();
+      }
+      return Object.freeze({
+        outcome: 'APPLIED',
+        authority: reconciled.authority,
+        reward: revoked
+      });
+    }
+
+    const nextRevision = incrementRevision(referrerAuthority.entitlementRevision);
     const revoked = await this.rewards.revoke({
       referrerOwnerId,
       referrerAuthorityId: referrerAuthority.commercialAuthorityId,

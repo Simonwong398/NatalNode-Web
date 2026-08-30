@@ -16,6 +16,7 @@ import {
   assertReferralReason,
   assertReferralTimestamp
 } from '../referral-domain.js';
+import { MAX_REFERRAL_TIME_BANK_REWARDS } from '../referral-time-bank-domain.js';
 import type {
   CreatePendingReferralRewardInput,
   MatureReferralRewardInput,
@@ -289,7 +290,11 @@ export class PostgresReferralRewardRepository
     limitInput: number
   ): Promise<readonly ReferralRewardMaturationCandidate[]> {
     const ownerId = assertCommercialIdentifier(ownerIdInput, 'ownerId');
-    if (!Number.isSafeInteger(limitInput) || limitInput < 1 || limitInput > 100) {
+    if (
+      !Number.isSafeInteger(limitInput) ||
+      limitInput < 1 ||
+      limitInput > MAX_REFERRAL_TIME_BANK_REWARDS
+    ) {
       throw new CommercialPersistenceIntegrityError();
     }
     try {
