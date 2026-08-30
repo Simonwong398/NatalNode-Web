@@ -17,6 +17,10 @@ interface UserRow {
   user_id: string;
 }
 
+interface CommercialAuthorityRow {
+  commercial_authority_id: string;
+}
+
 const IDENTITY_SET_RETRY_LIMIT = 3;
 
 const FIND_EMAIL_IDENTITIES_SQL = `
@@ -34,9 +38,23 @@ const LOCK_USER_ROOT_SQL = `
   FOR UPDATE
 `;
 
+const LOCK_COMMERCIAL_AUTHORITY_SQL = `
+  SELECT commercial_authority_id
+  FROM commercial_authorities
+  WHERE owner_id = $1
+  FOR UPDATE
+`;
+
 const DELETE_ACCOUNT_EMAIL_CHALLENGES_SQL = `
   DELETE FROM email_magic_link_challenges
   WHERE email_normalized = ANY($1::text[])
+`;
+
+const DELETE_COMMERCIAL_AUTHORITY_SQL = `
+  DELETE FROM commercial_authorities
+  WHERE commercial_authority_id = $1
+    AND owner_id = $2
+  RETURNING commercial_authority_id
 `;
 
 const DELETE_USER_ROOT_SQL = `
@@ -132,6 +150,12 @@ export class PostgresAccountErasureRepository
         return { outcome: 'account-not-found' };
       }
 
+      const lockedCommercialAuthority =
+        await executor.query<CommercialAuthorityRow>(
+          LOCK_COMMERCIAL_AUTHORITY_SQL,
+          [userId]
+        );
+
       const authoritativeIdentities = await executor.query<EmailIdentityRow>(
         FIND_EMAIL_IDENTITIES_SQL,
         [userId]
@@ -148,6 +172,19 @@ export class PostgresAccountErasureRepository
         await executor.query<never>(DELETE_ACCOUNT_EMAIL_CHALLENGES_SQL, [
           authoritativeSubjects
         ]);
+      }
+
+      const commercialAuthority = lockedCommercialAuthority.rows[0];
+      if (commercialAuthority !== undefined) {
+        const deletedAuthority = await executor.query<CommercialAuthorityRow>(
+          DELETE_COMMERCIAL_AUTHORITY_SQL,
+          [commercialAuthority.commercial_authority_id, userId]
+        );
+        if (deletedAuthority.rows.length !== 1) {
+          throw new Error(
+            'Account erasure did not delete exactly one commercial authority.'
+          );
+        }
       }
 
       const deletedUser = await executor.query<UserRow>(DELETE_USER_ROOT_SQL, [userId]);

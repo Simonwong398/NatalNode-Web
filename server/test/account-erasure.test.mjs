@@ -160,6 +160,26 @@ function createGraphState() {
     feedback: [
       { userId: 'user-a', feedbackId: 'feedback-a' },
       { userId: 'user-b', feedbackId: 'feedback-b' }
+    ],
+    commercialAuthorities: [
+      { ownerId: 'user-a', commercialAuthorityId: 'authority-a' },
+      { ownerId: 'user-b', commercialAuthorityId: 'authority-b' }
+    ],
+    commercialEvents: [
+      {
+        commercialAuthorityId: 'authority-a',
+        eventId: 'commercial-event-a',
+        providerReceiptId: 'provider-receipt-a'
+      },
+      {
+        commercialAuthorityId: 'authority-b',
+        eventId: 'commercial-event-b',
+        providerReceiptId: 'provider-receipt-b'
+      }
+    ],
+    providerReceipts: [
+      { providerReceiptId: 'provider-receipt-a' },
+      { providerReceiptId: 'provider-receipt-b' }
     ]
   };
 }
@@ -261,12 +281,49 @@ class InMemoryAccountErasureClient {
       };
     }
 
+    if (
+      normalized.startsWith('SELECT commercial_authority_id') &&
+      normalized.includes('FROM commercial_authorities') &&
+      normalized.endsWith('FOR UPDATE')
+    ) {
+      const ownerId = params[0];
+      return {
+        rows: this.pool.state.commercialAuthorities
+          .filter((authority) => authority.ownerId === ownerId)
+          .map((authority) => ({
+            commercial_authority_id: authority.commercialAuthorityId
+          }))
+      };
+    }
+
     if (normalized.startsWith('DELETE FROM email_magic_link_challenges')) {
       const emails = new Set(params[0]);
       this.pool.state.challenges = this.pool.state.challenges.filter(
         (challenge) => !emails.has(challenge.email)
       );
       return { rows: [] };
+    }
+
+    if (normalized.startsWith('DELETE FROM commercial_authorities')) {
+      const [commercialAuthorityId, ownerId] = params;
+      const authority = this.pool.state.commercialAuthorities.find(
+        (candidate) =>
+          candidate.commercialAuthorityId === commercialAuthorityId &&
+          candidate.ownerId === ownerId
+      );
+      if (authority === undefined) {
+        return { rows: [] };
+      }
+
+      this.pool.state.commercialAuthorities =
+        this.pool.state.commercialAuthorities.filter(
+          (candidate) =>
+            candidate.commercialAuthorityId !== commercialAuthorityId
+        );
+      this.pool.state.commercialEvents = this.pool.state.commercialEvents.filter(
+        (event) => event.commercialAuthorityId !== commercialAuthorityId
+      );
+      return { rows: [{ commercial_authority_id: commercialAuthorityId }] };
     }
 
     if (normalized.startsWith('DELETE FROM users')) {
@@ -281,6 +338,14 @@ class InMemoryAccountErasureClient {
 
       if (!userExists) {
         return { rows: [] };
+      }
+
+      if (
+        this.pool.state.commercialAuthorities.some(
+          (authority) => authority.ownerId === userId
+        )
+      ) {
+        throw new Error('commercial authority owner FK restrict violation');
       }
 
       const deletedChartIds = new Set(
@@ -609,6 +674,20 @@ test('account-erasure repository atomically removes User A graph and preserves U
   assert.deepEqual(pool.state.feedback, [
     { userId: 'user-b', feedbackId: 'feedback-b' }
   ]);
+  assert.deepEqual(pool.state.commercialAuthorities, [
+    { ownerId: 'user-b', commercialAuthorityId: 'authority-b' }
+  ]);
+  assert.deepEqual(pool.state.commercialEvents, [
+    {
+      commercialAuthorityId: 'authority-b',
+      eventId: 'commercial-event-b',
+      providerReceiptId: 'provider-receipt-b'
+    }
+  ]);
+  assert.deepEqual(pool.state.providerReceipts, [
+    { providerReceiptId: 'provider-receipt-a' },
+    { providerReceiptId: 'provider-receipt-b' }
+  ]);
 
   const calls = pool.clients[0].calls;
   const lockCalls = calls.filter((call) =>
@@ -794,6 +873,13 @@ test('migrations freeze all required account-root cascade relationships', async 
     new URL('server/db/migrations/0004_private_feedback.sql', REPOSITORY_ROOT),
     'utf8'
   );
+  const commercialMigration = await readFile(
+    new URL(
+      'server/db/migrations/0011_commercial_persistence_foundation.sql',
+      REPOSITORY_ROOT
+    ),
+    'utf8'
+  );
 
   assert.match(
     authVaultMigration,
@@ -822,6 +908,14 @@ test('migrations freeze all required account-root cascade relationships', async 
   assert.match(
     feedbackMigration,
     /feedback_submissions_user_fk[\s\S]*REFERENCES users \(user_id\)[\s\S]*ON DELETE CASCADE/u
+  );
+  assert.match(
+    commercialMigration,
+    /commercial_authorities_owner_fk[\s\S]*REFERENCES users \(user_id\)[\s\S]*ON DELETE RESTRICT/u
+  );
+  assert.match(
+    commercialMigration,
+    /commercial_events_authority_fk[\s\S]*REFERENCES commercial_authorities \(commercial_authority_id\)[\s\S]*ON DELETE CASCADE/u
   );
   assert.doesNotMatch(
     authRuntimeMigration,

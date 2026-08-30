@@ -213,6 +213,9 @@ export type {
 } from './persistence/index.js';
 
 export type { SqlExecutor, SqlQueryResult } from './db/index.js';
+
+export * from './commercial-persistence/index.js';
+
 export {
   createPostgresPersistence,
   PostgresAccountDataExportRepository,
