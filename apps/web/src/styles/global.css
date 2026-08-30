@@ -525,7 +525,7 @@
       position: relative;
       inset: auto;
       width: 100%;
-      height: clamp(220px, 58vw, 300px);
+      height: clamp(246px, calc(85vw - 26px), 294px);
       margin-top: clamp(16px, 5vw, 24px);
       align-items: flex-end;
       justify-content: center;
