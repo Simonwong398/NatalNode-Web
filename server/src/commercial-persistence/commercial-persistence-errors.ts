@@ -103,6 +103,62 @@ export class PaidCoverageReversalConflictError extends Error {
   }
 }
 
+export class ReferralPublicIdentityConflictError extends Error {
+  public constructor() {
+    super('Referral public identity conflicts with existing source state.');
+    this.name = 'ReferralPublicIdentityConflictError';
+  }
+}
+
+export class ReferralAttributionNotFoundError extends Error {
+  public constructor() {
+    super('Referral attribution is unavailable.');
+    this.name = 'ReferralAttributionNotFoundError';
+  }
+}
+
+export class ReferralAttributionConflictError extends Error {
+  public constructor() {
+    super('Referral attribution conflicts with existing source state.');
+    this.name = 'ReferralAttributionConflictError';
+  }
+}
+
+export class ReferralSelfReferralError extends Error {
+  public constructor() {
+    super('Referral self-attribution is not eligible.');
+    this.name = 'ReferralSelfReferralError';
+  }
+}
+
+export class ReferralNotEligibleError extends Error {
+  public constructor() {
+    super('Referral operation is not eligible.');
+    this.name = 'ReferralNotEligibleError';
+  }
+}
+
+export class ReferralRewardNotFoundError extends Error {
+  public constructor() {
+    super('Referral reward is unavailable.');
+    this.name = 'ReferralRewardNotFoundError';
+  }
+}
+
+export class ReferralRewardConflictError extends Error {
+  public constructor() {
+    super('Referral reward conflicts with existing source state.');
+    this.name = 'ReferralRewardConflictError';
+  }
+}
+
+export class ReferralRewardNotRevocableError extends Error {
+  public constructor() {
+    super('Referral reward is not revocable in the current D4A state.');
+    this.name = 'ReferralRewardNotRevocableError';
+  }
+}
+
 export class CommercialPersistenceUnavailableError extends Error {
   public constructor() {
     super('Commercial persistence is unavailable.');
@@ -161,6 +217,14 @@ export function mapCommercialPersistenceFailure(error: unknown): Error {
     error instanceof PaidCoverageNotFoundError ||
     error instanceof PaidCoverageConflictError ||
     error instanceof PaidCoverageReversalConflictError ||
+    error instanceof ReferralPublicIdentityConflictError ||
+    error instanceof ReferralAttributionNotFoundError ||
+    error instanceof ReferralAttributionConflictError ||
+    error instanceof ReferralSelfReferralError ||
+    error instanceof ReferralNotEligibleError ||
+    error instanceof ReferralRewardNotFoundError ||
+    error instanceof ReferralRewardConflictError ||
+    error instanceof ReferralRewardNotRevocableError ||
     error instanceof EntitlementProjectionConflictError ||
     error instanceof EntitlementRevisionConflictError ||
     error instanceof EntitlementIntegrityError ||

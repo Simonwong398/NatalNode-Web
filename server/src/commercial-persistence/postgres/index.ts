@@ -6,3 +6,7 @@ export { PostgresPaidCoverageRepository } from './postgres-paid-coverage-reposit
 export { PostgresPaidReconciliationPrimitives } from './postgres-paid-reconciliation-primitives.js';
 export { PostgresProviderIngestionReceiptRepository } from './postgres-provider-ingestion-receipt-repository.js';
 export { PostgresEntitlementProjectionRepository } from './postgres-entitlement-projection-repository.js';
+export { PostgresReferralAttributionRepository } from './postgres-referral-attribution-repository.js';
+export { PostgresReferralPublicIdentityRepository } from './postgres-referral-public-identity-repository.js';
+export { PostgresReferralReconciliationPrimitives } from './postgres-referral-reconciliation-primitives.js';
+export { PostgresReferralRewardRepository } from './postgres-referral-reward-repository.js';

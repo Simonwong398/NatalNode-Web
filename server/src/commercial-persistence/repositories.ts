@@ -14,6 +14,12 @@ import type {
   PaidRenewalIntent
 } from './commercial-domain.js';
 import type { EntitlementProjectionRecord } from './entitlement-types.js';
+import type {
+  ReferralAttributionState,
+  ReferralGiveOfferEligibility,
+  ReferralPublicIdentityStatus,
+  ReferralRewardState
+} from './referral-domain.js';
 
 export type CommercialTimestampInput = string | Date;
 
@@ -398,6 +404,285 @@ export interface PaidCoverageRepository {
   end(input: EndPaidCoverageInput): Promise<PaidCoverageRecord>;
 }
 
+export interface ReferralPublicIdentityRecord {
+  readonly referralPublicIdentityId: string;
+  readonly commercialAuthorityId: string;
+  readonly publicValue: string;
+  readonly status: ReferralPublicIdentityStatus;
+  readonly createdAt: string;
+  readonly revokedAt: string | null;
+  readonly supersedesIdentityId: string | null;
+}
+
+export interface EnsureReferralPublicIdentityInput {
+  readonly ownerId: string;
+  readonly commercialAuthorityId: string;
+}
+
+export type EnsureReferralPublicIdentityResult =
+  | {
+      readonly outcome: 'CREATED';
+      readonly identity: ReferralPublicIdentityRecord;
+    }
+  | {
+      readonly outcome: 'EXISTING';
+      readonly identity: ReferralPublicIdentityRecord;
+    };
+
+/** Transaction-scoped, non-public referral identity persistence. */
+export interface ReferralPublicIdentityRepository {
+  getById(
+    referralPublicIdentityId: string
+  ): Promise<ReferralPublicIdentityRecord | null>;
+  getByAuthority(
+    commercialAuthorityId: string
+  ): Promise<ReferralPublicIdentityRecord | null>;
+  getByPublicValue(
+    publicValue: string
+  ): Promise<ReferralPublicIdentityRecord | null>;
+  ensure(
+    input: EnsureReferralPublicIdentityInput
+  ): Promise<EnsureReferralPublicIdentityResult>;
+}
+
+export interface ReferralAttributionRecord {
+  readonly referralAttributionId: string;
+  readonly referralPublicIdentityId: string;
+  readonly referrerAuthorityId: string;
+  readonly referredAuthorityId: string;
+  readonly state: ReferralAttributionState;
+  readonly attributedAt: string;
+  readonly lockedAt: string | null;
+  readonly qualifyingPaidCoverageId: string | null;
+  readonly invalidationReason: string | null;
+  readonly invalidatedAt: string | null;
+  readonly campaignReference: string | null;
+  readonly lastEventId: string;
+  readonly sourceRevision: string;
+  readonly createdAt: string;
+  readonly updatedAt: string;
+}
+
+export interface EstablishReferralAttributionInput {
+  readonly referrerOwnerId: string;
+  readonly referredOwnerId: string;
+  readonly referralAttributionId: string;
+  readonly referralPublicIdentityId: string;
+  readonly referrerAuthorityId: string;
+  readonly referredAuthorityId: string;
+  readonly attributedAt: CommercialTimestampInput;
+  readonly campaignReference: string | null;
+  readonly lastEventId: string;
+  readonly sourceRevision: string;
+}
+
+export interface AttachReferralQualifyingPurchaseInput {
+  readonly referredOwnerId: string;
+  readonly referredAuthorityId: string;
+  readonly referralAttributionId: string;
+  readonly qualifyingPaidCoverageId: string;
+  readonly lockedAt: CommercialTimestampInput;
+  readonly lastEventId: string;
+  readonly sourceRevision: string;
+}
+
+/** Account-level first-valid-attribution persistence surface. */
+export interface ReferralAttributionRepository {
+  getById(referralAttributionId: string): Promise<ReferralAttributionRecord | null>;
+  getByReferredAuthority(
+    referredAuthorityId: string
+  ): Promise<ReferralAttributionRecord | null>;
+  getByQualifyingPaidCoverage(
+    qualifyingPaidCoverageId: string
+  ): Promise<ReferralAttributionRecord | null>;
+  lockForUpdate(
+    referralAttributionId: string
+  ): Promise<ReferralAttributionRecord | null>;
+  lockByReferredAuthority(
+    referredAuthorityId: string
+  ): Promise<ReferralAttributionRecord | null>;
+  establish(
+    input: EstablishReferralAttributionInput
+  ): Promise<ReferralAttributionRecord>;
+  attachQualifyingPurchase(
+    input: AttachReferralQualifyingPurchaseInput
+  ): Promise<ReferralAttributionRecord>;
+}
+
+export interface ReferralRewardRecord {
+  readonly referralRewardId: string;
+  readonly referrerAuthorityId: string;
+  readonly referralAttributionId: string;
+  readonly qualifyingPaidCoverageId: string;
+  readonly state: ReferralRewardState;
+  readonly qualifyingPaymentAt: string;
+  readonly maturesAt: string;
+  readonly earnedAt: string | null;
+  readonly appliedAt: string | null;
+  readonly revokedAt: string | null;
+  readonly grantedDurationUs: string;
+  readonly earnedDurationUs: string;
+  readonly appliedDurationUs: string;
+  readonly consumedDurationUs: string;
+  readonly revokedDurationUs: string;
+  readonly activeConsumptionStartedAt: string | null;
+  readonly remainingUnconsumedDurationUs: string;
+  readonly availableDurationUs: string;
+  readonly revocationReason: string | null;
+  readonly reversalEventId: string | null;
+  readonly pendingEventId: string;
+  readonly maturationEventId: string | null;
+  readonly applicationEventId: string | null;
+  readonly sourceRevision: string;
+  readonly createdAt: string;
+  readonly updatedAt: string;
+}
+
+export interface ReferralRewardMaturationCandidate
+  extends ReferralRewardRecord {
+  readonly referredOwnerId: string;
+  readonly referredAuthorityId: string;
+}
+
+export interface CreatePendingReferralRewardInput {
+  readonly referrerOwnerId: string;
+  readonly referrerAuthorityId: string;
+  readonly referralRewardId: string;
+  readonly referralAttributionId: string;
+  readonly qualifyingPaidCoverageId: string;
+  readonly qualifyingPaymentAt: CommercialTimestampInput;
+  readonly pendingEventId: string;
+  readonly sourceRevision: string;
+}
+
+export interface MatureReferralRewardInput {
+  readonly referrerOwnerId: string;
+  readonly referrerAuthorityId: string;
+  readonly referralRewardId: string;
+  readonly maturationEventId: string;
+  readonly earnedAt: CommercialTimestampInput;
+  readonly sourceRevision: string;
+}
+
+export interface RevokeReferralRewardInput {
+  readonly referrerOwnerId: string;
+  readonly referrerAuthorityId: string;
+  readonly referralRewardId: string;
+  readonly revokedAt: CommercialTimestampInput;
+  readonly revocationReason: string;
+  readonly reversalEventId: string | null;
+  readonly sourceRevision: string;
+}
+
+/** Transaction-scoped Referral reward source persistence. */
+export interface ReferralRewardRepository {
+  getById(referralRewardId: string): Promise<ReferralRewardRecord | null>;
+  getByAttribution(
+    referralAttributionId: string
+  ): Promise<ReferralRewardRecord | null>;
+  getByQualifyingPaidCoverage(
+    qualifyingPaidCoverageId: string
+  ): Promise<ReferralRewardRecord | null>;
+  listByOwner(
+    ownerId: string,
+    referrerAuthorityId: string
+  ): Promise<readonly ReferralRewardRecord[]>;
+  listMaturationCandidates(
+    ownerId: string,
+    limit: number
+  ): Promise<readonly ReferralRewardMaturationCandidate[]>;
+  lockForUpdate(
+    referralRewardId: string,
+    referrerAuthorityId: string
+  ): Promise<ReferralRewardRecord | null>;
+  lockByIds(
+    referralRewardIds: readonly string[],
+    referrerAuthorityId: string
+  ): Promise<readonly ReferralRewardRecord[]>;
+  lockCapWindow(
+    referrerAuthorityId: string,
+    qualifyingPaymentAt: CommercialTimestampInput
+  ): Promise<readonly ReferralRewardRecord[]>;
+  createPending(
+    input: CreatePendingReferralRewardInput
+  ): Promise<ReferralRewardRecord>;
+  mature(input: MatureReferralRewardInput): Promise<ReferralRewardRecord>;
+  revoke(input: RevokeReferralRewardInput): Promise<ReferralRewardRecord>;
+}
+
+export interface EstablishReferralAttributionResult {
+  readonly outcome: 'APPLIED' | 'DUPLICATE';
+  readonly referrerAuthority: CommercialAuthorityRecord;
+  readonly referredAuthority: CommercialAuthorityRecord;
+  readonly attribution: ReferralAttributionRecord;
+}
+
+export interface GetReferralGiveOfferEligibilityInput {
+  readonly referredOwnerId: string;
+  readonly billingInterval: PaidBillingInterval;
+}
+
+export interface QualifyReferralFirstPurchaseInput {
+  readonly referrerOwnerId: string;
+  readonly referredOwnerId: string;
+  readonly referralAttributionId: string;
+  readonly qualifyingPaidCoverageId: string;
+}
+
+export type QualifyReferralFirstPurchaseOutcome =
+  | 'APPLIED'
+  | 'DUPLICATE'
+  | 'CAP_REJECTED';
+
+export interface QualifyReferralFirstPurchaseResult {
+  readonly outcome: QualifyReferralFirstPurchaseOutcome;
+  readonly referrerAuthority: CommercialAuthorityRecord;
+  readonly referredAuthority: CommercialAuthorityRecord;
+  readonly attribution: ReferralAttributionRecord;
+  readonly reward: ReferralRewardRecord | null;
+}
+
+export interface MatureEligibleReferralRewardsInput {
+  readonly ownerId: string;
+  readonly limit?: number;
+}
+
+export interface MatureEligibleReferralRewardsResult {
+  readonly outcome: 'APPLIED' | 'NO_OP';
+  readonly authority: CommercialAuthorityRecord;
+  readonly rewards: readonly ReferralRewardRecord[];
+}
+
+export interface RevokeReferralRewardForPaidReversalInput {
+  readonly referrerOwnerId: string;
+  readonly referralRewardId: string;
+}
+
+export interface RevokeReferralRewardResult {
+  readonly outcome: 'APPLIED' | 'DUPLICATE';
+  readonly authority: CommercialAuthorityRecord;
+  readonly reward: ReferralRewardRecord;
+}
+
+/** Bounded D4A orchestration; it does not apply Referral time-bank access. */
+export interface ReferralReconciliationService {
+  establishAttribution(
+    input: Omit<EstablishReferralAttributionInput, 'referrerAuthorityId' | 'referredAuthorityId' | 'attributedAt' | 'lastEventId' | 'sourceRevision'>
+  ): Promise<EstablishReferralAttributionResult>;
+  getGiveOfferEligibility(
+    input: GetReferralGiveOfferEligibilityInput
+  ): Promise<ReferralGiveOfferEligibility>;
+  qualifyFirstPurchase(
+    input: QualifyReferralFirstPurchaseInput
+  ): Promise<QualifyReferralFirstPurchaseResult>;
+  matureEligibleRewards(
+    input: MatureEligibleReferralRewardsInput
+  ): Promise<MatureEligibleReferralRewardsResult>;
+  revokeForPaidReversal(
+    input: RevokeReferralRewardForPaidReversalInput
+  ): Promise<RevokeReferralRewardResult>;
+}
+
 export interface PaidReconciliationContext {
   readonly ownerId: string;
   readonly commercialAuthorityId: string;
@@ -532,4 +817,8 @@ export interface CommercialPersistenceRepositories {
   readonly paidCoverages: PaidCoverageRepository;
   readonly paidReconciliation: PaidReconciliationPrimitives;
   readonly entitlementProjections: EntitlementProjectionRepository;
+  readonly referralPublicIdentities: ReferralPublicIdentityRepository;
+  readonly referralAttributions: ReferralAttributionRepository;
+  readonly referralRewards: ReferralRewardRepository;
+  readonly referralReconciliation: ReferralReconciliationService;
 }

@@ -35,6 +35,37 @@ export {
   assertProviderVerificationStatus,
   digestCanonicalCommercialOperation
 } from './commercial-domain.js';
+
+export {
+  REFERRAL_ATTRIBUTION_STATES,
+  REFERRAL_GIVE_OFFER_CLASSES,
+  REFERRAL_GIVE_OFFER_OUTCOMES,
+  REFERRAL_PUBLIC_IDENTITY_STATUSES,
+  REFERRAL_REWARD_CAP,
+  REFERRAL_REWARD_DURATION_DAYS,
+  REFERRAL_REWARD_DURATION_US,
+  REFERRAL_REWARD_MATURATION_DAYS,
+  REFERRAL_REWARD_MATURATION_DURATION_US,
+  REFERRAL_REWARD_STATES,
+  REFERRAL_REWARD_WINDOW_MONTHS,
+  assertReferralAttributionState,
+  assertReferralDurationMicroseconds,
+  assertReferralGiveOfferClass,
+  assertReferralPublicIdentityStatus,
+  assertReferralReason,
+  assertReferralRewardState,
+  assertReferralStandardRewardDuration,
+  exactReferralMaturesAt,
+  getReferralGiveOfferEligibility
+} from './referral-domain.js';
+export type {
+  ReferralAttributionState,
+  ReferralGiveOfferClass,
+  ReferralGiveOfferEligibility,
+  ReferralGiveOfferOutcome,
+  ReferralPublicIdentityStatus,
+  ReferralRewardState
+} from './referral-domain.js';
 export type {
   CanonicalCommercialAttributes,
   CommercialActorClass,
@@ -71,6 +102,14 @@ export {
   PaidRelationshipConflictError,
   PaidRelationshipNotFoundError,
   PaidRelationshipTransitionConflictError,
+  ReferralAttributionConflictError,
+  ReferralAttributionNotFoundError,
+  ReferralNotEligibleError,
+  ReferralPublicIdentityConflictError,
+  ReferralRewardConflictError,
+  ReferralRewardNotFoundError,
+  ReferralRewardNotRevocableError,
+  ReferralSelfReferralError,
   ProviderReceiptConflictError,
   ProviderReceiptNotFoundError
 } from './commercial-persistence-errors.js';
@@ -115,7 +154,31 @@ export type {
   PaidRelationshipOperationInput,
   PaidRelationshipOwnerScope,
   ReversePaidCoverageInput,
-  TransitionPaidBillingRelationshipInput
+  TransitionPaidBillingRelationshipInput,
+  AttachReferralQualifyingPurchaseInput,
+  CreatePendingReferralRewardInput,
+  EnsureReferralPublicIdentityInput,
+  EnsureReferralPublicIdentityResult,
+  EstablishReferralAttributionInput,
+  EstablishReferralAttributionResult,
+  GetReferralGiveOfferEligibilityInput,
+  MatureEligibleReferralRewardsInput,
+  MatureEligibleReferralRewardsResult,
+  MatureReferralRewardInput,
+  QualifyReferralFirstPurchaseInput,
+  QualifyReferralFirstPurchaseOutcome,
+  QualifyReferralFirstPurchaseResult,
+  ReferralAttributionRecord,
+  ReferralAttributionRepository,
+  ReferralPublicIdentityRecord,
+  ReferralPublicIdentityRepository,
+  ReferralReconciliationService,
+  ReferralRewardMaturationCandidate,
+  ReferralRewardRecord,
+  ReferralRewardRepository,
+  RevokeReferralRewardForPaidReversalInput,
+  RevokeReferralRewardInput,
+  RevokeReferralRewardResult
 } from './repositories.js';
 
 export {
@@ -184,5 +247,9 @@ export {
   PostgresPaidBillingRelationshipRepository,
   PostgresPaidCoverageRepository,
   PostgresPaidReconciliationPrimitives,
-  PostgresProviderIngestionReceiptRepository
+  PostgresProviderIngestionReceiptRepository,
+  PostgresReferralAttributionRepository,
+  PostgresReferralPublicIdentityRepository,
+  PostgresReferralReconciliationPrimitives,
+  PostgresReferralRewardRepository
 } from './postgres/index.js';

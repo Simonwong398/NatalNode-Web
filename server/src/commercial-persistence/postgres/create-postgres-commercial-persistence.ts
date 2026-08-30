@@ -7,6 +7,10 @@ import { PostgresPaidCoverageRepository } from './postgres-paid-coverage-reposit
 import { PostgresPaidReconciliationPrimitives } from './postgres-paid-reconciliation-primitives.js';
 import { PostgresProviderIngestionReceiptRepository } from './postgres-provider-ingestion-receipt-repository.js';
 import { PostgresEntitlementProjectionRepository } from './postgres-entitlement-projection-repository.js';
+import { PostgresReferralAttributionRepository } from './postgres-referral-attribution-repository.js';
+import { PostgresReferralPublicIdentityRepository } from './postgres-referral-public-identity-repository.js';
+import { PostgresReferralReconciliationPrimitives } from './postgres-referral-reconciliation-primitives.js';
+import { PostgresReferralRewardRepository } from './postgres-referral-reward-repository.js';
 
 /**
  * Creates repositories over one executor. For reconciliation, pass a
@@ -19,9 +23,16 @@ export function createPostgresCommercialPersistence(
   const paidBillingRelationships =
     new PostgresPaidBillingRelationshipRepository(executor);
   const paidCoverages = new PostgresPaidCoverageRepository(executor);
+  const events = new PostgresCommercialEventRepository(executor);
+  const referralPublicIdentities =
+    new PostgresReferralPublicIdentityRepository(executor);
+  const referralAttributions = new PostgresReferralAttributionRepository(
+    executor
+  );
+  const referralRewards = new PostgresReferralRewardRepository(executor);
   return Object.freeze({
     authorities,
-    events: new PostgresCommercialEventRepository(executor),
+    events,
     providerReceipts: new PostgresProviderIngestionReceiptRepository(executor),
     paidBillingRelationships,
     paidCoverages,
@@ -33,6 +44,17 @@ export function createPostgresCommercialPersistence(
     ),
     entitlementProjections: new PostgresEntitlementProjectionRepository(
       executor
+    ),
+    referralPublicIdentities,
+    referralAttributions,
+    referralRewards,
+    referralReconciliation: new PostgresReferralReconciliationPrimitives(
+      executor,
+      authorities,
+      events,
+      referralPublicIdentities,
+      referralAttributions,
+      referralRewards
     )
   });
 }
