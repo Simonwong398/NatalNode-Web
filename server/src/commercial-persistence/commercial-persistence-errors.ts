@@ -110,6 +110,27 @@ export class CommercialPersistenceUnavailableError extends Error {
   }
 }
 
+export class EntitlementProjectionConflictError extends Error {
+  public constructor() {
+    super('Entitlement projection conflicts with a newer derived revision.');
+    this.name = 'EntitlementProjectionConflictError';
+  }
+}
+
+export class EntitlementRevisionConflictError extends Error {
+  public constructor() {
+    super('Entitlement projection revision does not match its authority.');
+    this.name = 'EntitlementRevisionConflictError';
+  }
+}
+
+export class EntitlementIntegrityError extends Error {
+  public constructor() {
+    super('Entitlement projection integrity validation failed.');
+    this.name = 'EntitlementIntegrityError';
+  }
+}
+
 interface PostgresErrorLike {
   readonly code?: unknown;
 }
@@ -140,6 +161,9 @@ export function mapCommercialPersistenceFailure(error: unknown): Error {
     error instanceof PaidCoverageNotFoundError ||
     error instanceof PaidCoverageConflictError ||
     error instanceof PaidCoverageReversalConflictError ||
+    error instanceof EntitlementProjectionConflictError ||
+    error instanceof EntitlementRevisionConflictError ||
+    error instanceof EntitlementIntegrityError ||
     error instanceof CommercialPersistenceUnavailableError
   ) {
     return error;

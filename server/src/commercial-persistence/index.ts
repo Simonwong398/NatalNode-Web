@@ -60,6 +60,9 @@ export {
   CommercialPersistenceIntegrityError,
   CommercialPersistenceUnavailableError,
   CommercialRevisionConflictError,
+  EntitlementIntegrityError,
+  EntitlementProjectionConflictError,
+  EntitlementRevisionConflictError,
   InvalidCommercialStateTransitionError,
   PaidCommercialEventNotFoundError,
   PaidCoverageConflictError,
@@ -114,6 +117,65 @@ export type {
   ReversePaidCoverageInput,
   TransitionPaidBillingRelationshipInput
 } from './repositories.js';
+
+export {
+  EntitlementDomainValidationError,
+  assessEntitlementProjectionFreshness,
+  assertEntitlementCapability,
+  createEntitlementProjection,
+  createIndeterminateEntitlement,
+  evaluateEffectiveEntitlement,
+  evaluateEntitlementCapability,
+  projectionToEffectiveEntitlement,
+  toEffectiveEntitlementResult
+} from './entitlement-domain.js';
+export {
+  ENTITLEMENT_ALERT_ELIGIBILITY_CLASSES,
+  ENTITLEMENT_CAPABILITIES,
+  ENTITLEMENT_CAPABILITY_DECISIONS,
+  ENTITLEMENT_DETERMINATIONS,
+  ENTITLEMENT_EVALUATOR_POLICY_VERSION,
+  ENTITLEMENT_INDETERMINATE_REASONS,
+  ENTITLEMENT_PROJECTION_SCHEMA_VERSION,
+  ENTITLEMENT_PROJECTION_STATUSES,
+  ENTITLEMENT_SOURCE_CLASSES,
+  ENTITLEMENT_TIERS,
+  ENTITLEMENT_VAULT_CAPACITY_CLASSES
+} from './entitlement-types.js';
+export type {
+  DeterminateEntitlementEvaluation,
+  EffectiveEntitlementDeterminate,
+  EffectiveEntitlementIndeterminate,
+  EffectiveEntitlementResult,
+  EntitlementAlertEligibilityClass,
+  EntitlementCapability,
+  EntitlementCapabilityDecision,
+  EntitlementDetermination,
+  EntitlementEvaluationResult,
+  EntitlementIndeterminateReason,
+  EntitlementProjectionRecord,
+  EntitlementProjectionStatus,
+  EntitlementSourceClass,
+  EntitlementTier,
+  EntitlementVaultCapacityClass
+} from './entitlement-types.js';
+export type {
+  EffectiveEntitlementEvaluationInput,
+  EntitlementProjectionFreshness
+} from './entitlement-domain.js';
+export type {
+  EntitlementProjectionRepository,
+  UpsertEntitlementProjectionInput
+} from './repositories.js';
+
+export {
+  PostgresEntitlementReadService,
+  createPostgresEntitlementReadService
+} from './entitlement-read-service.js';
+export type {
+  EntitlementReadRepositories,
+  EntitlementReadService
+} from './entitlement-read-service.js';
 
 export {
   createPostgresCommercialPersistence,

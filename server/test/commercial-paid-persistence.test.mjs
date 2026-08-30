@@ -610,7 +610,7 @@ test('migration 0012 is the single forward D2 migration with bounded paid source
     .sort();
   const migration = await readFile(MIGRATION_PATH, 'utf8');
 
-  assert.equal(migrations.at(-1), '0012_paid_billing_coverage.sql');
+  assert.ok(migrations.includes('0012_paid_billing_coverage.sql'));
   assert.match(migration, /CREATE TABLE paid_billing_relationships/u);
   assert.match(migration, /CREATE TABLE paid_coverages/u);
   assert.match(migration, /paid_billing_relationships_authority_fk[\s\S]*ON DELETE CASCADE/u);

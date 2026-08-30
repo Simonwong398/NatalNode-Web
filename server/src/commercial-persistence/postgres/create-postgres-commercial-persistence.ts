@@ -6,6 +6,7 @@ import { PostgresPaidBillingRelationshipRepository } from './postgres-paid-billi
 import { PostgresPaidCoverageRepository } from './postgres-paid-coverage-repository.js';
 import { PostgresPaidReconciliationPrimitives } from './postgres-paid-reconciliation-primitives.js';
 import { PostgresProviderIngestionReceiptRepository } from './postgres-provider-ingestion-receipt-repository.js';
+import { PostgresEntitlementProjectionRepository } from './postgres-entitlement-projection-repository.js';
 
 /**
  * Creates repositories over one executor. For reconciliation, pass a
@@ -29,6 +30,9 @@ export function createPostgresCommercialPersistence(
       authorities,
       paidBillingRelationships,
       paidCoverages
+    ),
+    entitlementProjections: new PostgresEntitlementProjectionRepository(
+      executor
     )
   });
 }

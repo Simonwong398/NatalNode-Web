@@ -13,6 +13,7 @@ import type {
   PaidRelationshipLifecycleState,
   PaidRenewalIntent
 } from './commercial-domain.js';
+import type { EntitlementProjectionRecord } from './entitlement-types.js';
 
 export type CommercialTimestampInput = string | Date;
 
@@ -506,6 +507,23 @@ export interface PaidReconciliationPrimitives {
   ): Promise<PaidReconciliationResult>;
 }
 
+export interface UpsertEntitlementProjectionInput {
+  /** Guard-only live owner identity; not duplicated into the projection row. */
+  readonly ownerId: string;
+  readonly projection: EntitlementProjectionRecord;
+}
+
+/** Transaction-scoped, revision-guarded derived entitlement read model. */
+export interface EntitlementProjectionRepository {
+  getByAuthority(
+    commercialAuthorityId: string
+  ): Promise<EntitlementProjectionRecord | null>;
+  getByOwner(ownerId: string): Promise<EntitlementProjectionRecord | null>;
+  upsertAtRevision(
+    input: UpsertEntitlementProjectionInput
+  ): Promise<EntitlementProjectionRecord>;
+}
+
 export interface CommercialPersistenceRepositories {
   readonly authorities: CommercialAuthorityRepository;
   readonly events: CommercialEventRepository;
@@ -513,4 +531,5 @@ export interface CommercialPersistenceRepositories {
   readonly paidBillingRelationships: PaidBillingRelationshipRepository;
   readonly paidCoverages: PaidCoverageRepository;
   readonly paidReconciliation: PaidReconciliationPrimitives;
+  readonly entitlementProjections: EntitlementProjectionRepository;
 }
