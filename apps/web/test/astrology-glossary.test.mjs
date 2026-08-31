@@ -24,6 +24,7 @@ const EXPECTED_P0_COUNT = 51;
 const EXPECTED_P1_COUNT = 10;
 const EXPECTED_P2_COUNT = 5;
 const EXPECTED_TOTAL = 66;
+const TARGET_LOCALES = ['es', 'fr', 'de', 'ja', 'ko', 'zh-Hant'];
 
 test('the canonical registry exactly represents the frozen closed V1 inventory', () => {
   const registryIds = Object.keys(ASTROLOGY_GLOSSARY_REGISTRY);
@@ -97,20 +98,196 @@ test('English resolves directly to canonical terminology without an English vari
     availability: 'CANONICAL_ENGLISH',
     canonicalRevision: ASTROLOGY_GLOSSARY_CANONICAL_REVISION
   });
-  assert.equal(ASTROLOGY_GLOSSARY_PRODUCTION_LOCALE_VARIANTS.length, 0);
+  assert.equal(
+    ASTROLOGY_GLOSSARY_PRODUCTION_LOCALE_VARIANTS.some(({ locale }) => locale === 'en'),
+    false
+  );
 });
 
-test('ja and zh-Hant use direct canonical English fallback when no approved variant exists', () => {
-  for (const requestedLocale of ['ja', 'zh-Hant']) {
-    const result = resolveAstrologyTerm('body.sun', requestedLocale);
+test('the production matrix admits exactly 51 P0 concepts in each target locale', () => {
+  const p0ConceptIds = Object.values(ASTROLOGY_GLOSSARY_REGISTRY)
+    .filter(({ priority }) => priority === 'P0')
+    .map(({ semanticConceptId }) => semanticConceptId);
+  const variants = ASTROLOGY_GLOSSARY_PRODUCTION_LOCALE_VARIANTS;
 
-    assert.equal(result.requestedLocale, requestedLocale);
-    assert.equal(result.resolvedLocale, 'en');
-    assert.equal(result.displayTerm, 'Sun');
-    assert.equal(result.fallbackUsed, true);
-    assert.equal(result.availability, 'ENGLISH_FALLBACK');
-    assert.equal(result.canonicalRevision, ASTROLOGY_GLOSSARY_CANONICAL_REVISION);
+  assert.equal(p0ConceptIds.length, EXPECTED_P0_COUNT);
+  assert.equal(variants.length, EXPECTED_P0_COUNT * TARGET_LOCALES.length);
+  assert.equal(Object.isFrozen(variants), true);
+  assert.equal(variants.every((variant) => Object.isFrozen(variant)), true);
+  assert.deepEqual(
+    Object.fromEntries(
+      TARGET_LOCALES.map((locale) => [
+        locale,
+        variants.filter((variant) => variant.locale === locale).length
+      ])
+    ),
+    Object.fromEntries(TARGET_LOCALES.map((locale) => [locale, EXPECTED_P0_COUNT]))
+  );
+  assert.equal(
+    new Set(variants.map(({ semanticConceptId, locale }) => `${semanticConceptId}\u0000${locale}`)).size,
+    variants.length
+  );
+
+  const localResolutions = [];
+  for (const conceptId of p0ConceptIds) {
+    assert.equal(
+      variants.filter((variant) => variant.semanticConceptId === conceptId).length,
+      TARGET_LOCALES.length,
+      conceptId
+    );
+
+    for (const locale of TARGET_LOCALES) {
+      const variant = variants.find(
+        (candidate) => candidate.semanticConceptId === conceptId && candidate.locale === locale
+      );
+      assert.ok(variant, `${conceptId}/${locale} is missing`);
+      assert.equal(variant.approvalState, 'APPROVED');
+      assert.equal(variant.currentness, 'CURRENT');
+      assert.equal(variant.canonicalTerminologyVersion, '1.0');
+      assert.equal(
+        variant.reviewedAgainstCanonicalTerminologyRevision,
+        ASTROLOGY_GLOSSARY_CANONICAL_REVISION
+      );
+
+      const resolution = resolveAstrologyTerm(conceptId, locale);
+      localResolutions.push(resolution);
+      assert.equal(resolution.resolvedLocale, locale, `${conceptId}/${locale}`);
+      assert.equal(resolution.fallbackUsed, false, `${conceptId}/${locale}`);
+      assert.equal(resolution.availability, 'LOCALIZED_APPROVED_CURRENT', `${conceptId}/${locale}`);
+      assert.equal(resolution.displayTerm, variant.professionalDisplayTerm, `${conceptId}/${locale}`);
+    }
   }
+
+  assert.equal(localResolutions.length, 306);
+  assert.equal(localResolutions.filter(({ fallbackUsed }) => fallbackUsed).length, 0);
+  assert.equal(
+    variants.filter(({ semanticConceptId }) => ASTROLOGY_GLOSSARY_REGISTRY[semanticConceptId].priority !== 'P0').length,
+    0
+  );
+});
+
+test('P1 and P2 concepts keep direct canonical English fallback in every target locale', () => {
+  const nonP0Entries = Object.values(ASTROLOGY_GLOSSARY_REGISTRY)
+    .filter(({ priority }) => priority === 'P1' || priority === 'P2');
+
+  assert.equal(nonP0Entries.length, EXPECTED_P1_COUNT + EXPECTED_P2_COUNT);
+
+  for (const entry of nonP0Entries) {
+    for (const locale of TARGET_LOCALES) {
+      const result = resolveAstrologyTerm(entry.semanticConceptId, locale);
+      assert.equal(result.resolvedLocale, 'en', `${entry.semanticConceptId}/${locale}`);
+      assert.equal(result.displayTerm, entry.canonicalEnglishTerm, `${entry.semanticConceptId}/${locale}`);
+      assert.equal(result.fallbackUsed, true, `${entry.semanticConceptId}/${locale}`);
+      assert.equal(result.availability, 'ENGLISH_FALLBACK', `${entry.semanticConceptId}/${locale}`);
+      assert.equal(
+        ASTROLOGY_GLOSSARY_PRODUCTION_LOCALE_VARIANTS.some(
+          (variant) => variant.semanticConceptId === entry.semanticConceptId && variant.locale === locale
+        ),
+        false,
+        `${entry.semanticConceptId}/${locale}`
+      );
+    }
+  }
+});
+
+test('owner-resolved P0 decisions use the exact frozen professional primaries', () => {
+  const expected = {
+    es: {
+      'house_system.whole_sign': 'Signos enteros',
+      'aspect_phase.applying': 'Aplicativo',
+      'aspect_phase.exact': 'Exacto',
+      'aspect_phase.separating': 'Separativo'
+    },
+    fr: {
+      'house_system.whole_sign': 'Signes entiers',
+      'aspect_phase.applying': 'Appliquant',
+      'aspect_phase.exact': 'Exact',
+      'aspect_phase.separating': 'Séparant'
+    },
+    de: {
+      'house_system.whole_sign': 'Ganzzeichenhäuser',
+      'house_system.equal': 'Äquale Häuser',
+      'aspect_phase.applying': 'Applikativ',
+      'aspect_phase.separating': 'Separativ'
+    },
+    ja: {
+      'aspect_phase.applying': 'アプライ',
+      'aspect_phase.exact': 'イグザクト',
+      'aspect_phase.separating': 'セパレート'
+    },
+    ko: {
+      'angle.midheaven': '중천점',
+      'aspect_phase.applying': '어플라잉',
+      'aspect_phase.exact': '정확',
+      'aspect_phase.separating': '세퍼레이팅'
+    },
+    'zh-Hant': {
+      'angle.midheaven': '中天',
+      'house.cusp': '宮頭',
+      'aspect_phase.applying': '入相',
+      'aspect_phase.exact': '精確',
+      'aspect_phase.separating': '出相'
+    }
+  };
+
+  for (const [locale, concepts] of Object.entries(expected)) {
+    for (const [conceptId, displayTerm] of Object.entries(concepts)) {
+      const result = resolveAstrologyTerm(conceptId, locale);
+      assert.equal(result.displayTerm, displayTerm, `${locale}/${conceptId}`);
+      assert.equal(result.resolvedLocale, locale, `${locale}/${conceptId}`);
+      assert.equal(result.fallbackUsed, false, `${locale}/${conceptId}`);
+    }
+  }
+});
+
+test('approved locale metadata remains separate from the primary display term', () => {
+  const koreanMidheaven = ASTROLOGY_GLOSSARY_PRODUCTION_LOCALE_VARIANTS.find(
+    ({ semanticConceptId, locale }) => semanticConceptId === 'angle.midheaven' && locale === 'ko'
+  );
+  const traditionalCusp = ASTROLOGY_GLOSSARY_PRODUCTION_LOCALE_VARIANTS.find(
+    ({ semanticConceptId, locale }) => semanticConceptId === 'house.cusp' && locale === 'zh-Hant'
+  );
+  const traditionalSeparating = ASTROLOGY_GLOSSARY_PRODUCTION_LOCALE_VARIANTS.find(
+    ({ semanticConceptId, locale }) => semanticConceptId === 'aspect_phase.separating' && locale === 'zh-Hant'
+  );
+
+  assert.deepEqual(
+    {
+      professionalDisplayTerm: koreanMidheaven.professionalDisplayTerm,
+      shortForm: koreanMidheaven.shortForm,
+      aliases: koreanMidheaven.aliases,
+      notation: koreanMidheaven.notation,
+      historicalAlias: koreanMidheaven.historicalAlias,
+      bilingualFirstUse: koreanMidheaven.bilingualFirstUse
+    },
+    {
+      professionalDisplayTerm: '중천점',
+      shortForm: 'MC',
+      aliases: ['미드헤븐'],
+      notation: 'MC',
+      historicalAlias: 'Medium Coeli',
+      bilingualFirstUse: true
+    }
+  );
+  assert.deepEqual(
+    {
+      professionalDisplayTerm: traditionalCusp.professionalDisplayTerm,
+      aliases: traditionalCusp.aliases,
+      notation: traditionalCusp.notation,
+      historicalAlias: traditionalCusp.historicalAlias,
+      bilingualFirstUse: traditionalCusp.bilingualFirstUse
+    },
+    {
+      professionalDisplayTerm: '宮頭',
+      aliases: ['宮位起點'],
+      notation: 'cusp',
+      historicalAlias: 'cuspis domus',
+      bilingualFirstUse: false
+    }
+  );
+  assert.deepEqual(traditionalSeparating.aliases, ['離相', 'Separating']);
+  assert.equal(resolveAstrologyTerm('angle.midheaven', 'ko').displayTerm, '중천점');
+  assert.equal(resolveAstrologyTerm('angle.midheaven', 'ko').displayTerm.includes('MC'), false);
 });
 
 test('only an APPROVED and CURRENT variant reviewed against the current revision is publishable', () => {
@@ -145,6 +322,15 @@ test('only an APPROVED and CURRENT variant reviewed against the current revision
       reviewedAgainstCanonicalTerminologyRevision: ASTROLOGY_GLOSSARY_CANONICAL_REVISION
     },
     {
+      semanticConceptId: 'body.neptune',
+      locale: 'ja',
+      professionalDisplayTerm: 'SYNTHETIC_REVIEW_BODY_NEPTUNE',
+      canonicalTerminologyVersion: ASTROLOGY_GLOSSARY_TERMINOLOGY_VERSION,
+      approvalState: 'REVIEW',
+      currentness: 'CURRENT',
+      reviewedAgainstCanonicalTerminologyRevision: ASTROLOGY_GLOSSARY_CANONICAL_REVISION
+    },
+    {
       semanticConceptId: 'body.venus',
       locale: 'ja',
       professionalDisplayTerm: 'SYNTHETIC_WRONG_REVISION_BODY_VENUS',
@@ -172,7 +358,7 @@ test('only an APPROVED and CURRENT variant reviewed against the current revision
   assert.equal(approved.shortForm, 'SYNTHETIC_SUN');
   assert.deepEqual(approved.aliases, ['SYNTHETIC_ALIAS']);
 
-  for (const conceptId of ['body.moon', 'body.mercury', 'body.venus']) {
+  for (const conceptId of ['body.moon', 'body.mercury', 'body.neptune', 'body.venus']) {
     const result = resolveAstrologyTerm(conceptId, 'ja', repository);
     assert.equal(result.resolvedLocale, 'en', conceptId);
     assert.equal(result.fallbackUsed, true, conceptId);
@@ -256,16 +442,16 @@ test('current domain values map to glossary identities without changing the valu
   assert.equal(getAstrologyGlossaryConceptId('sky_event', domainValues.skyEvent), 'sky_event.ingress');
   assert.equal(getAstrologyGlossaryConceptId('lunar_phase', domainValues.lunarPhase), 'lunar_phase.full_moon');
 
-  assert.equal(resolveAstrologyDomainTerm('body', domainValues.body, 'ja').displayTerm, 'Sun');
-  assert.equal(resolveAstrologyDomainTerm('sign', domainValues.sign, 'ja').displayTerm, 'Taurus');
+  assert.equal(resolveAstrologyDomainTerm('body', domainValues.body, 'ja').displayTerm, '太陽');
+  assert.equal(resolveAstrologyDomainTerm('sign', domainValues.sign, 'ja').displayTerm, '牡牛座');
   assert.equal(resolveAstrologyDomainTerm('sign_element', domainValues.signElement, 'ja').displayTerm, 'Earth');
   assert.equal(resolveAstrologyDomainTerm('sign_modality', domainValues.signModality, 'ja').displayTerm, 'Fixed');
-  assert.equal(resolveAstrologyDomainTerm('house', domainValues.house, 'ja').displayTerm, '11th House');
-  assert.equal(resolveAstrologyDomainTerm('angle', domainValues.angle, 'ja').displayTerm, 'Ascendant');
-  assert.equal(resolveAstrologyDomainTerm('aspect', domainValues.aspect, 'ja').displayTerm, 'Opposition');
-  assert.equal(resolveAstrologyDomainTerm('aspect_phase', domainValues.phase, 'ja').displayTerm, 'Applying');
-  assert.equal(resolveAstrologyDomainTerm('motion', domainValues.motion, 'ja').displayTerm, 'Retrograde');
-  assert.equal(resolveAstrologyDomainTerm('house_system', 'EQUAL', 'ja').displayTerm, 'Equal House');
+  assert.equal(resolveAstrologyDomainTerm('house', domainValues.house, 'ja').displayTerm, '11ハウス');
+  assert.equal(resolveAstrologyDomainTerm('angle', domainValues.angle, 'ja').displayTerm, 'アセンダント');
+  assert.equal(resolveAstrologyDomainTerm('aspect', domainValues.aspect, 'ja').displayTerm, 'オポジション');
+  assert.equal(resolveAstrologyDomainTerm('aspect_phase', domainValues.phase, 'ja').displayTerm, 'アプライ');
+  assert.equal(resolveAstrologyDomainTerm('motion', domainValues.motion, 'ja').displayTerm, '逆行');
+  assert.equal(resolveAstrologyDomainTerm('house_system', 'EQUAL', 'ja').displayTerm, 'イコールハウス');
   assert.deepEqual(domainValues, originalValues);
 });
 
@@ -276,6 +462,10 @@ test('availability is exposed for callers before rendering a professional term',
   );
   assert.equal(
     getAstrologyGlossaryAvailability('body.sun', 'ja'),
+    'LOCALIZED_APPROVED_CURRENT'
+  );
+  assert.equal(
+    getAstrologyGlossaryAvailability('sign_element.fire', 'ja'),
     'ENGLISH_FALLBACK'
   );
 });

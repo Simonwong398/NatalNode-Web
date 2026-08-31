@@ -3,6 +3,9 @@ import {
   parseSupportedLocale,
   type SupportedLocale
 } from './localization.js';
+import {
+  ASTROLOGY_GLOSSARY_APPROVED_P0_VARIANT_SEEDS
+} from './astrology-glossary-production-variants.js';
 
 /** The closed V1 semantic identity set frozen by the glossary contract. */
 export const ASTROLOGY_GLOSSARY_CONCEPT_IDS = Object.freeze([
@@ -344,6 +347,12 @@ export interface AstrologyGlossaryLocaleVariant {
   readonly professionalDisplayTerm: string;
   readonly shortForm?: string;
   readonly aliases?: readonly string[];
+  /** Locale-decision notation retained separately from the primary term. */
+  readonly notation?: string;
+  /** Locale-decision Latin or historical cross-reference, never a new ID. */
+  readonly historicalAlias?: string;
+  /** Presentation guidance only; the resolver never concatenates this metadata. */
+  readonly bilingualFirstUse?: boolean;
   readonly canonicalTerminologyVersion: string;
   readonly approvalState: AstrologyGlossaryApprovalState;
   readonly currentness: AstrologyGlossaryCurrentness;
@@ -351,7 +360,18 @@ export interface AstrologyGlossaryLocaleVariant {
   readonly professionalEditorialNotes?: string;
 }
 
-export const ASTROLOGY_GLOSSARY_PRODUCTION_LOCALE_VARIANTS: readonly AstrologyGlossaryLocaleVariant[] = Object.freeze([]);
+export const ASTROLOGY_GLOSSARY_PRODUCTION_LOCALE_VARIANTS: readonly AstrologyGlossaryLocaleVariant[] = Object.freeze(
+  ASTROLOGY_GLOSSARY_APPROVED_P0_VARIANT_SEEDS.map((variant) =>
+    freezeLocaleVariant({
+      ...variant,
+      canonicalTerminologyVersion: ASTROLOGY_GLOSSARY_TERMINOLOGY_VERSION,
+      approvalState: 'APPROVED' as const,
+      currentness: 'CURRENT' as const,
+      reviewedAgainstCanonicalTerminologyRevision:
+        ASTROLOGY_GLOSSARY_CANONICAL_REVISION
+    })
+  )
+);
 
 export interface AstrologyGlossaryRepository {
   readonly entries: Readonly<Record<AstrologyGlossaryConceptId, AstrologyGlossaryEntry>>;
@@ -374,6 +394,13 @@ function freezeLocaleVariant(variant: AstrologyGlossaryLocaleVariant): Astrology
     professionalDisplayTerm: variant.professionalDisplayTerm,
     ...(variant.shortForm === undefined ? {} : { shortForm: variant.shortForm }),
     ...(aliases === undefined ? {} : { aliases }),
+    ...(variant.notation === undefined ? {} : { notation: variant.notation }),
+    ...(variant.historicalAlias === undefined
+      ? {}
+      : { historicalAlias: variant.historicalAlias }),
+    ...(variant.bilingualFirstUse === undefined
+      ? {}
+      : { bilingualFirstUse: variant.bilingualFirstUse }),
     canonicalTerminologyVersion: variant.canonicalTerminologyVersion,
     approvalState: variant.approvalState,
     currentness: variant.currentness,
@@ -399,6 +426,22 @@ function assertLocaleVariant(variant: AstrologyGlossaryLocaleVariant): void {
     variant.professionalDisplayTerm.trim() === ''
   ) {
     throw new TypeError('Astrology glossary locale variant requires a display term');
+  }
+
+  for (const [field, value] of [
+    ['notation', variant.notation],
+    ['historicalAlias', variant.historicalAlias]
+  ] as const) {
+    if (value !== undefined && (typeof value !== 'string' || value.trim() === '')) {
+      throw new TypeError(`Astrology glossary locale variant has invalid ${field}`);
+    }
+  }
+
+  if (
+    variant.bilingualFirstUse !== undefined &&
+    typeof variant.bilingualFirstUse !== 'boolean'
+  ) {
+    throw new TypeError('Astrology glossary locale variant has invalid bilingual-first-use metadata');
   }
 
   if (
