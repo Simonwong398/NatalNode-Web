@@ -51,6 +51,10 @@ const SAVE_VAULT_CHART_URL = new URL(
   '../../dist/result-disclosure-characterization/features/vault/save-vault-chart.js',
   import.meta.url
 );
+const LOCALIZATION_URL = new URL(
+  '../../dist/result-disclosure-characterization/lib/localization.js',
+  import.meta.url
+);
 const PROXIES_URL = new URL('./result-disclosure-proxies.mjs', import.meta.url);
 
 let activeScope;
@@ -123,6 +127,10 @@ async function loadComponent() {
 
         if (specifier === './save-vault-chart' && context.parentURL === SAVE_PANEL_URL.href) {
           return nextResolve(SAVE_VAULT_CHART_URL.href, context);
+        }
+
+        if (specifier === '@/lib/localization') {
+          return nextResolve(LOCALIZATION_URL.href, context);
         }
 
         return nextResolve(specifier, context);
@@ -355,13 +363,17 @@ export async function withResultWorkspace(options = {}, exercise) {
     const chart = options.chart ?? focusedChart();
     const presentationPolicy = options.presentationPolicy ?? AVAILABLE_POLICY;
     const chartRequest = options.chartRequest ?? TEST_CHART_REQUEST;
-    const savePanel = React.createElement(SaveChartPanel, { chartRequest });
+    const savePanel = React.createElement(SaveChartPanel, {
+      chartRequest,
+      locale: options.locale
+    });
     const render = () => {
       root.render(
         React.createElement(
           ChartWorkspaceView,
           {
             chart,
+            locale: options.locale,
             presentationPolicy,
             requestedHouseSystem: chartRequest.houseSystem,
             resultTargetRef: options.resultTargetRef

@@ -195,6 +195,10 @@ function renderProps(state, onResolvedInputCalls) {
     props.resolver = state.resolver;
   }
 
+  if (state.locale !== undefined) {
+    props.locale = state.locale;
+  }
+
   return props;
 }
 

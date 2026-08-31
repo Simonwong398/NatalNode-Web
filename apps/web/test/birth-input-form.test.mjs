@@ -122,6 +122,127 @@ describe('initial render, validation, and configuration', () => {
     });
   });
 
+  test('localizes ordinary birth-input controls while preserving stable house-system values', async () => {
+    const cases = [
+      {
+        locale: 'en',
+        birthDate: 'Birth date',
+        day: 'Day',
+        month: 'Month',
+        year: 'Year',
+        birthTime: 'Birth time',
+        unknownTime: "I don't know my exact birth time",
+        birthPlace: 'Birth place',
+        advancedSettings: 'Advanced chart settings',
+        calculate: 'Calculate Chart',
+        errors: [
+          'Enter a birth date.',
+          'Enter a birth time or choose the unknown-time option.',
+          'Enter a birth place.',
+          'Choose a house system.'
+        ]
+      },
+      {
+        locale: 'es',
+        birthDate: 'Fecha de nacimiento',
+        day: 'Día',
+        month: 'Mes',
+        year: 'Año',
+        birthTime: 'Hora de nacimiento',
+        unknownTime: 'No conozco mi hora exacta de nacimiento',
+        birthPlace: 'Lugar de nacimiento',
+        advancedSettings: 'Configuración avanzada de la carta',
+        calculate: 'Calcular carta',
+        errors: [
+          'Introduce una fecha de nacimiento.',
+          'Introduce una hora de nacimiento o elige la opción de hora desconocida.',
+          'Introduce un lugar de nacimiento.',
+          'Choose a house system.'
+        ]
+      },
+      {
+        locale: 'ja',
+        birthDate: '出生日',
+        day: '日',
+        month: '月',
+        year: '年',
+        birthTime: '出生時刻',
+        unknownTime: '正確な出生時刻がわかりません',
+        birthPlace: '出生地',
+        advancedSettings: '高度なチャート設定',
+        calculate: 'チャートを計算',
+        errors: [
+          '出生日を入力してください。',
+          '出生時刻を入力するか、不明な時刻を選択してください。',
+          '出生地を入力してください。',
+          'Choose a house system.'
+        ]
+      },
+      {
+        locale: 'zh-Hant',
+        birthDate: '出生日期',
+        day: '日',
+        month: '月',
+        year: '年',
+        birthTime: '出生時間',
+        unknownTime: '我不知道確切的出生時間',
+        birthPlace: '出生地',
+        advancedSettings: '進階星盤設定',
+        calculate: '計算星盤',
+        errors: [
+          '請輸入出生日期。',
+          '請輸入出生時間，或選擇時間未知選項。',
+          '請輸入出生地。',
+          'Choose a house system.'
+        ]
+      }
+    ];
+
+    for (const expected of cases) {
+      await withBirthInputForm({ locale: expected.locale }, async (scope) => {
+        await scope.mount();
+
+        assert.equal(scope.exact('legend', expected.birthDate).textContent, expected.birthDate);
+        assert.equal(scope.exact('legend', expected.birthTime).textContent, expected.birthTime);
+        assert.ok(scope.control(expected.day));
+        assert.ok(scope.control(expected.month));
+        assert.ok(scope.control(expected.year));
+        assert.ok(scope.id('birth-time'));
+        assert.ok(scope.id('unknown-time'));
+        assert.ok(scope.control(expected.birthPlace));
+        assert.ok(scope.container.textContent.includes(expected.unknownTime));
+        assert.equal(scope.button(expected.calculate).disabled, false);
+        assert.match(scope.container.textContent, new RegExp(expected.advancedSettings));
+
+        const monthOptions = [...scope.control(expected.month).options];
+        assert.deepEqual(
+          monthOptions.map((option) => option.value),
+          ['', '01', '02', '03', '04', '05', '06', '07', '08', '09', '10', '11', '12']
+        );
+        assert.equal(
+          monthOptions[2].textContent,
+          new Intl.DateTimeFormat(expected.locale, { month: 'long', timeZone: 'UTC' }).format(
+            new Date(Date.UTC(2000, 1, 1))
+          )
+        );
+
+        const houseSystem = scope.control('House system');
+        assert.deepEqual(
+          [...houseSystem.options].map((option) => [option.value, option.textContent, option.disabled]),
+          [
+            ['', 'Choose a house system', true],
+            ['Placidus', 'Placidus', false],
+            ['Whole Sign', 'Whole Sign', false],
+            ['Equal', 'Equal', false]
+          ]
+        );
+
+        await scope.submit();
+        assert.deepEqual(scope.roles('alert').map((element) => scope.text(element)), expected.errors);
+      });
+    }
+  });
+
   test('invalid submit reports all four current errors, opens advanced settings, and does not move focus', async () => {
     const resolver = capturingResolver((input) => exactFrom(input));
     await withBirthInputForm({ resolver }, async (scope) => {

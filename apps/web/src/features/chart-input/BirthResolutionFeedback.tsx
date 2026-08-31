@@ -1,4 +1,6 @@
 import { cn } from '@/lib/utils';
+import type { SupportedLocale } from '../../lib/localization.js';
+import { chartUi } from '../chart-experience/chart-ui.js';
 import { formatCoordinate } from './resolution-telemetry';
 import type {
   AmbiguousTimeCandidate,
@@ -228,11 +230,13 @@ function AmbiguousResolutionPanel({
 function NonexistentResolutionPanel({
   isDisabled,
   isDevelopmentFixture,
+  locale,
   onEditBirthTime,
   resolution
 }: {
   isDisabled: boolean;
   isDevelopmentFixture: boolean;
+  locale?: SupportedLocale;
   onEditBirthTime: () => void;
   resolution: Extract<BirthInputResolution, { ambiguityStatus: 'NONEXISTENT' }>;
 }) {
@@ -264,7 +268,7 @@ function NonexistentResolutionPanel({
         onClick={onEditBirthTime}
         type="button"
       >
-        Edit birth time
+        {chartUi(locale, 'birthInput.editBirthTime')}
       </button>
     </section>
   );
@@ -303,6 +307,7 @@ function UnknownTimeResolutionPanel({
 interface BirthResolutionFeedbackProps {
   isDevelopmentFixture: boolean;
   isInteractionDisabled: boolean;
+  locale?: SupportedLocale;
   onEditBirthTime: () => void;
   onSelectCandidate: (candidate: AmbiguousTimeCandidate) => void;
   placement: ResolutionFeedbackPlacement;
@@ -313,6 +318,7 @@ interface BirthResolutionFeedbackProps {
 export default function BirthResolutionFeedback({
   isDevelopmentFixture,
   isInteractionDisabled,
+  locale,
   onEditBirthTime,
   onSelectCandidate,
   placement,
@@ -345,6 +351,7 @@ export default function BirthResolutionFeedback({
         <NonexistentResolutionPanel
           isDisabled={isInteractionDisabled}
           isDevelopmentFixture={isDevelopmentFixture}
+          locale={locale}
           onEditBirthTime={onEditBirthTime}
           resolution={resolution}
         />

@@ -1,5 +1,7 @@
 import { useId, useState } from 'react';
 import type { AngleFact, AspectFact, BodyFact, ChartResult } from '@natalnode/contracts';
+import type { SupportedLocale } from '../../lib/localization.js';
+import { chartUi } from '../chart-experience/chart-ui.js';
 import type { ChartPresentationPolicy } from './chart-presentation-policy';
 
 const PLANET_GLYPHS: Record<string, string> = {
@@ -134,6 +136,7 @@ function AspectNotation({ aspect }: { aspect: AspectFact }) {
 
 export type AstrologicalNotationProps = {
   chart: ChartResult;
+  locale?: SupportedLocale;
   presentationPolicy: ChartPresentationPolicy;
 };
 
@@ -145,7 +148,7 @@ function aspectCount(count: number) {
   return `${count} ${count === 1 ? 'major aspect' : 'major aspects'}`;
 }
 
-export default function AstrologicalNotation({ chart, presentationPolicy }: AstrologicalNotationProps) {
+export default function AstrologicalNotation({ chart, locale, presentationPolicy }: AstrologicalNotationProps) {
   const notationId = useId();
   const titleId = `${notationId}-astrological-notation-title`;
   const disclosureTitleId = `${notationId}-complete-chart-facts-title`;
@@ -205,7 +208,7 @@ export default function AstrologicalNotation({ chart, presentationPolicy }: Astr
             >
               <span>
                 <span className="nn-type-label block" id={disclosureTitleId}>
-                  Complete chart facts
+                  {chartUi(locale, 'workspace.completeFacts')}
                 </span>
                 <span className="nn-type-metadata mt-1 block font-normal">
                   {countSummary}

@@ -10,7 +10,9 @@ import type { ChartResult } from '@natalnode/contracts';
 import { CalculationDetails } from '@/features/calculation-details';
 import { ChartRenderer } from '@/features/chart-renderer';
 import { InterpretationPanel } from '@/features/interpretation';
+import type { SupportedLocale } from '../../lib/localization.js';
 import type { ChartPresentationPolicy } from './chart-presentation-policy';
+import { chartUi } from '../chart-experience/chart-ui.js';
 import AstrologicalNotation from './AstrologicalNotation';
 
 type ResultMode = 'chart' | 'interpretation' | 'details';
@@ -21,14 +23,15 @@ const RESULT_MODES: readonly ResultMode[] = [
   'details'
 ];
 
-const RESULT_MODE_LABELS: Record<ResultMode, string> = {
-  chart: 'Chart',
-  interpretation: 'Interpretation',
-  details: 'Details'
-};
+const RESULT_MODE_KEYS = {
+  chart: 'workspace.chartTab',
+  interpretation: 'workspace.interpretationTab',
+  details: 'workspace.detailsTab'
+} as const;
 
 export type ChartWorkspaceViewProps = {
   chart: ChartResult;
+  locale?: SupportedLocale;
   presentationPolicy: ChartPresentationPolicy;
   requestedHouseSystem: string;
   resultTargetRef?: Ref<HTMLElement>;
@@ -38,6 +41,7 @@ export type ChartWorkspaceViewProps = {
 /** Displays a trusted chart result without adding any calculation or persistence behavior. */
 export default function ChartWorkspaceView({
   chart,
+  locale,
   presentationPolicy,
   requestedHouseSystem,
   resultTargetRef,
@@ -104,13 +108,16 @@ export default function ChartWorkspaceView({
     >
       <header className="nn-section-header border-b border-natal-border/70 p-5 sm:p-7 lg:flex lg:flex-row lg:items-end lg:justify-between">
         <div className="nn-section-header">
-          <p className="nn-eyebrow">Chart Workspace</p>
+          <p className="nn-eyebrow">{chartUi(locale, 'workspace.eyebrow')}</p>
           <h2 className="nn-type-section-title" id={titleId}>
             Natal Chart
           </h2>
         </div>
         <div className="flex flex-col gap-3 lg:items-end">
-          <div className="flex flex-wrap gap-2" aria-label="Chart status">
+          <div
+            className="flex flex-wrap gap-2"
+            aria-label={chartUi(locale, 'workspace.chartStatusLabel')}
+          >
             <span className="nn-badge">
               Schema {chart.schemaVersion}
             </span>
@@ -131,7 +138,7 @@ export default function ChartWorkspaceView({
               onClick={() => setIsSaveOpen((current) => !current)}
               type="button"
             >
-              Save chart
+              {chartUi(locale, 'workspace.saveChart')}
             </button>
           ) : null}
         </div>
@@ -156,11 +163,11 @@ export default function ChartWorkspaceView({
       ) : null}
 
       <nav
-        aria-label="Chart workspace sections"
+        aria-label={chartUi(locale, 'workspace.sectionsLabel')}
         className="nn-surface mx-5 mt-5 p-1 sm:mx-7"
       >
         <div
-          aria-label="Chart workspace sections"
+          aria-label={chartUi(locale, 'workspace.sectionsLabel')}
           aria-orientation="horizontal"
           className="grid grid-cols-3 gap-1"
           role="tablist"
@@ -186,7 +193,7 @@ export default function ChartWorkspaceView({
                 tabIndex={isActive ? 0 : -1}
                 type="button"
               >
-                {RESULT_MODE_LABELS[mode]}
+                {chartUi(locale, RESULT_MODE_KEYS[mode])}
               </button>
             );
           })}
@@ -215,7 +222,11 @@ export default function ChartWorkspaceView({
             <div className="mt-5 min-w-0">
               <ChartRenderer chart={chart} presentationPolicy={presentationPolicy} />
             </div>
-            <AstrologicalNotation chart={chart} presentationPolicy={presentationPolicy} />
+            <AstrologicalNotation
+              chart={chart}
+              locale={locale}
+              presentationPolicy={presentationPolicy}
+            />
           </section>
         </div>
 
@@ -240,6 +251,7 @@ export default function ChartWorkspaceView({
         >
           <CalculationDetails
             chart={chart}
+            locale={locale}
             presentationPolicy={presentationPolicy}
             requestedHouseSystem={requestedHouseSystem}
           />

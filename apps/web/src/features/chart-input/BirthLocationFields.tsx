@@ -1,6 +1,10 @@
+import type { SupportedLocale } from '../../lib/localization.js';
+import { chartUi } from '../chart-experience/chart-ui.js';
+
 interface BirthLocationFieldsProps {
   error?: string;
   isInteractionDisabled: boolean;
+  locale?: SupportedLocale;
   locationLabel: string;
   onLocationLabelChange: (value: string) => void;
 }
@@ -8,13 +12,14 @@ interface BirthLocationFieldsProps {
 export default function BirthLocationFields({
   error,
   isInteractionDisabled,
+  locale,
   locationLabel,
   onLocationLabelChange
 }: BirthLocationFieldsProps) {
   return (
     <>
       <label className="nn-type-label" htmlFor="birth-place">
-        Birth place
+        {chartUi(locale, 'birthInput.birthPlace')}
       </label>
       <input
         aria-describedby={error ? 'birth-place-error' : undefined}
@@ -24,7 +29,7 @@ export default function BirthLocationFields({
         id="birth-place"
         name="locationLabel"
         onChange={(event) => onLocationLabelChange(event.target.value)}
-        placeholder="City, region, country"
+        placeholder={chartUi(locale, 'birthInput.locationPlaceholder')}
         required
         type="text"
         value={locationLabel}

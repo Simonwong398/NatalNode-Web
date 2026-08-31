@@ -3,6 +3,7 @@ import SiteLayout from '@/layouts/SiteLayout.astro';
 import { ChartExperience } from '@/features/chart-experience';
 import { CurrentSkyInstrument } from '@/features/public-sky';
 import { getPresentationLocale } from '@/lib/localization';
+import { getUiMessage, type UiMessageKey } from '@/lib/ui-catalog';
 
 const CURRENT_SKY_AT_UTC = '2026-09-01T12:00:00.000Z';
 const isCurrentSkyPreviewAvailable =
@@ -14,6 +15,7 @@ const seo = {
   canonical: '/'
 } as const;
 const locale = getPresentationLocale(Astro.url.pathname, Astro.locals.locale);
+const t = (key: UiMessageKey) => getUiMessage(locale, key);
 ---
 
 <SiteLayout seo={seo} mode="observatory">
@@ -30,9 +32,9 @@ const locale = getPresentationLocale(Astro.url.pathname, Astro.locals.locale);
     isCurrentSkyPreviewAvailable ? 'max-w-[78rem]' : null
   ]}>
     <header class="nn-section-header">
-      <p class="nn-eyebrow">Calculate</p>
-      <h1 class="nn-type-page-title max-w-2xl">Create your birth chart</h1>
-      <p class="nn-type-body max-w-xl">Enter the birth details you know.</p>
+      <p class="nn-eyebrow">{t('calculate.eyebrow')}</p>
+      <h1 class="nn-type-page-title max-w-2xl">{t('calculate.title')}</h1>
+      <p class="nn-type-body max-w-xl">{t('calculate.description')}</p>
     </header>
     <div class:list={isCurrentSkyPreviewAvailable ? ['grid', 'gap-8', 'md:grid-cols-[minmax(0,1fr)_minmax(18rem,0.72fr)]'] : []}>
       {isCurrentSkyPreviewAvailable ? (

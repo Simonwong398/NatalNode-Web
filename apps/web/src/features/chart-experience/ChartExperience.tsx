@@ -4,9 +4,8 @@ import { ChartWorkspace } from '@/features/chart-workspace';
 import { engineClient } from '@/lib/engine-client';
 import type { SupportedLocale } from '@/lib/localization';
 import { toChartRequest } from './chart-request';
+import { chartUi } from './chart-ui.js';
 import type { CalculatedChartSnapshot } from './types';
-
-const CALCULATION_ERROR = 'Chart calculation could not be completed. Please try again.';
 
 interface ChartExperienceProps {
   readonly locale?: SupportedLocale;
@@ -60,7 +59,7 @@ export default function ChartExperience({ locale }: ChartExperienceProps) {
       setSnapshot({ request, result });
       setSuccessfulCalculationSequence((current) => current + 1);
     } catch {
-      setCalculationError(CALCULATION_ERROR);
+      setCalculationError(chartUi(locale, 'calculate.error'));
     } finally {
       calculationInFlightRef.current = false;
       setIsCalculating(false);
@@ -72,6 +71,7 @@ export default function ChartExperience({ locale }: ChartExperienceProps) {
       <BirthInputForm
         isCalculationPending={isCalculating}
         onResolvedInput={handleResolvedInput}
+        locale={locale}
       />
 
       <section
@@ -85,14 +85,14 @@ export default function ChartExperience({ locale }: ChartExperienceProps) {
             </p>
             <h2 className="nn-type-card-title mt-1" id="chart-calculation-title">
               {isCalculating
-                ? 'Calculating the development chart…'
+                ? chartUi(locale, 'calculate.status.calculating')
                 : snapshot
-                  ? 'Development chart calculated'
-                  : 'Ready for resolved birth input'}
+                  ? chartUi(locale, 'calculate.status.completed')
+                  : chartUi(locale, 'calculate.status.ready')}
             </h2>
             {!snapshot && !isCalculating ? (
               <p className="nn-type-body-small mt-2">
-                Resolve valid birth details to start a chart calculation.
+                {chartUi(locale, 'calculate.status.readyHelp')}
               </p>
             ) : null}
           </div>

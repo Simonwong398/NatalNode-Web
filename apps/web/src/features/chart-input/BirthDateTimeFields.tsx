@@ -1,5 +1,7 @@
 import type { RefObject } from 'react';
 import { cn } from '@/lib/utils';
+import type { SupportedLocale } from '../../lib/localization.js';
+import { chartUi } from '../chart-experience/chart-ui.js';
 import type { BirthDatePart, BirthDateParts } from './birth-date-input';
 
 const inputClassName = 'nn-field';
@@ -9,6 +11,7 @@ interface BirthDateTimeFieldsProps {
   dateError?: string;
   isInteractionDisabled: boolean;
   localTime: string | null;
+  locale?: SupportedLocale;
   onBirthDatePartChange: (part: BirthDatePart, value: string) => void;
   onLocalTimeChange: (value: string) => void;
   onUnknownTimeChange: (checked: boolean) => void;
@@ -22,6 +25,7 @@ export default function BirthDateTimeFields({
   dateError,
   isInteractionDisabled,
   localTime,
+  locale,
   onBirthDatePartChange,
   onLocalTimeChange,
   onUnknownTimeChange,
@@ -29,20 +33,29 @@ export default function BirthDateTimeFields({
   timeInputRef,
   unknownTime
 }: BirthDateTimeFieldsProps) {
+  const monthFormatter = new Intl.DateTimeFormat(locale ?? 'en', {
+    month: 'long',
+    timeZone: 'UTC'
+  });
+  const monthLabel = (month: number) =>
+    monthFormatter.format(new Date(Date.UTC(2000, month - 1, 1)));
+
   return (
     <div className="grid min-w-0 gap-7 lg:grid-cols-[minmax(0,1.15fr)_minmax(0,1fr)]">
       <fieldset
         aria-describedby={dateError ? 'birth-date-error' : 'birth-date-help'}
         className="min-w-0 border-0 p-0"
       >
-        <legend className="nn-type-label">Birth date</legend>
+        <legend className="nn-type-label">
+          {chartUi(locale, 'birthInput.birthDate')}
+        </legend>
         <p className="nn-type-metadata mt-2" id="birth-date-help">
-          Use the date recorded at the birth place.
+          {chartUi(locale, 'birthInput.birthDateHelp')}
         </p>
         <div className="mt-4 grid min-w-0 grid-cols-[minmax(4.5rem,0.65fr)_minmax(0,1.35fr)] gap-3 sm:grid-cols-[minmax(4.5rem,0.7fr)_minmax(9rem,1.35fr)_minmax(5.5rem,0.8fr)]">
           <div className="min-w-0">
             <label className="nn-type-label" htmlFor="birth-date-day">
-              Day
+              {chartUi(locale, 'birthInput.day')}
             </label>
             <input
               aria-describedby={dateError ? 'birth-date-error' : 'birth-date-help'}
@@ -62,7 +75,7 @@ export default function BirthDateTimeFields({
           </div>
           <div className="min-w-0">
             <label className="nn-type-label" htmlFor="birth-date-month">
-              Month
+              {chartUi(locale, 'birthInput.month')}
             </label>
             <select
               aria-describedby={dateError ? 'birth-date-error' : 'birth-date-help'}
@@ -75,24 +88,20 @@ export default function BirthDateTimeFields({
               required
               value={birthDateParts.month}
             >
-              <option value="">Month</option>
-              <option value="01">January</option>
-              <option value="02">February</option>
-              <option value="03">March</option>
-              <option value="04">April</option>
-              <option value="05">May</option>
-              <option value="06">June</option>
-              <option value="07">July</option>
-              <option value="08">August</option>
-              <option value="09">September</option>
-              <option value="10">October</option>
-              <option value="11">November</option>
-              <option value="12">December</option>
+              <option value="">{chartUi(locale, 'birthInput.monthPlaceholder')}</option>
+              {Array.from({ length: 12 }, (_, index) => {
+                const month = index + 1;
+                return (
+                  <option key={month} value={String(month).padStart(2, '0')}>
+                    {monthLabel(month)}
+                  </option>
+                );
+              })}
             </select>
           </div>
           <div className="col-span-2 min-w-0 sm:col-span-1">
             <label className="nn-type-label" htmlFor="birth-date-year">
-              Year
+              {chartUi(locale, 'birthInput.year')}
             </label>
             <input
               aria-describedby={dateError ? 'birth-date-error' : 'birth-date-help'}
@@ -122,9 +131,11 @@ export default function BirthDateTimeFields({
         aria-describedby={timeError ? 'birth-time-error' : 'birth-time-help'}
         className="min-w-0 border-0 p-0"
       >
-        <legend className="nn-type-label">Birth time</legend>
+        <legend className="nn-type-label">
+          {chartUi(locale, 'birthInput.birthTime')}
+        </legend>
         <p className="nn-type-metadata mt-2" id="birth-time-help">
-          Use the local time recorded at the birth place.
+          {chartUi(locale, 'birthInput.birthTimeHelp')}
         </p>
         <input
           aria-describedby={timeError ? 'birth-time-error' : 'birth-time-help'}
@@ -154,9 +165,11 @@ export default function BirthDateTimeFields({
             type="checkbox"
           />
           <span className="min-w-0">
-            <span className="nn-type-label block">I don&apos;t know my exact birth time</span>
+            <span className="nn-type-label block">
+              {chartUi(locale, 'birthInput.unknownTimeLabel')}
+            </span>
             <span className="nn-type-metadata mt-1 block">
-              Keep time unknown; this is a trust limitation, not an input error.
+              {chartUi(locale, 'birthInput.unknownTimeHelp')}
             </span>
           </span>
         </label>

@@ -1,4 +1,6 @@
 import { cn } from '@/lib/utils';
+import type { SupportedLocale } from '../../lib/localization.js';
+import { chartUi } from '../chart-experience/chart-ui.js';
 import type { HouseSystemSelection } from './types';
 
 interface BirthAdvancedSettingsProps {
@@ -6,6 +8,7 @@ interface BirthAdvancedSettingsProps {
   houseSystem: HouseSystemSelection;
   isInteractionDisabled: boolean;
   isOpen: boolean;
+  locale?: SupportedLocale;
   onHouseSystemChange: (houseSystem: HouseSystemSelection) => void;
   onOpenChange: (isOpen: boolean) => void;
 }
@@ -15,6 +18,7 @@ export default function BirthAdvancedSettings({
   houseSystem,
   isInteractionDisabled,
   isOpen,
+  locale,
   onHouseSystemChange,
   onOpenChange
 }: BirthAdvancedSettingsProps) {
@@ -25,7 +29,7 @@ export default function BirthAdvancedSettings({
       open={isOpen}
     >
       <summary className="nn-type-label cursor-pointer">
-        Advanced chart settings
+        {chartUi(locale, 'birthInput.advancedSettings')}
       </summary>
       <div className="mt-4 max-w-sm">
         <label className="nn-type-label" htmlFor="house-system">

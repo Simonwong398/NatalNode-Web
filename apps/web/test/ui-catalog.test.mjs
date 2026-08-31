@@ -67,3 +67,19 @@ test('representative global-shell labels are localized for English, Spanish, Jap
     assert.equal(new Set(values).size, values.length, key);
   }
 });
+
+test('Calculate and Chart Workspace Class A labels are localized without changing stable catalog identities', () => {
+  for (const key of [
+    'calculate.title',
+    'birthInput.birthDate',
+    'birthInput.calculate',
+    'workspace.chartTab',
+    'workspace.detailsTab'
+  ]) {
+    const values = ['en', 'es', 'ja', 'zh-Hant'].map((locale) => getUiMessage(locale, key));
+    assert.equal(new Set(values).size, values.length, key);
+  }
+
+  assert.equal(getUiMessage('zh-Hant', 'birthInput.calculate'), '計算星盤');
+  assert.equal(getUiMessage('ja', 'workspace.detailsTab'), '詳細');
+});

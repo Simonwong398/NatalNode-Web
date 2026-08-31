@@ -17,6 +17,7 @@ export default function ChartWorkspace({ locale, resultTargetRef, snapshot }: Ch
   return (
     <ChartWorkspaceView
       chart={snapshot.result}
+      locale={locale}
       presentationPolicy={presentationPolicy}
       requestedHouseSystem={snapshot.request.houseSystem}
       resultTargetRef={resultTargetRef}

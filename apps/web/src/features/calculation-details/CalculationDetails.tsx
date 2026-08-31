@@ -1,9 +1,12 @@
 import { useId } from 'react';
 import type { ChartResult } from '@natalnode/contracts';
+import type { SupportedLocale } from '../../lib/localization.js';
+import { chartUi } from '../chart-experience/chart-ui.js';
 import type { ChartPresentationPolicy } from '@/features/chart-workspace/chart-presentation-policy';
 
 export type CalculationDetailsProps = {
   chart: ChartResult;
+  locale?: SupportedLocale;
   presentationPolicy: ChartPresentationPolicy;
   requestedHouseSystem: string;
 };
@@ -31,6 +34,7 @@ function DetailRow({ label, value, identifier = false }: DetailRowProps) {
 
 export default function CalculationDetails({
   chart,
+  locale,
   presentationPolicy,
   requestedHouseSystem
 }: CalculationDetailsProps) {
@@ -54,7 +58,7 @@ export default function CalculationDetails({
       className="nn-surface nn-surface--elevated overflow-hidden"
     >
       <h3 className="nn-type-section-title px-5 pt-5 sm:px-7" id={titleId}>
-        Calculation Details
+        {chartUi(locale, 'workspace.calculationDetails')}
       </h3>
 
       <div className="mt-5 grid min-w-0 gap-5 border-t border-natal-border/50 px-5 pb-6 pt-5 sm:px-7 sm:grid-cols-2">
@@ -100,10 +104,10 @@ export default function CalculationDetails({
 
         <section aria-labelledby={warningsTitleId} className="min-w-0 sm:col-span-2">
           <h4 className="nn-type-label" id={warningsTitleId}>
-            Warnings
+            {chartUi(locale, 'workspace.warnings')}
           </h4>
           {chart.warnings.length === 0 ? (
-            <p className="nn-type-body-small mt-2">None</p>
+            <p className="nn-type-body-small mt-2">{chartUi(locale, 'workspace.none')}</p>
           ) : (
             <ul className="mt-3 grid min-w-0 gap-3">
               {chart.warnings.map((warning, index) => (

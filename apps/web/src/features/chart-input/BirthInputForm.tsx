@@ -1,4 +1,5 @@
 import { useRef, useState } from 'react';
+import type { SupportedLocale } from '../../lib/localization.js';
 import BirthAdvancedSettings from './BirthAdvancedSettings';
 import BirthDateTimeFields from './BirthDateTimeFields';
 import BirthLocationFields from './BirthLocationFields';
@@ -26,6 +27,7 @@ import {
   type BirthDateParts
 } from './birth-date-input';
 import { useBirthInputResolution } from './useBirthInputResolution';
+import { chartUi } from '../chart-experience/chart-ui.js';
 
 type ValidationField = 'localDate' | 'localTime' | 'locationLabel' | 'houseSystem';
 
@@ -40,6 +42,7 @@ const defaultResolver: BirthInputResolver = new DevelopmentBirthInputResolver();
 
 export interface BirthInputFormProps {
   isCalculationPending?: boolean;
+  locale?: SupportedLocale;
   onResolvedInput: (selection: ResolvedBirthInputSelection) => void;
   resolver?: BirthInputResolver;
 }
@@ -52,21 +55,26 @@ export interface ResolvedBirthInputSelection {
 function validateDraft(
   draft: BirthInputDraft,
   unknownTime: boolean,
-  birthDateParts: BirthDateParts
+  birthDateParts: BirthDateParts,
+  locale: SupportedLocale | undefined
 ): ValidationErrors {
   const nextErrors: ValidationErrors = {};
   const birthDateError = getBirthDateValidationError(birthDateParts);
 
   if (birthDateError) {
-    nextErrors.localDate = birthDateError;
+    nextErrors.localDate = birthDateError === 'Enter a birth date.'
+      ? chartUi(locale, 'birthInput.error.birthDateRequired')
+      : birthDateError === 'Enter a complete birth date.'
+        ? chartUi(locale, 'birthInput.error.birthDateIncomplete')
+        : chartUi(locale, 'birthInput.error.birthDateInvalid');
   }
 
   if (!unknownTime && !draft.localTime) {
-    nextErrors.localTime = 'Enter a birth time or choose the unknown-time option.';
+    nextErrors.localTime = chartUi(locale, 'birthInput.error.birthTimeRequired');
   }
 
   if (!draft.locationLabel.trim()) {
-    nextErrors.locationLabel = 'Enter a birth place.';
+    nextErrors.locationLabel = chartUi(locale, 'birthInput.error.birthPlaceRequired');
   }
 
   if (!draft.houseSystem) {
@@ -129,6 +137,7 @@ function BirthDataTrustSection() {
 
 export default function BirthInputForm({
   isCalculationPending = false,
+  locale,
   onResolvedInput,
   resolver = defaultResolver
 }: BirthInputFormProps) {
@@ -252,7 +261,7 @@ export default function BirthInputForm({
       return;
     }
 
-    const nextErrors = validateDraft(draft, unknownTime, birthDateParts);
+    const nextErrors = validateDraft(draft, unknownTime, birthDateParts, locale);
     setErrors(nextErrors);
     clearResolutionError();
 
@@ -292,7 +301,7 @@ export default function BirthInputForm({
   return (
     <>
       <section
-        aria-label="Birth chart details"
+        aria-label={chartUi(locale, 'birthInput.detailsLabel')}
         className="nn-surface nn-surface--elevated nn-calculate-principal-surface mt-8 min-w-0 p-5 sm:p-7"
       >
         <form className="grid gap-6" noValidate onSubmit={handleSubmit}>
@@ -301,6 +310,7 @@ export default function BirthInputForm({
             dateError={errors.localDate}
             isInteractionDisabled={isInteractionDisabled}
             localTime={draft.localTime}
+            locale={locale}
             onBirthDatePartChange={handleBirthDatePartChange}
             onLocalTimeChange={(localTime) => updateEditableDraft({ localTime })}
             onUnknownTimeChange={handleUnknownTimeChange}
@@ -310,18 +320,20 @@ export default function BirthInputForm({
           />
 
           <section
-            aria-label="Birth place and system feedback"
+            aria-label={chartUi(locale, 'birthInput.placeAndSystemFeedbackLabel')}
             className="min-w-0 border-t border-[color:var(--nn-border-subtle)] pt-6"
           >
             <BirthLocationFields
               error={errors.locationLabel}
               isInteractionDisabled={isInteractionDisabled}
+              locale={locale}
               locationLabel={draft.locationLabel}
               onLocationLabelChange={(locationLabel) => updateEditableDraft({ locationLabel })}
             />
             <BirthResolutionFeedback
               isDevelopmentFixture={isDevelopmentFixtureResolver}
               isInteractionDisabled={isInteractionDisabled}
+              locale={locale}
               onEditBirthTime={() => timeInputRef.current?.focus()}
               onSelectCandidate={handleCandidateSelection}
               placement="blocking"
@@ -335,6 +347,7 @@ export default function BirthInputForm({
             houseSystem={draft.houseSystem}
             isInteractionDisabled={isInteractionDisabled}
             isOpen={isAdvancedSettingsOpen}
+            locale={locale}
             onHouseSystemChange={(houseSystem) => updateEditableDraft({ houseSystem })}
             onOpenChange={setIsAdvancedSettingsOpen}
           />
@@ -346,10 +359,10 @@ export default function BirthInputForm({
               type="submit"
             >
               {isCalculationPending
-                ? 'Calculating chart…'
+                ? chartUi(locale, 'birthInput.calculating')
                 : isResolving
-                  ? 'Resolving birth time…'
-                  : 'Calculate Chart'}
+                  ? chartUi(locale, 'birthInput.resolving')
+                  : chartUi(locale, 'birthInput.calculate')}
             </button>
             {isResolving ? (
               <p className="nn-status nn-status--info" role="status" aria-live="polite">
@@ -361,6 +374,7 @@ export default function BirthInputForm({
           <BirthResolutionFeedback
             isDevelopmentFixture={isDevelopmentFixtureResolver}
             isInteractionDisabled={isInteractionDisabled}
+            locale={locale}
             onEditBirthTime={() => timeInputRef.current?.focus()}
             onSelectCandidate={handleCandidateSelection}
             placement="non-blocking"

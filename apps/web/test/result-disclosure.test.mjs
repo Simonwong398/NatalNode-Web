@@ -80,6 +80,35 @@ test('Chart is the default single active mode with contextual Save and compact c
   });
 });
 
+test('localizes workspace controls while preserving professional and provenance copy', async () => {
+  await withResultWorkspace(
+    { chart: { ...focusedChart(), warnings: [] }, locale: 'zh-Hant' },
+    async (scope) => {
+      assert.equal(scope.container.querySelector('nav').getAttribute('aria-label'), '星盤工作區區段');
+      assert.equal(scope.tab('星盤').getAttribute('aria-selected'), 'true');
+      assert.equal(scope.tab('解讀').getAttribute('aria-selected'), 'false');
+      assert.equal(scope.tab('詳細資料').getAttribute('aria-selected'), 'false');
+
+      const saveAction = scope.button('儲存星盤');
+      assert.ok(saveAction);
+
+      const completeFacts = scope.disclosure('完整星盤資料');
+      assert.ok(completeFacts);
+
+      await scope.click(scope.tab('詳細資料'));
+      const detailsPanel = scope.panel('詳細資料');
+      assert.match(scope.text(detailsPanel), /Engine Version/u);
+      assert.match(scope.text(detailsPanel), /Research configuration/u);
+      assert.equal(scope.text(detailsPanel.querySelector('h3')), '計算詳細資料');
+      assert.equal(
+        [...detailsPanel.querySelectorAll('h4')].find((heading) => scope.text(heading) === '警告') !== undefined,
+        true
+      );
+      assert.match(scope.text(detailsPanel), /無/u);
+    }
+  );
+});
+
 test('Save intent reveals one unchanged form without changing mode and submits the same chart request', async () => {
   await withResultWorkspace({}, async (scope) => {
     const saveAction = scope.button('Save chart');
@@ -285,5 +314,5 @@ test('development disclosures and the production SaveChartPanel integration rema
   }
 
   assert.match(workspaceSource, /import SaveChartPanel from '@\/features\/vault\/SaveChartPanel';/u);
-  assert.match(workspaceSource, /<SaveChartPanel chartRequest=\{snapshot\.request\} \/>/u);
+  assert.match(workspaceSource, /<SaveChartPanel chartRequest=\{snapshot\.request\} locale=\{locale\} \/>/u);
 });

@@ -354,6 +354,7 @@ export default function SavedVaultChartExperience({
     >
       <ChartWorkspaceView
         chart={state.chart.canonicalChartResult}
+        locale={locale}
         presentationPolicy={presentationPolicy}
         requestedHouseSystem={state.chart.normalizedChartRequest.houseSystem}
       />
