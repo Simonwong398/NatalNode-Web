@@ -1,0 +1,55 @@
+---
+import FoundationsLessonExperience from '@/features/learn/foundations/FoundationsLessonExperience';
+import { getFoundationsUiMessages } from '@/features/learn/foundations/ui';
+import {
+  FOUNDATIONS_LESSONS,
+  getFoundationsLessonBySlug
+} from '@/features/learn/foundations/registry';
+import SiteLayout from '@/layouts/SiteLayout.astro';
+import {
+  getLocalizedPath,
+  parseSupportedLocale,
+  SUPPORTED_LOCALES
+} from '@/lib/localization';
+import type { SeoMetadata } from '@/lib/seo';
+
+export function getStaticPaths() {
+  return SUPPORTED_LOCALES.flatMap((locale) =>
+    FOUNDATIONS_LESSONS.map((lesson) => ({
+      params: { locale, lesson: lesson.slug }
+    }))
+  );
+}
+
+const locale = parseSupportedLocale(Astro.params.locale);
+if (locale === null) {
+  throw new Error('Unsupported locale route parameter');
+}
+
+const lesson = getFoundationsLessonBySlug(Astro.params.lesson);
+if (lesson === null) {
+  throw new Error('Unknown Foundations lesson route');
+}
+
+const showEnglishContent = locale !== 'en' && Astro.url.searchParams.get('contentLocale') === 'en';
+const ui = getFoundationsUiMessages(locale);
+const seo: SeoMetadata = {
+  title: `${lesson.title} | ${ui['learn.foundations.title']} | NatalNode`,
+  description: locale === 'en'
+    ? lesson.shortDescription
+    : ui['learn.foundations.contentUnavailable'],
+  canonical: getLocalizedPath(locale, `/learn/foundations/${lesson.slug}/`)
+};
+---
+
+<SiteLayout seo={seo}>
+  <main class="nn-container nn-container--editorial pb-20 pt-8 sm:pb-24 sm:pt-12">
+    <FoundationsLessonExperience
+      client:load
+      lessonId={lesson.lessonId}
+      locale={locale}
+      showEnglishContent={showEnglishContent}
+      ui={ui}
+    />
+  </main>
+</SiteLayout>

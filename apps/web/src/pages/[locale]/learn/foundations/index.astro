@@ -1,0 +1,31 @@
+---
+import FoundationsCourseExperience from '@/features/learn/foundations/FoundationsCourseExperience';
+import { getFoundationsUiMessages } from '@/features/learn/foundations/ui';
+import SiteLayout from '@/layouts/SiteLayout.astro';
+import {
+  getLocalizedPath,
+  getLocaleStaticPaths,
+  parseSupportedLocale
+} from '@/lib/localization';
+import type { SeoMetadata } from '@/lib/seo';
+
+export const getStaticPaths = getLocaleStaticPaths;
+
+const locale = parseSupportedLocale(Astro.params.locale);
+if (locale === null) {
+  throw new Error('Unsupported locale route parameter');
+}
+
+const ui = getFoundationsUiMessages(locale);
+const seo: SeoMetadata = {
+  title: `${ui['learn.foundations.title']} | NatalNode`,
+  description: ui['learn.foundations.description'],
+  canonical: getLocalizedPath(locale, '/learn/foundations/')
+};
+---
+
+<SiteLayout seo={seo}>
+  <main class="nn-container nn-container--editorial pb-20 pt-8 sm:pb-24 sm:pt-12">
+    <FoundationsCourseExperience client:load locale={locale} ui={ui} />
+  </main>
+</SiteLayout>
