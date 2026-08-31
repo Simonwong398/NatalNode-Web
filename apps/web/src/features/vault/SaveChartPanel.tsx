@@ -10,6 +10,11 @@ import {
   VAULT_CHART_CATEGORIES,
   type SaveVaultChartResult
 } from './save-vault-chart';
+import {
+  DEFAULT_LOCALE,
+  getLocalizedPath,
+  type SupportedLocale
+} from '@/lib/localization';
 
 const DISPLAY_NAME_MAX_LENGTH = 120;
 const SAVE_FAILURE_MESSAGE = "We couldn't save this chart. Please try again.";
@@ -19,6 +24,7 @@ type SaveState = 'idle' | 'saving' | 'saved' | 'invalid-request' | 'failed';
 
 export interface SaveChartPanelProps {
   chartRequest: ChartRequest;
+  locale?: SupportedLocale;
 }
 
 function toSaveState(result: SaveVaultChartResult): SaveState {
@@ -34,7 +40,7 @@ function toSaveState(result: SaveVaultChartResult): SaveState {
   }
 }
 
-export default function SaveChartPanel({ chartRequest }: SaveChartPanelProps) {
+export default function SaveChartPanel({ chartRequest, locale }: SaveChartPanelProps) {
   const [displayName, setDisplayName] = useState('');
   const [category, setCategory] = useState<VaultChartCategory>('SELF');
   const [nameError, setNameError] = useState<string | null>(null);
@@ -46,6 +52,7 @@ export default function SaveChartPanel({ chartRequest }: SaveChartPanelProps) {
   const displayNameId = `${panelId}-display-name`;
   const displayNameErrorId = `${panelId}-display-name-error`;
   const categoryId = `${panelId}-category`;
+  const vaultPath = getLocalizedPath(locale ?? DEFAULT_LOCALE, '/vault');
   currentChartRequestRef.current = chartRequest;
 
   useEffect(() => {
@@ -194,7 +201,7 @@ export default function SaveChartPanel({ chartRequest }: SaveChartPanelProps) {
           {saveState === 'saved' ? (
             <p className="nn-status nn-status--success" role="status">
               Saved to Vault.{' '}
-              <a className="font-medium underline underline-offset-4 hover:text-white" href="/vault">
+              <a className="font-medium underline underline-offset-4 hover:text-white" href={vaultPath}>
                 View Vault
               </a>
             </p>

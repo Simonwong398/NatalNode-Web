@@ -3,6 +3,7 @@ import type {
   NotificationStateApiResponse,
   RegisterPushSubscriptionApiRequest
 } from '@natalnode/contracts';
+import { getLocalizedCurrentPath } from '../../lib/localization.js';
 
 import {
   createNotificationClient,
@@ -396,7 +397,7 @@ function showFailure(
 
   if (failure.status === 'unauthorized') {
     elements.content.hidden = true;
-    window.location.replace(SIGN_IN_PATH);
+    window.location.replace(getLocalizedCurrentPath(window.location.pathname, SIGN_IN_PATH));
     return;
   }
 

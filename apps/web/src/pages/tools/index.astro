@@ -1,6 +1,7 @@
 ---
 import SiteLayout from '@/layouts/SiteLayout.astro';
 import { SEO_TOOL_TAXONOMY } from '@/lib/content-taxonomy';
+import { getLocalizedPath, getPresentationLocale } from '@/lib/localization';
 import type { SeoMetadata } from '@/lib/seo';
 
 const seo: SeoMetadata = {
@@ -10,6 +11,8 @@ const seo: SeoMetadata = {
 };
 
 const availableTools = SEO_TOOL_TAXONOMY.filter((tool) => tool.status === 'AVAILABLE');
+const locale = getPresentationLocale(Astro.url.pathname, Astro.locals.locale);
+const localize = (path: string): string => getLocalizedPath(locale, path);
 ---
 
 <SiteLayout seo={seo}>
@@ -37,7 +40,7 @@ const availableTools = SEO_TOOL_TAXONOMY.filter((tool) => tool.status === 'AVAIL
             <h3 class="nn-type-card-title nn-tools-card__title">
               <a
                 class="nn-tools-card__link font-semibold underline decoration-natal-accent/50 underline-offset-4 transition-colors hover:text-natal-accent"
-                href={tool.intendedPath}
+                href={localize(tool.intendedPath)}
               >
                 {tool.label}
               </a>
@@ -64,7 +67,7 @@ const availableTools = SEO_TOOL_TAXONOMY.filter((tool) => tool.status === 'AVAIL
         </p>
       </div>
       <p class="nn-type-body-small mt-6">Looking to calculate a natal chart?</p>
-      <a class="nn-button nn-button--quiet mt-2" href="/">
+      <a class="nn-button nn-button--quiet mt-2" href={localize('/')}>
         Calculate a chart →
       </a>
     </section>

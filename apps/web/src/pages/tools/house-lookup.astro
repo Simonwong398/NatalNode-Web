@@ -1,6 +1,7 @@
 ---
 import SiteLayout from '@/layouts/SiteLayout.astro';
 import { HOUSE_OPTIONS } from '@/lib/house-lookup';
+import { getLocalizedPath, getPresentationLocale } from '@/lib/localization';
 import type { SeoMetadata } from '@/lib/seo';
 
 const seo: SeoMetadata = {
@@ -8,6 +9,8 @@ const seo: SeoMetadata = {
   description: 'Select one of the twelve astrological houses to explore its traditional interpretive themes in a focused educational lookup.',
   canonical: '/tools/house-lookup'
 };
+const locale = getPresentationLocale(Astro.url.pathname, Astro.locals.locale);
+const localize = (path: string): string => getLocalizedPath(locale, path);
 ---
 
 <SiteLayout seo={seo}>
@@ -111,7 +114,7 @@ const seo: SeoMetadata = {
           Read the result as a starting point
         </h2>
         <p class="nn-type-body mt-4">
-          Choose a house, read its core domain and key themes, then consider the constructive expression and balancing consideration together. The language is educational and symbolic. You can continue with the <a class="text-natal-accent underline decoration-natal-accent/50 underline-offset-4 transition-colors hover:text-white" href="/tools/sign-lookup">Sign Lookup</a> or <a class="text-natal-accent underline decoration-natal-accent/50 underline-offset-4 transition-colors hover:text-white" href="/tools/aspect-lookup">Aspect Lookup</a> for related vocabulary.
+          Choose a house, read its core domain and key themes, then consider the constructive expression and balancing consideration together. The language is educational and symbolic. You can continue with the <a class="text-natal-accent underline decoration-natal-accent/50 underline-offset-4 transition-colors hover:text-white" href={localize('/tools/sign-lookup')}>Sign Lookup</a> or <a class="text-natal-accent underline decoration-natal-accent/50 underline-offset-4 transition-colors hover:text-white" href={localize('/tools/aspect-lookup')}>Aspect Lookup</a> for related vocabulary.
         </p>
       </section>
 
@@ -121,7 +124,7 @@ const seo: SeoMetadata = {
           An explanation, not a house calculator
         </h2>
         <p class="nn-type-body mt-4 max-w-3xl">
-          Different house systems can place cusps or planets differently, but this lookup does not select, compare, or calculate a house system. Terms such as maintenance, shared resources, transition, privacy, and less-visible processes are interpretive prompts; they are not medical diagnoses, financial predictions, death predictions, or psychiatric labels. For more context on chart inputs, read <a class="text-natal-accent underline decoration-natal-accent/50 underline-offset-4 transition-colors hover:text-white" href="/learn/what-is-a-natal-chart">What Is a Natal Chart?</a> or return to the <a class="text-natal-accent underline decoration-natal-accent/50 underline-offset-4 transition-colors hover:text-white" href="/tools/">Tools hub</a>.
+          Different house systems can place cusps or planets differently, but this lookup does not select, compare, or calculate a house system. Terms such as maintenance, shared resources, transition, privacy, and less-visible processes are interpretive prompts; they are not medical diagnoses, financial predictions, death predictions, or psychiatric labels. For more context on chart inputs, read <a class="text-natal-accent underline decoration-natal-accent/50 underline-offset-4 transition-colors hover:text-white" href={localize('/learn/what-is-a-natal-chart')}>What Is a Natal Chart?</a> or return to the <a class="text-natal-accent underline decoration-natal-accent/50 underline-offset-4 transition-colors hover:text-white" href={localize('/tools/')}>Tools hub</a>.
         </p>
       </section>
     </div>

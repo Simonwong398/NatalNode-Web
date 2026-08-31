@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { getLocalizedCurrentPath } from '../../lib/localization.js';
 import type {
   BirthRequest,
   BirthTimeAmbiguityStatus,
@@ -272,7 +273,7 @@ export default function SavedVaultChartExperience() {
         );
 
         if (response.status === 401) {
-          window.location.replace(SIGN_IN_PATH);
+          window.location.replace(getLocalizedCurrentPath(window.location.pathname, SIGN_IN_PATH));
           return;
         }
 
@@ -336,7 +337,7 @@ export default function SavedVaultChartExperience() {
     <VaultChartManagement
       chart={state.chart}
       onChartUpdated={handleChartUpdated}
-      onDeleted={() => window.location.replace('/vault')}
+      onDeleted={() => window.location.replace(getLocalizedCurrentPath(window.location.pathname, '/vault'))}
     >
       <ChartWorkspaceView
         chart={state.chart.canonicalChartResult}

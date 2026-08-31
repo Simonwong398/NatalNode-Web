@@ -1,0 +1,21 @@
+---
+import { getCollection } from 'astro:content';
+import Page from '../../learn/[slug].astro';
+import { parseSupportedLocale, SUPPORTED_LOCALES } from '@/lib/localization';
+
+export async function getStaticPaths() {
+  const entries = await getCollection('learn', ({ data }) => !data.draft);
+
+  return SUPPORTED_LOCALES.flatMap((locale) => entries.map((entry) => ({
+    params: { locale, slug: entry.data.slug },
+    props: { entry }
+  })));
+}
+
+const locale = parseSupportedLocale(Astro.params.locale);
+if (locale === null) {
+  throw new Error('Unsupported locale route parameter');
+}
+---
+
+<Page entry={Astro.props.entry} />

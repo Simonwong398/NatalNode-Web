@@ -1,6 +1,7 @@
 ---
 import SavedVaultChartExperience from '@/features/vault/SavedVaultChartExperience';
 import SiteLayout from '@/layouts/SiteLayout.astro';
+import { getLocalizedPath, getPresentationLocale } from '@/lib/localization';
 import type { SeoMetadata } from '@/lib/seo';
 
 const seo: SeoMetadata = {
@@ -9,11 +10,13 @@ const seo: SeoMetadata = {
   canonical: '/vault/chart',
   robots: 'noindex,nofollow'
 };
+const locale = getPresentationLocale(Astro.url.pathname, Astro.locals.locale);
+const localize = (path: string): string => getLocalizedPath(locale, path);
 ---
 
 <SiteLayout seo={seo}>
   <main class="nn-container nn-container--workspace pb-20 pt-8 sm:pt-12">
-    <a class="nn-button nn-button--quiet -ml-3" href="/vault">
+    <a class="nn-button nn-button--quiet -ml-3" href={localize('/vault')}>
       ← Back to Vault
     </a>
     <header class="mt-8 max-w-3xl">

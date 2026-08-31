@@ -1,3 +1,5 @@
+import { getLocalizedCurrentPath } from '../../lib/localization.js';
+
 const SIGN_IN_PATH = '/auth/sign-in';
 const READY_BUTTON_LABEL = 'Download your data';
 const PENDING_BUTTON_LABEL = 'Preparing your download…';
@@ -94,7 +96,7 @@ function handleErrorCode(
 ): void {
   if (code === 'UNAUTHORIZED') {
     elements.accountContent.hidden = true;
-    window.location.replace(SIGN_IN_PATH);
+    window.location.replace(getLocalizedCurrentPath(window.location.pathname, SIGN_IN_PATH));
     return;
   }
 

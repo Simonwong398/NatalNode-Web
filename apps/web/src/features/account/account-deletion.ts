@@ -1,4 +1,5 @@
 import type { CurrentSessionApiResponse } from '@natalnode/contracts';
+import { getLocalizedCurrentPath } from '../../lib/localization.js';
 
 const SESSION_ENDPOINT = '/api/auth/session';
 const ACCOUNT_ENDPOINT = '/api/account';
@@ -48,7 +49,7 @@ function setSessionError(elements: AccountDeletionElements): void {
 
 function redirectToSignIn(elements: AccountDeletionElements): void {
   elements.accountContent.hidden = true;
-  window.location.replace(SIGN_IN_PATH);
+  window.location.replace(getLocalizedCurrentPath(window.location.pathname, SIGN_IN_PATH));
 }
 
 async function resolveSession(elements: AccountDeletionElements): Promise<void> {
@@ -187,7 +188,7 @@ async function deleteAccount(elements: AccountDeletionElements): Promise<void> {
 
     if (response.status === 204) {
       elements.accountContent.hidden = true;
-      window.location.replace(HOME_PATH);
+      window.location.replace(getLocalizedCurrentPath(window.location.pathname, HOME_PATH));
       return;
     }
 

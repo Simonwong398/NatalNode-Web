@@ -2,6 +2,7 @@ import type {
   CompleteEmailMagicLinkApiRequest,
   CompleteEmailMagicLinkApiResponse
 } from '@natalnode/contracts';
+import { getLocalizedCurrentPath } from '../../lib/localization.js';
 
 const COMPLETE_ENDPOINT = '/api/auth/email/complete';
 const SUCCESS_REDIRECT_PATH = '/';
@@ -81,7 +82,9 @@ export async function completeEmailMagicLink(statusElement: HTMLElement): Promis
       return;
     }
 
-    window.location.replace(SUCCESS_REDIRECT_PATH);
+    window.location.replace(
+      getLocalizedCurrentPath(window.location.pathname, SUCCESS_REDIRECT_PATH)
+    );
   } catch (_error) {
     setFailure(statusElement);
   }

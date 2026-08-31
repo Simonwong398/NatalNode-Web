@@ -4,6 +4,7 @@ import type {
   VaultChartCategory,
   VaultChartRecord
 } from '@natalnode/contracts';
+import { getLocalizedCurrentPath } from '../../lib/localization.js';
 
 const VAULT_CHARTS_ENDPOINT = '/api/vault/charts';
 const SIGN_IN_PATH = '/auth/sign-in';
@@ -82,7 +83,7 @@ export async function saveVaultChart(
     });
 
     if (response.status === 401) {
-      window.location.replace(SIGN_IN_PATH);
+      window.location.replace(getLocalizedCurrentPath(window.location.pathname, SIGN_IN_PATH));
       return { status: 'redirected' };
     }
 

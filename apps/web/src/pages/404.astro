@@ -1,5 +1,6 @@
 ---
 import SiteLayout from '@/layouts/SiteLayout.astro';
+import { getLocalizedPath, getPresentationLocale } from '@/lib/localization';
 import type { SeoMetadata } from '@/lib/seo';
 
 const seo: SeoMetadata = {
@@ -8,6 +9,8 @@ const seo: SeoMetadata = {
   canonical: '/404',
   robots: 'noindex,follow'
 };
+const locale = getPresentationLocale(Astro.url.pathname, Astro.locals.locale);
+const localize = (path: string): string => getLocalizedPath(locale, path);
 ---
 
 <SiteLayout seo={seo}>
@@ -19,7 +22,7 @@ const seo: SeoMetadata = {
         The page may have moved, or the address may be incorrect.
       </p>
 
-      <a class="nn-button nn-button--primary mt-8" href="/">Calculate a chart</a>
+      <a class="nn-button nn-button--primary mt-8" href={localize('/')}>Calculate a chart</a>
 
       <nav class="mt-10 border-t border-natal-border/70 pt-6" aria-label="Page recovery links">
         <p class="nn-type-metadata">Continue to</p>
@@ -27,7 +30,7 @@ const seo: SeoMetadata = {
           <li>
             <a
               class="font-semibold underline decoration-natal-accent/50 underline-offset-4 transition-colors hover:text-natal-accent"
-              href="/learn/"
+              href={localize('/learn/')}
             >
               Learn
             </a>
@@ -35,7 +38,7 @@ const seo: SeoMetadata = {
           <li>
             <a
               class="font-semibold underline decoration-natal-accent/50 underline-offset-4 transition-colors hover:text-natal-accent"
-              href="/tools/"
+              href={localize('/tools/')}
             >
               Tools
             </a>
@@ -43,7 +46,7 @@ const seo: SeoMetadata = {
           <li>
             <a
               class="font-semibold underline decoration-natal-accent/50 underline-offset-4 transition-colors hover:text-natal-accent"
-              href="/"
+              href={localize('/')}
             >
               Home
             </a>

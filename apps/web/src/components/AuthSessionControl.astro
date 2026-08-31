@@ -1,11 +1,21 @@
 ---
-const isAccountPage = Astro.url.pathname === '/account';
-const isFeedbackPage = Astro.url.pathname === '/feedback';
+import {
+  getLocalizedPath,
+  getLocaleIndependentPath,
+  getPresentationLocale
+} from '@/lib/localization';
+
+const locale = getPresentationLocale(Astro.url.pathname, Astro.locals.locale);
+const routeIdentity = getLocaleIndependentPath(Astro.url.pathname);
+const localize = (path: string): string => getLocalizedPath(locale, path);
+const isAccountPage = routeIdentity === '/account';
+const isFeedbackPage = routeIdentity === '/feedback';
 ---
 
 <span
   class="nn-session-control"
   data-auth-session-control
+  data-account-path={localize('/account')}
   aria-busy="true"
   hidden
 >
@@ -20,7 +30,7 @@ const isFeedbackPage = Astro.url.pathname === '/feedback';
   <a
     class="nn-session-control__link nn-button nn-button--quiet"
     data-auth-signed-out
-    href="/auth/sign-in"
+    href={localize('/auth/sign-in')}
     hidden
   >
     Sign in
@@ -28,7 +38,7 @@ const isFeedbackPage = Astro.url.pathname === '/feedback';
   <a
     class="nn-session-control__link nn-button nn-button--quiet"
     data-auth-feedback
-    href="/feedback"
+    href={localize('/feedback')}
     aria-current={isFeedbackPage ? 'page' : undefined}
     hidden
   >
@@ -68,7 +78,8 @@ const isFeedbackPage = Astro.url.pathname === '/feedback';
       accountLink,
       feedbackLink,
       signedInButton,
-      statusElement
+      statusElement,
+      accountPath: root.dataset.accountPath ?? '/account'
     });
   }
 </script>

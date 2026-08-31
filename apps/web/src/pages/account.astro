@@ -1,5 +1,6 @@
 ---
 import SiteLayout from '@/layouts/SiteLayout.astro';
+import { getLocalizedPath, getPresentationLocale } from '@/lib/localization';
 import type { SeoMetadata } from '@/lib/seo';
 
 const seo: SeoMetadata = {
@@ -8,6 +9,8 @@ const seo: SeoMetadata = {
   canonical: '/account',
   robots: 'noindex,nofollow'
 };
+const locale = getPresentationLocale(Astro.url.pathname, Astro.locals.locale);
+const localize = (path: string): string => getLocalizedPath(locale, path);
 ---
 
 <SiteLayout seo={seo} mode="editorial">
@@ -260,7 +263,7 @@ const seo: SeoMetadata = {
               <p>
                 For security, sign in again before downloading your account data.
               </p>
-              <a class="nn-button nn-button--secondary self-start" href="/auth/sign-in">
+              <a class="nn-button nn-button--secondary self-start" href={localize('/auth/sign-in')}>
                 Sign in again
               </a>
             </section>
@@ -376,7 +379,7 @@ const seo: SeoMetadata = {
                   For security, please sign in again with an Email Magic Link before
                   deleting your account.
                 </p>
-                <a class="nn-button nn-button--secondary self-start" href="/auth/sign-in">
+                <a class="nn-button nn-button--secondary self-start" href={localize('/auth/sign-in')}>
                   Sign in again
                 </a>
               </section>

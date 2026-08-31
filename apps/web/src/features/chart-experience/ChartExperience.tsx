@@ -2,12 +2,17 @@ import { useEffect, useRef, useState } from 'react';
 import { BirthInputForm, type ResolvedBirthInputSelection } from '@/features/chart-input';
 import { ChartWorkspace } from '@/features/chart-workspace';
 import { engineClient } from '@/lib/engine-client';
+import type { SupportedLocale } from '@/lib/localization';
 import { toChartRequest } from './chart-request';
 import type { CalculatedChartSnapshot } from './types';
 
 const CALCULATION_ERROR = 'Chart calculation could not be completed. Please try again.';
 
-export default function ChartExperience() {
+interface ChartExperienceProps {
+  readonly locale?: SupportedLocale;
+}
+
+export default function ChartExperience({ locale }: ChartExperienceProps) {
   const [snapshot, setSnapshot] = useState<CalculatedChartSnapshot | null>(null);
   const [isCalculating, setIsCalculating] = useState(false);
   const [calculationError, setCalculationError] = useState<string | null>(null);
@@ -120,6 +125,7 @@ export default function ChartExperience() {
       {snapshot ? (
         <ChartWorkspace
           key={successfulCalculationSequence}
+          locale={locale}
           resultTargetRef={resultTargetRef}
           snapshot={snapshot}
         />

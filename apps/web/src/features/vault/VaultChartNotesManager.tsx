@@ -1,5 +1,6 @@
 import type { SyntheticEvent } from 'react';
 import { useEffect, useId, useRef, useState } from 'react';
+import { getLocalizedCurrentPath } from '../../lib/localization.js';
 import type { ChartNoteRecord } from '@natalnode/contracts';
 import VaultChartNoteEditor from './VaultChartNoteEditor.js';
 import {
@@ -26,7 +27,7 @@ interface VaultChartNotesManagerProps {
 }
 
 function redirectToSignIn(): void {
-  window.location.replace(SIGN_IN_PATH);
+  window.location.replace(getLocalizedCurrentPath(window.location.pathname, SIGN_IN_PATH));
 }
 
 function noteTimestampLabel(note: ChartNoteRecord): string {

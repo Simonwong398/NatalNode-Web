@@ -3,6 +3,7 @@ import type {
   VaultChartCategory,
   VaultChartRecord
 } from '@natalnode/contracts';
+import { getLocalizedCurrentPath } from '../../lib/localization.js';
 
 const SESSION_ENDPOINT = '/api/auth/session';
 const VAULT_CHARTS_ENDPOINT = '/api/vault/charts';
@@ -112,7 +113,10 @@ function renderChartList(
     const openLink = document.createElement('a');
     openLink.className =
       'nn-button nn-button--secondary mt-6 self-start';
-    openLink.href = `/vault/chart?chartId=${encodeURIComponent(chart.chartId)}`;
+    openLink.href = getLocalizedCurrentPath(
+      window.location.pathname,
+      `/vault/chart?chartId=${encodeURIComponent(chart.chartId)}`
+    );
     openLink.textContent = 'Open';
 
     item.append(title, category, savedAt, openLink);
@@ -143,7 +147,7 @@ function render(
 }
 
 function redirectToSignIn(): void {
-  window.location.replace(SIGN_IN_PATH);
+  window.location.replace(getLocalizedCurrentPath(window.location.pathname, SIGN_IN_PATH));
 }
 
 async function loadVaultCharts(elements: VaultPageElements): Promise<void> {

@@ -1,5 +1,6 @@
 ---
 import SiteLayout from '@/layouts/SiteLayout.astro';
+import { getLocalizedPath, getPresentationLocale } from '@/lib/localization';
 import type { SeoMetadata } from '@/lib/seo';
 
 const seo: SeoMetadata = {
@@ -7,6 +8,8 @@ const seo: SeoMetadata = {
   description: 'How NatalNode separates chart calculation from interpretation, handles uncertainty, and exposes calculation provenance.',
   canonical: '/methodology'
 };
+const locale = getPresentationLocale(Astro.url.pathname, Astro.locals.locale);
+const localize = (path: string): string => getLocalizedPath(locale, path);
 ---
 
 <SiteLayout seo={seo} mode="editorial">
@@ -112,7 +115,7 @@ const seo: SeoMetadata = {
         <p class="mt-5 nn-type-body-small">
           For the product perspective, <a
             class="font-semibold text-natal-accent underline decoration-natal-accent/50 underline-offset-4 transition-colors hover:text-white"
-            href="/about"
+            href={localize('/about')}
           >read about NatalNode</a>.
         </p>
       </section>

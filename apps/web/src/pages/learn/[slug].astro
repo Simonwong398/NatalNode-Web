@@ -2,6 +2,7 @@
 import { getCollection, render, type CollectionEntry } from 'astro:content';
 import SiteLayout from '@/layouts/SiteLayout.astro';
 import { LEARN_CATEGORIES } from '@/lib/content-taxonomy';
+import { getLocalizedPath, getPresentationLocale } from '@/lib/localization';
 import { resolveCanonicalUrl, type SeoMetadata } from '@/lib/seo';
 
 type Props = {
@@ -20,6 +21,8 @@ export async function getStaticPaths() {
 const { entry } = Astro.props as Props;
 const { Content } = await render(entry);
 const category = LEARN_CATEGORIES.find((item) => item.key === entry.data.category);
+const locale = getPresentationLocale(Astro.url.pathname, Astro.locals.locale);
+const localize = (path: string): string => getLocalizedPath(locale, path);
 const seo: SeoMetadata = {
   title: `${entry.data.title} | NatalNode`,
   description: entry.data.description,
@@ -48,7 +51,7 @@ const articleStructuredData: Record<string, unknown> = {
   <main class="nn-container nn-container--editorial pb-20 pt-8 sm:pb-24 sm:pt-12">
     <article class="max-w-reading">
       <header class="border-b border-natal-border/70 pb-10">
-        <a class="nn-button nn-button--quiet -ml-3" href="/learn/">← Back to Learn</a>
+        <a class="nn-button nn-button--quiet -ml-3" href={localize('/learn/')}>← Back to Learn</a>
         <p class="nn-badge mt-8">
           {category?.label ?? entry.data.category}
         </p>

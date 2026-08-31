@@ -1,4 +1,5 @@
 import { useId, useState } from 'react';
+import { getLocalizedCurrentPath } from '../../lib/localization.js';
 import { deleteVaultChart } from './vault-management.js';
 
 const SIGN_IN_PATH = '/auth/sign-in';
@@ -9,7 +10,7 @@ interface VaultChartDeletionPanelProps {
 }
 
 function redirectToSignIn(): void {
-  window.location.replace(SIGN_IN_PATH);
+  window.location.replace(getLocalizedCurrentPath(window.location.pathname, SIGN_IN_PATH));
 }
 
 export default function VaultChartDeletionPanel({

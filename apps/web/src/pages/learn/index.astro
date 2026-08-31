@@ -3,6 +3,7 @@ import { getCollection } from 'astro:content';
 import EditorialPlanetHero from '@/components/EditorialPlanetHero.astro';
 import SiteLayout from '@/layouts/SiteLayout.astro';
 import { LEARN_CATEGORIES } from '@/lib/content-taxonomy';
+import { getLocalizedPath, getPresentationLocale } from '@/lib/localization';
 import type { SeoMetadata } from '@/lib/seo';
 
 const articles = (await getCollection('learn', ({ data }) => !data.draft)).sort(
@@ -14,6 +15,8 @@ const seo: SeoMetadata = {
   description: 'Foundational astrology education with clear language, explicit inputs, and transparent interpretation.',
   canonical: '/learn/'
 };
+const locale = getPresentationLocale(Astro.url.pathname, Astro.locals.locale);
+const localize = (path: string): string => getLocalizedPath(locale, path);
 
 function formatDate(date: Date): string {
   return new Intl.DateTimeFormat('en-US', {
@@ -49,7 +52,7 @@ function formatDate(date: Date): string {
                 <h3 class="nn-type-card-title mt-4">
                   <a
                     class="font-semibold underline decoration-natal-accent/50 underline-offset-4 transition-colors hover:text-natal-accent"
-                    href={`/learn/${article.data.slug}`}
+                    href={localize(`/learn/${article.data.slug}`)}
                   >
                     {article.data.title}
                   </a>
@@ -59,7 +62,7 @@ function formatDate(date: Date): string {
                 </p>
                 <a
                   class="mt-5 inline-flex font-semibold text-natal-accent underline decoration-natal-accent/50 underline-offset-4 transition-colors hover:text-white"
-                  href={`/learn/${article.data.slug}`}
+                  href={localize(`/learn/${article.data.slug}`)}
                 >
                   Read the guide →
                 </a>
@@ -87,7 +90,7 @@ function formatDate(date: Date): string {
       </p>
       <a
         class="mt-5 inline-flex font-semibold text-natal-accent underline decoration-natal-accent/50 underline-offset-4 transition-colors hover:text-white"
-        href="/methodology"
+        href={localize('/methodology')}
       >
         Methodology →
       </a>

@@ -2,10 +2,10 @@ import type {
   CurrentSessionApiResponse,
   LogoutApiResponse
 } from '@natalnode/contracts';
+import { getLocalizedCurrentPath } from '../../lib/localization.js';
 
 const SESSION_ENDPOINT = '/api/auth/session';
 const LOGOUT_ENDPOINT = '/api/auth/logout';
-const ACCOUNT_PATH = '/account';
 const SIGNED_IN_STATUS = 'signedIn';
 const SIGNED_OUT_STATUS = 'signedOut';
 const LOGOUT_PENDING_STATUS = 'logoutPending';
@@ -28,6 +28,7 @@ export interface AuthSessionControlElements {
   readonly feedbackLink: HTMLAnchorElement;
   readonly signedInButton: HTMLButtonElement;
   readonly statusElement: HTMLElement;
+  readonly accountPath: string;
 }
 
 function isCurrentSessionResponse(
@@ -65,7 +66,7 @@ function render(
   elements.signedOutLink.hidden = !isSignedOut;
   elements.accountLink.hidden = !isSignedIn;
   if (isSignedIn) {
-    elements.accountLink.setAttribute('href', ACCOUNT_PATH);
+    elements.accountLink.setAttribute('href', elements.accountPath);
   } else {
     elements.accountLink.removeAttribute('href');
   }
@@ -135,7 +136,7 @@ async function requestLogout(
       return;
     }
 
-    window.location.replace('/');
+    window.location.replace(getLocalizedCurrentPath(window.location.pathname, '/'));
   } catch (_error) {
     setState(LOGOUT_ERROR_STATUS);
   }

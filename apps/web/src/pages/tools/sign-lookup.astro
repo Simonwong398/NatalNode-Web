@@ -5,6 +5,7 @@ import {
   MODALITY_MEANINGS,
   SIGN_OPTIONS
 } from '@/lib/sign-lookup';
+import { getLocalizedPath, getPresentationLocale } from '@/lib/localization';
 import type { SeoMetadata } from '@/lib/seo';
 
 const seo: SeoMetadata = {
@@ -12,6 +13,8 @@ const seo: SeoMetadata = {
   description: 'Select one of the twelve zodiac signs to explore its element, modality, and interpretive themes in a focused educational lookup.',
   canonical: '/tools/sign-lookup'
 };
+const locale = getPresentationLocale(Astro.url.pathname, Astro.locals.locale);
+const localize = (path: string): string => getLocalizedPath(locale, path);
 ---
 
 <SiteLayout seo={seo}>
@@ -119,7 +122,7 @@ const seo: SeoMetadata = {
           Read the result as a starting point
         </h2>
         <p class="nn-type-body mt-4">
-          Begin with the element and modality, then notice how the core style and constructive expression fit together. The potential tension is an invitation to reflect on balance, not a prediction or a fixed label. You can compare this tool with the <a class="text-natal-accent underline decoration-natal-accent/50 underline-offset-4 transition-colors hover:text-white" href="/tools/aspect-lookup">Aspect Lookup</a> when you want to explore another piece of astrology vocabulary.
+          Begin with the element and modality, then notice how the core style and constructive expression fit together. The potential tension is an invitation to reflect on balance, not a prediction or a fixed label. You can compare this tool with the <a class="text-natal-accent underline decoration-natal-accent/50 underline-offset-4 transition-colors hover:text-white" href={localize('/tools/aspect-lookup')}>Aspect Lookup</a> when you want to explore another piece of astrology vocabulary.
         </p>
       </section>
 
@@ -129,7 +132,7 @@ const seo: SeoMetadata = {
           An explanation, not a sign calculator
         </h2>
         <p class="nn-type-body mt-4 max-w-3xl">
-          This tool explains a zodiac sign you select. It does not calculate a sign from your birth date or planetary position, and it does not claim scientific validation for astrological interpretation. For an introduction to chart inputs and calculation boundaries, read <a class="text-natal-accent underline decoration-natal-accent/50 underline-offset-4 transition-colors hover:text-white" href="/learn/what-is-a-natal-chart">What Is a Natal Chart?</a> or return to the <a class="text-natal-accent underline decoration-natal-accent/50 underline-offset-4 transition-colors hover:text-white" href="/tools/">Tools hub</a>.
+          This tool explains a zodiac sign you select. It does not calculate a sign from your birth date or planetary position, and it does not claim scientific validation for astrological interpretation. For an introduction to chart inputs and calculation boundaries, read <a class="text-natal-accent underline decoration-natal-accent/50 underline-offset-4 transition-colors hover:text-white" href={localize('/learn/what-is-a-natal-chart')}>What Is a Natal Chart?</a> or return to the <a class="text-natal-accent underline decoration-natal-accent/50 underline-offset-4 transition-colors hover:text-white" href={localize('/tools/')}>Tools hub</a>.
         </p>
       </section>
     </div>

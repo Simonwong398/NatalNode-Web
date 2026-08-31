@@ -2,6 +2,7 @@
 import SiteLayout from '@/layouts/SiteLayout.astro';
 import { ChartExperience } from '@/features/chart-experience';
 import { CurrentSkyInstrument } from '@/features/public-sky';
+import { getPresentationLocale } from '@/lib/localization';
 
 const CURRENT_SKY_AT_UTC = '2026-09-01T12:00:00.000Z';
 const isCurrentSkyPreviewAvailable =
@@ -12,6 +13,7 @@ const seo = {
   description: 'Calculate and understand a natal chart with clear uncertainty handling, structured interpretation, and inspectable calculation details.',
   canonical: '/'
 } as const;
+const locale = getPresentationLocale(Astro.url.pathname, Astro.locals.locale);
 ---
 
 <SiteLayout seo={seo} mode="observatory">
@@ -47,7 +49,7 @@ const seo = {
         </aside>
       ) : null}
       <div class:list={['min-w-0', isCurrentSkyPreviewAvailable ? ['order-2', 'md:order-1'] : []]}>
-        <ChartExperience client:load />
+        <ChartExperience locale={locale} client:load />
       </div>
     </div>
   </main>

@@ -4,6 +4,7 @@ import type {
   CurrentSessionApiResponse,
   FeedbackCategory
 } from '@natalnode/contracts';
+import { getLocalizedCurrentPath } from '../../lib/localization.js';
 
 const SESSION_ENDPOINT = '/api/auth/session';
 const FEEDBACK_ENDPOINT = '/api/feedback';
@@ -172,7 +173,7 @@ function showAuthenticatedForm(elements: PrivateFeedbackElements): void {
 }
 
 function redirectToSignIn(): void {
-  window.location.replace(SIGN_IN_PATH);
+  window.location.replace(getLocalizedCurrentPath(window.location.pathname, SIGN_IN_PATH));
 }
 
 async function resolveSession(elements: PrivateFeedbackElements): Promise<void> {

@@ -1,0 +1,13 @@
+---
+import Page from '../feedback.astro';
+import { getLocaleStaticPaths, parseSupportedLocale } from '@/lib/localization';
+
+export const getStaticPaths = getLocaleStaticPaths;
+
+const locale = parseSupportedLocale(Astro.params.locale);
+if (locale === null) {
+  throw new Error('Unsupported locale route parameter');
+}
+---
+
+<Page locale={locale} />
