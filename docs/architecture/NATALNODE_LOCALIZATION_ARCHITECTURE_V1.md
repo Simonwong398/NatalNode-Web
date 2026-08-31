@@ -911,6 +911,14 @@ If an approved localized article does not exist, future content/SEO behavior
 may use English fallback or omit a localized article route according to a
 later explicit decision. The architecture does not select that route policy.
 
+Foundations V1 Core is the deliberate seven-locale parity exception. Its
+exactly twelve lessons are fully available only when each lesson has an
+approved/current Class C variant in `en`, `es`, `fr`, `de`, `ja`, `ko`, and
+`zh-Hant`. Advanced Learn and later editorial families remain progressive per
+locale and keep the approved/current variant → canonical English fallback or
+route-omission boundary. The learning architecture owns the detailed course
+identity and readiness gate; this section only records the cross-plane rule.
+
 ### 13.2 Tools
 
 A single Tool page may consume all three planes:

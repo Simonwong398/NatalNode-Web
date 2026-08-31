@@ -348,6 +348,13 @@ product MAY fall back to English or omit the localized article route according
 to a later SEO/content architecture decision. The exact route behavior is
 deferred and MUST NOT be silently selected by implementation work.
 
+`NatalNode Foundations V1 Core` is a deliberate exception to this general
+progressive Learn rule: its fixed twelve-lesson core is intended to be fully
+available only after approved/current Class C adaptations exist in all seven
+V1 locales. This exception does not require advanced Learn or later editorial
+families to reach seven-locale parity; those remain progressive and retain the
+deterministic English-fallback/omission boundary above.
+
 ### 8.4 Tools policy
 
 Ordinary Tools UI is Class A. Professional astrology terminology inside a
