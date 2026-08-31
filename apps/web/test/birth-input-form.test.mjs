@@ -106,7 +106,7 @@ describe('initial render, validation, and configuration', () => {
           ['', 'Choose a house system', true],
           ['Placidus', 'Placidus', false],
           ['Whole Sign', 'Whole Sign', false],
-          ['Equal', 'Equal', false]
+          ['Equal', 'Equal House', false]
         ]
       );
       assert.equal(scope.container.querySelector('form').noValidate, true);
@@ -233,7 +233,7 @@ describe('initial render, validation, and configuration', () => {
             ['', 'Choose a house system', true],
             ['Placidus', 'Placidus', false],
             ['Whole Sign', 'Whole Sign', false],
-            ['Equal', 'Equal', false]
+            ['Equal', 'Equal House', false]
           ]
         );
 

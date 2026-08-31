@@ -49,13 +49,14 @@ export default function CalculationDetails({
   const isResearchConfiguration = chart.calculationStatus === 'INCOMPLETE_RESEARCH';
   const astronomyConfiguration = chart.metadata.astronomyConfigurationId ?? 'Unavailable';
   const provenanceEnvelope = chart.metadata.provenanceEnvelopeId ?? 'Unavailable';
-  const houseSystem = presentationPolicy.showHouses
-    ? resolveAstrologyDomainTerm(
-      'house_system',
-      chart.houses?.system,
-      locale ?? DEFAULT_LOCALE
-    )?.displayTerm ?? chart.houses?.system ?? 'Unavailable'
+  const houseSystemValue = presentationPolicy.showHouses
+    ? chart.houses?.system
     : requestedHouseSystem;
+  const houseSystem = resolveAstrologyDomainTerm(
+    'house_system',
+    houseSystemValue,
+    locale ?? DEFAULT_LOCALE
+  )?.displayTerm ?? houseSystemValue ?? 'Unavailable';
   const houseSystemLabel = presentationPolicy.showHouses
     ? 'House System'
     : 'Requested House System';

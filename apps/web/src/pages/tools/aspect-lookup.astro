@@ -4,6 +4,10 @@ import {
   ASPECT_OPTIONS,
   SUPPORTED_PLANETS
 } from '@/lib/aspect-lookup';
+import {
+  resolveAstrologyDomainTerm,
+  type AstrologyGlossaryDomainKind
+} from '@/lib/astrology-glossary';
 import { getLocalizedPath, getPresentationLocale } from '@/lib/localization';
 import type { SeoMetadata } from '@/lib/seo';
 
@@ -14,6 +18,9 @@ const seo: SeoMetadata = {
 };
 const locale = getPresentationLocale(Astro.url.pathname, Astro.locals.locale);
 const localize = (path: string): string => getLocalizedPath(locale, path);
+const glossaryTerm = (kind: AstrologyGlossaryDomainKind, value: unknown): string =>
+  resolveAstrologyDomainTerm(kind, value, locale)?.displayTerm ??
+  (typeof value === 'string' ? value : String(value));
 ---
 
 <SiteLayout seo={seo}>
@@ -36,7 +43,7 @@ const localize = (path: string): string => getLocalizedPath(locale, path);
         </h2>
       </div>
 
-      <form class="mt-8" data-aspect-lookup-form aria-describedby="aspect-lookup-boundary">
+      <form class="mt-8" data-glossary-locale={locale} data-aspect-lookup-form aria-describedby="aspect-lookup-boundary">
         <div class="grid gap-5 lg:grid-cols-[1fr_auto_1fr] lg:items-end">
           <div>
             <label class="nn-type-label" for="planet-a">Planet A</label>
@@ -48,7 +55,7 @@ const localize = (path: string): string => getLocalizedPath(locale, path);
               required
             >
               <option value="">Choose a planet</option>
-              {SUPPORTED_PLANETS.map((planet) => <option value={planet}>{planet}</option>)}
+              {SUPPORTED_PLANETS.map((planet) => <option value={planet}>{glossaryTerm('body', planet)}</option>)}
             </select>
           </div>
 
@@ -62,7 +69,7 @@ const localize = (path: string): string => getLocalizedPath(locale, path);
               required
             >
               <option value="">Choose an aspect</option>
-              {ASPECT_OPTIONS.map((aspect) => <option value={aspect.value}>{aspect.label}</option>)}
+              {ASPECT_OPTIONS.map((aspect) => <option value={aspect.value}>{glossaryTerm('aspect', aspect.value)}</option>)}
             </select>
           </div>
 
@@ -76,7 +83,7 @@ const localize = (path: string): string => getLocalizedPath(locale, path);
               required
             >
               <option value="">Choose a planet</option>
-              {SUPPORTED_PLANETS.map((planet) => <option value={planet}>{planet}</option>)}
+              {SUPPORTED_PLANETS.map((planet) => <option value={planet}>{glossaryTerm('body', planet)}</option>)}
             </select>
           </div>
         </div>

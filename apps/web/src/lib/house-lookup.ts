@@ -1,4 +1,13 @@
 import { HOUSE_DOMAINS } from '@/features/interpretation/interpretation-content';
+import {
+  DEFAULT_LOCALE,
+  parseSupportedLocale,
+  type SupportedLocale
+} from '@/lib/localization';
+import {
+  resolveAstrologyDomainTerm,
+  type AstrologyGlossaryDomainKind
+} from '@/lib/astrology-glossary';
 
 type HouseOption = {
   id: string;
@@ -31,6 +40,15 @@ export type HouseLookupInterpretation = {
   constructiveExpression: string;
   potentialTension: string;
 };
+
+function glossaryTerm(
+  kind: AstrologyGlossaryDomainKind,
+  value: unknown,
+  locale: SupportedLocale
+): string {
+  return resolveAstrologyDomainTerm(kind, value, locale)?.displayTerm ??
+    (typeof value === 'string' ? value : String(value));
+}
 
 export function composeHouseLookupInterpretation(houseId: string): HouseLookupInterpretation | null {
   const house = HOUSE_OPTIONS.find((option) => option.id === houseId);
@@ -66,6 +84,8 @@ export function initializeHouseLookup(): void {
     return;
   }
 
+  const locale = parseSupportedLocale(form.dataset.glossaryLocale) ?? DEFAULT_LOCALE;
+
   const render = (): void => {
     const interpretation = composeHouseLookupInterpretation(select.value);
 
@@ -76,14 +96,15 @@ export function initializeHouseLookup(): void {
       return;
     }
 
+    const houseTerm = glossaryTerm('house', interpretation.houseNumber, locale);
     const heading = document.createElement('h2');
     heading.className = 'nn-type-section-title';
     heading.id = 'house-result-title';
-    heading.textContent = `${interpretation.houseLabel}: an interpretive snapshot`;
+    heading.textContent = `${houseTerm}: an interpretive snapshot`;
 
     const summary = document.createElement('p');
     summary.className = 'nn-type-body mt-4 max-w-3xl';
-    summary.textContent = `In astrological interpretation, the ${interpretation.houseLabel} is commonly associated with ${interpretation.coreDomain}.`;
+    summary.textContent = `In astrological interpretation, the ${houseTerm} is commonly associated with ${interpretation.coreDomain}.`;
 
     const details = document.createElement('dl');
     details.className = 'mt-8 grid gap-6 lg:grid-cols-3';

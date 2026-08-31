@@ -1,5 +1,9 @@
 import { cn } from '@/lib/utils';
-import type { SupportedLocale } from '../../lib/localization.js';
+import {
+  DEFAULT_LOCALE,
+  type SupportedLocale
+} from '../../lib/localization.js';
+import { resolveAstrologyDomainTerm } from '../../lib/astrology-glossary.js';
 import { chartUi } from '../chart-experience/chart-ui.js';
 import type { HouseSystemSelection } from './types';
 
@@ -22,6 +26,10 @@ export default function BirthAdvancedSettings({
   onHouseSystemChange,
   onOpenChange
 }: BirthAdvancedSettingsProps) {
+  const requestedLocale = locale ?? DEFAULT_LOCALE;
+  const houseSystemLabel = (value: HouseSystemSelection): string =>
+    resolveAstrologyDomainTerm('house_system', value, requestedLocale)?.displayTerm ?? value;
+
   return (
     <details
       className="min-w-0 border-t border-[color:var(--nn-border-subtle)] pt-5"
@@ -51,9 +59,9 @@ export default function BirthAdvancedSettings({
           <option disabled value="">
             Choose a house system
           </option>
-          <option value="Placidus">Placidus</option>
-          <option value="Whole Sign">Whole Sign</option>
-          <option value="Equal">Equal</option>
+          <option value="Placidus">{houseSystemLabel('Placidus')}</option>
+          <option value="Whole Sign">{houseSystemLabel('Whole Sign')}</option>
+          <option value="Equal">{houseSystemLabel('Equal')}</option>
         </select>
         {error ? (
           <p className="nn-status nn-status--error mt-2" id="house-system-error" role="alert">

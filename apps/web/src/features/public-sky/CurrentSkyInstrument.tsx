@@ -6,27 +6,20 @@ import type {
   SkySnapshotResult
 } from '@natalnode/contracts';
 import { engineClient } from '@/lib/engine-client';
+import {
+  DEFAULT_LOCALE,
+  type SupportedLocale
+} from '@/lib/localization';
+import {
+  getAstrologyGlossaryNotation,
+  resolveAstrologyDomainTerm,
+  type AstrologyGlossaryDomainKind
+} from '@/lib/astrology-glossary';
 
 const ZODIAC_SIGNS = [
-  ['Aries', '♈\uFE0E'], ['Taurus', '♉\uFE0E'], ['Gemini', '♊\uFE0E'], ['Cancer', '♋\uFE0E'],
-  ['Leo', '♌\uFE0E'], ['Virgo', '♍\uFE0E'], ['Libra', '♎\uFE0E'], ['Scorpio', '♏\uFE0E'],
-  ['Sagittarius', '♐\uFE0E'], ['Capricorn', '♑\uFE0E'], ['Aquarius', '♒\uFE0E'], ['Pisces', '♓\uFE0E']
+  'Aries', 'Taurus', 'Gemini', 'Cancer', 'Leo', 'Virgo',
+  'Libra', 'Scorpio', 'Sagittarius', 'Capricorn', 'Aquarius', 'Pisces'
 ] as const;
-const BODY_GLYPHS: Record<string, string> = {
-  Sun: '☉', Moon: '☽', Mercury: '☿', Venus: '♀', Mars: '♂',
-  Jupiter: '♃', Saturn: '♄', Uranus: '♅', Neptune: '♆', Pluto: '♇'
-};
-const ASPECT_GLYPHS: Record<string, string> = {
-  conjunction: '☌',
-  opposition: '☍',
-  trine: '△',
-  square: '□',
-  sextile: '✶'
-};
-const BODY_ABBREVIATIONS: Record<string, string> = {
-  Sun: 'Su', Moon: 'Mo', Mercury: 'Me', Venus: 'Ve', Mars: 'Ma',
-  Jupiter: 'Ju', Saturn: 'Sa', Uranus: 'Ur', Neptune: 'Ne', Pluto: 'Pl'
-};
 const ASPECT_STYLES: Record<string, { stroke: string; strokeDasharray?: string; opacity: number; strokeWidth: number }> = {
   conjunction: { stroke: 'var(--nn-chart-aspect-neutral)', opacity: 0.88, strokeWidth: 1.8 },
   opposition: { stroke: 'var(--nn-chart-aspect-dynamic)', strokeDasharray: '8 4', opacity: 0.9, strokeWidth: 1.8 },
@@ -38,15 +31,24 @@ const ASPECT_STYLES: Record<string, { stroke: string; strokeDasharray?: string; 
 const UNKNOWN_GLYPH = '·';
 
 function getBodyGlyph(bodyId: string): string {
-  return BODY_GLYPHS[bodyId] ?? UNKNOWN_GLYPH;
+  return getAstrologyGlossaryNotation('body', bodyId, 'glyph') ?? UNKNOWN_GLYPH;
 }
 
 function getBodyAbbreviation(bodyId: string): string {
-  return BODY_ABBREVIATIONS[bodyId] ?? bodyId.slice(0, 2);
+  return getAstrologyGlossaryNotation('body', bodyId, 'rendererAbbreviation') ?? bodyId.slice(0, 2);
 }
 
 function getAspectGlyph(aspectType: string): string {
-  return ASPECT_GLYPHS[aspectType] ?? UNKNOWN_GLYPH;
+  return getAstrologyGlossaryNotation('aspect', aspectType, 'glyph') ?? UNKNOWN_GLYPH;
+}
+
+function glossaryTerm(
+  kind: AstrologyGlossaryDomainKind,
+  value: unknown,
+  locale: SupportedLocale | undefined
+): string {
+  return resolveAstrologyDomainTerm(kind, value, locale ?? DEFAULT_LOCALE)?.displayTerm ??
+    (typeof value === 'string' ? value : String(value));
 }
 
 function point(longitude: number, radius: number) {
@@ -63,10 +65,14 @@ function formatDegrees(value: number) {
   return `${Number.isInteger(value) ? value : value.toFixed(2).replace(/0+$/, '').replace(/\.$/, '')}°`;
 }
 
-function formatAspect(aspect: SkyCurrentAspect) {
-  const orb = aspect.orb === null ? '' : `, ${formatDegrees(aspect.orb)} orb`;
-  const phase = aspect.phaseState === null ? '' : `, ${aspect.phaseState.toLowerCase()}`;
-  return `${aspect.firstBodyId} ${aspect.aspectType} ${aspect.secondBodyId}${orb}${phase}`;
+function formatAspect(aspect: SkyCurrentAspect, locale: SupportedLocale | undefined) {
+  const orb = aspect.orb === null
+    ? ''
+    : `, ${formatDegrees(aspect.orb)} ${glossaryTerm('aspect', 'orb', locale).toLowerCase()}`;
+  const phase = aspect.phaseState === null
+    ? ''
+    : `, ${glossaryTerm('aspect_phase', aspect.phaseState, locale).toLowerCase()}`;
+  return `${glossaryTerm('body', aspect.firstBodyId, locale)} ${glossaryTerm('aspect', aspect.aspectType, locale)} ${glossaryTerm('body', aspect.secondBodyId, locale)}${orb}${phase}`;
 }
 
 function formatSnapshotTimestamp(atUtc: string): string {
@@ -74,7 +80,7 @@ function formatSnapshotTimestamp(atUtc: string): string {
   return `Sky at ${timestamp.slice(0, 10)} · ${timestamp.slice(11, 16)} UTC`;
 }
 
-function SkyWheel({ snapshot }: { snapshot: SkySnapshotResult }) {
+function SkyWheel({ snapshot, locale }: { snapshot: SkySnapshotResult; locale?: SupportedLocale }) {
   const titleId = `${useId()}-title`;
   const descriptionId = `${useId()}-description`;
   const positions = new Map(snapshot.bodyPositions.map((body) => [body.bodyId, body]));
@@ -85,13 +91,14 @@ function SkyWheel({ snapshot }: { snapshot: SkySnapshotResult }) {
       <desc id={descriptionId}>Twelve zodiac sectors with supplied body positions and supplied current aspects.</desc>
       <circle cx="320" cy="320" r="292" fill="var(--nn-surface-base)" stroke="var(--nn-border-strong)" strokeWidth="2" />
       <g aria-label="Zodiac sectors" role="group">
-        {ZODIAC_SIGNS.map(([sign, glyph], index) => {
+        {ZODIAC_SIGNS.map((sign, index) => {
           const label = point(index * 30 + 15, 262);
+          const glyph = `${getAstrologyGlossaryNotation('sign', sign, 'glyph') ?? UNKNOWN_GLYPH}\uFE0E`;
           return (
-            <g key={sign} aria-label={`${sign} sector`} role="group">
+            <g key={sign} aria-label={`${glossaryTerm('sign', sign, locale)} sector`} role="group">
               <path d={sectorPath(index * 30, index * 30 + 30, 292, 232)} fill="var(--nn-chart-zodiac)" fillOpacity={index % 2 ? '0.14' : '0.08'} stroke="var(--nn-chart-zodiac)" strokeOpacity="0.55" />
               <text aria-hidden="true" x={label.x} y={label.y - 5} textAnchor="middle" fill="var(--nn-text-primary)" fontFamily="var(--nn-font-sans)" fontSize="22">{glyph}</text>
-              <text aria-hidden="true" x={label.x} y={label.y + 15} textAnchor="middle" fill="var(--nn-text-secondary)" fontFamily="var(--nn-font-sans)" fontSize="10">{sign}</text>
+              <text aria-hidden="true" x={label.x} y={label.y + 15} textAnchor="middle" fill="var(--nn-text-secondary)" fontFamily="var(--nn-font-sans)" fontSize="10">{glossaryTerm('sign', sign, locale)}</text>
             </g>
           );
         })}
@@ -107,8 +114,8 @@ function SkyWheel({ snapshot }: { snapshot: SkySnapshotResult }) {
           };
 
           return (
-            <g key={`${aspect.firstBodyId}-${aspect.secondBodyId}-${index}`} aria-label={formatAspect(aspect)} role="group">
-              <title>{formatAspect(aspect)}</title>
+            <g key={`${aspect.firstBodyId}-${aspect.secondBodyId}-${index}`} aria-label={formatAspect(aspect, locale)} role="group">
+              <title>{formatAspect(aspect, locale)}</title>
               <line aria-hidden="true" x1={a.x} y1={a.y} x2={b.x} y2={b.y} stroke="var(--nn-bg-observatory)" strokeOpacity="0.82" strokeWidth={style.strokeWidth + 2.4} strokeDasharray={style.strokeDasharray} strokeLinecap="round" vectorEffect="non-scaling-stroke" />
               <line aria-hidden="true" x1={a.x} y1={a.y} x2={b.x} y2={b.y} stroke={style.stroke} strokeOpacity={style.opacity} strokeWidth={style.strokeWidth} strokeDasharray={style.strokeDasharray} strokeLinecap="round" vectorEffect="non-scaling-stroke" />
             </g>
@@ -119,9 +126,11 @@ function SkyWheel({ snapshot }: { snapshot: SkySnapshotResult }) {
         {snapshot.bodyPositions.map((body, index) => {
           const marker = point(body.longitude, 174 + (index % 2) * 13);
           const label = point(body.longitude, 204 + (index % 3) * 10);
-          const motion = body.motionState === 'RETROGRADE' ? ' retrograde' : body.motionState === 'STATIONARY' ? ' stationary' : '';
+          const motion = body.motionState
+            ? `, ${glossaryTerm('motion', body.motionState, locale).toLowerCase()}`
+            : '';
           return (
-            <g key={body.bodyId} role="group" aria-label={`${body.bodyId} at ${formatDegrees(body.longitude)}, ${body.sign}${motion}`}>
+            <g key={body.bodyId} role="group" aria-label={`${glossaryTerm('body', body.bodyId, locale)} at ${formatDegrees(body.longitude)}, ${glossaryTerm('sign', body.sign, locale)}${motion}`}>
               <line aria-hidden="true" x1={marker.x} y1={marker.y} x2={label.x} y2={label.y} stroke="var(--nn-chart-body-secondary)" strokeOpacity="0.45" strokeDasharray="2 3" />
               <circle aria-hidden="true" cx={marker.x} cy={marker.y} r="10" fill="var(--nn-chart-body-secondary)" fillOpacity="0.12" stroke="var(--nn-chart-body-secondary)" strokeOpacity="0.36" strokeWidth="1" />
               <circle aria-hidden="true" cx={marker.x} cy={marker.y} r="5.5" fill="var(--nn-chart-body-primary)" stroke="var(--nn-surface-elevated)" strokeWidth="2" />
@@ -135,25 +144,26 @@ function SkyWheel({ snapshot }: { snapshot: SkySnapshotResult }) {
   );
 }
 
-function PositionFact({ body }: { body: SkyBodyPosition }) {
-  const motion = body.motionState ? ` · ${body.motionState.toLowerCase()}` : '';
-  return <li><strong><span aria-hidden="true">{getBodyGlyph(body.bodyId)}</span>{' '}{body.bodyId}</strong><span> {formatDegrees(body.longitude)} in {body.sign}{motion}</span></li>;
+function PositionFact({ body, locale }: { body: SkyBodyPosition; locale?: SupportedLocale }) {
+  const motion = body.motionState ? ` · ${glossaryTerm('motion', body.motionState, locale).toLowerCase()}` : '';
+  return <li><strong><span aria-hidden="true">{getBodyGlyph(body.bodyId)}</span>{' '}{glossaryTerm('body', body.bodyId, locale)}</strong><span> {formatDegrees(body.longitude)} in {glossaryTerm('sign', body.sign, locale)}{motion}</span></li>;
 }
 
-function AspectFact({ aspect }: { aspect: SkyCurrentAspect }) {
+function AspectFact({ aspect, locale }: { aspect: SkyCurrentAspect; locale?: SupportedLocale }) {
   return (
     <li>
       <span aria-hidden="true">
         {getBodyGlyph(aspect.firstBodyId)} {getAspectGlyph(aspect.aspectType)} {getBodyGlyph(aspect.secondBodyId)}{' '}
       </span>
-      {formatAspect(aspect)}
+      {formatAspect(aspect, locale)}
     </li>
   );
 }
 
-function SkyHighlights({ snapshot, compact = false }: { snapshot: SkySnapshotResult; compact?: boolean }) {
+function SkyHighlights({ snapshot, compact = false, locale }: { snapshot: SkySnapshotResult; compact?: boolean; locale?: SupportedLocale }) {
   const highlightedAspects = snapshot.currentAspects.slice(0, 2);
   const retrogradeBodies = snapshot.bodyPositions.filter((body) => body.motionState === 'RETROGRADE');
+  const retrogradeTerm = glossaryTerm('motion', 'RETROGRADE', locale).toLowerCase();
 
   return (
     <section aria-labelledby="current-sky-highlights" className={`rounded-[var(--nn-radius-large)] border border-natal-border/70 bg-natal-night/25 ${compact ? 'p-2 sm:p-3' : 'p-4'}`}>
@@ -165,13 +175,13 @@ function SkyHighlights({ snapshot, compact = false }: { snapshot: SkySnapshotRes
         {highlightedAspects.map((aspect, index) => (
           <li className={`${compact && index > 0 ? 'hidden sm:flex' : 'flex'} items-start gap-2`} key={`${aspect.firstBodyId}-${aspect.secondBodyId}-${index}`}>
             <span aria-hidden="true" className="shrink-0 text-natal-accent">{getBodyGlyph(aspect.firstBodyId)} {getAspectGlyph(aspect.aspectType)} {getBodyGlyph(aspect.secondBodyId)}</span>
-            <span>{formatAspect(aspect)}</span>
+            <span>{formatAspect(aspect, locale)}</span>
           </li>
         ))}
         {retrogradeBodies.length > 0 ? (
           <li className={`${compact && highlightedAspects.length > 0 ? 'hidden sm:flex' : 'flex'} items-start gap-2`}>
             <span aria-hidden="true" className="shrink-0 text-natal-accent">R</span>
-            <span>{retrogradeBodies.length} {retrogradeBodies.length === 1 ? 'body' : 'bodies'} marked retrograde</span>
+            <span>{retrogradeBodies.length} {retrogradeBodies.length === 1 ? 'body' : 'bodies'} marked {retrogradeTerm}</span>
           </li>
         ) : null}
         {highlightedAspects.length === 0 && retrogradeBodies.length === 0 ? <li>No supplied highlight facts.</li> : null}
@@ -206,27 +216,27 @@ function DevelopmentDisclosure({ snapshot, compact = false }: { snapshot: SkySna
   );
 }
 
-function SnapshotReadout({ snapshot, compact = false }: { snapshot: SkySnapshotResult; compact?: boolean }) {
+function SnapshotReadout({ snapshot, compact = false, locale }: { snapshot: SkySnapshotResult; compact?: boolean; locale?: SupportedLocale }) {
   return (
     <div>
       {!compact ? <p className="nn-eyebrow">Instrument readout</p> : null}
       <time className={`nn-type-metadata block ${compact ? 'mt-1' : 'mt-2'}`} dateTime={snapshot.atUtc}>
         {formatSnapshotTimestamp(snapshot.atUtc)}
       </time>
-      <p className={`nn-type-metadata ${compact ? 'mt-0.5' : 'mt-1'}`}>{snapshot.referenceFrame} · {snapshot.zodiacModel} · UTC</p>
+      <p className={`nn-type-metadata ${compact ? 'mt-0.5' : 'mt-1'}`}>{snapshot.referenceFrame} · {glossaryTerm('zodiac_model', snapshot.zodiacModel, locale)} · UTC</p>
     </div>
   );
 }
 
-function CompactSkyInstrument({ snapshot }: { snapshot: SkySnapshotResult }) {
+function CompactSkyInstrument({ snapshot, locale }: { snapshot: SkySnapshotResult; locale?: SupportedLocale }) {
   return (
     <div className="grid gap-3 sm:gap-4">
       <div className="min-w-0 rounded-[var(--nn-radius-large)] border border-natal-border/70 bg-natal-night/30 p-2 shadow-[var(--nn-shadow-low)] sm:p-3 lg:p-4">
-        <SkyWheel snapshot={snapshot} />
+        <SkyWheel locale={locale} snapshot={snapshot} />
       </div>
       <div className="space-y-2 sm:space-y-4">
-        <SnapshotReadout compact snapshot={snapshot} />
-        <SkyHighlights compact snapshot={snapshot} />
+        <SnapshotReadout compact locale={locale} snapshot={snapshot} />
+        <SkyHighlights compact locale={locale} snapshot={snapshot} />
         <DevelopmentDisclosure compact snapshot={snapshot} />
       </div>
     </div>
@@ -236,12 +246,14 @@ function CompactSkyInstrument({ snapshot }: { snapshot: SkySnapshotResult }) {
 export interface CurrentSkyInstrumentProps {
   atUtc: string;
   client?: EngineClient;
+  locale?: SupportedLocale;
   variant?: 'compact' | 'full';
 }
 
 export default function CurrentSkyInstrument({
   atUtc,
   client = engineClient,
+  locale,
   variant = 'full'
 }: CurrentSkyInstrumentProps) {
   const [snapshot, setSnapshot] = useState<SkySnapshotResult | null>(null);
@@ -264,17 +276,17 @@ export default function CurrentSkyInstrument({
   if (!snapshot) return <p className="nn-async-state nn-async-state--loading" role="status" aria-live="polite">Loading the development Sky fixture…</p>;
 
   if (variant === 'compact') {
-    return <CompactSkyInstrument snapshot={snapshot} />;
+    return <CompactSkyInstrument locale={locale} snapshot={snapshot} />;
   }
 
   return (
     <div className="grid gap-8 lg:grid-cols-[minmax(0,1.3fr)_minmax(19rem,0.7fr)]">
-      <div className="min-w-0 rounded-[var(--nn-radius-large)] border border-natal-border/70 bg-natal-night/30 p-3 shadow-[var(--nn-shadow-low)] sm:p-6 lg:p-8"><SkyWheel snapshot={snapshot} /></div>
+      <div className="min-w-0 rounded-[var(--nn-radius-large)] border border-natal-border/70 bg-natal-night/30 p-3 shadow-[var(--nn-shadow-low)] sm:p-6 lg:p-8"><SkyWheel locale={locale} snapshot={snapshot} /></div>
       <div className="space-y-6">
-        <SnapshotReadout snapshot={snapshot} />
-        <SkyHighlights snapshot={snapshot} />
-        <section aria-labelledby="current-sky-positions"><h3 className="nn-type-card-title" id="current-sky-positions">Body positions</h3><ul className="mt-3 space-y-2 nn-type-body-small">{snapshot.bodyPositions.map((body) => <PositionFact key={body.bodyId} body={body} />)}</ul></section>
-        <section aria-labelledby="current-sky-aspects"><h3 className="nn-type-card-title" id="current-sky-aspects">Current aspects</h3>{snapshot.currentAspects.length ? <ul className="mt-3 space-y-2 nn-type-body-small">{snapshot.currentAspects.map((aspect, index) => <AspectFact aspect={aspect} key={`${aspect.firstBodyId}-${aspect.secondBodyId}-${index}`} />)}</ul> : <p className="nn-type-body-small mt-3">No supplied current aspects.</p>}</section>
+        <SnapshotReadout locale={locale} snapshot={snapshot} />
+        <SkyHighlights locale={locale} snapshot={snapshot} />
+        <section aria-labelledby="current-sky-positions"><h3 className="nn-type-card-title" id="current-sky-positions">Body positions</h3><ul className="mt-3 space-y-2 nn-type-body-small">{snapshot.bodyPositions.map((body) => <PositionFact key={body.bodyId} body={body} locale={locale} />)}</ul></section>
+        <section aria-labelledby="current-sky-aspects"><h3 className="nn-type-card-title" id="current-sky-aspects">Current aspects</h3>{snapshot.currentAspects.length ? <ul className="mt-3 space-y-2 nn-type-body-small">{snapshot.currentAspects.map((aspect, index) => <AspectFact aspect={aspect} key={`${aspect.firstBodyId}-${aspect.secondBodyId}-${index}`} locale={locale} />)}</ul> : <p className="nn-type-body-small mt-3">No supplied current aspects.</p>}</section>
         <p className="nn-notice nn-notice--trust">Development-only instrument. Supplied Engine facts are shown without interpretation.</p>
         <DevelopmentDisclosure snapshot={snapshot} />
       </div>

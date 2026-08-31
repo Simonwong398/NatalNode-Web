@@ -1,7 +1,15 @@
 ---
 import SiteLayout from '@/layouts/SiteLayout.astro';
 import { CurrentSkyInstrument } from '@/features/public-sky';
+import { getPresentationLocale, type SupportedLocale } from '@/lib/localization';
 import type { SeoMetadata } from '@/lib/seo';
+
+interface Props {
+  locale?: SupportedLocale;
+}
+
+const { locale: localizedLocale } = Astro.props;
+const locale = localizedLocale ?? getPresentationLocale(Astro.url.pathname, Astro.locals.locale);
 
 const CURRENT_SKY_AT_UTC = '2026-09-01T12:00:00.000Z';
 const isCurrentSkyPreviewAvailable =
@@ -24,7 +32,7 @@ const seo: SeoMetadata = {
     </header>
     {isCurrentSkyPreviewAvailable ? (
       <section class="nn-surface nn-surface--instrument mt-10 p-4 sm:p-8" aria-label="Current Sky instrument">
-        <CurrentSkyInstrument atUtc={CURRENT_SKY_AT_UTC} client:load />
+        <CurrentSkyInstrument atUtc={CURRENT_SKY_AT_UTC} locale={locale} client:load />
       </section>
     ) : (
       <p class="nn-notice nn-notice--info mt-10 max-w-2xl">This development preview is unavailable in production builds.</p>

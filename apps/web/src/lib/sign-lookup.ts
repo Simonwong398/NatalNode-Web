@@ -1,4 +1,13 @@
 import { SIGN_STYLES } from '@/features/interpretation/interpretation-content';
+import {
+  DEFAULT_LOCALE,
+  parseSupportedLocale,
+  type SupportedLocale
+} from '@/lib/localization';
+import {
+  resolveAstrologyDomainTerm,
+  type AstrologyGlossaryDomainKind
+} from '@/lib/astrology-glossary';
 
 export const ELEMENT_MEANINGS = {
   Fire: 'A symbolic lens for initiative, warmth, visibility, and active expression.',
@@ -67,6 +76,15 @@ export type SignLookupInterpretation = {
   potentialTension: string;
 };
 
+function glossaryTerm(
+  kind: AstrologyGlossaryDomainKind,
+  value: unknown,
+  locale: SupportedLocale
+): string {
+  return resolveAstrologyDomainTerm(kind, value, locale)?.displayTerm ??
+    (typeof value === 'string' ? value : String(value));
+}
+
 export function composeSignLookupInterpretation(signId: string): SignLookupInterpretation | null {
   const sign = SIGN_OPTIONS.find((option) => option.id === signId);
 
@@ -99,6 +117,8 @@ export function initializeSignLookup(): void {
     return;
   }
 
+  const locale = parseSupportedLocale(form.dataset.glossaryLocale) ?? DEFAULT_LOCALE;
+
   const render = (): void => {
     const interpretation = composeSignLookupInterpretation(select.value);
 
@@ -109,21 +129,24 @@ export function initializeSignLookup(): void {
       return;
     }
 
+    const signTerm = glossaryTerm('sign', interpretation.sign, locale);
+    const elementTerm = glossaryTerm('sign_element', interpretation.element, locale);
+    const modalityTerm = glossaryTerm('sign_modality', interpretation.modality, locale);
     const heading = document.createElement('h2');
     heading.className = 'nn-type-section-title';
     heading.id = 'sign-result-title';
-    heading.textContent = `${interpretation.sign}: an interpretive snapshot`;
+    heading.textContent = `${signTerm}: an interpretive snapshot`;
 
     const summary = document.createElement('p');
     summary.className = 'nn-type-body mt-4 max-w-3xl';
-    summary.textContent = `${interpretation.sign} is described here as ${interpretation.coreStyle}.`;
+    summary.textContent = `${signTerm} is described here as ${interpretation.coreStyle}.`;
 
     const details = document.createElement('dl');
     details.className = 'mt-8 grid gap-6 sm:grid-cols-3';
 
     const fields: Array<[string, string]> = [
-      ['Element', `${interpretation.element} — ${interpretation.elementLens}`],
-      ['Modality', `${interpretation.modality} — ${interpretation.modalityLens}`],
+      ['Element', `${elementTerm} — ${interpretation.elementLens}`],
+      ['Modality', `${modalityTerm} — ${interpretation.modalityLens}`],
       ['Core style', interpretation.coreStyle]
     ];
 

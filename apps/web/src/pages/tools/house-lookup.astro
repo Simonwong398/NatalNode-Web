@@ -1,6 +1,10 @@
 ---
 import SiteLayout from '@/layouts/SiteLayout.astro';
 import { HOUSE_OPTIONS } from '@/lib/house-lookup';
+import {
+  resolveAstrologyDomainTerm,
+  type AstrologyGlossaryDomainKind
+} from '@/lib/astrology-glossary';
 import { getLocalizedPath, getPresentationLocale } from '@/lib/localization';
 import type { SeoMetadata } from '@/lib/seo';
 
@@ -11,6 +15,9 @@ const seo: SeoMetadata = {
 };
 const locale = getPresentationLocale(Astro.url.pathname, Astro.locals.locale);
 const localize = (path: string): string => getLocalizedPath(locale, path);
+const glossaryTerm = (kind: AstrologyGlossaryDomainKind, value: unknown): string =>
+  resolveAstrologyDomainTerm(kind, value, locale)?.displayTerm ??
+  (typeof value === 'string' ? value : String(value));
 ---
 
 <SiteLayout seo={seo}>
@@ -33,7 +40,7 @@ const localize = (path: string): string => getLocalizedPath(locale, path);
         </h2>
       </div>
 
-      <form class="mt-8" data-house-lookup-form aria-describedby="house-lookup-boundary">
+      <form class="mt-8" data-glossary-locale={locale} data-house-lookup-form aria-describedby="house-lookup-boundary">
         <label class="nn-type-label" for="astrological-house">Astrological house</label>
         <select
           class="nn-field mt-2 max-w-md"
@@ -43,7 +50,7 @@ const localize = (path: string): string => getLocalizedPath(locale, path);
           required
         >
           <option value="">Choose a house</option>
-          {HOUSE_OPTIONS.map((house) => <option value={house.id}>{house.label}</option>)}
+          {HOUSE_OPTIONS.map((house) => <option value={house.id}>{glossaryTerm('house', house.number)}</option>)}
         </select>
 
         <p class="nn-notice nn-notice--trust mt-6 max-w-3xl" id="house-lookup-boundary">

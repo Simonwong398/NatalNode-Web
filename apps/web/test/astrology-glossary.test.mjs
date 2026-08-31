@@ -297,3 +297,28 @@ test('representative P0 presentation paths depend on the glossary resolver and k
   assert.match(detailsSource, /resolveAstrologyDomainTerm/u);
   assert.doesNotMatch(uiCatalogSource, /body\.sun|aspect\.opposition|house_system\.placidus/u);
 });
+
+test('remaining current Class B surfaces use the shared resolver boundary', async () => {
+  const sources = await Promise.all([
+    readFile(new URL('../src/features/chart-input/BirthAdvancedSettings.tsx', import.meta.url), 'utf8'),
+    readFile(new URL('../src/features/public-sky/CurrentSkyInstrument.tsx', import.meta.url), 'utf8'),
+    readFile(new URL('../src/lib/sign-lookup.ts', import.meta.url), 'utf8'),
+    readFile(new URL('../src/lib/aspect-lookup.ts', import.meta.url), 'utf8'),
+    readFile(new URL('../src/lib/house-lookup.ts', import.meta.url), 'utf8'),
+    readFile(new URL('../src/pages/tools/sign-lookup.astro', import.meta.url), 'utf8'),
+    readFile(new URL('../src/pages/tools/aspect-lookup.astro', import.meta.url), 'utf8'),
+    readFile(new URL('../src/pages/tools/house-lookup.astro', import.meta.url), 'utf8')
+  ]);
+  const [birthSettings, currentSky, signLookup, aspectLookup, houseLookup, signPage, aspectPage, housePage] = sources;
+
+  assert.match(birthSettings, /resolveAstrologyDomainTerm/u);
+  assert.match(currentSky, /resolveAstrologyDomainTerm/u);
+  assert.match(currentSky, /getAstrologyGlossaryNotation/u);
+  assert.doesNotMatch(currentSky, /const BODY_GLYPHS|const ASPECT_GLYPHS|const BODY_ABBREVIATIONS/u);
+  assert.match(signLookup, /resolveAstrologyDomainTerm/u);
+  assert.match(aspectLookup, /resolveAstrologyDomainTerm/u);
+  assert.match(houseLookup, /resolveAstrologyDomainTerm/u);
+  assert.match(signPage, /data-glossary-locale=\{locale\}/u);
+  assert.match(aspectPage, /data-glossary-locale=\{locale\}/u);
+  assert.match(housePage, /data-glossary-locale=\{locale\}/u);
+});

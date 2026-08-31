@@ -5,6 +5,10 @@ import {
   MODALITY_MEANINGS,
   SIGN_OPTIONS
 } from '@/lib/sign-lookup';
+import {
+  resolveAstrologyDomainTerm,
+  type AstrologyGlossaryDomainKind
+} from '@/lib/astrology-glossary';
 import { getLocalizedPath, getPresentationLocale } from '@/lib/localization';
 import type { SeoMetadata } from '@/lib/seo';
 
@@ -15,6 +19,9 @@ const seo: SeoMetadata = {
 };
 const locale = getPresentationLocale(Astro.url.pathname, Astro.locals.locale);
 const localize = (path: string): string => getLocalizedPath(locale, path);
+const glossaryTerm = (kind: AstrologyGlossaryDomainKind, value: unknown): string =>
+  resolveAstrologyDomainTerm(kind, value, locale)?.displayTerm ??
+  (typeof value === 'string' ? value : String(value));
 ---
 
 <SiteLayout seo={seo}>
@@ -37,7 +44,7 @@ const localize = (path: string): string => getLocalizedPath(locale, path);
         </h2>
       </div>
 
-      <form class="mt-8" data-sign-lookup-form aria-describedby="sign-lookup-boundary">
+      <form class="mt-8" data-glossary-locale={locale} data-sign-lookup-form aria-describedby="sign-lookup-boundary">
         <label class="nn-type-label" for="zodiac-sign">Zodiac sign</label>
         <select
           class="nn-field mt-2 max-w-md"
@@ -47,7 +54,7 @@ const localize = (path: string): string => getLocalizedPath(locale, path);
           required
         >
           <option value="">Choose a sign</option>
-          {SIGN_OPTIONS.map((sign) => <option value={sign.id}>{sign.label}</option>)}
+          {SIGN_OPTIONS.map((sign) => <option value={sign.id}>{glossaryTerm('sign', sign.label)}</option>)}
         </select>
 
         <p class="nn-notice nn-notice--trust mt-6 max-w-3xl" id="sign-lookup-boundary">
@@ -99,7 +106,7 @@ const localize = (path: string): string => getLocalizedPath(locale, path);
         </h2>
         <ul class="mt-4 space-y-3 nn-type-body">
           {Object.entries(ELEMENT_MEANINGS).map(([element, description]) => (
-            <li><strong class="font-semibold text-natal-primary">{element}:</strong> {description}</li>
+            <li><strong class="font-semibold text-natal-primary">{glossaryTerm('sign_element', element)}:</strong> {description}</li>
           ))}
         </ul>
       </section>
@@ -111,7 +118,7 @@ const localize = (path: string): string => getLocalizedPath(locale, path);
         </h2>
         <ul class="mt-4 space-y-3 nn-type-body">
           {Object.entries(MODALITY_MEANINGS).map(([modality, description]) => (
-            <li><strong class="font-semibold text-natal-primary">{modality}:</strong> {description}</li>
+            <li><strong class="font-semibold text-natal-primary">{glossaryTerm('sign_modality', modality)}:</strong> {description}</li>
           ))}
         </ul>
       </section>

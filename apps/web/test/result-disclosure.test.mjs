@@ -278,7 +278,7 @@ test('unknown time keeps Core placements and a non-expandable house limitation g
         (row) => scope.text(row.querySelector('dt')) === 'Requested House System'
       );
       assert.ok(requestedHouseSystemRow);
-      assert.equal(scope.text(requestedHouseSystemRow.querySelector('dd')), 'PLACIDUS');
+      assert.equal(scope.text(requestedHouseSystemRow.querySelector('dd')), 'Placidus');
     }
   );
 });

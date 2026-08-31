@@ -53,6 +53,7 @@ const t = (key: UiMessageKey) => getUiMessage(locale, key);
               <h2 class="nn-type-section-title mt-1" id="homepage-current-sky-title">The sky now</h2>
               <CurrentSkyInstrument
                 atUtc={CURRENT_SKY_AT_UTC}
+                locale={locale}
                 variant="compact"
                 client:load
               />

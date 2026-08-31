@@ -5,6 +5,15 @@ import {
   type SupportedAspectType,
   type SupportedPlanet
 } from '@/features/interpretation/interpretation-content';
+import {
+  DEFAULT_LOCALE,
+  parseSupportedLocale,
+  type SupportedLocale
+} from '@/lib/localization';
+import {
+  resolveAstrologyDomainTerm,
+  type AstrologyGlossaryDomainKind
+} from '@/lib/astrology-glossary';
 
 export { SUPPORTED_PLANETS } from '@/features/interpretation/interpretation-content';
 export type {
@@ -33,8 +42,19 @@ function isSupportedAspect(value: string): value is SupportedAspectType {
   return ASPECT_OPTIONS.some((aspect) => aspect.value === value);
 }
 
-function getAspectLabel(aspectType: SupportedAspectType): string {
-  return ASPECT_OPTIONS.find((aspect) => aspect.value === aspectType)?.label ?? aspectType;
+function glossaryTerm(
+  kind: AstrologyGlossaryDomainKind,
+  value: unknown,
+  locale: SupportedLocale
+): string {
+  return resolveAstrologyDomainTerm(kind, value, locale)?.displayTerm ??
+    (typeof value === 'string' ? value : String(value));
+}
+
+function getCanonicalAspectLabel(aspectType: SupportedAspectType): string {
+  return resolveAstrologyDomainTerm('aspect', aspectType, DEFAULT_LOCALE)?.displayTerm ??
+    ASPECT_OPTIONS.find((aspect) => aspect.value === aspectType)?.label ??
+    aspectType;
 }
 
 function normalizePlanetOrder(
@@ -50,19 +70,23 @@ function normalizePlanetOrder(
 export function composeAspectLookupInterpretation(
   planetA: SupportedPlanet,
   aspectType: SupportedAspectType,
-  planetB: SupportedPlanet
+  planetB: SupportedPlanet,
+  locale: SupportedLocale = DEFAULT_LOCALE
 ): AspectLookupInterpretation {
   const [firstPlanet, secondPlanet] = normalizePlanetOrder(planetA, planetB);
   const firstMeaning = PLANET_MEANINGS[firstPlanet];
   const secondMeaning = PLANET_MEANINGS[secondPlanet];
   const dynamic = ASPECT_DYNAMICS[aspectType];
-  const aspectLabel = getAspectLabel(aspectType);
+  const firstPlanetTerm = glossaryTerm('body', firstPlanet, locale);
+  const secondPlanetTerm = glossaryTerm('body', secondPlanet, locale);
+  const aspectTerm = glossaryTerm('aspect', aspectType, locale);
+  const canonicalAspectLabel = getCanonicalAspectLabel(aspectType);
 
   return {
-    title: `${firstPlanet} ${aspectLabel} ${secondPlanet}`,
+    title: `${firstPlanetTerm} ${aspectTerm} ${secondPlanetTerm}`,
     paragraphs: [
       `${firstPlanet} can be associated with ${firstMeaning.focus.toLowerCase()}, often expressed through ${firstMeaning.expression}. ${secondPlanet} can be associated with ${secondMeaning.focus.toLowerCase()}, often expressed through ${secondMeaning.expression}.`,
-      `A ${aspectLabel.toLowerCase()} is a ${dynamic.quality} way to read the connection between those themes. The combination may emphasize ${dynamic.expression}, so each theme can make the other more noticeable in the same area of reflection.`,
+      `A ${canonicalAspectLabel.toLowerCase()} is a ${dynamic.quality} way to read the connection between those themes. The combination may emphasize ${dynamic.expression}, so each theme can make the other more noticeable in the same area of reflection.`,
       `A constructive expression may involve ${dynamic.guidance}. This is an interpretive starting point rather than a fixed verdict: the value is in noticing how the two themes can be held in a more conscious conversation.`
     ]
   };
@@ -88,6 +112,8 @@ export function initializeAspectLookup(): void {
     return;
   }
 
+  const locale = parseSupportedLocale(form.dataset.glossaryLocale) ?? DEFAULT_LOCALE;
+
   const updateResult = () => {
     if (!isSupportedPlanet(planetA.value) || !isSupportedAspect(aspect.value) || !isSupportedPlanet(planetB.value)) {
       emptyState.hidden = false;
@@ -99,7 +125,8 @@ export function initializeAspectLookup(): void {
     const interpretation = composeAspectLookupInterpretation(
       planetA.value,
       aspect.value,
-      planetB.value
+      planetB.value,
+      locale
     );
     const heading = document.createElement('h2');
     heading.className = 'nn-type-section-title';
