@@ -1,5 +1,7 @@
 ---
 import SiteLayout from '@/layouts/SiteLayout.astro';
+import { getPresentationLocale } from '@/lib/localization';
+import { getUiMessage, type UiMessageKey } from '@/lib/ui-catalog';
 import type { SeoMetadata } from '@/lib/seo';
 
 const seo: SeoMetadata = {
@@ -8,17 +10,19 @@ const seo: SeoMetadata = {
   canonical: '/vault',
   robots: 'noindex,nofollow'
 };
+const locale = getPresentationLocale(Astro.url.pathname, Astro.locals.locale);
+const t = (key: UiMessageKey): string => getUiMessage(locale, key);
 ---
 
 <SiteLayout seo={seo}>
   <main class="nn-container nn-container--workspace pb-20 pt-12 sm:pt-16">
     <header class="max-w-3xl">
-      <p class="nn-eyebrow">Vault</p>
+      <p class="nn-eyebrow">{t('nav.vault')}</p>
       <h1 class="nn-type-page-title mt-3">
-        Your saved charts.
+        {t('vault.title')}
       </h1>
       <p class="nn-type-body mt-4 max-w-2xl">
-        Your saved chart collection is available here when you are signed in.
+        {t('vault.description')}
       </p>
     </header>
 
@@ -28,16 +32,16 @@ const seo: SeoMetadata = {
       aria-busy="true"
       aria-labelledby="vault-list-title"
     >
-      <h2 class="sr-only" id="vault-list-title">Saved charts</h2>
+      <h2 class="sr-only" id="vault-list-title">{t('vault.listTitle')}</h2>
       <p class="nn-async-state" data-vault-loading role="status" aria-live="polite">
-        Loading your Vault…
+        {t('vault.loading')}
       </p>
       <p class="nn-async-state nn-async-state--error" data-vault-error role="alert" hidden>
-        We couldn't load your Vault. Please try again.
+        {t('vault.loadError')}
       </p>
       <div class="nn-async-state nn-async-state--empty" data-vault-empty hidden>
-        <h3 class="nn-type-section-title">Your Vault is empty.</h3>
-        <p class="nn-type-body-small mt-2">Saved charts will appear here.</p>
+        <h3 class="nn-type-section-title">{t('vault.emptyTitle')}</h3>
+        <p class="nn-type-body-small mt-2">{t('vault.emptyDescription')}</p>
       </div>
       <ul class="mt-6 grid gap-5 sm:grid-cols-2" data-vault-list hidden></ul>
     </section>

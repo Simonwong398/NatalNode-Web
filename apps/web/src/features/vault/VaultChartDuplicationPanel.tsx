@@ -1,11 +1,14 @@
 import { useEffect, useId, useRef, useState } from 'react';
 import { getLocalizedCurrentPath } from '../../lib/localization.js';
+import type { SupportedLocale } from '../../lib/localization.js';
 import { duplicateVaultChart } from './vault-management.js';
+import { vaultUi } from './vault-ui.js';
 
 const SIGN_IN_PATH = '/auth/sign-in';
 
 interface VaultChartDuplicationPanelProps {
   readonly chartId: string;
+  readonly locale?: SupportedLocale;
 }
 
 function redirectToSignIn(): void {
@@ -13,7 +16,8 @@ function redirectToSignIn(): void {
 }
 
 export default function VaultChartDuplicationPanel({
-  chartId
+  chartId,
+  locale
 }: VaultChartDuplicationPanelProps) {
   const [duplicateStatus, setDuplicateStatus] = useState<
     'idle' | 'duplicating' | 'error'
@@ -70,8 +74,8 @@ export default function VaultChartDuplicationPanel({
     setDuplicateStatus('error');
     setDuplicateError(
       result.status === 'not-found'
-        ? 'This saved chart is no longer available.'
-        : "We couldn't duplicate this chart. Please try again."
+        ? vaultUi(locale, 'vault.chartUnavailable')
+        : vaultUi(locale, 'vault.duplicateError')
     );
   };
 
@@ -81,10 +85,10 @@ export default function VaultChartDuplicationPanel({
       className="mt-6 border-t border-[color:var(--nn-border-subtle)] pt-5"
     >
       <h3 className="nn-type-section-title" id={duplicationTitleId}>
-        Duplicate saved chart
+        {vaultUi(locale, 'vault.duplicateTitle')}
       </h3>
       <p className="nn-type-body-small mt-2">
-        Create a separate saved chart with this chart's input and metadata.
+        {vaultUi(locale, 'vault.duplicateDescription')}
       </p>
       <button
         className="nn-button nn-button--quiet mt-4"
@@ -92,7 +96,9 @@ export default function VaultChartDuplicationPanel({
         onClick={() => void handleDuplicateChart()}
         type="button"
       >
-        {duplicateStatus === 'duplicating' ? 'Duplicating…' : 'Duplicate chart'}
+        {duplicateStatus === 'duplicating'
+          ? vaultUi(locale, 'vault.duplicating')
+          : vaultUi(locale, 'vault.duplicate')}
       </button>
       {duplicateError ? (
         <p className="nn-status nn-status--error mt-3" role="alert">

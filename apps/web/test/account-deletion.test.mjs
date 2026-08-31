@@ -113,7 +113,7 @@ function createAccountElements(document) {
           <p data-account-delete-pending hidden></p>
           <p id="account-delete-error" data-account-delete-error tabindex="-1" hidden></p>
           <section data-account-reauth tabindex="-1" hidden>
-            <a href="/auth/sign-in">Sign in again</a>
+            <a href="/en/auth/sign-in">Sign in again</a>
           </section>
         </form>
       </section>
@@ -142,7 +142,7 @@ function createAuthElements(document) {
   const root = document.createElement('span');
   root.hidden = true;
   root.innerHTML = `
-    <a data-auth-signed-out href="/auth/sign-in" hidden>Sign in</a>
+    <a data-auth-signed-out href="/en/auth/sign-in" hidden>Sign in</a>
     <a data-auth-account hidden>Account</a>
     <a data-auth-feedback href="/feedback" hidden>Feedback</a>
     <button data-auth-signed-in hidden>Sign out</button>
@@ -156,7 +156,8 @@ function createAuthElements(document) {
     accountLink: root.querySelector('[data-auth-account]'),
     feedbackLink: root.querySelector('[data-auth-feedback]'),
     signedInButton: root.querySelector('[data-auth-signed-in]'),
-    statusElement: root.querySelector('[data-auth-status]')
+    statusElement: root.querySelector('[data-auth-status]'),
+    accountPath: '/en/account'
   };
 }
 
@@ -225,7 +226,7 @@ describe('private Account route and discovery', { concurrency: false }, () => {
 
       assert.equal(elements.signedOutLink.hidden, true);
       assert.equal(elements.accountLink.hidden, false);
-      assert.equal(elements.accountLink.getAttribute('href'), '/account');
+      assert.equal(elements.accountLink.getAttribute('href'), '/en/account');
       assert.equal(elements.feedbackLink.hidden, false);
       assert.equal(elements.signedInButton.hidden, false);
     });
@@ -238,7 +239,7 @@ describe('private Account route and discovery', { concurrency: false }, () => {
       initializeAccountDeletion(elements);
       await settle();
 
-      assert.deepEqual(replaceCalls, ['/auth/sign-in']);
+      assert.deepEqual(replaceCalls, ['/en/auth/sign-in']);
       assert.equal(elements.accountContent.hidden, true);
     });
   });
@@ -332,7 +333,7 @@ describe('account deletion request and response handling', { concurrency: false 
       submit(elements);
       await settle();
 
-      assert.deepEqual(replaceCalls, ['/']);
+      assert.deepEqual(replaceCalls, ['/en/']);
       assert.equal(elements.accountContent.hidden, true);
       assert.equal(elements.form.getAttribute('aria-busy'), 'true');
     });
@@ -357,7 +358,7 @@ describe('account deletion request and response handling', { concurrency: false 
       assert.equal(calls.length, 2);
       assert.equal(elements.reauthStatus.hidden, false);
       assert.strictEqual(document.activeElement, elements.reauthStatus);
-      assert.equal(elements.reauthStatus.querySelector('a').getAttribute('href'), '/auth/sign-in');
+      assert.equal(elements.reauthStatus.querySelector('a').getAttribute('href'), '/en/auth/sign-in');
       assert.equal(elements.confirmationInput.disabled, true);
       assert.equal(elements.submitButton.disabled, true);
       assert.deepEqual(replaceCalls, []);
@@ -431,7 +432,7 @@ describe('account deletion request and response handling', { concurrency: false 
       submit(elements);
       await settle();
 
-      assert.deepEqual(replaceCalls, ['/auth/sign-in']);
+      assert.deepEqual(replaceCalls, ['/en/auth/sign-in']);
       assert.equal(elements.accountContent.hidden, true);
       assert.equal(elements.errorStatus.hidden, true);
     });

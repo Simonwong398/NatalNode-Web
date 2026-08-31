@@ -92,7 +92,7 @@ function createAccountExportElements(document) {
         <p data-account-export-status role="status" aria-live="polite" hidden></p>
         <p data-account-export-error role="alert" tabindex="-1" hidden></p>
         <section data-account-export-reauth role="alert" tabindex="-1" hidden>
-          <a href="/auth/sign-in">Sign in again</a>
+          <a href="/en/auth/sign-in">Sign in again</a>
         </section>
       </form>
     </section>
@@ -130,9 +130,9 @@ describe('Account export page boundary', { concurrency: false }, () => {
     const page = readFileSync(new URL('../src/pages/account.astro', import.meta.url), 'utf8');
 
     assert.match(page, /robots: 'noindex,nofollow'/u);
-    assert.match(page, /<p class="nn-eyebrow">Your data<\/p>/u);
-    assert.match(page, /Download your data/u);
-    assert.match(page, /<p class="nn-eyebrow">Danger zone<\/p>/u);
+    assert.match(page, /account\.data\.eyebrow/u);
+    assert.match(page, /account\.data\.download/u);
+    assert.match(page, /account\.danger\.eyebrow/u);
     assert.ok(page.indexOf('data-account-export') < page.indexOf('account-danger-surface'));
     assert.match(page, /data-account-delete-open/u);
     assert.doesNotMatch(page, /href=["'][^"']*export/u);
@@ -217,7 +217,7 @@ describe('Account export interaction', { concurrency: false }, () => {
 
       assert.equal(elements.reauthStatus.hidden, false);
       assert.strictEqual(document.activeElement, elements.reauthStatus);
-      assert.equal(elements.reauthStatus.querySelector('a').getAttribute('href'), '/auth/sign-in');
+      assert.equal(elements.reauthStatus.querySelector('a').getAttribute('href'), '/en/auth/sign-in');
       assert.deepEqual(replaceCalls, []);
     }, async () => createFetchResponse(403, {
       code: 'RECENT_AUTHENTICATION_REQUIRED'
@@ -232,7 +232,7 @@ describe('Account export interaction', { concurrency: false }, () => {
       await settle();
 
       assert.equal(elements.accountContent.hidden, true);
-      assert.deepEqual(replaceCalls, ['/auth/sign-in']);
+      assert.deepEqual(replaceCalls, ['/en/auth/sign-in']);
       assert.equal(elements.errorStatus.hidden, true);
     }, async () => createFetchResponse(401, { code: 'UNAUTHORIZED' }));
   });

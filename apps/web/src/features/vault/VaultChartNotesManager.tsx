@@ -1,6 +1,7 @@
 import type { SyntheticEvent } from 'react';
 import { useEffect, useId, useRef, useState } from 'react';
 import { getLocalizedCurrentPath } from '../../lib/localization.js';
+import type { SupportedLocale } from '../../lib/localization.js';
 import type { ChartNoteRecord } from '@natalnode/contracts';
 import VaultChartNoteEditor from './VaultChartNoteEditor.js';
 import {
@@ -12,6 +13,7 @@ import {
   updateChartNote,
   validateNoteContent
 } from './vault-management.js';
+import { formatVaultUi, vaultUi } from './vault-ui.js';
 
 const SIGN_IN_PATH = '/auth/sign-in';
 
@@ -24,19 +26,47 @@ type NoteAction =
 
 interface VaultChartNotesManagerProps {
   readonly chartId: string;
+  readonly locale?: SupportedLocale;
 }
 
 function redirectToSignIn(): void {
   window.location.replace(getLocalizedCurrentPath(window.location.pathname, SIGN_IN_PATH));
 }
 
-function noteTimestampLabel(note: ChartNoteRecord): string {
+function noteTimestampLabel(
+  note: ChartNoteRecord,
+  locale: SupportedLocale | undefined
+): string {
   return note.updatedAt === note.createdAt
-    ? `Created ${note.createdAt}`
-    : `Updated ${note.updatedAt}`;
+    ? formatVaultUi(locale, 'vault.noteCreated', { date: note.createdAt })
+    : formatVaultUi(locale, 'vault.noteUpdated', { date: note.updatedAt });
 }
 
-export default function VaultChartNotesManager({ chartId }: VaultChartNotesManagerProps) {
+function localizeNoteError(
+  message: string,
+  locale: SupportedLocale | undefined
+): string {
+  if (message === 'Enter a note.') {
+    return vaultUi(locale, 'vault.noteRequired');
+  }
+
+  if (/^Use .+ characters or fewer\.$/u.test(message)) {
+    return formatVaultUi(locale, 'vault.noteTooLong', {
+      count: CHART_NOTE_MAXIMUM_CHARACTERS.toLocaleString(locale ?? 'en-US')
+    });
+  }
+
+  if (message === 'Remove unsupported control characters from the note.') {
+    return vaultUi(locale, 'vault.noteUnsupportedCharacters');
+  }
+
+  return message;
+}
+
+export default function VaultChartNotesManager({
+  chartId,
+  locale
+}: VaultChartNotesManagerProps) {
   const [notes, setNotes] = useState<readonly ChartNoteRecord[]>([]);
   const [notesStatus, setNotesStatus] = useState<NotesStatus>('loading');
   const [notesError, setNotesError] = useState<string | null>(null);
@@ -84,8 +114,8 @@ export default function VaultChartNotesManager({ chartId }: VaultChartNotesManag
       setNotesStatus('error');
       setNotesError(
         result.status === 'not-found'
-          ? 'This saved chart is no longer available.'
-          : "We couldn't load notes for this chart. Please try again."
+          ? vaultUi(locale, 'vault.chartUnavailable')
+          : vaultUi(locale, 'vault.notesLoadError')
       );
     }
 
@@ -106,7 +136,7 @@ export default function VaultChartNotesManager({ chartId }: VaultChartNotesManag
     const contentError = validateNoteContent(noteDraft);
 
     if (contentError !== null) {
-      setNoteDraftError(contentError);
+      setNoteDraftError(localizeNoteError(contentError, locale));
       setNotesFeedback(null);
       return;
     }
@@ -126,7 +156,7 @@ export default function VaultChartNotesManager({ chartId }: VaultChartNotesManag
       setNotes((currentNotes) => [...currentNotes, result.note]);
       setNoteDraft('');
       setNoteAction(null);
-      setNotesFeedback('Note added.');
+      setNotesFeedback(vaultUi(locale, 'vault.noteAdded'));
       noteDraftRef.current?.focus();
       return;
     }
@@ -139,10 +169,10 @@ export default function VaultChartNotesManager({ chartId }: VaultChartNotesManag
     setNoteAction(null);
     setNoteActionError(
       result.status === 'not-found'
-        ? 'This saved chart is no longer available.'
+        ? vaultUi(locale, 'vault.chartUnavailable')
         : result.status === 'invalid-request'
-          ? 'Check the note text, then try again.'
-          : "We couldn't add the note. Please try again."
+          ? vaultUi(locale, 'vault.invalidNote')
+          : vaultUi(locale, 'vault.noteAddError')
     );
   };
 
@@ -165,7 +195,7 @@ export default function VaultChartNotesManager({ chartId }: VaultChartNotesManag
     const contentError = validateNoteContent(editingContent);
 
     if (contentError !== null) {
-      setEditingError(contentError);
+      setEditingError(localizeNoteError(contentError, locale));
       setNotesFeedback(null);
       return;
     }
@@ -192,7 +222,7 @@ export default function VaultChartNotesManager({ chartId }: VaultChartNotesManag
       setEditingNoteId(null);
       setEditingContent('');
       setNoteAction(null);
-      setNotesFeedback('Note updated.');
+      setNotesFeedback(vaultUi(locale, 'vault.noteUpdatedSuccess'));
       return;
     }
 
@@ -204,15 +234,15 @@ export default function VaultChartNotesManager({ chartId }: VaultChartNotesManag
     setNoteAction(null);
     setNoteActionError(
       result.status === 'not-found'
-        ? 'This note is no longer available.'
+        ? vaultUi(locale, 'vault.noteUnavailable')
         : result.status === 'invalid-request'
-          ? 'Check the note text, then try again.'
-          : "We couldn't update the note. Please try again."
+          ? vaultUi(locale, 'vault.invalidNote')
+          : vaultUi(locale, 'vault.noteUpdateError')
     );
   };
 
   const handleDeleteNote = async (note: ChartNoteRecord) => {
-    if (!window.confirm('Delete this note?')) {
+    if (!window.confirm(vaultUi(locale, 'vault.noteDeleteConfirm'))) {
       return;
     }
 
@@ -231,7 +261,7 @@ export default function VaultChartNotesManager({ chartId }: VaultChartNotesManag
         currentNotes.filter((currentNote) => currentNote.noteId !== note.noteId)
       );
       setNoteAction(null);
-      setNotesFeedback('Note deleted.');
+      setNotesFeedback(vaultUi(locale, 'vault.noteDeletedSuccess'));
       return;
     }
 
@@ -243,8 +273,8 @@ export default function VaultChartNotesManager({ chartId }: VaultChartNotesManag
     setNoteAction(null);
     setNoteActionError(
       result.status === 'not-found'
-        ? 'This note is no longer available.'
-        : "We couldn't delete the note. Please try again."
+        ? vaultUi(locale, 'vault.noteUnavailable')
+        : vaultUi(locale, 'vault.noteDeleteError')
     );
   };
 
@@ -254,15 +284,15 @@ export default function VaultChartNotesManager({ chartId }: VaultChartNotesManag
       className="nn-surface nn-surface--elevated mt-6 p-5 sm:p-6"
     >
       <h3 className="nn-type-section-title" id={notesTitleId}>
-        Notes
+        {vaultUi(locale, 'vault.notesTitle')}
       </h3>
       <p className="nn-type-body-small mt-2">
-        Keep private plain-text notes with this saved chart.
+        {vaultUi(locale, 'vault.notesDescription')}
       </p>
 
       <form className="mt-5" noValidate onSubmit={handleCreateNote}>
         <label className="nn-type-label" htmlFor={noteDraftId}>
-          Add a note
+          {vaultUi(locale, 'vault.addNoteLabel')}
         </label>
         <textarea
           aria-describedby={noteDraftError ? noteDraftErrorId : undefined}
@@ -289,23 +319,25 @@ export default function VaultChartNotesManager({ chartId }: VaultChartNotesManag
           disabled={noteAction !== null || notesStatus !== 'loaded'}
           type="submit"
         >
-          {noteAction?.type === 'create' ? 'Adding…' : 'Add note'}
+          {noteAction?.type === 'create'
+            ? vaultUi(locale, 'vault.addingNote')
+            : vaultUi(locale, 'vault.addNote')}
         </button>
       </form>
 
       {notesStatus === 'loading' ? (
         <p className="nn-async-state mt-5" role="status" aria-live="polite">
-          Loading notes…
+          {vaultUi(locale, 'vault.loadingNotes')}
         </p>
       ) : null}
       {notesStatus === 'error' ? (
         <p className="nn-async-state nn-async-state--error mt-5" role="alert">
-          {notesError ?? "We couldn't load notes for this chart. Please try again."}
+          {notesError ?? vaultUi(locale, 'vault.notesLoadError')}
         </p>
       ) : null}
       {notesStatus === 'loaded' && notes.length === 0 ? (
         <p className="nn-async-state nn-async-state--empty mt-5">
-          No notes yet.
+          {vaultUi(locale, 'vault.noNotes')}
         </p>
       ) : null}
 
@@ -330,6 +362,7 @@ export default function VaultChartNotesManager({ chartId }: VaultChartNotesManag
                     }}
                     onSave={() => void handleEditNote(note.noteId)}
                     saving={noteAction?.type === 'edit' && noteAction.noteId === note.noteId}
+                    locale={locale}
                     value={editingContent}
                   />
                 ) : (
@@ -339,7 +372,7 @@ export default function VaultChartNotesManager({ chartId }: VaultChartNotesManag
                     </p>
                     <div className="mt-4 flex flex-wrap items-center gap-3">
                       <time className="nn-type-metadata" dateTime={note.updatedAt}>
-                        {noteTimestampLabel(note)}
+                        {noteTimestampLabel(note, locale)}
                       </time>
                       <button
                         className="nn-button nn-button--quiet"
@@ -347,7 +380,7 @@ export default function VaultChartNotesManager({ chartId }: VaultChartNotesManag
                         onClick={() => startEditingNote(note)}
                         type="button"
                       >
-                        Edit
+                        {vaultUi(locale, 'vault.editNoteAction')}
                       </button>
                       <button
                         className="nn-button nn-button--quiet"
@@ -356,8 +389,8 @@ export default function VaultChartNotesManager({ chartId }: VaultChartNotesManag
                         type="button"
                       >
                         {noteAction?.type === 'delete' && noteAction.noteId === note.noteId
-                          ? 'Deleting…'
-                          : 'Delete'}
+                          ? vaultUi(locale, 'vault.noteDeleting')
+                          : vaultUi(locale, 'vault.noteDelete')}
                       </button>
                     </div>
                   </div>

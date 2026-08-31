@@ -1,6 +1,8 @@
 ---
 import Surface from '@/components/ui/Surface.astro';
 import SiteLayout from '@/layouts/SiteLayout.astro';
+import { getPresentationLocale } from '@/lib/localization';
+import { getUiMessage, type UiMessageKey } from '@/lib/ui-catalog';
 
 const seo = {
   title: 'Sign in | NatalNode',
@@ -8,6 +10,8 @@ const seo = {
   canonical: '/auth/sign-in',
   robots: 'noindex,nofollow'
 } as const;
+const locale = getPresentationLocale(Astro.url.pathname, Astro.locals.locale);
+const t = (key: UiMessageKey): string => getUiMessage(locale, key);
 ---
 
 <SiteLayout seo={seo} mode="editorial">
@@ -17,16 +21,16 @@ const seo = {
         <header class="nn-section-header">
           <p class="nn-eyebrow">NatalNode</p>
           <h1 class="nn-type-page-title" id="sign-in-title">
-            Sign in
+            {t('auth.signIn')}
           </h1>
           <p class="nn-type-body-small" id="sign-in-description">
-            Enter your email and we'll send you a secure sign-in link.
+            {t('auth.signInDescription')}
           </p>
         </header>
 
         <form class="mt-10" id="email-sign-in-form">
           <label class="nn-type-label" for="sign-in-email">
-            Email address
+            {t('auth.emailAddress')}
           </label>
           <input
             class="nn-field mt-2"
@@ -39,14 +43,14 @@ const seo = {
             aria-describedby="sign-in-description sign-in-email-help sign-in-status"
           />
           <p class="nn-type-body-small mt-2" id="sign-in-email-help">
-            We'll use this address to start sign-in.
+            {t('auth.emailHelp')}
           </p>
           <button
             class="nn-button nn-button--primary mt-6 w-full"
             id="sign-in-submit"
             type="submit"
           >
-            Send sign-in link
+            {t('auth.sendSignInLink')}
           </button>
           <p
             class="nn-status nn-status--error mt-4 min-h-6"
@@ -70,7 +74,7 @@ const seo = {
         >
           <div class="flex items-center gap-3" aria-hidden="true">
             <span class="h-px flex-1 bg-natal-border/70"></span>
-            <span class="nn-type-body-small px-1 text-natal-muted">or</span>
+            <span class="nn-type-body-small px-1 text-natal-muted">{t('auth.or')}</span>
             <span class="h-px flex-1 bg-natal-border/70"></span>
           </div>
           <form
@@ -83,7 +87,7 @@ const seo = {
               class="nn-button nn-button--secondary w-full"
               type="submit"
             >
-              Continue with Google
+              {t('auth.continueWithGoogle')}
             </button>
           </form>
         </div>
@@ -96,10 +100,10 @@ const seo = {
           hidden
         >
           <h2 class="nn-type-section-title" id="sign-in-success-title">
-            Check your email
+            {t('auth.checkEmailTitle')}
           </h2>
           <p class="nn-type-body-small">
-            Use the sign-in link in the email to continue.
+            {t('auth.checkEmailBody')}
           </p>
         </section>
       </section>

@@ -4,6 +4,10 @@ import type {
   VaultChartRecord
 } from '@natalnode/contracts';
 import { getLocalizedCurrentPath } from '../../lib/localization.js';
+import {
+  formatDocumentUiMessage,
+  getDocumentUiMessage
+} from '../../lib/ui-catalog.js';
 
 const SESSION_ENDPOINT = '/api/auth/session';
 const VAULT_CHARTS_ENDPOINT = '/api/vault/charts';
@@ -15,7 +19,6 @@ const VAULT_CHART_CATEGORIES: readonly VaultChartCategory[] = [
   'FRIEND',
   'CLIENT'
 ];
-const LOAD_FAILURE_MESSAGE = "We couldn't load your Vault. Please try again.";
 
 type VaultChartListItem = Pick<
   VaultChartRecord,
@@ -82,6 +85,20 @@ function isValidTimestamp(value: string): boolean {
   return !Number.isNaN(Date.parse(value));
 }
 
+function categoryLabel(category: VaultChartCategory): string {
+  const key = category === 'SELF'
+    ? 'vault.category.self'
+    : category === 'PARTNER'
+      ? 'vault.category.partner'
+      : category === 'FAMILY'
+        ? 'vault.category.family'
+        : category === 'FRIEND'
+          ? 'vault.category.friend'
+          : 'vault.category.client';
+
+  return getDocumentUiMessage(key);
+}
+
 function renderChartList(
   list: HTMLUListElement,
   charts: readonly VaultChartListItem[]
@@ -98,16 +115,19 @@ function renderChartList(
 
     const category = document.createElement('p');
     category.className = 'nn-badge mt-4 self-start';
-    category.textContent = chart.category;
+    category.textContent = categoryLabel(chart.category);
 
     const savedAt = document.createElement('time');
     savedAt.className = 'nn-type-metadata mt-5 block';
 
     if (isValidTimestamp(chart.createdAt)) {
       savedAt.dateTime = chart.createdAt;
-      savedAt.textContent = `Saved ${chart.createdAt}`;
+      savedAt.textContent = formatDocumentUiMessage(
+        'vault.savedPrefix',
+        { date: chart.createdAt }
+      );
     } else {
-      savedAt.textContent = 'Saved date unavailable';
+      savedAt.textContent = getDocumentUiMessage('vault.savedDateUnavailable');
     }
 
     const openLink = document.createElement('a');
@@ -117,7 +137,7 @@ function renderChartList(
       window.location.pathname,
       `/vault/chart?chartId=${encodeURIComponent(chart.chartId)}`
     );
-    openLink.textContent = 'Open';
+    openLink.textContent = getDocumentUiMessage('vault.open');
 
     item.append(title, category, savedAt, openLink);
     list.append(item);
@@ -136,7 +156,7 @@ function render(
   setVisibility(elements.list, state === 'loaded');
 
   if (state === 'error') {
-    elements.error.textContent = LOAD_FAILURE_MESSAGE;
+    elements.error.textContent = getDocumentUiMessage('vault.loadError');
   }
 
   if (state === 'loaded') {

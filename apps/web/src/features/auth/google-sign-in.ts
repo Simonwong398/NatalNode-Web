@@ -1,9 +1,8 @@
 import type { CurrentSessionApiResponse } from '@natalnode/contracts';
+import { getDocumentUiMessage } from '../../lib/ui-catalog.js';
 
 const SESSION_ENDPOINT = '/api/auth/session';
 const GOOGLE_AUTH_FAILURE_HASH = '#google-auth-failed';
-const GOOGLE_AUTH_FAILURE_MESSAGE =
-  'Google sign-in could not be completed. Try again or use email sign-in.';
 
 export interface GoogleSignInElements {
   readonly emailForm: HTMLFormElement;
@@ -48,7 +47,7 @@ function initializeFailureMessage(elements: GoogleSignInElements): void {
     return;
   }
 
-  elements.failureStatus.textContent = GOOGLE_AUTH_FAILURE_MESSAGE;
+  elements.failureStatus.textContent = getDocumentUiMessage('auth.googleFailure');
   elements.failureStatus.hidden = false;
 
   const clearOnEmailInteraction = (): void => {

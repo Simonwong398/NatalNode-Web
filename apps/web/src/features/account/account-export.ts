@@ -1,17 +1,12 @@
 import { getLocalizedCurrentPath } from '../../lib/localization.js';
+import { getDocumentUiMessage } from '../../lib/ui-catalog.js';
+import type { UiMessageKey } from '../../lib/ui-catalog.js';
 
 const SIGN_IN_PATH = '/auth/sign-in';
-const READY_BUTTON_LABEL = 'Download your data';
-const PENDING_BUTTON_LABEL = 'Preparing your download…';
-const PREPARING_MESSAGE = 'Preparing your download…';
-const STARTED_MESSAGE =
-  "Download request sent. If the file doesn't appear, try again.";
-const GENERIC_FAILURE_MESSAGE =
-  "We couldn't start your download. Please try again.";
-const INVALID_REQUEST_MESSAGE =
-  "We couldn't prepare your download. Please try again.";
-const RATE_LIMIT_MESSAGE =
-  'Please wait a moment before trying your download again.';
+
+function ui(key: UiMessageKey): string {
+  return getDocumentUiMessage(key);
+}
 
 type AccountExportErrorCode =
   | 'INVALID_REQUEST'
@@ -58,23 +53,23 @@ function setPending(elements: AccountExportElements, pending: boolean): void {
   elements.form.setAttribute('aria-busy', String(pending));
   elements.submitButton.disabled = pending;
   elements.submitButton.textContent = pending
-    ? PENDING_BUTTON_LABEL
-    : READY_BUTTON_LABEL;
+    ? ui('account.data.preparing')
+    : ui('account.data.download');
 }
 
 function showPending(elements: AccountExportElements): void {
-  elements.statusElement.textContent = PREPARING_MESSAGE;
+  elements.statusElement.textContent = ui('account.data.preparing');
   elements.statusElement.hidden = false;
 }
 
 function showStarted(elements: AccountExportElements): void {
-  elements.statusElement.textContent = STARTED_MESSAGE;
+  elements.statusElement.textContent = ui('account.data.started');
   elements.statusElement.hidden = false;
 }
 
 function showGenericFailure(
   elements: AccountExportElements,
-  message = GENERIC_FAILURE_MESSAGE
+  message = ui('account.data.genericError')
 ): void {
   elements.statusElement.hidden = true;
   elements.statusElement.textContent = '';
@@ -106,12 +101,12 @@ function handleErrorCode(
   }
 
   if (code === 'INVALID_REQUEST') {
-    showGenericFailure(elements, INVALID_REQUEST_MESSAGE);
+    showGenericFailure(elements, ui('account.data.invalidError'));
     return;
   }
 
   if (code === 'RATE_LIMITED') {
-    showGenericFailure(elements, RATE_LIMIT_MESSAGE);
+    showGenericFailure(elements, ui('account.data.rateLimitedError'));
     return;
   }
 

@@ -474,7 +474,7 @@ describe('notification browser foundation', { concurrency: false }, () => {
         elements.enableButton.dispatchEvent(new Event('click', { bubbles: true }));
         await settle();
 
-        assert.deepEqual(replaceCalls, ['/auth/sign-in']);
+        assert.deepEqual(replaceCalls, ['/en/auth/sign-in']);
         assert.equal(elements.content.hidden, true);
         assert.deepEqual(clientCalls.map(([name]) => name), [
           'getState',
@@ -572,7 +572,7 @@ describe('notification browser foundation', { concurrency: false }, () => {
         elements.disableButton.dispatchEvent(new Event('click', { bubbles: true }));
         await settle();
 
-        assert.deepEqual(replaceCalls, ['/auth/sign-in']);
+        assert.deepEqual(replaceCalls, ['/en/auth/sign-in']);
         assert.equal(elements.content.hidden, true);
         assert.equal(clientCalls.some(([name]) => name === 'remove'), true);
         assert.equal(browser.calls.some(([name]) => name === 'unsubscribe'), true);

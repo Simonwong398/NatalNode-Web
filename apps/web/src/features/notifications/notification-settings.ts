@@ -4,6 +4,8 @@ import type {
   RegisterPushSubscriptionApiRequest
 } from '@natalnode/contracts';
 import { getLocalizedCurrentPath } from '../../lib/localization.js';
+import { getDocumentUiMessage } from '../../lib/ui-catalog.js';
+import type { UiMessageKey } from '../../lib/ui-catalog.js';
 
 import {
   createNotificationClient,
@@ -16,33 +18,10 @@ import {
 } from './notification-sw-policy.js';
 
 const SIGN_IN_PATH = '/auth/sign-in';
-const READY_ENABLE_LABEL = 'Enable on this browser';
-const READY_DISABLE_LABEL = 'Disable on this browser';
-const ENABLE_PENDING_LABEL = 'Enabling notifications…';
-const DISABLE_PENDING_LABEL = 'Disabling notifications…';
-const CATEGORY_PENDING_LABEL = 'Saving…';
-const ENABLED_MESSAGE = 'Notification preference saved for this browser.';
-const DISABLED_MESSAGE = 'Notifications disabled on this browser.';
-const PARTIAL_ENABLE_MESSAGE =
-  'This browser is connected, but the notification preference could not be saved. Try enabling again to finish.';
-const PARTIAL_DISABLE_MESSAGE =
-  'The account preference was turned off, but this browser subscription could not be fully removed.';
-const GENERIC_FAILURE_MESSAGE =
-  "We couldn't update notification settings. Please try again.";
-const CONFLICT_MESSAGE =
-  "This browser's notification subscription is associated with another account. Switch to that account before changing it here.";
-const UNAVAILABLE_MESSAGE =
-  'Notification settings are currently unavailable. Please try again later.';
-const BROWSER_NOTIFICATIONS_UNAVAILABLE_MESSAGE =
-  'Browser notifications are currently unavailable.';
-const BROWSER_NOTIFICATIONS_UNSUPPORTED_MESSAGE =
-  'Browser notifications are not supported by this browser.';
-const INVALID_REQUEST_MESSAGE =
-  "We couldn't save this notification setting. Please try again.";
-const RATE_LIMITED_MESSAGE =
-  'Please wait a moment before trying this notification setting again.';
-const ROLLBACK_FAILURE_MESSAGE =
-  "We couldn't connect this browser. Your existing browser notification state was left unchanged.";
+
+function ui(key: UiMessageKey): string {
+  return getDocumentUiMessage(key);
+}
 
 export interface NotificationCategoryControl {
   readonly category: NotificationCategory;
@@ -386,14 +365,14 @@ function showFailure(
   focus = true
 ): void {
   const message = failure.status === 'conflict'
-    ? CONFLICT_MESSAGE
+    ? ui('account.notifications.conflict')
     : failure.status === 'unavailable'
-      ? UNAVAILABLE_MESSAGE
+      ? ui('account.notifications.unavailable')
       : failure.status === 'invalid-request'
-        ? INVALID_REQUEST_MESSAGE
+        ? ui('account.notifications.invalidRequest')
         : failure.status === 'rate-limited'
-          ? RATE_LIMITED_MESSAGE
-          : GENERIC_FAILURE_MESSAGE;
+          ? ui('account.notifications.rateLimited')
+          : ui('account.notifications.genericError');
 
   if (failure.status === 'unauthorized') {
     elements.content.hidden = true;
@@ -415,19 +394,19 @@ function renderPermission(
   capabilities: BrowserNotificationCapabilities
 ): void {
   if (!capabilities.notification) {
-    elements.permissionStatus.textContent = BROWSER_NOTIFICATIONS_UNSUPPORTED_MESSAGE;
+    elements.permissionStatus.textContent = ui('account.notifications.browserUnsupported');
     return;
   }
 
   if (permission === 'granted') {
     elements.permissionStatus.textContent =
-      'Browser permission is granted. This does not connect the browser to your NatalNode account.';
+      ui('account.notifications.permissionGranted');
   } else if (permission === 'denied') {
     elements.permissionStatus.textContent =
-      "Browser permission is blocked. Update this site's browser permission before enabling notifications.";
+      ui('account.notifications.permissionBlocked');
   } else {
     elements.permissionStatus.textContent =
-      'Permission has not been requested on this browser.';
+      ui('account.notifications.permissionNotRequested');
   }
 }
 
@@ -442,10 +421,10 @@ function renderCategories(
     control.input.indeterminate = false;
     control.input.removeAttribute('aria-checked');
     control.state.textContent = preference === null
-      ? 'Not set'
+      ? ui('account.notifications.category.notSet')
       : preference
-        ? 'On'
-        : 'Off';
+        ? ui('account.notifications.category.on')
+        : ui('account.notifications.category.off');
     control.input.disabled = disabled || apiState === null;
   }
 }
@@ -469,23 +448,23 @@ function render(
   renderPermission(elements, permission, state.browser.capabilities);
 
   if (apiState === null) {
-    elements.connectionStatus.textContent = UNAVAILABLE_MESSAGE;
+    elements.connectionStatus.textContent = ui('account.notifications.unavailable');
   } else if (!configured) {
-    elements.connectionStatus.textContent = BROWSER_NOTIFICATIONS_UNAVAILABLE_MESSAGE;
+    elements.connectionStatus.textContent = ui('account.notifications.browserUnavailable');
   } else if (!browserSupported) {
-    elements.connectionStatus.textContent = BROWSER_NOTIFICATIONS_UNSUPPORTED_MESSAGE;
+    elements.connectionStatus.textContent = ui('account.notifications.browserUnsupported');
   } else if (state.connected) {
     elements.connectionStatus.textContent =
-      'This browser is connected to this NatalNode account.';
+      ui('account.notifications.connected');
   } else if (permission === 'denied') {
     elements.connectionStatus.textContent =
-      'This browser is not connected because browser permission is blocked.';
+      ui('account.notifications.connectionBlocked');
   } else if (apiState.channelPreferences.WEB_PUSH === true) {
     elements.connectionStatus.textContent =
-      'The account preference is on, but this browser is not confirmed as connected.';
+      ui('account.notifications.preferenceOnNotConnected');
   } else {
     elements.connectionStatus.textContent =
-      'This browser is not connected to notification settings yet.';
+      ui('account.notifications.notConnected');
   }
 
   const canEnable =
@@ -501,10 +480,10 @@ function render(
   elements.enableButton.classList.toggle('nn-button--primary', !enableUnavailable);
   elements.enableButton.classList.toggle('nn-button--unavailable', enableUnavailable);
   elements.enableButton.textContent = working && !state.connected
-    ? ENABLE_PENDING_LABEL
-    : READY_ENABLE_LABEL;
+    ? ui('account.notifications.enabling')
+    : ui('account.notifications.enable');
   elements.enableButton.title = permission === 'denied'
-    ? 'Browser permission is blocked.'
+    ? ui('account.notifications.permissionBlocked')
     : '';
 
   const canDisable =
@@ -515,8 +494,8 @@ function render(
   elements.disableButton.hidden = !canDisable;
   elements.disableButton.disabled = !ready || working;
   elements.disableButton.textContent = working
-    ? DISABLE_PENDING_LABEL
-    : READY_DISABLE_LABEL;
+    ? ui('account.notifications.disabling')
+    : ui('account.notifications.disable');
 
   renderCategories(elements, apiState, !ready || working);
 }
@@ -668,13 +647,13 @@ async function enableNotifications(
     );
 
     if (!latest.state.webPushCapability.configured) {
-      showError(elements, UNAVAILABLE_MESSAGE);
+      showError(elements, ui('account.notifications.unavailable'));
       setState({ ...workingState, phase: 'unavailable' });
       return;
     }
 
     if (!latest.browser.capabilities.supported) {
-      showError(elements, BROWSER_NOTIFICATIONS_UNSUPPORTED_MESSAGE);
+      showError(elements, ui('account.notifications.browserUnsupported'));
       setState({ ...workingState, phase: 'error' });
       return;
     }
@@ -720,7 +699,7 @@ async function enableNotifications(
       if (createdByThisAttempt) {
         await bestEffortUnsubscribe(adapter, subscription);
       }
-      showError(elements, ROLLBACK_FAILURE_MESSAGE);
+      showError(elements, ui('account.notifications.rollbackFailure'));
       setState({ ...workingState, phase: 'error' });
       return;
     }
@@ -758,7 +737,7 @@ async function enableNotifications(
         setState({ ...workingState, phase: 'error' });
         showFailure(elements, preferenceResult);
       } else {
-        showError(elements, PARTIAL_ENABLE_MESSAGE);
+        showError(elements, ui('account.notifications.partialEnable'));
         setState({ ...workingState, phase: 'ready' });
       }
       return;
@@ -772,10 +751,10 @@ async function enableNotifications(
       getCapabilities,
       true
     );
-    showStatus(elements, ENABLED_MESSAGE, 'nn-status--success');
+    showStatus(elements, ui('account.notifications.enabled'), 'nn-status--success');
     setState(refreshed);
   } catch (_error) {
-    showError(elements, GENERIC_FAILURE_MESSAGE);
+    showError(elements, ui('account.notifications.genericError'));
     setState({ ...workingState, phase: 'error' });
   }
 }
@@ -820,7 +799,7 @@ async function disableNotifications(
       try {
         registrationRequest = adapter.toRegistrationRequest(subscription);
       } catch (_error) {
-        showError(elements, GENERIC_FAILURE_MESSAGE);
+        showError(elements, ui('account.notifications.genericError'));
         setState({ ...workingState, phase: 'error' });
         return;
       }
@@ -860,7 +839,7 @@ async function disableNotifications(
           setState({ ...workingState, phase: 'error', connected: false });
           showFailure(elements, preferenceResult);
         } else {
-          showError(elements, PARTIAL_DISABLE_MESSAGE);
+          showError(elements, ui('account.notifications.partialDisable'));
           setState({ ...workingState, phase: 'ready', connected: false });
         }
         return;
@@ -876,9 +855,9 @@ async function disableNotifications(
       );
 
       if (!browserUnsubscribed) {
-        showError(elements, PARTIAL_DISABLE_MESSAGE);
+        showError(elements, ui('account.notifications.partialDisable'));
       } else {
-        showStatus(elements, DISABLED_MESSAGE, 'nn-status--success');
+        showStatus(elements, ui('account.notifications.disabled'), 'nn-status--success');
       }
       setState(refreshed);
       return;
@@ -900,10 +879,10 @@ async function disableNotifications(
       getCapabilities,
       false
     );
-    showStatus(elements, DISABLED_MESSAGE, 'nn-status--success');
+    showStatus(elements, ui('account.notifications.disabled'), 'nn-status--success');
     setState(refreshed);
   } catch (_error) {
-    showError(elements, GENERIC_FAILURE_MESSAGE);
+    showError(elements, ui('account.notifications.genericError'));
     setState({ ...workingState, phase: 'error' });
   }
 }
@@ -925,7 +904,7 @@ async function setCategoryPreference(
   clearMessage(elements.error);
   const desiredValue = control.input.checked;
   const workingState = setWorking(elements, state, true);
-  control.state.textContent = CATEGORY_PENDING_LABEL;
+  control.state.textContent = ui('account.notifications.category.saving');
 
   const result = await client.setCategoryPreference(
     control.category,
@@ -954,7 +933,7 @@ async function setCategoryPreference(
     getCapabilities,
     false
   );
-  showStatus(elements, 'Notification category preference saved.', 'nn-status--success');
+  showStatus(elements, ui('account.notifications.categorySaved'), 'nn-status--success');
   setState(refreshed);
 }
 

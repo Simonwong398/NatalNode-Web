@@ -31,7 +31,7 @@ const ORIGINAL_GLOBAL_DESCRIPTORS = new Map(
   GLOBAL_NAMES.map((name) => [name, Object.getOwnPropertyDescriptor(globalThis, name)])
 );
 const COMPONENT_URL = new URL(
-  '../../dist/vault-chart-management-characterization/VaultChartManagement.js',
+  '../../dist/vault-chart-management-characterization/features/vault/VaultChartManagement.js',
   import.meta.url
 );
 

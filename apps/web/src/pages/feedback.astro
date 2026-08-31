@@ -1,6 +1,8 @@
 ---
 import Surface from '@/components/ui/Surface.astro';
 import SiteLayout from '@/layouts/SiteLayout.astro';
+import { getPresentationLocale } from '@/lib/localization';
+import { formatUiMessage, getUiMessage, type UiMessageKey } from '@/lib/ui-catalog';
 import type { SeoMetadata } from '@/lib/seo';
 
 const seo: SeoMetadata = {
@@ -9,16 +11,17 @@ const seo: SeoMetadata = {
   canonical: '/feedback',
   robots: 'noindex,nofollow'
 };
+const locale = getPresentationLocale(Astro.url.pathname, Astro.locals.locale);
+const t = (key: UiMessageKey): string => getUiMessage(locale, key);
 ---
 
 <SiteLayout seo={seo} mode="editorial">
   <main class="nn-container nn-container--form py-12 sm:py-16">
     <header class="max-w-2xl">
-      <p class="nn-eyebrow">Private support</p>
-      <h1 class="nn-type-page-title mt-3" id="feedback-page-title">Feedback</h1>
+      <p class="nn-eyebrow">{t('feedback.privateSupport')}</p>
+      <h1 class="nn-type-page-title mt-3" id="feedback-page-title">{t('auth.feedback')}</h1>
       <p class="nn-type-body mt-4">
-        Tell us about a problem, suggestion, or calculation concern. Your feedback is
-        private and associated with your signed-in account.
+        {t('feedback.description')}
       </p>
     </header>
 
@@ -29,7 +32,7 @@ const seo: SeoMetadata = {
       aria-busy="true"
     >
       <p class="nn-async-state" data-feedback-loading role="status" aria-live="polite">
-        Confirming your session…
+        {t('feedback.confirmingSession')}
       </p>
 
       <p
@@ -44,7 +47,7 @@ const seo: SeoMetadata = {
         <Surface variant="elevated" class="w-full">
           <form class="p-6 sm:p-8" data-feedback-form novalidate aria-busy="false">
             <div>
-              <label class="nn-type-label" for="feedback-category">Category</label>
+            <label class="nn-type-label" for="feedback-category">{t('feedback.category')}</label>
               <select
                 class="nn-field mt-2"
                 id="feedback-category"
@@ -52,13 +55,13 @@ const seo: SeoMetadata = {
                 required
                 aria-describedby="feedback-category-error"
               >
-                <option value="">Choose a category</option>
-                <option value="BUG">Bug</option>
-                <option value="SUGGESTION">Suggestion</option>
+                <option value="">{t('feedback.chooseCategory')}</option>
+                <option value="BUG">{t('feedback.category.bug')}</option>
+                <option value="SUGGESTION">{t('feedback.category.suggestion')}</option>
                 <option value="CALCULATION_CONCERN">
-                  Incorrect result / calculation concern
+                  {t('feedback.category.calculationConcern')}
                 </option>
-                <option value="OTHER">Other</option>
+                <option value="OTHER">{t('feedback.category.other')}</option>
               </select>
               <p
                 class="nn-status nn-status--error mt-2"
@@ -69,7 +72,7 @@ const seo: SeoMetadata = {
             </div>
 
             <div class="mt-6">
-              <label class="nn-type-label" for="feedback-message">Message</label>
+              <label class="nn-type-label" for="feedback-message">{t('feedback.message')}</label>
               <textarea
                 class="nn-field mt-2 min-h-56 resize-y"
                 id="feedback-message"
@@ -80,14 +83,14 @@ const seo: SeoMetadata = {
               ></textarea>
               <div class="mt-2 flex flex-wrap justify-between gap-2">
                 <p class="nn-type-body-small" id="feedback-message-help">
-                  Enter 10–5,000 characters. Please do not include passwords or secrets.
+                  {t('feedback.messageHelp')}
                 </p>
                 <p
                   class="nn-type-metadata"
                   id="feedback-message-count"
                   data-feedback-message-count
                 >
-                  0 / 5,000 characters
+                  {formatUiMessage(locale, 'feedback.characterCount', { count: 0 })}
                 </p>
               </div>
               <p
@@ -103,7 +106,7 @@ const seo: SeoMetadata = {
               data-feedback-submit
               type="submit"
             >
-              Send feedback
+              {t('feedback.send')}
             </button>
 
             <p
@@ -127,17 +130,17 @@ const seo: SeoMetadata = {
         hidden
       >
         <h2 class="nn-type-section-title" id="feedback-success-title">
-          Feedback sent
+          {t('feedback.successTitle')}
         </h2>
         <p class="nn-type-body-small">
-          Thank you. Your private feedback has been submitted to NatalNode.
+          {t('feedback.successBody')}
         </p>
         <button
           class="nn-button nn-button--secondary mt-3 self-start"
           data-feedback-submit-another
           type="button"
         >
-          Send another feedback
+          {t('feedback.sendAnother')}
         </button>
       </section>
     </section>

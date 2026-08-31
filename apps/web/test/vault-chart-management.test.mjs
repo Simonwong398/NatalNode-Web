@@ -81,7 +81,7 @@ test('initial render exposes the prop boundary, workspace, management regions, a
     await scope.mount();
 
     assert.match(scope.container.textContent, /Current saved chart/);
-    assert.match(scope.container.textContent, /FAMILY/);
+    assert.match(scope.container.textContent, /Family/);
     assert.match(scope.container.textContent, /Edit metadata/);
     assert.match(scope.container.textContent, /Notes/);
     assert.match(scope.container.textContent, /Add a note/);
@@ -743,7 +743,7 @@ test('chart duplication uses one bodyless request, prevents repeats, and navigat
     await scope.flush();
 
     assert.deepEqual(scope.locationReplaceCalls, [
-      `/vault/chart?chartId=${encodeURIComponent(duplicate.chartId)}`
+      `/en/vault/chart?chartId=${encodeURIComponent(duplicate.chartId)}`
     ]);
     assert.equal(scope.fetch.callsFor('POST', duplicateUrl(scope.chart)).length, 1);
   });
@@ -842,7 +842,7 @@ test('unauthorized redirect policy is consistent for load, metadata, note mutati
     scope.fetch.enqueue('GET', notesUrl(scope.chart), statusResponse(401));
     await scope.mount();
     await scope.flush();
-    assert.deepEqual(scope.locationReplaceCalls, ['/auth/sign-in']);
+    assert.deepEqual(scope.locationReplaceCalls, ['/en/auth/sign-in']);
     assert.equal(scope.role('status', 'Loading notes…').getAttribute('aria-live'), 'polite');
   });
 
@@ -852,7 +852,7 @@ test('unauthorized redirect policy is consistent for load, metadata, note mutati
     await scope.change(scope.control('Chart name'), 'Unauthorized metadata');
     await scope.submit(scope.control('Chart name').form);
     await scope.flush();
-    assert.deepEqual(scope.locationReplaceCalls, ['/auth/sign-in']);
+    assert.deepEqual(scope.locationReplaceCalls, ['/en/auth/sign-in']);
     assert.equal(scope.button('Saving…').disabled, true);
     assert.equal(scope.roles('alert').length, 0);
   });
@@ -863,7 +863,7 @@ test('unauthorized redirect policy is consistent for load, metadata, note mutati
     await scope.change(scope.control('Add a note'), 'Unauthorized note');
     await scope.submit(scope.control('Add a note').form);
     await scope.flush();
-    assert.deepEqual(scope.locationReplaceCalls, ['/auth/sign-in']);
+    assert.deepEqual(scope.locationReplaceCalls, ['/en/auth/sign-in']);
     assert.equal(scope.button('Adding…').disabled, true);
     assert.equal(scope.control('Add a note').value, 'Unauthorized note');
   });
@@ -876,7 +876,7 @@ test('unauthorized redirect policy is consistent for load, metadata, note mutati
     scope.fetch.enqueue('PATCH', noteUrl(scope.chart, note), statusResponse(401));
     await scope.click(scope.button('Save note'));
     await scope.flush();
-    assert.deepEqual(scope.locationReplaceCalls, ['/auth/sign-in']);
+    assert.deepEqual(scope.locationReplaceCalls, ['/en/auth/sign-in']);
     assert.equal(scope.button('Saving…').disabled, true);
     assert.equal(scope.control('Edit note').value, 'Unauthorized edit');
   });
@@ -887,7 +887,7 @@ test('unauthorized redirect policy is consistent for load, metadata, note mutati
     scope.fetch.enqueue('DELETE', noteUrl(scope.chart, note), statusResponse(401));
     await scope.click(scope.button('Delete'));
     await scope.flush();
-    assert.deepEqual(scope.locationReplaceCalls, ['/auth/sign-in']);
+    assert.deepEqual(scope.locationReplaceCalls, ['/en/auth/sign-in']);
     assert.equal(scope.button('Deleting…').disabled, true);
     assert.match(scope.container.textContent, /First fixture note/);
   });
@@ -897,7 +897,7 @@ test('unauthorized redirect policy is consistent for load, metadata, note mutati
     scope.fetch.enqueue('DELETE', chartUrl(scope.chart), statusResponse(401));
     await scope.click(scope.button('Delete chart'));
     await scope.flush();
-    assert.deepEqual(scope.locationReplaceCalls, ['/auth/sign-in']);
+    assert.deepEqual(scope.locationReplaceCalls, ['/en/auth/sign-in']);
     assert.equal(scope.button('Deleting…').disabled, true);
     assert.equal(scope.onDeletedCalls.length, 0);
   });
@@ -907,7 +907,7 @@ test('unauthorized redirect policy is consistent for load, metadata, note mutati
     scope.fetch.enqueue('POST', duplicateUrl(scope.chart), statusResponse(401));
     await scope.click(scope.button('Duplicate chart'));
     await scope.flush();
-    assert.deepEqual(scope.locationReplaceCalls, ['/auth/sign-in']);
+    assert.deepEqual(scope.locationReplaceCalls, ['/en/auth/sign-in']);
     assert.equal(scope.button('Duplicating…').disabled, true);
     assert.match(scope.container.textContent, /Fixture chart/);
   });
@@ -1020,7 +1020,7 @@ test('same-chart-ID prop updates change display props but do not resynchronize m
 
     await scope.rerender(next);
     assert.equal(scope.container.querySelector('h2').textContent, 'New prop name');
-    assert.equal(scope.container.querySelector('.nn-badge').textContent, 'CLIENT');
+    assert.equal(scope.container.querySelector('.nn-badge').textContent, 'Client');
     assert.equal(scope.control('Chart name').value, 'Local name draft');
     assert.equal(scope.control('Category').value, 'PARTNER');
     assert.equal(scope.control('Add a note').value, 'Local note draft');
@@ -1035,7 +1035,9 @@ test('the direct consumer statically preserves onDeleted navigation to /vault', 
     new URL('../src/features/vault/SavedVaultChartExperience.tsx', import.meta.url),
     'utf8'
   );
-  const matches = source.match(/onDeleted=\{\(\) => window\.location\.replace\('\/vault'\)\}/gu) ?? [];
+  const matches = source.match(
+    /onDeleted=\{\(\) => window\.location\.replace\(getLocalizedCurrentPath\(window\.location\.pathname, '\/vault'\)\)\}/gu
+  ) ?? [];
   assert.equal(matches.length, 1);
 });
 

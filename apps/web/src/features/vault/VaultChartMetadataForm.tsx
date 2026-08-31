@@ -6,6 +6,7 @@ import type {
   VaultChartCategory,
   VaultChartRecord
 } from '@natalnode/contracts';
+import type { SupportedLocale } from '../../lib/localization.js';
 import {
   normalizeDisplayName,
   updateVaultChartMetadata,
@@ -13,6 +14,7 @@ import {
   VAULT_CHART_CATEGORIES,
   DISPLAY_NAME_MAXIMUM_CHARACTERS
 } from './vault-management.js';
+import { formatVaultUi, vaultCategoryLabel, vaultUi } from './vault-ui.js';
 
 const SIGN_IN_PATH = '/auth/sign-in';
 
@@ -21,10 +23,7 @@ type MetadataStatus = 'idle' | 'saving' | 'success' | 'error';
 interface VaultChartMetadataFormProps {
   readonly chart: VaultChartRecord;
   readonly onChartUpdated: (chart: VaultChartRecord) => void;
-}
-
-function categoryLabel(category: VaultChartCategory): string {
-  return category.charAt(0) + category.slice(1).toLowerCase();
+  readonly locale?: SupportedLocale;
 }
 
 function redirectToSignIn(): void {
@@ -39,9 +38,27 @@ function isSameChartMetadata(
   return normalizeDisplayName(displayName) === chart.displayName && category === chart.category;
 }
 
+function localizeDisplayNameError(
+  message: string,
+  locale: SupportedLocale | undefined
+): string {
+  if (message === 'Enter a chart name.') {
+    return vaultUi(locale, 'vault.chartNameRequired');
+  }
+
+  if (/^Use [0-9,]+ characters or fewer\.$/u.test(message)) {
+    return formatVaultUi(locale, 'vault.chartNameTooLong', {
+      count: DISPLAY_NAME_MAXIMUM_CHARACTERS
+    });
+  }
+
+  return message;
+}
+
 export default function VaultChartMetadataForm({
   chart,
-  onChartUpdated
+  onChartUpdated,
+  locale
 }: VaultChartMetadataFormProps) {
   const [displayName, setDisplayName] = useState(chart.displayName);
   const [category, setCategory] = useState<VaultChartCategory>(chart.category);
@@ -75,7 +92,7 @@ export default function VaultChartMetadataForm({
     const displayNameError = validateDisplayName(displayName);
 
     if (displayNameError !== null) {
-      setMetadataError(displayNameError);
+      setMetadataError(localizeDisplayNameError(displayNameError, locale));
       setMetadataStatus('error');
       return;
     }
@@ -118,10 +135,10 @@ export default function VaultChartMetadataForm({
     setMetadataStatus('error');
     setMetadataError(
       result.status === 'not-found'
-        ? 'This saved chart is no longer available.'
+        ? vaultUi(locale, 'vault.chartUnavailable')
         : result.status === 'invalid-request'
-          ? 'Check the chart name and category, then try again.'
-          : "We couldn't save these changes. Please try again."
+          ? vaultUi(locale, 'vault.invalidMetadata')
+          : vaultUi(locale, 'vault.saveError')
     );
   };
 
@@ -140,12 +157,12 @@ export default function VaultChartMetadataForm({
       onSubmit={handleMetadataSubmit}
     >
       <h3 className="nn-type-section-title" id={metadataTitleId}>
-        Edit metadata
+        {vaultUi(locale, 'vault.editMetadata')}
       </h3>
       <div className="mt-4 grid gap-4 sm:grid-cols-[minmax(0,1fr)_12rem]">
         <div>
           <label className="nn-type-label" htmlFor={nameId}>
-            Chart name
+            {vaultUi(locale, 'vault.chartName')}
           </label>
           <input
             aria-describedby={metadataError ? nameErrorId : undefined}
@@ -178,7 +195,7 @@ export default function VaultChartMetadataForm({
 
         <div>
           <label className="nn-type-label" htmlFor={categoryId}>
-            Category
+            {vaultUi(locale, 'vault.category')}
           </label>
           <select
             className="nn-field mt-2 appearance-auto"
@@ -197,7 +214,7 @@ export default function VaultChartMetadataForm({
           >
             {VAULT_CHART_CATEGORIES.map((option) => (
               <option key={option} value={option}>
-                {categoryLabel(option)}
+                {vaultCategoryLabel(locale, option)}
               </option>
             ))}
           </select>
@@ -210,7 +227,9 @@ export default function VaultChartMetadataForm({
           disabled={metadataBusy || !hasMetadataChanges}
           type="submit"
         >
-          {metadataBusy ? 'Saving…' : 'Save changes'}
+          {metadataBusy
+            ? vaultUi(locale, 'vault.saving')
+            : vaultUi(locale, 'vault.saveChanges')}
         </button>
         {hasMetadataChanges ? (
           <button
@@ -219,7 +238,7 @@ export default function VaultChartMetadataForm({
             onClick={handleMetadataCancel}
             type="button"
           >
-            Cancel
+            {vaultUi(locale, 'vault.cancel')}
           </button>
         ) : null}
       </div>
@@ -231,7 +250,7 @@ export default function VaultChartMetadataForm({
           role="status"
           tabIndex={-1}
         >
-          Metadata updated.
+          {vaultUi(locale, 'vault.metadataUpdated')}
         </p>
       ) : null}
     </form>

@@ -3,10 +3,10 @@ import type {
   CompleteEmailMagicLinkApiResponse
 } from '@natalnode/contracts';
 import { getLocalizedCurrentPath } from '../../lib/localization.js';
+import { getDocumentUiMessage } from '../../lib/ui-catalog.js';
 
 const COMPLETE_ENDPOINT = '/api/auth/email/complete';
 const SUCCESS_REDIRECT_PATH = '/';
-const FAILURE_MESSAGE = 'This sign-in link is invalid or has expired.';
 
 /** Extracts one non-empty token from the URL fragment without trimming it. */
 export function extractMagicLinkToken(hash: string): string | null {
@@ -21,7 +21,7 @@ export function extractMagicLinkToken(hash: string): string | null {
 }
 
 function setFailure(statusElement: HTMLElement): void {
-  statusElement.textContent = FAILURE_MESSAGE;
+  statusElement.textContent = getDocumentUiMessage('auth.invalidMagicLink');
 }
 
 function isSuccessfulCompletion(

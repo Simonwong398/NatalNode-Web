@@ -1,6 +1,7 @@
 ---
 import SiteLayout from '@/layouts/SiteLayout.astro';
 import { getLocalizedPath, getPresentationLocale } from '@/lib/localization';
+import { getUiMessage, type UiMessageKey } from '@/lib/ui-catalog';
 import type { SeoMetadata } from '@/lib/seo';
 
 const seo: SeoMetadata = {
@@ -11,17 +12,18 @@ const seo: SeoMetadata = {
 };
 const locale = getPresentationLocale(Astro.url.pathname, Astro.locals.locale);
 const localize = (path: string): string => getLocalizedPath(locale, path);
+const t = (key: UiMessageKey): string => getUiMessage(locale, key);
 ---
 
 <SiteLayout seo={seo} mode="editorial">
   <main class="nn-container nn-container--form py-12 sm:py-16">
     <header class="max-w-2xl">
-      <p class="nn-eyebrow">Account</p>
+      <p class="nn-eyebrow">{t('auth.account')}</p>
       <h1 class="nn-type-page-title mt-3" id="account-page-title">
-        Account management
+        {t('account.title')}
       </h1>
       <p class="nn-type-body mt-4">
-        Manage the lifecycle of your NatalNode account.
+        {t('account.description')}
       </p>
     </header>
 
@@ -32,7 +34,7 @@ const localize = (path: string): string => getLocalizedPath(locale, path);
       aria-busy="true"
     >
       <p class="nn-async-state" data-account-loading role="status" aria-live="polite">
-        Confirming your session…
+        {t('account.confirmingSession')}
       </p>
 
       <p
@@ -42,7 +44,7 @@ const localize = (path: string): string => getLocalizedPath(locale, path);
         tabindex="-1"
         hidden
       >
-        We couldn't confirm your session. Refresh the page and try again.
+        {t('account.sessionError')}
       </p>
 
       <div class="max-w-2xl" data-account-content hidden>
@@ -52,25 +54,24 @@ const localize = (path: string): string => getLocalizedPath(locale, path);
           aria-labelledby="account-notifications-title"
           aria-busy="true"
         >
-          <p class="nn-eyebrow">Notifications</p>
+          <p class="nn-eyebrow">{t('account.notifications.eyebrow')}</p>
           <h2 class="nn-type-section-title mt-3" id="account-notifications-title">
-            Browser notifications
+            {t('account.notifications.title')}
           </h2>
           <p class="nn-type-body-small mt-3 max-w-xl" id="account-notifications-description">
-            Get notifications from NatalNode on this browser.
+            {t('account.notifications.description')}
           </p>
           <p class="nn-type-metadata mt-3 max-w-xl" id="account-notifications-privacy">
-            Browser notifications may appear on your lock screen or on a shared device.
-            Review the notification preview settings on your device before enabling them.
+            {t('account.notifications.privacy')}
           </p>
 
           <p class="nn-async-state mt-6" data-notifications-loading role="status" aria-live="polite">
-            Loading notification settings…
+            {t('account.notifications.loading')}
           </p>
 
           <div data-notifications-content hidden>
             <div class="mt-6 border-t border-[var(--nn-border-subtle)] pt-6">
-              <p class="nn-type-label">This browser</p>
+              <p class="nn-type-label">{t('account.notifications.thisBrowser')}</p>
               <p
                 class="nn-type-body-small mt-2"
                 data-notifications-permission
@@ -89,7 +90,7 @@ const localize = (path: string): string => getLocalizedPath(locale, path);
                   type="button"
                   aria-describedby="account-notifications-description account-notifications-permission account-notifications-error"
                 >
-                  Enable on this browser
+                  {t('account.notifications.enable')}
                 </button>
                 <button
                   class="nn-button nn-button--secondary"
@@ -98,16 +99,15 @@ const localize = (path: string): string => getLocalizedPath(locale, path);
                   aria-describedby="account-notifications-connection account-notifications-error"
                   hidden
                 >
-                  Disable on this browser
+                  {t('account.notifications.disable')}
                 </button>
               </div>
             </div>
 
             <fieldset class="mt-8 border-t border-[var(--nn-border-subtle)] pt-6" data-notifications-categories>
-              <legend class="nn-type-label">Notification categories</legend>
+              <legend class="nn-type-label">{t('account.notifications.categories')}</legend>
               <p class="nn-type-body-small mt-2" id="account-notifications-category-help">
-                Choose which account-owned categories may use browser notifications when available.
-                Categories do not create a browser subscription.
+                {t('account.notifications.categoriesHelp')}
               </p>
 
               <div class="mt-5 grid gap-4">
@@ -121,15 +121,15 @@ const localize = (path: string): string => getLocalizedPath(locale, path);
                   />
                   <span class="min-w-0">
                     <span class="flex flex-wrap items-baseline gap-x-3 gap-y-1">
-                      <span class="nn-type-label">Account</span>
+                      <span class="nn-type-label">{t('auth.account')}</span>
                       <span
                         class="nn-type-metadata"
                         data-notifications-category-state="ACCOUNT"
                         id="account-notifications-category-account-state"
-                      >Not set</span>
+                      >{t('account.notifications.category.notSet')}</span>
                     </span>
                     <span class="nn-type-body-small mt-1 block" id="account-notifications-category-account-help">
-                      Account and product updates when available.
+                      {t('account.notifications.category.accountHelp')}
                     </span>
                   </span>
                 </label>
@@ -144,15 +144,15 @@ const localize = (path: string): string => getLocalizedPath(locale, path);
                   />
                   <span class="min-w-0">
                     <span class="flex flex-wrap items-baseline gap-x-3 gap-y-1">
-                      <span class="nn-type-label">System</span>
+                      <span class="nn-type-label">{t('account.notifications.category.system')}</span>
                       <span
                         class="nn-type-metadata"
                         data-notifications-category-state="SYSTEM"
                         id="account-notifications-category-system-state"
-                      >Not set</span>
+                      >{t('account.notifications.category.notSet')}</span>
                     </span>
                     <span class="nn-type-body-small mt-1 block" id="account-notifications-category-system-help">
-                      Important NatalNode system updates when available.
+                      {t('account.notifications.category.systemHelp')}
                     </span>
                   </span>
                 </label>
@@ -167,15 +167,15 @@ const localize = (path: string): string => getLocalizedPath(locale, path);
                   />
                   <span class="min-w-0">
                     <span class="flex flex-wrap items-baseline gap-x-3 gap-y-1">
-                      <span class="nn-type-label">Astrology alerts</span>
+                      <span class="nn-type-label">{t('account.notifications.category.astrologyAlerts')}</span>
                       <span
                         class="nn-type-metadata"
                         data-notifications-category-state="ASTROLOGY_ALERT"
                         id="account-notifications-category-astrology-alert-state"
-                      >Not set</span>
+                      >{t('account.notifications.category.notSet')}</span>
                     </span>
                     <span class="nn-type-body-small mt-1 block" id="account-notifications-category-astrology-alert-help">
-                      Future astrology alerts when available.
+                      {t('account.notifications.category.astrologyAlertsHelp')}
                     </span>
                   </span>
                 </label>
@@ -206,15 +206,12 @@ const localize = (path: string): string => getLocalizedPath(locale, path);
           data-account-export
           aria-labelledby="account-export-title"
         >
-          <p class="nn-eyebrow">Your data</p>
+          <p class="nn-eyebrow">{t('account.data.eyebrow')}</p>
           <h2 class="nn-type-section-title mt-3" id="account-export-title">
-            Download your data
+            {t('account.data.title')}
           </h2>
           <p class="nn-type-body-small mt-3 max-w-xl" id="account-export-description">
-            Download a JSON copy of your NatalNode account data, including saved chart data
-            and account-owned content. Downloading does not change or delete your account,
-            and export is optional. You do not need to download your data before deleting
-            your account.
+            {t('account.data.description')}
           </p>
 
           <form
@@ -231,7 +228,7 @@ const localize = (path: string): string => getLocalizedPath(locale, path);
               type="submit"
               aria-describedby="account-export-description account-export-status"
             >
-              Download your data
+              {t('account.data.download')}
             </button>
             <p
               class="nn-status mt-4"
@@ -256,15 +253,13 @@ const localize = (path: string): string => getLocalizedPath(locale, path);
               aria-labelledby="account-export-reauth-title"
               tabindex="-1"
               hidden
-            >
-              <h3 class="font-semibold text-[var(--nn-text-primary)]" id="account-export-reauth-title">
-                Re-authentication required
-              </h3>
-              <p>
-                For security, sign in again before downloading your account data.
-              </p>
+              >
+                <h3 class="font-semibold text-[var(--nn-text-primary)]" id="account-export-reauth-title">
+                  {t('account.reauth.title')}
+                </h3>
+              <p>{t('account.export.reauthDescription')}</p>
               <a class="nn-button nn-button--secondary self-start" href={localize('/auth/sign-in')}>
-                Sign in again
+                {t('auth.signInAgain')}
               </a>
             </section>
           </form>
@@ -274,15 +269,12 @@ const localize = (path: string): string => getLocalizedPath(locale, path);
           class="account-danger-surface mt-8 p-6 sm:p-8"
           aria-labelledby="account-danger-title"
         >
-          <p class="nn-eyebrow">Danger zone</p>
+          <p class="nn-eyebrow">{t('account.danger.eyebrow')}</p>
           <h2 class="nn-type-section-title mt-3" id="account-danger-title">
-            Delete account
+            {t('account.danger.title')}
           </h2>
           <p class="nn-type-body-small mt-3 max-w-xl">
-            This permanently removes your account from the active NatalNode application,
-            including saved Vault charts and notes and private Feedback associated with
-            your account. This is different from deleting one saved chart. You will be
-            signed out.
+            {t('account.danger.description')}
           </p>
           <button
             class="nn-button nn-button--secondary mt-6"
@@ -291,7 +283,7 @@ const localize = (path: string): string => getLocalizedPath(locale, path);
             aria-expanded="false"
             aria-controls="account-delete-confirmation"
           >
-            Delete account
+            {t('account.danger.title')}
           </button>
 
           <section
@@ -306,16 +298,15 @@ const localize = (path: string): string => getLocalizedPath(locale, path);
               id="account-delete-confirmation-title"
               data-account-delete-heading
             >
-              Confirm account deletion
+              {t('account.delete.confirmTitle')}
             </h3>
             <p class="nn-type-body-small mt-3 max-w-xl" id="account-delete-help">
-              Enter <strong>DELETE</strong> exactly to confirm this permanent action.
-              A recent sign-in may be required.
+              {t('account.delete.confirmHelpPrefix')} <strong>DELETE</strong> {t('account.delete.confirmHelpSuffix')}
             </p>
 
             <form class="mt-5" data-account-delete-form novalidate aria-busy="false">
               <label class="nn-type-label" for="account-delete-phrase">
-                Confirmation phrase
+                {t('account.delete.confirmationPhrase')}
               </label>
               <input
                 class="nn-field mt-2 max-w-sm"
@@ -335,7 +326,7 @@ const localize = (path: string): string => getLocalizedPath(locale, path);
                   data-account-delete-cancel
                   type="button"
                 >
-                  Cancel
+                  {t('account.delete.cancel')}
                 </button>
                 <button
                   class="nn-button account-danger-button"
@@ -343,7 +334,7 @@ const localize = (path: string): string => getLocalizedPath(locale, path);
                   type="submit"
                   disabled
                 >
-                  Delete account permanently
+                  {t('account.delete.submit')}
                 </button>
               </div>
 
@@ -354,7 +345,7 @@ const localize = (path: string): string => getLocalizedPath(locale, path);
                 aria-live="polite"
                 hidden
               >
-                Deleting your account…
+                {t('account.delete.pending')}
               </p>
               <p
                 class="nn-notice nn-notice--error mt-4"
@@ -371,16 +362,13 @@ const localize = (path: string): string => getLocalizedPath(locale, path);
                 aria-labelledby="account-reauth-title"
                 tabindex="-1"
                 hidden
-              >
-                <h4 class="font-semibold text-[var(--nn-text-primary)]" id="account-reauth-title">
-                  Re-authentication required
-                </h4>
-                <p>
-                  For security, please sign in again with an Email Magic Link before
-                  deleting your account.
-                </p>
+                >
+                  <h4 class="font-semibold text-[var(--nn-text-primary)]" id="account-reauth-title">
+                    {t('account.reauth.title')}
+                  </h4>
+                <p>{t('account.delete.reauthDescription')}</p>
                 <a class="nn-button nn-button--secondary self-start" href={localize('/auth/sign-in')}>
-                  Sign in again
+                  {t('auth.signInAgain')}
                 </a>
               </section>
             </form>

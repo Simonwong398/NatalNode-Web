@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { getLocalizedCurrentPath } from '../../lib/localization.js';
+import type { SupportedLocale } from '../../lib/localization.js';
 import type {
   BirthRequest,
   BirthTimeAmbiguityStatus,
@@ -12,6 +13,7 @@ import type {
 import ChartWorkspaceView from '@/features/chart-workspace/ChartWorkspaceView';
 import { createChartPresentationPolicy } from '@/features/chart-workspace/chart-presentation-policy';
 import VaultChartManagement from './VaultChartManagement';
+import { vaultUi } from './vault-ui.js';
 
 const VAULT_CHART_ENDPOINT = '/api/vault/charts';
 const SIGN_IN_PATH = '/auth/sign-in';
@@ -204,11 +206,17 @@ function readRequestedChartId(): string | null {
   return chartIds.length === 1 && chartIds[0] !== '' ? chartIds[0] : null;
 }
 
-function SavedChartStatus({ state }: { state: Exclude<SavedChartState, { status: 'loaded' }> }) {
+function SavedChartStatus({
+  state,
+  locale
+}: {
+  readonly state: Exclude<SavedChartState, { status: 'loaded' }>;
+  readonly locale?: SupportedLocale;
+}) {
   if (state.status === 'loading') {
     return (
       <p className="nn-async-state" role="status" aria-live="polite">
-        Loading saved chart…
+        {vaultUi(locale, 'vault.savedChartLoading')}
       </p>
     );
   }
@@ -220,10 +228,10 @@ function SavedChartStatus({ state }: { state: Exclude<SavedChartState, { status:
         className="nn-async-state nn-async-state--empty max-w-2xl"
       >
         <h2 className="nn-type-section-title" id="saved-chart-unavailable-title">
-          Saved chart unavailable
+          {vaultUi(locale, 'vault.savedChartUnavailableTitle')}
         </h2>
         <p className="nn-type-body-small mt-2">
-          This saved chart is unavailable.
+          {vaultUi(locale, 'vault.savedChartUnavailableBody')}
         </p>
       </section>
     );
@@ -231,12 +239,16 @@ function SavedChartStatus({ state }: { state: Exclude<SavedChartState, { status:
 
   return (
     <p className="nn-async-state nn-async-state--error" role="alert">
-      We couldn't load this saved chart. Please try again.
+      {vaultUi(locale, 'vault.savedChartLoadError')}
     </p>
   );
 }
 
-export default function SavedVaultChartExperience() {
+export default function SavedVaultChartExperience({
+  locale
+}: {
+  readonly locale?: SupportedLocale;
+}) {
   const [state, setState] = useState<SavedChartState>({ status: 'loading' });
 
   useEffect(() => {
@@ -308,7 +320,7 @@ export default function SavedVaultChartExperience() {
   }, []);
 
   if (state.status !== 'loaded') {
-    return <SavedChartStatus state={state} />;
+    return <SavedChartStatus state={state} locale={locale} />;
   }
 
   const presentationPolicy = createChartPresentationPolicy(state.chart.normalizedChartRequest);
@@ -337,6 +349,7 @@ export default function SavedVaultChartExperience() {
     <VaultChartManagement
       chart={state.chart}
       onChartUpdated={handleChartUpdated}
+      locale={locale}
       onDeleted={() => window.location.replace(getLocalizedCurrentPath(window.location.pathname, '/vault'))}
     >
       <ChartWorkspaceView

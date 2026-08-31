@@ -1,15 +1,17 @@
 import type { CurrentSessionApiResponse } from '@natalnode/contracts';
 import { getLocalizedCurrentPath } from '../../lib/localization.js';
+import { getDocumentUiMessage } from '../../lib/ui-catalog.js';
+import type { UiMessageKey } from '../../lib/ui-catalog.js';
 
 const SESSION_ENDPOINT = '/api/auth/session';
 const ACCOUNT_ENDPOINT = '/api/account';
 const SIGN_IN_PATH = '/auth/sign-in';
 const HOME_PATH = '/';
 const CONFIRMATION_PHRASE = 'DELETE';
-const INVALID_REQUEST_MESSAGE =
-  "We couldn't process that confirmation. Close this section and try again.";
-const DELETION_FAILURE_MESSAGE =
-  "We couldn't confirm that account deletion completed. No successful deletion was confirmed. Check your session before trying again.";
+
+function ui(key: UiMessageKey): string {
+  return getDocumentUiMessage(key);
+}
 
 export interface AccountDeletionElements {
   readonly root: HTMLElement;
@@ -114,8 +116,8 @@ function setPending(elements: AccountDeletionElements, pending: boolean): void {
   elements.cancelButton.disabled = pending;
   elements.pendingStatus.hidden = !pending;
   elements.submitButton.textContent = pending
-    ? 'Deleting account…'
-    : 'Delete account permanently';
+    ? ui('account.delete.pending')
+    : ui('account.delete.submit');
 
   if (pending) {
     elements.submitButton.disabled = true;
@@ -158,7 +160,7 @@ function showError(elements: AccountDeletionElements, message: string): void {
 function showInvalidRequest(elements: AccountDeletionElements): void {
   elements.confirmationInput.setAttribute('aria-invalid', 'true');
   elements.submitButton.disabled = true;
-  showError(elements, INVALID_REQUEST_MESSAGE);
+  showError(elements, ui('account.delete.invalidError'));
 }
 
 function showReauthenticationRequired(elements: AccountDeletionElements): void {
@@ -204,7 +206,7 @@ async function deleteAccount(elements: AccountDeletionElements): Promise<void> {
         payload = await response.json();
       } catch (_error) {
         setPending(elements, false);
-        showError(elements, DELETION_FAILURE_MESSAGE);
+        showError(elements, ui('account.delete.failureError'));
         return;
       }
 
@@ -213,7 +215,7 @@ async function deleteAccount(elements: AccountDeletionElements): Promise<void> {
       if (isRecentAuthenticationRequiredResponse(payload)) {
         showReauthenticationRequired(elements);
       } else {
-        showError(elements, DELETION_FAILURE_MESSAGE);
+        showError(elements, ui('account.delete.failureError'));
       }
       return;
     }
@@ -225,10 +227,10 @@ async function deleteAccount(elements: AccountDeletionElements): Promise<void> {
       return;
     }
 
-    showError(elements, DELETION_FAILURE_MESSAGE);
+    showError(elements, ui('account.delete.failureError'));
   } catch (_error) {
     setPending(elements, false);
-    showError(elements, DELETION_FAILURE_MESSAGE);
+    showError(elements, ui('account.delete.failureError'));
   }
 }
 

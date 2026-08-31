@@ -1,4 +1,6 @@
 import { CHART_NOTE_MAXIMUM_CHARACTERS } from './vault-management.js';
+import type { SupportedLocale } from '../../lib/localization.js';
+import { vaultUi } from './vault-ui.js';
 
 interface VaultChartNoteEditorProps {
   readonly noteId: string;
@@ -9,6 +11,7 @@ interface VaultChartNoteEditorProps {
   readonly onChange: (value: string) => void;
   readonly onSave: () => void;
   readonly onCancel: () => void;
+  readonly locale?: SupportedLocale;
 }
 
 export default function VaultChartNoteEditor({
@@ -19,12 +22,13 @@ export default function VaultChartNoteEditor({
   saving,
   onChange,
   onSave,
-  onCancel
+  onCancel,
+  locale
 }: VaultChartNoteEditorProps) {
   return (
     <div>
       <label className="nn-type-label" htmlFor={`${noteId}-edit`}>
-        Edit note
+        {vaultUi(locale, 'vault.editNote')}
       </label>
       <textarea
         aria-describedby={error ? `${noteId}-edit-error` : undefined}
@@ -52,7 +56,7 @@ export default function VaultChartNoteEditor({
           onClick={onSave}
           type="button"
         >
-          {saving ? 'Saving…' : 'Save note'}
+          {saving ? vaultUi(locale, 'vault.saving') : vaultUi(locale, 'vault.saveNote')}
         </button>
         <button
           className="nn-button nn-button--quiet"
@@ -60,7 +64,7 @@ export default function VaultChartNoteEditor({
           onClick={onCancel}
           type="button"
         >
-          Cancel
+          {vaultUi(locale, 'vault.cancel')}
         </button>
       </div>
     </div>

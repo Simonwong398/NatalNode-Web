@@ -5,6 +5,10 @@ import type {
   FeedbackCategory
 } from '@natalnode/contracts';
 import { getLocalizedCurrentPath } from '../../lib/localization.js';
+import {
+  formatDocumentUiMessage,
+  getDocumentUiMessage
+} from '../../lib/ui-catalog.js';
 
 const SESSION_ENDPOINT = '/api/auth/session';
 const FEEDBACK_ENDPOINT = '/api/feedback';
@@ -17,13 +21,6 @@ const FEEDBACK_CATEGORIES: readonly FeedbackCategory[] = [
   'CALCULATION_CONCERN',
   'OTHER'
 ];
-
-const SESSION_FAILURE_MESSAGE =
-  "We couldn't confirm your session. Refresh the page and try again.";
-const SUBMISSION_FAILURE_MESSAGE =
-  "We couldn't send your feedback. Your message is still here; please try again.";
-const RATE_LIMIT_MESSAGE =
-  'You have sent several feedback messages recently. Please wait and try again later.';
 
 export interface PrivateFeedbackElements {
   readonly root: HTMLElement;
@@ -95,7 +92,10 @@ function clearValidationErrors(elements: PrivateFeedbackElements): void {
 
 function updateCharacterCount(elements: PrivateFeedbackElements): void {
   const count = getMessageCharacterCount(elements.message.value);
-  elements.messageCount.textContent = `${count.toLocaleString()} / 5,000 characters`;
+  elements.messageCount.textContent = formatDocumentUiMessage(
+    'feedback.characterCount',
+    { count: count.toLocaleString() }
+  );
 }
 
 function validateForm(elements: PrivateFeedbackElements): CreateFeedbackApiRequest | null {
@@ -109,7 +109,7 @@ function validateForm(elements: PrivateFeedbackElements): CreateFeedbackApiReque
     setFieldError(
       elements.category,
       elements.categoryError,
-      'Choose a feedback category.'
+      getDocumentUiMessage('feedback.categoryError')
     );
     firstInvalidControl = elements.category;
   }
@@ -118,14 +118,14 @@ function validateForm(elements: PrivateFeedbackElements): CreateFeedbackApiReque
     setFieldError(
       elements.message,
       elements.messageError,
-      'Enter at least 10 characters.'
+      getDocumentUiMessage('feedback.messageTooShort')
     );
     firstInvalidControl ??= elements.message;
   } else if (characterCount > MESSAGE_MAXIMUM_CHARACTERS) {
     setFieldError(
       elements.message,
       elements.messageError,
-      'Keep your message to 5,000 characters or fewer.'
+      getDocumentUiMessage('feedback.messageTooLong')
     );
     firstInvalidControl ??= elements.message;
   }
@@ -144,7 +144,9 @@ function validateForm(elements: PrivateFeedbackElements): CreateFeedbackApiReque
 function setSubmitting(elements: PrivateFeedbackElements, submitting: boolean): void {
   elements.form.setAttribute('aria-busy', String(submitting));
   elements.submit.disabled = submitting;
-  elements.submit.textContent = submitting ? 'Sending…' : 'Send feedback';
+  elements.submit.textContent = submitting
+    ? getDocumentUiMessage('feedback.sending')
+    : getDocumentUiMessage('feedback.send');
 }
 
 function showSubmissionError(
@@ -160,7 +162,7 @@ function showSessionError(elements: PrivateFeedbackElements): void {
   elements.root.setAttribute('aria-busy', 'false');
   elements.loading.hidden = true;
   elements.formContainer.hidden = true;
-  elements.sessionError.textContent = SESSION_FAILURE_MESSAGE;
+  elements.sessionError.textContent = getDocumentUiMessage('feedback.sessionError');
   elements.sessionError.hidden = false;
   elements.sessionError.focus();
 }
@@ -241,26 +243,26 @@ async function submitFeedback(elements: PrivateFeedbackElements): Promise<void> 
       setFieldError(
         elements.message,
         elements.messageError,
-        'Review your message and try again.'
+        getDocumentUiMessage('feedback.reviewMessage')
       );
       elements.message.focus();
       return;
     }
 
     if (response.status === 429) {
-      showSubmissionError(elements, RATE_LIMIT_MESSAGE);
+      showSubmissionError(elements, getDocumentUiMessage('feedback.rateLimited'));
       return;
     }
 
     if (response.status !== 201) {
-      showSubmissionError(elements, SUBMISSION_FAILURE_MESSAGE);
+      showSubmissionError(elements, getDocumentUiMessage('feedback.submissionError'));
       return;
     }
 
     const payload: unknown = await response.json();
 
     if (!isCreateFeedbackResponse(payload)) {
-      showSubmissionError(elements, SUBMISSION_FAILURE_MESSAGE);
+      showSubmissionError(elements, getDocumentUiMessage('feedback.submissionError'));
       return;
     }
 
@@ -270,7 +272,7 @@ async function submitFeedback(elements: PrivateFeedbackElements): Promise<void> 
     elements.success.hidden = false;
     elements.success.focus();
   } catch (_error) {
-    showSubmissionError(elements, SUBMISSION_FAILURE_MESSAGE);
+    showSubmissionError(elements, getDocumentUiMessage('feedback.submissionError'));
   } finally {
     setSubmitting(elements, false);
   }

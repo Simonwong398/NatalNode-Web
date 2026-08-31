@@ -1,6 +1,8 @@
 ---
 import Surface from '@/components/ui/Surface.astro';
 import SiteLayout from '@/layouts/SiteLayout.astro';
+import { getPresentationLocale } from '@/lib/localization';
+import { getUiMessage, type UiMessageKey } from '@/lib/ui-catalog';
 
 const seo = {
   title: 'Completing sign-in | NatalNode',
@@ -8,6 +10,8 @@ const seo = {
   canonical: '/auth/complete',
   robots: 'noindex,nofollow'
 } as const;
+const locale = getPresentationLocale(Astro.url.pathname, Astro.locals.locale);
+const t = (key: UiMessageKey): string => getUiMessage(locale, key);
 ---
 
 <SiteLayout seo={seo} mode="editorial">
@@ -16,10 +20,10 @@ const seo = {
       <section class="nn-section-header p-8 text-center sm:p-10" aria-labelledby="auth-completion-title">
         <p class="nn-eyebrow">NatalNode</p>
         <h1 class="nn-type-page-title" id="auth-completion-title">
-          Sign in
+          {t('auth.signIn')}
         </h1>
         <p class="nn-async-state mt-2" id="auth-completion-status" aria-live="polite">
-          Signing you in…
+          {t('auth.signingIn')}
         </p>
       </section>
     </Surface>

@@ -2,14 +2,16 @@ import type {
   RequestEmailMagicLinkApiRequest,
   RequestEmailMagicLinkApiResponse
 } from '@natalnode/contracts';
+import { getDocumentUiMessage } from '../../lib/ui-catalog.js';
+import type { UiMessageKey } from '../../lib/ui-catalog.js';
 
 const REQUEST_ENDPOINT = '/api/auth/email/request';
 const ACCEPTED_STATUS = 202;
 const INVALID_REQUEST_STATUS = 400;
-const READY_BUTTON_LABEL = 'Send sign-in link';
-const SUBMITTING_BUTTON_LABEL = 'Sending…';
-const INVALID_EMAIL_MESSAGE = 'Enter a valid email address.';
-const FAILURE_MESSAGE = "We couldn't start sign-in. Please try again.";
+
+function ui(key: UiMessageKey): string {
+  return getDocumentUiMessage(key);
+}
 
 export interface EmailMagicLinkRequestElements {
   readonly form: HTMLFormElement;
@@ -35,16 +37,16 @@ function setStatus(statusElement: HTMLElement, message: string): void {
 
 function setInvalidState(elements: EmailMagicLinkRequestElements): void {
   elements.emailInput.setAttribute('aria-invalid', 'true');
-  setStatus(elements.statusElement, INVALID_EMAIL_MESSAGE);
+  setStatus(elements.statusElement, ui('auth.invalidEmail'));
 }
 
 function setFailureState(elements: EmailMagicLinkRequestElements): void {
-  setStatus(elements.statusElement, FAILURE_MESSAGE);
+  setStatus(elements.statusElement, ui('auth.startFailure'));
 }
 
 function restoreReadyState(elements: EmailMagicLinkRequestElements): void {
   elements.submitButton.disabled = false;
-  elements.submitButton.textContent = READY_BUTTON_LABEL;
+  elements.submitButton.textContent = ui('auth.sendSignInLink');
 }
 
 /** Connects the email sign-in form to the existing request endpoint. */
@@ -77,7 +79,7 @@ export function setupEmailMagicLinkRequest(
 
     isSubmitting = true;
     elements.submitButton.disabled = true;
-    elements.submitButton.textContent = SUBMITTING_BUTTON_LABEL;
+    elements.submitButton.textContent = ui('auth.sendingSignInLink');
     setStatus(elements.statusElement, '');
 
     void (async () => {

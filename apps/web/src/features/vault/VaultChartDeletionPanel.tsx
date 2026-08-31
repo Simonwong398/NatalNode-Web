@@ -1,12 +1,15 @@
 import { useId, useState } from 'react';
 import { getLocalizedCurrentPath } from '../../lib/localization.js';
+import type { SupportedLocale } from '../../lib/localization.js';
 import { deleteVaultChart } from './vault-management.js';
+import { vaultUi } from './vault-ui.js';
 
 const SIGN_IN_PATH = '/auth/sign-in';
 
 interface VaultChartDeletionPanelProps {
   readonly chartId: string;
   readonly onDeleted: () => void;
+  readonly locale?: SupportedLocale;
 }
 
 function redirectToSignIn(): void {
@@ -15,7 +18,8 @@ function redirectToSignIn(): void {
 
 export default function VaultChartDeletionPanel({
   chartId,
-  onDeleted
+  onDeleted,
+  locale
 }: VaultChartDeletionPanelProps) {
   const [chartDeleteStatus, setChartDeleteStatus] = useState<'idle' | 'deleting' | 'error'>('idle');
   const [chartDeleteError, setChartDeleteError] = useState<string | null>(null);
@@ -24,7 +28,7 @@ export default function VaultChartDeletionPanel({
   const handleDeleteChart = async () => {
     if (
       !window.confirm(
-        'Delete this saved chart? The saved chart and all associated notes will be removed.'
+        vaultUi(locale, 'vault.deleteConfirm')
       )
     ) {
       return;
@@ -52,8 +56,8 @@ export default function VaultChartDeletionPanel({
     setChartDeleteStatus('error');
     setChartDeleteError(
       result.status === 'not-found'
-        ? 'This saved chart is no longer available.'
-        : "We couldn't delete this chart. Please try again."
+        ? vaultUi(locale, 'vault.chartUnavailable')
+        : vaultUi(locale, 'vault.deleteError')
     );
   };
 
@@ -64,10 +68,10 @@ export default function VaultChartDeletionPanel({
     >
       <div>
         <h3 className="nn-type-section-title" id={deleteTitleId}>
-          Delete saved chart
+          {vaultUi(locale, 'vault.deleteTitle')}
         </h3>
         <p className="nn-type-body-small mt-2">
-          This removes the saved chart and all associated notes from your Vault.
+          {vaultUi(locale, 'vault.deleteDescription')}
         </p>
       </div>
       <button
@@ -76,7 +80,9 @@ export default function VaultChartDeletionPanel({
         onClick={() => void handleDeleteChart()}
         type="button"
       >
-        {chartDeleteStatus === 'deleting' ? 'Deleting…' : 'Delete chart'}
+        {chartDeleteStatus === 'deleting'
+          ? vaultUi(locale, 'vault.deleting')
+          : vaultUi(locale, 'vault.deleteChart')}
       </button>
       {chartDeleteError ? (
         <p className="nn-status nn-status--error" role="alert">
