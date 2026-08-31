@@ -10,7 +10,11 @@ import type { ChartResult } from '@natalnode/contracts';
 import { CalculationDetails } from '@/features/calculation-details';
 import { ChartRenderer } from '@/features/chart-renderer';
 import { InterpretationPanel } from '@/features/interpretation';
-import type { SupportedLocale } from '../../lib/localization.js';
+import {
+  DEFAULT_LOCALE,
+  type SupportedLocale
+} from '../../lib/localization.js';
+import { resolveAstrologyTerm } from '../../lib/astrology-glossary.js';
 import type { ChartPresentationPolicy } from './chart-presentation-policy';
 import { chartUi } from '../chart-experience/chart-ui.js';
 import AstrologicalNotation from './AstrologicalNotation';
@@ -59,6 +63,13 @@ export default function ChartWorkspaceView({
   const [activeMode, setActiveMode] = useState<ResultMode>('chart');
   const [isSaveOpen, setIsSaveOpen] = useState(false);
   const isResearchConfiguration = chart.calculationStatus === 'INCOMPLETE_RESEARCH';
+  const natalChartResolution = resolveAstrologyTerm(
+    'chart_type.natal',
+    locale ?? DEFAULT_LOCALE
+  );
+  const natalChartLabel = natalChartResolution.displayTerm === 'Natal chart'
+    ? 'Natal Chart'
+    : natalChartResolution.displayTerm;
 
   const sectionIds = {
     chart: `${workspaceId}-chart-panel`,
@@ -110,7 +121,7 @@ export default function ChartWorkspaceView({
         <div className="nn-section-header">
           <p className="nn-eyebrow">{chartUi(locale, 'workspace.eyebrow')}</p>
           <h2 className="nn-type-section-title" id={titleId}>
-            Natal Chart
+            {natalChartLabel}
           </h2>
         </div>
         <div className="flex flex-col gap-3 lg:items-end">
@@ -220,7 +231,11 @@ export default function ChartWorkspaceView({
               </h3>
             </div>
             <div className="mt-5 min-w-0">
-              <ChartRenderer chart={chart} presentationPolicy={presentationPolicy} />
+              <ChartRenderer
+                chart={chart}
+                locale={locale}
+                presentationPolicy={presentationPolicy}
+              />
             </div>
             <AstrologicalNotation
               chart={chart}

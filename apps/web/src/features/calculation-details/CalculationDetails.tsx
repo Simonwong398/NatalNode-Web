@@ -1,6 +1,10 @@
 import { useId } from 'react';
 import type { ChartResult } from '@natalnode/contracts';
-import type { SupportedLocale } from '../../lib/localization.js';
+import {
+  DEFAULT_LOCALE,
+  type SupportedLocale
+} from '../../lib/localization.js';
+import { resolveAstrologyDomainTerm } from '../../lib/astrology-glossary.js';
 import { chartUi } from '../chart-experience/chart-ui.js';
 import type { ChartPresentationPolicy } from '@/features/chart-workspace/chart-presentation-policy';
 
@@ -46,7 +50,11 @@ export default function CalculationDetails({
   const astronomyConfiguration = chart.metadata.astronomyConfigurationId ?? 'Unavailable';
   const provenanceEnvelope = chart.metadata.provenanceEnvelopeId ?? 'Unavailable';
   const houseSystem = presentationPolicy.showHouses
-    ? chart.houses?.system ?? 'Unavailable'
+    ? resolveAstrologyDomainTerm(
+      'house_system',
+      chart.houses?.system,
+      locale ?? DEFAULT_LOCALE
+    )?.displayTerm ?? chart.houses?.system ?? 'Unavailable'
     : requestedHouseSystem;
   const houseSystemLabel = presentationPolicy.showHouses
     ? 'House System'

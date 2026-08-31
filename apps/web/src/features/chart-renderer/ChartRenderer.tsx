@@ -1,6 +1,14 @@
 import { useId } from 'react';
 import type { AspectFact, BodyFact, ChartResult, HouseCusp } from '@natalnode/contracts';
 import {
+  DEFAULT_LOCALE,
+  type SupportedLocale
+} from '@/lib/localization.js';
+import {
+  getAstrologyGlossaryNotation,
+  resolveAstrologyDomainTerm
+} from '@/lib/astrology-glossary.js';
+import {
   ANGLE_OUTER_RADIUS,
   ASPECT_ENDPOINT_RADIUS,
   BODY_LABEL_RADIUS,
@@ -19,6 +27,7 @@ import type { ChartPresentationPolicy } from '@/features/chart-workspace/chart-p
 
 export type ChartRendererProps = {
   chart: ChartResult;
+  locale?: SupportedLocale;
   presentationPolicy: ChartPresentationPolicy;
 };
 
@@ -65,19 +74,6 @@ const ZODIAC_SIGNS = [
   'Pisces'
 ] as const;
 
-const BODY_ABBREVIATIONS: Record<string, string> = {
-  Sun: 'Su',
-  Moon: 'Mo',
-  Mercury: 'Me',
-  Venus: 'Ve',
-  Mars: 'Ma',
-  Jupiter: 'Ju',
-  Saturn: 'Sa',
-  Uranus: 'Ur',
-  Neptune: 'Ne',
-  Pluto: 'Pl'
-};
-
 const ASPECT_STYLES: Record<string, AspectStyle> = {
   conjunction: {
     stroke: 'var(--nn-chart-aspect-neutral)',
@@ -122,9 +118,20 @@ function formatLongitude(longitude: number): string {
   return `${formatNumericValue(normalizedLongitude)}°`;
 }
 
-function describeAspect(aspect: AspectFact): string {
-  const phaseState = aspect.phaseState === null ? '' : `, ${aspect.phaseState}`;
-  return `${aspect.firstBodyId} ${aspect.type} ${aspect.secondBodyId}, orb ${formatNumericValue(aspect.orb)}°${phaseState}`;
+function glossaryTerm(
+  kind: Parameters<typeof resolveAstrologyDomainTerm>[0],
+  value: unknown,
+  locale: SupportedLocale | undefined
+): string {
+  return resolveAstrologyDomainTerm(kind, value, locale ?? DEFAULT_LOCALE)?.displayTerm ??
+    (typeof value === 'string' ? value : String(value));
+}
+
+function describeAspect(aspect: AspectFact, locale: SupportedLocale | undefined): string {
+  const phaseState = aspect.phaseState === null
+    ? ''
+    : `, ${glossaryTerm('aspect_phase', aspect.phaseState, locale)}`;
+  return `${glossaryTerm('body', aspect.firstBodyId, locale)} ${glossaryTerm('aspect', aspect.type, locale)} ${glossaryTerm('body', aspect.secondBodyId, locale)}, ${glossaryTerm('aspect', 'orb', locale).toLowerCase()} ${formatNumericValue(aspect.orb)}°${phaseState}`;
 }
 
 function resolveUniqueBody(bodyId: string, bodies: BodyFact[]): BodyFact | null {
@@ -148,10 +155,6 @@ function getRenderableAspects(chart: ChartResult): ResolvedAspect[] {
   }
 
   return renderableAspects;
-}
-
-function getBodyLabel(bodyId: string): string {
-  return BODY_ABBREVIATIONS[bodyId] ?? bodyId.slice(0, 3);
 }
 
 function renderPrecisionTicks() {
@@ -185,13 +188,14 @@ function renderPrecisionTicks() {
   );
 }
 
-function renderHouseCusp(cusp: HouseCusp) {
+function renderHouseCusp(cusp: HouseCusp, locale: SupportedLocale | undefined) {
   const line = radialLine(cusp.longitude, HOUSE_INNER_RADIUS, ZODIAC_INNER_RADIUS);
   const label = longitudeToPoint(cusp.longitude, HOUSE_LABEL_RADIUS);
+  const houseTerm = glossaryTerm('house', cusp.house, locale);
 
   return (
     <g
-      aria-label={`House ${cusp.house} cusp at ${formatLongitude(cusp.longitude)}`}
+      aria-label={`${houseTerm} cusp at ${formatLongitude(cusp.longitude)}`}
       key={`house-${cusp.house}`}
       role="group"
     >
@@ -221,14 +225,18 @@ function renderHouseCusp(cusp: HouseCusp) {
   );
 }
 
-function renderBody(body: BodyFact, index: number) {
+function renderBody(body: BodyFact, index: number, locale: SupportedLocale | undefined) {
   const markerRadius = BODY_MARKER_RADIUS + (index % 2) * 8;
   const labelRadius = BODY_LABEL_RADIUS + (index % 3) * 14;
   const marker = longitudeToPoint(body.longitude, markerRadius);
   const label = longitudeToPoint(body.longitude, labelRadius);
-  const bodyLabel = getBodyLabel(body.bodyId);
+  const bodyLabel = getAstrologyGlossaryNotation(
+    'body',
+    body.bodyId,
+    'rendererAbbreviation'
+  ) ?? body.bodyId.slice(0, 3);
   const degreeLabel = formatLongitude(body.longitude);
-  const bodyDescription = `${body.bodyId} at ${degreeLabel}${body.retrograde === true ? ', retrograde' : ''}`;
+  const bodyDescription = `${glossaryTerm('body', body.bodyId, locale)} at ${degreeLabel}${body.retrograde === true ? `, ${glossaryTerm('motion', 'RETROGRADE', locale).toLowerCase()}` : ''}`;
 
   return (
     <g
@@ -303,10 +311,14 @@ function renderBody(body: BodyFact, index: number) {
   );
 }
 
-function renderAspect(resolvedAspect: ResolvedAspect, index: number) {
+function renderAspect(
+  resolvedAspect: ResolvedAspect,
+  index: number,
+  locale: SupportedLocale | undefined
+) {
   const firstPoint = longitudeToPoint(resolvedAspect.firstBody.longitude, ASPECT_ENDPOINT_RADIUS);
   const secondPoint = longitudeToPoint(resolvedAspect.secondBody.longitude, ASPECT_ENDPOINT_RADIUS);
-  const description = describeAspect(resolvedAspect.aspect);
+  const description = describeAspect(resolvedAspect.aspect, locale);
 
   return (
     <g aria-label={description} key={`${resolvedAspect.aspect.type}-${index}`} role="group">
@@ -328,13 +340,22 @@ function renderAspect(resolvedAspect: ResolvedAspect, index: number) {
   );
 }
 
-function renderAngle(angle: { angleId: string; longitude: number }) {
+function renderAngle(
+  angle: { angleId: string; longitude: number },
+  locale: SupportedLocale | undefined
+) {
   const line = radialLine(angle.longitude, HOUSE_INNER_RADIUS, ANGLE_OUTER_RADIUS);
   const label = longitudeToPoint(angle.longitude, ANGLE_OUTER_RADIUS);
-  const angleLabel = angle.angleId.toUpperCase();
+  const angleResolution = resolveAstrologyDomainTerm(
+    'angle',
+    angle.angleId,
+    locale ?? DEFAULT_LOCALE
+  );
+  const angleLabel = angleResolution?.shortForm ?? angle.angleId.toUpperCase();
+  const angleDescription = `${angleResolution?.displayTerm ?? angle.angleId} at ${formatLongitude(angle.longitude)}`;
 
   return (
-    <g aria-label={`${angleLabel} at ${formatLongitude(angle.longitude)}`} key={angle.angleId} role="group">
+    <g aria-label={angleDescription} key={angle.angleId} role="group">
       <line
         opacity="0.9"
         stroke={CHART_COLORS.angle}
@@ -372,7 +393,7 @@ function renderAngle(angle: { angleId: string; longitude: number }) {
   );
 }
 
-export default function ChartRenderer({ chart, presentationPolicy }: ChartRendererProps) {
+export default function ChartRenderer({ chart, locale, presentationPolicy }: ChartRendererProps) {
   const rendererId = useId();
   const titleId = `${rendererId}-title`;
   const descriptionId = `${rendererId}-description`;
@@ -387,10 +408,11 @@ export default function ChartRenderer({ chart, presentationPolicy }: ChartRender
     : undefined;
   const renderableAspects = getRenderableAspects(chart);
   const atmosphereId = `${rendererId.replace(/:/g, '')}-atmosphere`;
+  const natalChartLabel = glossaryTerm('chart_type', 'natal', locale);
   const description =
     presentationPolicy.showHouses && presentationPolicy.showAngles
-      ? 'SVG chart wheel showing twelve zodiac sectors, provided house cusps, chart bodies, and ASC and MC angles.'
-      : 'SVG chart wheel showing twelve zodiac sectors, chart bodies, and major aspects. Exact-time-dependent angle and house geometry is not shown.';
+      ? `SVG ${natalChartLabel.toLowerCase()} wheel showing twelve zodiac sectors, provided house cusps, chart bodies, and ASC and MC angles.`
+      : `SVG ${natalChartLabel.toLowerCase()} wheel showing twelve zodiac sectors, chart bodies, and major aspects. Exact-time-dependent angle and house geometry is not shown.`;
 
   return (
     <svg
@@ -400,7 +422,7 @@ export default function ChartRenderer({ chart, presentationPolicy }: ChartRender
       role="img"
       viewBox={`0 0 ${CHART_VIEWBOX_SIZE} ${CHART_VIEWBOX_SIZE}`}
     >
-      <title id={titleId}>Natal chart wheel</title>
+      <title id={titleId}>{natalChartLabel} wheel</title>
       <desc id={descriptionId}>{description}</desc>
 
       <defs aria-hidden="true">
@@ -458,7 +480,7 @@ export default function ChartRenderer({ chart, presentationPolicy }: ChartRender
           const label = longitudeToPoint(startLongitude + 15, (ZODIAC_OUTER_RADIUS + ZODIAC_INNER_RADIUS) / 2);
 
           return (
-            <g aria-label={`${sign} sector`} key={sign} role="group">
+            <g aria-label={`${glossaryTerm('sign', sign, locale)} sector`} key={sign} role="group">
               <path
                 d={annularSectorPath(
                   startLongitude,
@@ -482,7 +504,7 @@ export default function ChartRenderer({ chart, presentationPolicy }: ChartRender
                 x={label.x}
                 y={label.y}
               >
-                {sign}
+                {glossaryTerm('sign', sign, locale)}
               </text>
             </g>
           );
@@ -513,26 +535,26 @@ export default function ChartRenderer({ chart, presentationPolicy }: ChartRender
           />
 
           <g aria-label="House cusps" role="group">
-            {houseCusps.map(renderHouseCusp)}
+            {houseCusps.map((cusp) => renderHouseCusp(cusp, locale))}
           </g>
         </>
       ) : null}
 
       {/* Aspects: valid Engine facts remain complete but subordinate to bodies. */}
       <g aria-label="Major aspects" role="group">
-        {renderableAspects.map(renderAspect)}
+        {renderableAspects.map((aspect, index) => renderAspect(aspect, index, locale))}
       </g>
 
       {/* Bodies: the existing canonical marker and label positions are unchanged. */}
       <g aria-label="Chart bodies" role="group">
-        {chart.bodies.map(renderBody)}
+        {chart.bodies.map((body, index) => renderBody(body, index, locale))}
       </g>
 
       {/* Angles: ASC and MC remain policy-gated and distinct from ordinary bodies. */}
       {presentationPolicy.showAngles ? (
         <g aria-label="Chart angles" role="group">
-          {ascendant ? renderAngle(ascendant) : null}
-          {midheaven ? renderAngle(midheaven) : null}
+          {ascendant ? renderAngle(ascendant, locale) : null}
+          {midheaven ? renderAngle(midheaven, locale) : null}
         </g>
       ) : null}
 
