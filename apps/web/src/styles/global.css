@@ -631,6 +631,67 @@
     padding-block: 12px;
   }
 
+  .nn-site-header__actions {
+    display: flex;
+    min-width: 0;
+    flex: none;
+    align-items: center;
+    gap: 4px;
+    margin-left: auto;
+  }
+
+  .nn-locale-selector {
+    display: inline-flex;
+    min-width: 0;
+    min-height: 44px;
+    align-items: center;
+  }
+
+  .nn-locale-selector__label {
+    display: inline-flex;
+    min-width: 0;
+    align-items: center;
+  }
+
+  .nn-locale-selector__select {
+    width: 5.5rem;
+    min-width: 0;
+    min-height: 44px;
+    padding: 8px 20px 8px 8px;
+    border: 1px solid var(--nn-border-default);
+    border-radius: var(--nn-radius-medium);
+    color: var(--nn-text-secondary);
+    background: var(--nn-surface-base);
+    font-size: 0.6875rem;
+    font-weight: 600;
+    line-height: 1.2;
+    cursor: pointer;
+    transition: background-color var(--nn-motion-fast) var(--nn-motion-ease), border-color var(--nn-motion-fast) var(--nn-motion-ease), color var(--nn-motion-fast) var(--nn-motion-ease);
+  }
+
+  .nn-locale-selector__select:hover {
+    border-color: var(--nn-border-strong);
+    color: var(--nn-text-primary);
+    background: var(--nn-surface-interactive);
+  }
+
+  .nn-locale-negotiation-shell {
+    display: grid;
+    min-height: 100vh;
+    place-items: center;
+    padding: var(--nn-gutter);
+    background: var(--nn-bg-canvas);
+    color: var(--nn-text-primary);
+  }
+
+  .nn-locale-negotiation-shell__fallback {
+    color: var(--nn-accent-supporting);
+    font-size: 0.875rem;
+    font-weight: 700;
+    text-decoration: underline;
+    text-underline-offset: 4px;
+  }
+
   .nn-brand {
     display: inline-flex;
     min-height: 44px;
@@ -711,6 +772,7 @@
   .nn-primary-nav {
     display: none;
     flex-basis: 100%;
+    margin-left: 0;
   }
 
   .nn-primary-nav[data-open="true"] {
@@ -1216,6 +1278,14 @@
 }
 
 @media (min-width: 768px) {
+  .nn-site-header__actions {
+    gap: 8px;
+  }
+
+  .nn-locale-selector__select {
+    width: 6.75rem;
+  }
+
   .nn-menu-toggle {
     display: none;
   }
@@ -1223,6 +1293,7 @@
   .nn-primary-nav {
     display: block;
     flex-basis: auto;
+    margin-left: 8px;
   }
 
   .nn-primary-nav__list {

@@ -26,7 +26,9 @@ const PRESENTATION_PAGE_ROUTE_PATTERNS = new Set([
 
 /**
  * Resolves locale before presentation rendering and keeps legacy page URLs as
- * redirects. Endpoint, asset, and reserved error routes are not localized.
+ * redirects. The root page renders its static negotiation shell instead of
+ * redirecting here. Endpoint, asset, and reserved error routes are not
+ * localized.
  */
 export const onRequest = defineMiddleware((context, next) => {
   const resolution = resolveRequestLocale({
@@ -46,7 +48,7 @@ export const onRequest = defineMiddleware((context, next) => {
   if (
     PRESENTATION_PAGE_ROUTE_PATTERNS.has(context.routePattern) &&
     !ERROR_PAGE_PATHS.has(context.url.pathname) &&
-    (resolution.path.kind === 'root' || resolution.path.kind === 'unlocalized')
+    resolution.path.kind === 'unlocalized'
   ) {
     const destination = getLocalizedPath(
       resolution.locale,

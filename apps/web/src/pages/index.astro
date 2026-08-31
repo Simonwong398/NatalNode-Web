@@ -1,9 +1,17 @@
 ---
+import LocaleNegotiationShell from '@/components/LocaleNegotiationShell.astro';
 import SiteLayout from '@/layouts/SiteLayout.astro';
 import { ChartExperience } from '@/features/chart-experience';
 import { CurrentSkyInstrument } from '@/features/public-sky';
-import { getPresentationLocale } from '@/lib/localization';
+import { getPresentationLocale, type SupportedLocale } from '@/lib/localization';
 import { getUiMessage, type UiMessageKey } from '@/lib/ui-catalog';
+
+interface Props {
+  locale?: SupportedLocale;
+}
+
+const { locale: localizedLocale } = Astro.props;
+const isLocalizedPage = localizedLocale !== undefined;
 
 const CURRENT_SKY_AT_UTC = '2026-09-01T12:00:00.000Z';
 const isCurrentSkyPreviewAvailable =
@@ -14,45 +22,49 @@ const seo = {
   description: 'Calculate and understand a natal chart with clear uncertainty handling, structured interpretation, and inspectable calculation details.',
   canonical: '/'
 } as const;
-const locale = getPresentationLocale(Astro.url.pathname, Astro.locals.locale);
+const locale = localizedLocale ?? getPresentationLocale(Astro.url.pathname, Astro.locals.locale);
 const t = (key: UiMessageKey) => getUiMessage(locale, key);
 ---
 
-<SiteLayout seo={seo} mode="observatory">
-  <main class:list={[
-    'nn-container',
-    'nn-container--calculate',
-    'nn-calculate-page',
-    'flex',
-    'min-h-screen',
-    'flex-col',
-    'pb-12',
-    'pt-10',
-    'sm:pt-14',
-    isCurrentSkyPreviewAvailable ? 'max-w-[78rem]' : null
-  ]}>
-    <header class="nn-section-header">
-      <p class="nn-eyebrow">{t('calculate.eyebrow')}</p>
-      <h1 class="nn-type-page-title max-w-2xl">{t('calculate.title')}</h1>
-      <p class="nn-type-body max-w-xl">{t('calculate.description')}</p>
-    </header>
-    <div class:list={isCurrentSkyPreviewAvailable ? ['grid', 'gap-8', 'md:grid-cols-[minmax(0,1fr)_minmax(18rem,0.72fr)]'] : []}>
-      {isCurrentSkyPreviewAvailable ? (
-        <aside class="order-1 min-w-0 md:order-2" aria-label="Current Sky preview">
-          <section class="nn-surface nn-surface--instrument mt-8 p-3 sm:p-5" aria-labelledby="homepage-current-sky-title">
-            <p class="nn-eyebrow">Current Sky</p>
-            <h2 class="nn-type-section-title mt-1" id="homepage-current-sky-title">The sky now</h2>
-            <CurrentSkyInstrument
-              atUtc={CURRENT_SKY_AT_UTC}
-              variant="compact"
-              client:load
-            />
-          </section>
-        </aside>
-      ) : null}
-      <div class:list={['min-w-0', isCurrentSkyPreviewAvailable ? ['order-2', 'md:order-1'] : []]}>
-        <ChartExperience locale={locale} client:load />
+{isLocalizedPage ? (
+  <SiteLayout seo={seo} mode="observatory">
+    <main class:list={[
+      'nn-container',
+      'nn-container--calculate',
+      'nn-calculate-page',
+      'flex',
+      'min-h-screen',
+      'flex-col',
+      'pb-12',
+      'pt-10',
+      'sm:pt-14',
+      isCurrentSkyPreviewAvailable ? 'max-w-[78rem]' : null
+    ]}>
+      <header class="nn-section-header">
+        <p class="nn-eyebrow">{t('calculate.eyebrow')}</p>
+        <h1 class="nn-type-page-title max-w-2xl">{t('calculate.title')}</h1>
+        <p class="nn-type-body max-w-xl">{t('calculate.description')}</p>
+      </header>
+      <div class:list={isCurrentSkyPreviewAvailable ? ['grid', 'gap-8', 'md:grid-cols-[minmax(0,1fr)_minmax(18rem,0.72fr)]'] : []}>
+        {isCurrentSkyPreviewAvailable ? (
+          <aside class="order-1 min-w-0 md:order-2" aria-label="Current Sky preview">
+            <section class="nn-surface nn-surface--instrument mt-8 p-3 sm:p-5" aria-labelledby="homepage-current-sky-title">
+              <p class="nn-eyebrow">Current Sky</p>
+              <h2 class="nn-type-section-title mt-1" id="homepage-current-sky-title">The sky now</h2>
+              <CurrentSkyInstrument
+                atUtc={CURRENT_SKY_AT_UTC}
+                variant="compact"
+                client:load
+              />
+            </section>
+          </aside>
+        ) : null}
+        <div class:list={['min-w-0', isCurrentSkyPreviewAvailable ? ['order-2', 'md:order-1'] : []]}>
+          <ChartExperience locale={locale} client:load />
+        </div>
       </div>
-    </div>
-  </main>
-</SiteLayout>
+    </main>
+  </SiteLayout>
+) : (
+  <LocaleNegotiationShell />
+)}

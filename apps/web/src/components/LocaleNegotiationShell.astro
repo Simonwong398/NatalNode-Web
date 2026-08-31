@@ -1,0 +1,46 @@
+---
+import '@/styles/global.css';
+---
+
+<!doctype html>
+<html lang="en" data-locale-negotiation="true">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width" />
+    <meta name="robots" content="noindex,nofollow" />
+    <link rel="canonical" href="/en/" />
+    <title>NatalNode</title>
+  </head>
+  <body class="nn-locale-negotiation-shell">
+    <main data-locale-negotiation-shell>
+      <a class="nn-locale-negotiation-shell__fallback" href="/en/">
+        English
+      </a>
+    </main>
+  </body>
+</html>
+
+<script>
+  import { getLocalizedPath, resolveRootLocale } from '@/lib/localization';
+  import { readLocalePreference } from '@/lib/locale-preference';
+
+  const browserLocaleInput = (): readonly string[] => {
+    const languages = Array.isArray(navigator.languages) ? navigator.languages : [];
+
+    return languages.length > 0
+      ? [...languages, navigator.language]
+      : [navigator.language];
+  };
+
+  const currentPath =
+    `${window.location.pathname}${window.location.search}${window.location.hash}`;
+  const locale = resolveRootLocale({
+    preferredLocale: readLocalePreference(),
+    browserLocale: browserLocaleInput()
+  });
+  const destination = getLocalizedPath(locale, currentPath);
+
+  if (destination !== currentPath) {
+    window.location.replace(destination);
+  }
+</script>

@@ -2,6 +2,7 @@
 import Container from '@/components/layout/Container.astro';
 import AuthSessionControl from '@/components/AuthSessionControl.astro';
 import BrandLockup from '@/components/brand/BrandLockup.astro';
+import LanguageSelector from '@/components/LanguageSelector.astro';
 import SeoHead from '@/components/SeoHead.astro';
 import StructuredData from '@/components/StructuredData.astro';
 import {
@@ -96,19 +97,22 @@ const websiteStructuredData = robots === 'index,follow'
       <Container mode="shell" class="nn-site-header__inner">
         <BrandLockup href={localize('/')} />
 
-        <button
-          class="nn-menu-toggle"
-          type="button"
-          data-mobile-nav-toggle
-          aria-controls="primary-navigation"
-          aria-expanded="false"
-          aria-label={t('accessibility.openNavigation')}
-          data-open-navigation-label={t('accessibility.openNavigation')}
-          data-close-navigation-label={t('accessibility.closeNavigation')}
-        >
-          <span class="sr-only">{t('accessibility.toggleNavigation')}</span>
-          <span class="nn-menu-toggle__icon" aria-hidden="true"></span>
-        </button>
+        <div class="nn-site-header__actions">
+          <LanguageSelector locale={locale} />
+          <button
+            class="nn-menu-toggle"
+            type="button"
+            data-mobile-nav-toggle
+            aria-controls="primary-navigation"
+            aria-expanded="false"
+            aria-label={t('accessibility.openNavigation')}
+            data-open-navigation-label={t('accessibility.openNavigation')}
+            data-close-navigation-label={t('accessibility.closeNavigation')}
+          >
+            <span class="sr-only">{t('accessibility.toggleNavigation')}</span>
+            <span class="nn-menu-toggle__icon" aria-hidden="true"></span>
+          </button>
+        </div>
 
         <nav
           class="nn-primary-nav"

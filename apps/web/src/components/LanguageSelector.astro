@@ -1,0 +1,44 @@
+---
+import { LOCALE_REGISTRY, type SupportedLocale } from '@/lib/localization';
+import { getUiMessage } from '@/lib/ui-catalog';
+
+interface Props {
+  locale: SupportedLocale;
+}
+
+const { locale } = Astro.props;
+const label = getUiMessage(locale, 'accessibility.languageSelector');
+---
+
+<div class="nn-locale-selector" data-locale-selector>
+  <label class="nn-locale-selector__label" for="nn-language-selector">
+    <span class="sr-only">{label}</span>
+    <select
+      class="nn-locale-selector__select"
+      id="nn-language-selector"
+      data-locale-selector-select
+      data-current-locale={locale}
+      aria-label={label}
+    >
+      {LOCALE_REGISTRY.map(({ id, displayName }) => (
+        <option value={id} selected={id === locale}>{displayName}</option>
+      ))}
+    </select>
+  </label>
+</div>
+
+<script>
+  import { selectLocale } from '@/features/localization/locale-selector';
+
+  const select = document.querySelector<HTMLSelectElement>(
+    '[data-locale-selector-select]'
+  );
+
+  if (select) {
+    select.addEventListener('change', () => {
+      const currentPath =
+        `${window.location.pathname}${window.location.search}${window.location.hash}`;
+      selectLocale(select.value, currentPath);
+    });
+  }
+</script>

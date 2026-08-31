@@ -8,6 +8,7 @@
     "build": "astro build",
     "check": "astro check",
     "test:localization": "tsc --ignoreConfig --noCheck --target ES2022 --module NodeNext --moduleResolution NodeNext --rootDir src --outDir dist/localization-characterization src/lib/localization.ts && node --test test/localization.test.mjs",
+    "test:locale-preference": "tsc --ignoreConfig --noCheck --target ES2022 --module NodeNext --moduleResolution NodeNext --rootDir src --outDir dist/locale-preference-characterization src/lib/localization.ts src/lib/locale-preference.ts src/features/localization/locale-selector.ts && node --test test/locale-preference.test.mjs",
     "test:ui-catalog": "tsc --ignoreConfig --noCheck --target ES2022 --module NodeNext --moduleResolution NodeNext --rootDir src --outDir dist/ui-catalog-characterization src/lib/localization.ts src/lib/ui-catalog.ts && node --test test/ui-catalog.test.mjs",
     "test:account-deletion": "tsc --ignoreConfig --noCheck --target ES2022 --module NodeNext --moduleResolution NodeNext --rootDir src --outDir dist/account-deletion-characterization src/features/account/account-deletion.ts src/features/auth/auth-session-control.ts && node --test test/account-deletion.test.mjs",
     "test:account-export": "tsc --ignoreConfig --noCheck --target ES2022 --module NodeNext --moduleResolution NodeNext --rootDir src --outDir dist/account-export-characterization src/features/account/account-export.ts && node --test test/account-export.test.mjs",
