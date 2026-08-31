@@ -36,10 +36,15 @@ function at(day = 0, microseconds = 0n) {
   );
 }
 
-function preciseAt(day = 0, microseconds = 0n) {
-  const timestamp = at(day, microseconds).replace(/Z$/u, '');
+function preciseTimestamp(value) {
+  if (value === null) return null;
+  const timestamp = value.replace(/Z$/u, '');
   const [whole, fraction = ''] = timestamp.split('.');
   return `${whole}.${fraction.padEnd(6, '0')}Z`;
+}
+
+function preciseAt(day = 0, microseconds = 0n) {
+  return preciseTimestamp(at(day, microseconds));
 }
 
 function days(value) {
@@ -81,6 +86,28 @@ function reward({
         : '0',
     activeConsumptionStartedAt,
     sourceRevision
+  });
+}
+
+function postgresRewardRoundTrip(input) {
+  return Object.freeze({
+    ...input,
+    maturesAt: preciseTimestamp(input.maturesAt),
+    admittedAt: preciseTimestamp(input.admittedAt),
+    earnedAt: preciseTimestamp(input.earnedAt),
+    appliedAt: preciseTimestamp(input.appliedAt),
+    revokedAt: preciseTimestamp(input.revokedAt),
+    activeConsumptionStartedAt: preciseTimestamp(
+      input.activeConsumptionStartedAt
+    )
+  });
+}
+
+function postgresSegmentRoundTrip(segment) {
+  return Object.freeze({
+    ...segment,
+    consumedFrom: preciseTimestamp(segment.consumedFrom),
+    consumedUntil: preciseTimestamp(segment.consumedUntil)
   });
 }
 
@@ -646,20 +673,26 @@ function rewardRecord(input) {
 function reconciliationHarness({
   inputReward = reward(),
   blockers = [],
-  segments = []
+  segments = [],
+  postgresTimestampRoundTrip = false
 } = {}) {
+  const persistedInputReward = postgresTimestampRoundTrip
+    ? postgresRewardRoundTrip(inputReward)
+    : inputReward;
   let authority = {
     commercialAuthorityId: AUTHORITY_ID,
     ownerId: OWNER_ID,
-    entitlementRevision: inputReward.sourceRevision,
+    entitlementRevision: persistedInputReward.sourceRevision,
     createdAt: at(-30),
     updatedAt: at(-30)
   };
   let loaded = {
-    input: inputReward,
-    record: rewardRecord(inputReward)
+    input: persistedInputReward,
+    record: rewardRecord(persistedInputReward)
   };
-  let storedSegments = [...segments];
+  let storedSegments = postgresTimestampRoundTrip
+    ? segments.map(postgresSegmentRoundTrip)
+    : [...segments];
   let advances = 0;
   const events = [];
   const authorities = {
@@ -697,12 +730,15 @@ function reconciliationHarness({
       revocation
     ) {
       assert.equal(commercialAuthorityId, AUTHORITY_ID);
-      const nextInput = Object.freeze({
+      const nextInputDraft = {
         ...loaded.input,
         ...planned,
         revokedAt: revocation?.revokedAt ?? loaded.input.revokedAt,
         sourceRevision
-      });
+      };
+      const nextInput = postgresTimestampRoundTrip
+        ? postgresRewardRoundTrip(nextInputDraft)
+        : Object.freeze(nextInputDraft);
       loaded = {
         input: nextInput,
         record: Object.freeze({
@@ -719,10 +755,12 @@ function reconciliationHarness({
     },
     async replaceSegments(commercialAuthorityId, nextSegments, sourceRevision) {
       assert.equal(commercialAuthorityId, AUTHORITY_ID);
-      storedSegments = nextSegments.map((segment) => ({
-        ...segment,
-        sourceRevision
-      }));
+      storedSegments = nextSegments.map((segment) => {
+        const stored = { ...segment, sourceRevision };
+        return postgresTimestampRoundTrip
+          ? postgresSegmentRoundTrip(stored)
+          : stored;
+      });
     }
   };
   const service = new PostgresReferralTimeBankReconciliation(
@@ -774,6 +812,42 @@ test('material application advances once and exact canonical replay advances zer
   });
   assert.equal(replay.outcome, 'NO_OP');
   assert.equal(harness.advances, 1);
+});
+
+test('later-asOf replay remains durable NO_OP after PostgreSQL timestamp round-trip', async () => {
+  const harness = reconciliationHarness({ postgresTimestampRoundTrip: true });
+  const first = await harness.service.reconcileAfterAuthorityLock({
+    ownerId: OWNER_ID,
+    authority: harness.authority,
+    asOf: at(5)
+  });
+  assert.equal(first.outcome, 'APPLIED');
+  assert.equal(harness.advances, 1);
+  assert.equal(harness.reward.state, 'APPLIED');
+  assert.equal(harness.reward.consumedDurationUs, '0');
+  assert.equal(harness.segments.length, 0);
+  assert.equal(first.source.queuedReferralDurationUs, days(25));
+  assert.equal(first.source.nextEvaluationAt, at(30));
+
+  const checkpoint = harness.reward.activeConsumptionStartedAt;
+  const eventCount = harness.events.length;
+  const replay = await harness.service.reconcileAfterAuthorityLock({
+    ownerId: OWNER_ID,
+    authority: harness.authority,
+    asOf: at(6)
+  });
+
+  assert.equal(replay.outcome, 'NO_OP');
+  assert.equal(harness.advances, 1);
+  assert.equal(harness.reward.state, 'APPLIED');
+  assert.equal(harness.reward.activeConsumptionStartedAt, checkpoint);
+  assert.equal(harness.reward.consumedDurationUs, '0');
+  assert.equal(harness.segments.length, 0);
+  assert.equal(harness.events.length, eventCount);
+  assert.equal(replay.source.currentReferralRewardId, 'reward-a');
+  assert.equal(replay.source.queuedReferralDurationUs, days(24));
+  assert.equal(replay.source.currentEffectiveUntil, at(30));
+  assert.equal(replay.source.nextEvaluationAt, at(30));
 });
 
 test('late application and Paid resume keep lifecycle and entitlement event times distinct', async () => {
@@ -843,7 +917,8 @@ test('late Paid correction and partial reversal each advance exactly once, then 
       consumedDurationUs: days(10)
     }),
     blockers: [paid(5, 10)],
-    segments: [oldSegment]
+    segments: [oldSegment],
+    postgresTimestampRoundTrip: true
   });
   const corrected = await correction.service.reconcileAfterAuthorityLock({
     ownerId: OWNER_ID,
@@ -854,7 +929,7 @@ test('late Paid correction and partial reversal each advance exactly once, then 
   assert.equal(correction.reward.consumedDurationUs, days(5));
   assert.equal(correction.advances, 1);
   assert.equal(correction.segments.length, 1);
-  assert.equal(correction.segments[0].consumedUntil, at(5));
+  assert.equal(correction.segments[0].consumedUntil, preciseAt(5));
 
   const correctionReplay = await correction.service.reconcileAfterAuthorityLock({
     ownerId: OWNER_ID,

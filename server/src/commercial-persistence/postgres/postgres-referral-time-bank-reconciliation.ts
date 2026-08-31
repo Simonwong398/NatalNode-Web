@@ -9,6 +9,7 @@ import {
 } from '../commercial-domain.js';
 import { CommercialPersistenceIntegrityError } from '../commercial-persistence-errors.js';
 import {
+  referralTimestampToEpochMicroseconds,
   settleReferralTimeBank,
   type ReferralConsumptionSegmentPlan,
   type ReferralRewardSettlement,
@@ -55,6 +56,16 @@ export interface ReconcileReferralTimeBankResult {
   readonly source: ReferralTimeBankSourceSnapshot;
 }
 
+function sameOptionalTimestamp(left: string | null, right: string | null): boolean {
+  if (left === null || right === null) {
+    return left === right;
+  }
+  return (
+    referralTimestampToEpochMicroseconds(left, 'leftTimestamp') ===
+    referralTimestampToEpochMicroseconds(right, 'rightTimestamp')
+  );
+}
+
 function sameReward(
   current: LoadedReferralTimeBankReward,
   planned: ReferralRewardSettlement
@@ -62,11 +73,14 @@ function sameReward(
   const record = current.record;
   return (
     record.state === planned.state &&
-    record.appliedAt === planned.appliedAt &&
+    sameOptionalTimestamp(record.appliedAt, planned.appliedAt) &&
     record.appliedDurationUs === planned.appliedDurationUs &&
     record.consumedDurationUs === planned.consumedDurationUs &&
     record.revokedDurationUs === planned.revokedDurationUs &&
-    record.activeConsumptionStartedAt === planned.activeConsumptionStartedAt
+    sameOptionalTimestamp(
+      record.activeConsumptionStartedAt,
+      planned.activeConsumptionStartedAt
+    )
   );
 }
 
@@ -83,8 +97,8 @@ function sameSegments(
         segment.referralConsumptionSegmentId ===
           candidate.referralConsumptionSegmentId &&
         segment.referralRewardId === candidate.referralRewardId &&
-        segment.consumedFrom === candidate.consumedFrom &&
-        segment.consumedUntil === candidate.consumedUntil &&
+        sameOptionalTimestamp(segment.consumedFrom, candidate.consumedFrom) &&
+        sameOptionalTimestamp(segment.consumedUntil, candidate.consumedUntil) &&
         segment.consumedDurationUs === candidate.consumedDurationUs
       );
     })
@@ -104,8 +118,8 @@ function existingSegmentsArePrefix(
         segment.referralConsumptionSegmentId ===
           candidate.referralConsumptionSegmentId &&
         segment.referralRewardId === candidate.referralRewardId &&
-        segment.consumedFrom === candidate.consumedFrom &&
-        segment.consumedUntil === candidate.consumedUntil &&
+        sameOptionalTimestamp(segment.consumedFrom, candidate.consumedFrom) &&
+        sameOptionalTimestamp(segment.consumedUntil, candidate.consumedUntil) &&
         segment.consumedDurationUs === candidate.consumedDurationUs
       );
     })
@@ -257,8 +271,11 @@ export class PostgresReferralTimeBankReconciliation
 
       if (
         planned.activeConsumptionStartedAt !== null &&
-        current?.record.activeConsumptionStartedAt !==
-          planned.activeConsumptionStartedAt
+        (current === undefined ||
+          !sameOptionalTimestamp(
+            current.record.activeConsumptionStartedAt,
+            planned.activeConsumptionStartedAt
+          ))
       ) {
         await this.appendEvent({
           ownerId,
