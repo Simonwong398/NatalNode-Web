@@ -4,10 +4,12 @@ import {
   getLocaleIndependentPath,
   getPresentationLocale
 } from '@/lib/localization';
+import { getUiMessage, type UiMessageKey } from '@/lib/ui-catalog';
 
 const locale = getPresentationLocale(Astro.url.pathname, Astro.locals.locale);
 const routeIdentity = getLocaleIndependentPath(Astro.url.pathname);
 const localize = (path: string): string => getLocalizedPath(locale, path);
+const t = (key: UiMessageKey): string => getUiMessage(locale, key);
 const isAccountPage = routeIdentity === '/account';
 const isFeedbackPage = routeIdentity === '/feedback';
 ---
@@ -16,6 +18,9 @@ const isFeedbackPage = routeIdentity === '/feedback';
   class="nn-session-control"
   data-auth-session-control
   data-account-path={localize('/account')}
+  data-sign-out-label={t('auth.signOut')}
+  data-signing-out-label={t('auth.signingOut')}
+  data-sign-out-error-message={t('auth.signOutError')}
   aria-busy="true"
   hidden
 >
@@ -25,7 +30,7 @@ const isFeedbackPage = routeIdentity === '/feedback';
     aria-current={isAccountPage ? 'page' : undefined}
     hidden
   >
-    Account
+    {t('auth.account')}
   </a>
   <a
     class="nn-session-control__link nn-button nn-button--quiet"
@@ -33,7 +38,7 @@ const isFeedbackPage = routeIdentity === '/feedback';
     href={localize('/auth/sign-in')}
     hidden
   >
-    Sign in
+    {t('auth.signIn')}
   </a>
   <a
     class="nn-session-control__link nn-button nn-button--quiet"
@@ -42,7 +47,7 @@ const isFeedbackPage = routeIdentity === '/feedback';
     aria-current={isFeedbackPage ? 'page' : undefined}
     hidden
   >
-    Feedback
+    {t('auth.feedback')}
   </a>
   <button
     class="nn-session-control__link nn-button nn-button--quiet"
@@ -50,7 +55,7 @@ const isFeedbackPage = routeIdentity === '/feedback';
     type="button"
     hidden
   >
-    Sign out
+    {t('auth.signOut')}
   </button>
   <span
     class="nn-session-control__status nn-status nn-status--error"
@@ -79,7 +84,10 @@ const isFeedbackPage = routeIdentity === '/feedback';
       feedbackLink,
       signedInButton,
       statusElement,
-      accountPath: root.dataset.accountPath ?? '/account'
+      accountPath: root.dataset.accountPath ?? '/account',
+      signOutLabel: root.dataset.signOutLabel,
+      signingOutLabel: root.dataset.signingOutLabel,
+      signOutErrorMessage: root.dataset.signOutErrorMessage
     });
   }
 </script>

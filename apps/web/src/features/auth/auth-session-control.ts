@@ -10,9 +10,9 @@ const SIGNED_IN_STATUS = 'signedIn';
 const SIGNED_OUT_STATUS = 'signedOut';
 const LOGOUT_PENDING_STATUS = 'logoutPending';
 const LOGOUT_ERROR_STATUS = 'logoutError';
-const LOGOUT_LABEL = 'Sign out';
-const LOGOUT_PENDING_LABEL = 'Signing out…';
-const LOGOUT_FAILURE_MESSAGE = "Couldn't sign out. Please try again.";
+const DEFAULT_SIGN_OUT_LABEL = 'Sign out';
+const DEFAULT_SIGNING_OUT_LABEL = 'Signing out…';
+const DEFAULT_SIGN_OUT_ERROR_MESSAGE = "Couldn't sign out. Please try again.";
 
 type AuthSessionState =
   | 'loading'
@@ -29,6 +29,9 @@ export interface AuthSessionControlElements {
   readonly signedInButton: HTMLButtonElement;
   readonly statusElement: HTMLElement;
   readonly accountPath: string;
+  readonly signOutLabel?: string;
+  readonly signingOutLabel?: string;
+  readonly signOutErrorMessage?: string;
 }
 
 function isCurrentSessionResponse(
@@ -74,10 +77,12 @@ function render(
   elements.signedInButton.hidden = !isSignedIn;
   elements.signedInButton.disabled = isLogoutPending;
   elements.signedInButton.textContent = isLogoutPending
-    ? LOGOUT_PENDING_LABEL
-    : LOGOUT_LABEL;
+    ? elements.signingOutLabel ?? DEFAULT_SIGNING_OUT_LABEL
+    : elements.signOutLabel ?? DEFAULT_SIGN_OUT_LABEL;
   elements.statusElement.hidden = !isLogoutError;
-  elements.statusElement.textContent = isLogoutError ? LOGOUT_FAILURE_MESSAGE : '';
+  elements.statusElement.textContent = isLogoutError
+    ? elements.signOutErrorMessage ?? DEFAULT_SIGN_OUT_ERROR_MESSAGE
+    : '';
 }
 
 async function resolveCurrentSession(

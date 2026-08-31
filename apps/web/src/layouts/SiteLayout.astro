@@ -9,6 +9,7 @@ import {
   getLocaleIndependentPath,
   getPresentationLocale
 } from '@/lib/localization';
+import { getUiMessage, type UiMessageKey } from '@/lib/ui-catalog';
 import { DEFAULT_ROBOTS, SITE_NAME, SITE_ORIGIN, type SeoMetadata } from '@/lib/seo';
 import '@/styles/global.css';
 
@@ -35,6 +36,7 @@ const currentPath = Astro.url.pathname;
 const locale = getPresentationLocale(currentPath, Astro.locals.locale);
 const routeIdentity = getLocaleIndependentPath(currentPath);
 const localize = (path: string): string => getLocalizedPath(locale, path);
+const t = (key: UiMessageKey): string => getUiMessage(locale, key);
 const isLearnPage = routeIdentity === '/learn' || routeIdentity.startsWith('/learn/');
 const isToolsPage = routeIdentity === '/tools' || routeIdentity.startsWith('/tools/');
 const isVaultPage = routeIdentity === '/vault' || routeIdentity.startsWith('/vault/');
@@ -88,7 +90,7 @@ const websiteStructuredData = robots === 'index,follow'
       class="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-50 nn-button nn-button--secondary"
       href="#main-content"
     >
-      Skip to main content
+      {t('accessibility.skipToMain')}
     </a>
     <header class="nn-site-header">
       <Container mode="shell" class="nn-site-header__inner">
@@ -100,16 +102,18 @@ const websiteStructuredData = robots === 'index,follow'
           data-mobile-nav-toggle
           aria-controls="primary-navigation"
           aria-expanded="false"
-          aria-label="Open navigation"
+          aria-label={t('accessibility.openNavigation')}
+          data-open-navigation-label={t('accessibility.openNavigation')}
+          data-close-navigation-label={t('accessibility.closeNavigation')}
         >
-          <span class="sr-only">Toggle navigation</span>
+          <span class="sr-only">{t('accessibility.toggleNavigation')}</span>
           <span class="nn-menu-toggle__icon" aria-hidden="true"></span>
         </button>
 
         <nav
           class="nn-primary-nav"
           id="primary-navigation"
-          aria-label="Primary navigation"
+          aria-label={t('accessibility.primaryNavigation')}
           data-mobile-nav
           data-open="false"
         >
@@ -120,7 +124,7 @@ const websiteStructuredData = robots === 'index,follow'
                 href={localize('/learn/')}
                 aria-current={isLearnPage ? 'page' : undefined}
               >
-                Learn
+                {t('nav.learn')}
               </a>
             </li>
             <li class="nn-primary-nav__item">
@@ -129,7 +133,7 @@ const websiteStructuredData = robots === 'index,follow'
                 href={localize('/tools/')}
                 aria-current={isToolsPage ? 'page' : undefined}
               >
-                Tools
+                {t('nav.tools')}
               </a>
             </li>
             <li class="nn-primary-nav__item">
@@ -138,7 +142,7 @@ const websiteStructuredData = robots === 'index,follow'
                 href={localize('/')}
                 aria-current={isCalculatePage ? 'page' : undefined}
               >
-                Calculate
+                {t('nav.calculate')}
               </a>
             </li>
             <li class="nn-primary-nav__item">
@@ -147,7 +151,7 @@ const websiteStructuredData = robots === 'index,follow'
                 href={localize('/vault')}
                 aria-current={isVaultPage ? 'page' : undefined}
               >
-                Vault
+                {t('nav.vault')}
               </a>
             </li>
             <li class="nn-primary-nav__item">
@@ -165,14 +169,14 @@ const websiteStructuredData = robots === 'index,follow'
     <footer class="border-t border-natal-border/70">
       <Container mode="shell" class="flex flex-wrap items-center justify-between gap-x-6 gap-y-3 py-6">
         <BrandLockup class="nn-footer-brand" href={localize('/')} size={22} />
-        <nav aria-label="Trust navigation">
+        <nav aria-label={t('accessibility.trustNavigation')}>
           <ul class="flex flex-wrap items-center gap-x-5 gap-y-2">
             <li>
               <a
                 class="font-semibold text-natal-accent underline decoration-natal-accent/50 underline-offset-4 transition-colors hover:text-white"
                 href={localize('/about')}
               >
-                About
+                {t('nav.about')}
               </a>
             </li>
             <li>
@@ -180,7 +184,7 @@ const websiteStructuredData = robots === 'index,follow'
                 class="font-semibold text-natal-accent underline decoration-natal-accent/50 underline-offset-4 transition-colors hover:text-white"
                 href={localize('/methodology')}
               >
-                Methodology
+                {t('nav.methodology')}
               </a>
             </li>
           </ul>
@@ -195,9 +199,11 @@ const websiteStructuredData = robots === 'index,follow'
   const mobileNav = document.querySelector<HTMLElement>('[data-mobile-nav]');
 
   if (menuButton && mobileNav) {
+    const openNavigationLabel = menuButton.dataset.openNavigationLabel ?? 'Open navigation';
+    const closeNavigationLabel = menuButton.dataset.closeNavigationLabel ?? 'Close navigation';
     const setMenuOpen = (open: boolean, returnFocus = false): void => {
       menuButton.setAttribute('aria-expanded', String(open));
-      menuButton.setAttribute('aria-label', open ? 'Close navigation' : 'Open navigation');
+      menuButton.setAttribute('aria-label', open ? closeNavigationLabel : openNavigationLabel);
       mobileNav.dataset.open = String(open);
 
       if (!open && returnFocus) {
