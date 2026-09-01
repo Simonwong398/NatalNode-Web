@@ -143,6 +143,7 @@ export {
   parseServerEnvironment,
   PostgresMigrationError,
   PostgresSqlExecutor,
+  PostgresTransactionRunner,
   runPostgresMigrations,
   runServerProcess,
   ServerEnvironmentConfigurationError,
@@ -213,6 +214,21 @@ export type {
 } from './persistence/index.js';
 
 export type { SqlExecutor, SqlQueryResult } from './db/index.js';
+export type { TransactionRunner } from './db/index.js';
+
+export {
+  PostgresFoundationsLearningRepository,
+  PostgresFoundationsLearningService,
+  createPostgresFoundationsLearningService,
+  FoundationsLearningValidationError
+} from './learning/foundations/index.js';
+export type {
+  FoundationsAssessmentAttemptRecord,
+  FoundationsLearningRepository,
+  FoundationsLearningService,
+  FoundationsLearningServiceDependencies,
+  FoundationsRewardGrantRecord
+} from './learning/foundations/index.js';
 
 export * from './commercial-persistence/index.js';
 

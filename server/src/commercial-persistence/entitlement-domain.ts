@@ -11,6 +11,7 @@ import {
   assertPaidRenewalIntent
 } from './commercial-domain.js';
 import type {
+  CommercialGrantCreditRecord,
   CommercialTimestampInput,
   PaidBillingRelationshipRecord,
   PaidCoverageRecord
@@ -420,11 +421,66 @@ function normalizeCoverage(
   };
 }
 
+interface NormalizedGrantCredit {
+  readonly grantCreditId: string;
+  readonly commercialAuthorityId: string;
+  readonly sourceClass: EntitlementSourceClass;
+  readonly sourceEntityId: string;
+  readonly startsAt: string;
+  readonly endsAt: string;
+  readonly sourceRevision: string;
+}
+
+function normalizeGrantCredit(
+  credit: CommercialGrantCreditRecord,
+  commercialAuthorityId: string,
+  authorityRevision: bigint
+): NormalizedGrantCredit {
+  const grantCreditId = assertCommercialIdentifier(
+    credit.grantCreditId,
+    'grantCreditId'
+  );
+  const creditAuthorityId = assertCommercialIdentifier(
+    credit.commercialAuthorityId,
+    'commercialAuthorityId'
+  );
+  if (creditAuthorityId !== commercialAuthorityId) {
+    fail('SOURCE_SCOPE_MISMATCH');
+  }
+  if (!isEntitlementSourceClass(credit.sourceClass)) {
+    fail('INVALID_SOURCE_STATE');
+  }
+  const sourceEntityId = assertCommercialIdentifier(
+    credit.sourceEntityId,
+    'sourceEntityId'
+  );
+  const startsAt = normalizeEntitlementTimestamp(credit.startsAt, 'startsAt');
+  const endsAt = normalizeEntitlementTimestamp(credit.endsAt, 'endsAt');
+  if (timestampMicroseconds(startsAt) >= timestampMicroseconds(endsAt)) {
+    fail('INVALID_SOURCE_STATE');
+  }
+  const sourceRevision = assertCommercialRevision(credit.sourceRevision);
+  if (BigInt(sourceRevision) > authorityRevision) {
+    fail('SOURCE_SCOPE_MISMATCH');
+  }
+
+  return {
+    grantCreditId,
+    commercialAuthorityId: creditAuthorityId,
+    sourceClass: credit.sourceClass,
+    sourceEntityId,
+    startsAt,
+    endsAt,
+    sourceRevision
+  };
+}
+
 interface PaidInterval {
   readonly start: bigint;
   readonly end: bigint;
   readonly sourceEntityId: string;
-  readonly kind: 'COVERAGE' | 'GRACE';
+  readonly kind: 'COVERAGE' | 'GRACE' | 'GRANT';
+  readonly sourceClass: EntitlementSourceClass;
 }
 
 interface MergedPaidSegment {
@@ -530,6 +586,7 @@ export interface EffectiveEntitlementEvaluationInput {
   readonly evaluatedAt: CommercialTimestampInput;
   readonly paidBillingRelationships: readonly PaidBillingRelationshipRecord[];
   readonly paidCoverages: readonly PaidCoverageRecord[];
+  readonly grantCredits?: readonly CommercialGrantCreditRecord[];
   readonly referralSource?: ReferralTimeBankSourceSnapshot | null;
 }
 
@@ -694,7 +751,8 @@ export function evaluateEffectiveEntitlement(
           start: timestampMicroseconds(coverage.coverageStartAt),
           end: timestampMicroseconds(coverage.effectiveCoverageEndAt),
           sourceEntityId: coverage.paidCoverageId,
-          kind: 'COVERAGE'
+          kind: 'COVERAGE',
+          sourceClass: 'PAID'
         });
       }
 
@@ -709,11 +767,33 @@ export function evaluateEffectiveEntitlement(
           start: timestampMicroseconds(relationship.graceStartedAt),
           end: timestampMicroseconds(relationship.graceUntil),
           sourceEntityId: relationship.paidRelationshipId,
-          kind: 'GRACE'
+          kind: 'GRACE',
+          sourceClass: 'PAID'
         };
         paidIntervals.push(graceInterval);
         currentGraceIntervals.push(graceInterval);
       }
+    }
+
+    if (input.grantCredits !== undefined && !Array.isArray(input.grantCredits)) {
+      return indeterminate('INVALID_INPUT', entitlementRevision);
+    }
+    const grantCredits = (input.grantCredits ?? []).map((credit) =>
+      normalizeGrantCredit(credit, commercialAuthorityId, authorityRevision)
+    );
+    const grantCreditIds = new Set<string>();
+    for (const credit of grantCredits) {
+      if (grantCreditIds.has(credit.grantCreditId)) {
+        fail('INVALID_SOURCE_STATE');
+      }
+      grantCreditIds.add(credit.grantCreditId);
+      paidIntervals.push({
+        start: timestampMicroseconds(credit.startsAt),
+        end: timestampMicroseconds(credit.endsAt),
+        sourceEntityId: credit.sourceEntityId,
+        kind: 'GRANT',
+        sourceClass: credit.sourceClass
+      });
     }
 
     const mergedSegments = mergePaidIntervals(paidIntervals);
@@ -781,13 +861,6 @@ export function evaluateEffectiveEntitlement(
       });
     }
 
-    if (
-      referralSource !== null &&
-      (!referralSource.paidActive || referralSource.currentReferralRewardId !== null)
-    ) {
-      fail('INVALID_SOURCE_STATE');
-    }
-
     const currentIntervals = currentSegment.intervals.filter(
       (interval) =>
         interval.start <= evaluatedAtMicroseconds &&
@@ -796,6 +869,26 @@ export function evaluateEffectiveEntitlement(
     const currentSourceEntityIds = uniqueSorted(
       currentIntervals.map((interval) => interval.sourceEntityId)
     );
+    const currentSourceClasses = uniqueSorted(
+      currentIntervals.map((interval) => interval.sourceClass)
+    ) as readonly EntitlementSourceClass[];
+    const currentPaidIntervals = currentIntervals.filter(
+      (interval) => interval.sourceClass === 'PAID'
+    );
+    const currentGrantIntervals = currentIntervals.filter(
+      (interval) => interval.kind === 'GRANT'
+    );
+    if (
+      referralSource !== null &&
+      ((currentPaidIntervals.length > 0 &&
+        (!referralSource.paidActive ||
+          referralSource.currentReferralRewardId !== null)) ||
+        (currentPaidIntervals.length === 0 && referralSource.paidActive) ||
+        (currentGrantIntervals.length === 0 &&
+          referralSource.currentReferralRewardId !== null))
+    ) {
+      fail('INVALID_SOURCE_STATE');
+    }
     const coverageEnds = currentIntervals
       .filter((interval) => interval.kind === 'COVERAGE')
       .map((interval) => interval.end);
@@ -814,8 +907,11 @@ export function evaluateEffectiveEntitlement(
       effectivePro: true,
       effectiveFrom: isoTimestamp(currentSegment.start),
       effectiveUntil: isoTimestamp(currentSegment.end),
-      currentSourceClass: 'PAID',
-      currentSourceClasses: ['PAID'],
+      currentSourceClass:
+        currentPaidIntervals.length > 0
+          ? 'PAID'
+          : currentGrantIntervals[0]?.sourceClass ?? null,
+      currentSourceClasses,
       currentSourceEntityId:
         currentSourceEntityIds.length === 1
           ? currentSourceEntityIds[0]

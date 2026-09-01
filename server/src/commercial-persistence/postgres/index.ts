@@ -1,4 +1,5 @@
 export { createPostgresCommercialPersistence } from './create-postgres-commercial-persistence.js';
+export { PostgresCommercialGrantCreditRepository } from './postgres-commercial-grant-credit-repository.js';
 export { PostgresCommercialAuthorityRepository } from './postgres-commercial-authority-repository.js';
 export { PostgresCommercialEventRepository } from './postgres-commercial-event-repository.js';
 export { PostgresPaidBillingRelationshipRepository } from './postgres-paid-billing-relationship-repository.js';

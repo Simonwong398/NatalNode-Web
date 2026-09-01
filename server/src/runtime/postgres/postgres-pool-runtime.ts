@@ -1,10 +1,11 @@
 import { Pool } from 'pg';
-import type { SqlExecutor } from '../../db/index.js';
+import type { SqlExecutor, TransactionRunner } from '../../db/index.js';
 import {
   createPostgresPoolConfig,
   type PostgresPoolRuntimeConfig
 } from './postgres-pool-config.js';
 import { PostgresSqlExecutor } from './postgres-sql-executor.js';
+import { PostgresTransactionRunner } from './postgres-transaction-runner.js';
 import type {
   AccountDataExportRepository,
   AccountErasureRepository,
@@ -37,6 +38,7 @@ function assertAccountExportPoolCapacity(
 
 export interface PostgresPoolRuntime {
   readonly sqlExecutor: SqlExecutor;
+  readonly transactionRunner: TransactionRunner;
   readonly accountDataExport: AccountDataExportRepository;
   readonly connectionTimeoutMillis?: number;
   readonly accountErasure: AccountErasureRepository;
@@ -52,10 +54,12 @@ export function createPostgresPoolRuntime(
   assertAccountExportPoolCapacity(config);
   const pool = new Pool(createPostgresPoolConfig(config));
   const sqlExecutor = new PostgresSqlExecutor(pool);
+  const transactionRunner = new PostgresTransactionRunner(pool);
   let closePromise: Promise<void> | undefined;
 
   return {
     sqlExecutor,
+    transactionRunner,
     accountDataExport: new PostgresAccountDataExportRepository(pool),
     connectionTimeoutMillis: config.connectionTimeoutMillis,
     accountErasure: new PostgresAccountErasureRepository(pool),

@@ -13,6 +13,7 @@ import { PostgresReferralReconciliationPrimitives } from './postgres-referral-re
 import { PostgresReferralRewardRepository } from './postgres-referral-reward-repository.js';
 import { PostgresReferralTimeBankRepository } from './postgres-referral-time-bank-repository.js';
 import { PostgresReferralTimeBankReconciliation } from './postgres-referral-time-bank-reconciliation.js';
+import { PostgresCommercialGrantCreditRepository } from './postgres-commercial-grant-credit-repository.js';
 
 /**
  * Creates repositories over one executor. For reconciliation, pass a
@@ -26,6 +27,7 @@ export function createPostgresCommercialPersistence(
     new PostgresPaidBillingRelationshipRepository(executor);
   const paidCoverages = new PostgresPaidCoverageRepository(executor);
   const events = new PostgresCommercialEventRepository(executor);
+  const grantCredits = new PostgresCommercialGrantCreditRepository(executor);
   const referralPublicIdentities =
     new PostgresReferralPublicIdentityRepository(executor);
   const referralAttributions = new PostgresReferralAttributionRepository(
@@ -44,6 +46,7 @@ export function createPostgresCommercialPersistence(
     providerReceipts: new PostgresProviderIngestionReceiptRepository(executor),
     paidBillingRelationships,
     paidCoverages,
+    grantCredits,
     paidReconciliation: new PostgresPaidReconciliationPrimitives(
       executor,
       authorities,

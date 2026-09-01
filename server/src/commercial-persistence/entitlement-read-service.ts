@@ -52,7 +52,7 @@ export type EntitlementReadRepositories = Pick<
   Partial<
     Pick<
       CommercialPersistenceRepositories,
-      'referralReconciliation' | 'referralTimeBank'
+      'grantCredits' | 'referralReconciliation' | 'referralTimeBank'
     >
   >;
 
@@ -241,6 +241,12 @@ export class PostgresEntitlementReadService implements EntitlementReadService {
         );
       coverages.push(...relationshipCoverages);
     }
+    const grantCredits =
+      this.repositories.grantCredits === undefined
+        ? []
+        : await this.repositories.grantCredits.listByAuthority(
+            authority.commercialAuthorityId
+          );
 
     const evaluation = evaluateEffectiveEntitlement({
       commercialAuthorityId: authority.commercialAuthorityId,
@@ -248,6 +254,7 @@ export class PostgresEntitlementReadService implements EntitlementReadService {
       evaluatedAt: authoritativeNow,
       paidBillingRelationships: relationships,
       paidCoverages: coverages,
+      grantCredits,
       referralSource
     });
     const result = toEffectiveEntitlementResult(evaluation);

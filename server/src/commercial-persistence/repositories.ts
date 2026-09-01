@@ -14,6 +14,7 @@ import type {
   PaidRenewalIntent
 } from './commercial-domain.js';
 import type { EntitlementProjectionRecord } from './entitlement-types.js';
+import type { EntitlementSourceClass } from './entitlement-types.js';
 import type { ReferralTimeBankSourceSnapshot } from './referral-time-bank-domain.js';
 import type {
   ReferralAttributionState,
@@ -403,6 +404,38 @@ export interface PaidCoverageRepository {
     input: ApplyPaidCoverageReversalInput
   ): Promise<PaidCoverageRecord>;
   end(input: EndPaidCoverageInput): Promise<PaidCoverageRecord>;
+}
+
+/** A finite, provider-neutral grant interval consumed by the canonical entitlement evaluator. */
+export interface CommercialGrantCreditRecord {
+  readonly grantCreditId: string;
+  readonly commercialAuthorityId: string;
+  readonly sourceClass: EntitlementSourceClass;
+  readonly sourceEntityId: string;
+  readonly startsAt: string;
+  readonly endsAt: string;
+  readonly sourceRevision: string;
+  readonly eventId: string;
+  readonly createdAt: string;
+}
+
+export interface CreateCommercialGrantCreditInput {
+  readonly grantCreditId: string;
+  readonly commercialAuthorityId: string;
+  readonly sourceClass: EntitlementSourceClass;
+  readonly sourceEntityId: string;
+  readonly startsAt: CommercialTimestampInput;
+  readonly endsAt: CommercialTimestampInput;
+  readonly sourceRevision: string;
+  readonly eventId: string;
+}
+
+/** Transaction-scoped finite-grant source read/write surface. */
+export interface CommercialGrantCreditRepository {
+  create(input: CreateCommercialGrantCreditInput): Promise<CommercialGrantCreditRecord>;
+  listByAuthority(
+    commercialAuthorityId: string
+  ): Promise<readonly CommercialGrantCreditRecord[]>;
 }
 
 export interface ReferralPublicIdentityRecord {
@@ -846,6 +879,7 @@ export interface CommercialPersistenceRepositories {
   readonly providerReceipts: ProviderIngestionReceiptRepository;
   readonly paidBillingRelationships: PaidBillingRelationshipRepository;
   readonly paidCoverages: PaidCoverageRepository;
+  readonly grantCredits: CommercialGrantCreditRepository;
   readonly paidReconciliation: PaidReconciliationPrimitives;
   readonly entitlementProjections: EntitlementProjectionRepository;
   readonly referralPublicIdentities: ReferralPublicIdentityRepository;

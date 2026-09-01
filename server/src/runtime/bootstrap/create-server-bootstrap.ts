@@ -36,6 +36,7 @@ export async function createServerBootstrap(
     const serverDependencies = createServerRuntimeDependencies(
       {
         sqlExecutor: postgresRuntime.sqlExecutor,
+        transactionRunner: postgresRuntime.transactionRunner,
         accountDataExport: postgresRuntime.accountDataExport,
         postgresConnectionTimeoutMillis:
           postgresRuntime.connectionTimeoutMillis,

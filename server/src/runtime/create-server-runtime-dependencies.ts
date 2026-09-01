@@ -13,6 +13,7 @@ import {
 } from '../auth-runtime/google-oauth-transaction.js';
 import { createPostgresPersistence } from '../persistence/postgres/create-postgres-persistence.js';
 import { PostgresGoogleOAuthTransactionRepository } from '../persistence/postgres/postgres-google-oauth-transaction-repository.js';
+import { createPostgresCommercialPersistence } from '../commercial-persistence/index.js';
 import { DurationAuthenticationExpirationPolicy } from './duration-authentication-expiration-policy.js';
 import type { ServerRuntimeBindings } from './server-runtime-bindings.js';
 import type { ServerRuntimeConfig } from './server-runtime-config.js';
@@ -20,6 +21,7 @@ import { NodeIdGenerator } from './node-id-generator.js';
 import { SystemClock } from './system-clock.js';
 import { NotificationAccountService } from '../notification-platform/notification-account-service.js';
 import { createWebPushCapability } from '../notification-platform/web-push-capability.js';
+import { PostgresFoundationsLearningService } from '../learning/foundations/postgres-foundations-learning-service.js';
 
 function assertValidTtl(seconds: number, name: string): void {
   if (!Number.isFinite(seconds) || !Number.isInteger(seconds) || seconds <= 0) {
@@ -74,6 +76,11 @@ export function createServerRuntimeDependencies(
       config.webPush.applicationServerKey
     )
   });
+  const foundationsLearningService = new PostgresFoundationsLearningService({
+    transactionRunner: bindings.transactionRunner,
+    idGenerator,
+    commercialPersistenceFactory: createPostgresCommercialPersistence
+  });
   const authenticator = new SessionRequestAuthenticator({
     authSessions: persistence.authSessions,
     tokenHasher,
@@ -103,6 +110,7 @@ export function createServerRuntimeDependencies(
     chartCalculator,
     clock,
     notificationAccountService,
+    foundationsLearningService,
     secureTokenGenerator,
     tokenHasher,
     authenticationExpirationPolicy,

@@ -19,6 +19,7 @@ export {
 } from './process/index.js';
 export { NodeIdGenerator } from './node-id-generator.js';
 export { PostgresSqlExecutor } from './postgres/index.js';
+export { PostgresTransactionRunner } from './postgres/index.js';
 export type {
   PostgresPoolRuntime,
   PostgresPoolRuntimeConfig
@@ -39,6 +40,7 @@ export type {
 } from './http/index.js';
 export type { ServerProcessRuntime } from './process/index.js';
 export type { ServerRuntimeBindings } from './server-runtime-bindings.js';
+export type { TransactionRunner } from '../db/index.js';
 export type { ServerRuntimeConfig } from './server-runtime-config.js';
 export { SystemClock } from './system-clock.js';
 export {

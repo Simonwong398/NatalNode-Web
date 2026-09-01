@@ -42,3 +42,10 @@ export {
   isRegisterPushSubscriptionApiRequest,
   readBoundedNotificationJson
 } from './notifications.js';
+export {
+  FOUNDATIONS_LEARNING_REQUEST_MAXIMUM_BYTES,
+  isFoundationsAssessmentAttemptApiRequest,
+  isFoundationsCompleteLessonApiRequest,
+  isFoundationsMergeProgressApiRequest,
+  readBoundedFoundationsLearningJson
+} from './learn-foundations.js';

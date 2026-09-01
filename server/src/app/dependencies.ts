@@ -20,6 +20,7 @@ import type { RequestAuthenticator } from './auth/index.js';
 import type { ChartCalculationService } from './cache/cached-chart-calculator.js';
 import type { Clock, IdGenerator } from './creation-boundaries.js';
 import type { NotificationAccountService } from '../notification-platform/notification-account-service.js';
+import type { FoundationsLearningService } from '../learning/foundations/postgres-foundations-learning-service.js';
 
 export interface ServerDependencies {
   readonly publicWebOrigin: string;
@@ -35,6 +36,8 @@ export interface ServerDependencies {
   readonly clock: Clock;
   /** Omitted by public-development so authenticated notification use fails closed. */
   readonly notificationAccountService?: NotificationAccountService;
+  /** Omitted by public-development until the authenticated learning store is configured. */
+  readonly foundationsLearningService?: FoundationsLearningService;
   readonly secureTokenGenerator: SecureTokenGenerator;
   readonly tokenHasher: TokenHasher;
   readonly authenticationExpirationPolicy: AuthenticationExpirationPolicy;
