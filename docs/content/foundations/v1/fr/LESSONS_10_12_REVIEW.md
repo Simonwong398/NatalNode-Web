@@ -17,14 +17,14 @@ runtimeAvailability: UNAVAILABLE
 
 Ce manifest enregistre le dernier lot de l'adaptation française de Foundations V1 : priorisation, synthèse du thème et usage responsable. Les trois leçons sont complètes comme documentation Class C, mais l'approbation du Product Owner et l'admission runtime restent en attente.
 
-Chaque leçon déclare `contentRevision: 1`, `canonicalContentRevision: 1`, `contentState: REVIEW`, `currentness: CURRENT` et `runtimeAvailability: UNAVAILABLE`. `CURRENT` confirme l'alignement sur le canon anglais actuel ; il n'autorise pas la publication.
+Les leçons 10 et 12 déclarent `contentRevision: 1` et la leçon 11 `contentRevision: 2` après une correction circonscrite de parité des questions ; toutes conservent `canonicalContentRevision: 1`, `contentState: REVIEW`, `currentness: CURRENT` et `runtimeAvailability: UNAVAILABLE`. `CURRENT` confirme l'alignement sur le canon anglais actuel ; il n'autorise pas la publication.
 
 ## Identité des leçons
 
 | Leçon | Lesson ID | Titre français | Révision canonique | Adaptation | État | Runtime |
 | ---: | --- | --- | ---: | ---: | --- | --- |
 | 10 | `foundations.chart_priorities` | Ce qui compte d'abord dans un thème | 1 | 1 | `REVIEW` / `CURRENT` | `UNAVAILABLE` |
-| 11 | `foundations.whole_chart` | Lire le thème dans son ensemble | 1 | 1 | `REVIEW` / `CURRENT` | `UNAVAILABLE` |
+| 11 | `foundations.whole_chart` | Lire le thème dans son ensemble | 1 | 2 | `REVIEW` / `CURRENT` | `UNAVAILABLE` |
 | 12 | `foundations.responsible_astrology` | Utiliser l'astrologie de manière responsable | 1 | 1 | `REVIEW` / `CURRENT` | `UNAVAILABLE` |
 
 Sources canoniques : `docs/content/foundations/v1/en/10-what-matters-first-in-a-chart.md`, `11-reading-the-chart-as-a-whole.md` et `12-using-astrology-responsibly.md`.
@@ -50,7 +50,7 @@ Ces choix sont locaux au texte et ne créent aucun ID de glossary, capacité, ho
 
 ## Revue professionnelle, épistémique et géométrique
 
-Une passe interne indépendante d'édition professionnelle et de parité épistémique a été effectuée ; cycles de correction ultérieurs : `0`. L'adaptation ne présente pas la priorisation comme un score, la synthèse comme une accumulation de mots-clés ni les garde-fous de la leçon 12 comme facultatifs.
+Une passe interne indépendante d'édition professionnelle et de parité épistémique a été effectuée. La revue a détecté une option correcte réordonnée dans la deuxième question de la leçon 11 ; elle a été corrigée de manière circonscrite, puis le lot a été relu. Cycles de correction ultérieurs : `1` (maximum autorisé : 2). L'adaptation ne présente pas la priorisation comme un score, la synthèse comme une accumulation de mots-clés ni les garde-fous de la leçon 12 comme facultatifs.
 
 La géométrie synthétique de la leçon 10 conserve Soleil 20° Taureau = 50° et Lune 20° Lion = 140°, avec un écart de 90° et un carré. La leçon 11 conserve le même contrôle dans son exemple Soleil 20° Taureau, Lune 20° Lion, Mercure 5° Gémeaux et carré Soleil–Lune. La leçon 12 n'ajoute pas de degré.
 
@@ -78,8 +78,8 @@ Aucun changement n'a touché UI, CSS, server, API, BFF, base de données, migrat
 
 ## Historique et fichiers exacts
 
-- Adaptation revision : `1` pour Lessons 10–12.
-- Correction cycles after independent internal review : `0`.
+- Adaptation revision : `1` pour Lessons 10 et 12 ; `2` pour Lesson 11 après la correction de parité.
+- Correction cycles after independent internal review : `1`.
 - Product Owner approval : `NO`.
 - Runtime admission : `NO` ; runtime availability : `UNAVAILABLE`.
 

@@ -17,7 +17,7 @@ runtimeAvailability: UNAVAILABLE
 
 Dieses Manifest dokumentiert die professionelle Class-C-Anpassung von Foundations V1 für die Lektionen 04–06 auf Deutsch. Der Inhalt bewahrt kanonische Identität, epistemische Stärke und die Grenzen der englischen Quelle; er schafft weder einen neuen Track noch eine Runtime-Übersetzungsschicht.
 
-Alle drei Lektionen haben `contentRevision: 1` und `canonicalContentRevision: 1`. Ihr Status ist `REVIEW`, ihre Currentness `CURRENT` und ihre Verfügbarkeit `UNAVAILABLE`. Keine dieser Angaben ist eine Product-Owner-Freigabe.
+Die Lektionen 04–05 haben `contentRevision: 1`; Lektion 06 hat nach einer begrenzten Korrektur der Fragenparität `contentRevision: 2`. Alle drei behalten `canonicalContentRevision: 1`. Ihr Status ist `REVIEW`, ihre Currentness `CURRENT` und ihre Verfügbarkeit `UNAVAILABLE`. Keine dieser Angaben ist eine Product-Owner-Freigabe.
 
 ## Identität der Lektionen
 
@@ -25,7 +25,7 @@ Alle drei Lektionen haben `contentRevision: 1` und `canonicalContentRevision: 1`
 | ---: | --- | --- | ---: | ---: | --- | --- |
 | 04 | `foundations.sun_moon` | Sonne und Mond | 1 | 1 | `REVIEW` / `CURRENT` | `UNAVAILABLE` |
 | 05 | `foundations.mercury_venus_mars` | Merkur, Venus und Mars | 1 | 1 | `REVIEW` / `CURRENT` | `UNAVAILABLE` |
-| 06 | `foundations.jupiter_saturn_outer_planets` | Jupiter, Saturn und die äußeren Planeten | 1 | 1 | `REVIEW` / `CURRENT` | `UNAVAILABLE` |
+| 06 | `foundations.jupiter_saturn_outer_planets` | Jupiter, Saturn und die äußeren Planeten | 1 | 2 | `REVIEW` / `CURRENT` | `UNAVAILABLE` |
 
 Exakte kanonische Quellen: `docs/content/foundations/v1/en/04-the-sun-and-moon.md`, `05-mercury-venus-and-mars.md` und `06-jupiter-saturn-and-the-outer-planets.md`.
 
@@ -52,7 +52,7 @@ Die Begriffe werden lokal erklärt, weil für sie keine Runtime-Varianten freige
 
 ## Professionelle und epistemische Prüfung
 
-Eine unabhängige interne Prüfung von Redaktion, Terminologie und epistemischer Parität wurde durchgeführt; nachfolgende Korrekturzyklen: `0`. Die Anpassung verwendet Möglichkeitssprache und synthetische Beispiele. Keine planetare Verbindung wird als physische Ursache, Vorhersage, Diagnose oder Personenklassifikation dargestellt.
+Eine unabhängige interne Prüfung von Redaktion, Terminologie und epistemischer Parität wurde durchgeführt. Die Prüfung erkannte eine Abweichung in Reihenfolge und richtiger Antwort der Fragen von Lektion 06; sie wurde begrenzt korrigiert und der Los erneut geprüft. Nachfolgende Korrekturzyklen: `1` (zulässiges Maximum: 2). Die Anpassung verwendet Möglichkeitssprache und synthetische Beispiele. Keine planetare Verbindung wird als physische Ursache, Vorhersage, Diagnose oder Personenklassifikation dargestellt.
 
 Die Geometrie von Lektion 04 bewahrt Sonne 8° Krebs = 98° und Mond 8° Waage = 188°, mit exakt 90° Abstand und Quadrat. Der Abstand wird als Horoskopfakt dargestellt; jede spätere Bedeutung ist Deutung. Lessons 05–06 fügen keine Berechnung oder neue wissenschaftliche Daten hinzu.
 
@@ -72,8 +72,8 @@ UI, CSS, Server, API, BFF, Datenbank, Migrationen, Auth, Vault, Commercial, Engi
 
 ## Korrekturverlauf und exakte Dateien
 
-- Adaptation revision: `1` für Lessons 04–06.
-- Correction cycles after independent internal review: `0`.
+- Adaptation revision: `1` für Lessons 04–05; `2` für Lektion 06 nach der Paritätskorrektur.
+- Correction cycles after independent internal review: `1`.
 - Product Owner approval: `NO`.
 - Runtime admission: `NO`; runtime availability: `UNAVAILABLE`.
 

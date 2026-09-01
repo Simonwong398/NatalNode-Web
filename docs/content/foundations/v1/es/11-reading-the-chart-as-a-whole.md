@@ -5,7 +5,7 @@ courseVersion: v1
 lessonId: foundations.whole_chart
 canonicalLocale: en
 locale: es
-contentRevision: 1
+contentRevision: 2
 canonicalContentRevision: 1
 contentState: REVIEW
 currentness: CURRENT
@@ -102,11 +102,11 @@ Una respuesta profesional no añade una casa estimada, una predicción ni una ex
 ¿Cómo debe cambiar la síntesis si la hora de nacimiento es desconocida?
 
 - A. Debe añadir casas aproximadas para conservar la narrativa.
-- B. Debe retirar o limitar casas y ángulos, y conservar solo las capas respaldadas.
-- C. Debe convertir todas las posiciones en casas.
+- B. Debe convertir todas las posiciones en casas.
+- C. Debe retirar o limitar casas y ángulos, y conservar solo las capas respaldadas.
 - D. Debe declarar que ningún aspecto puede enseñarse.
 
-**Respuesta correcta:** B.
+**Respuesta correcta:** C.
 
 **Explicación:** La incertidumbre de la hora afecta especialmente a ángulos y casas. No borra todos los conceptos, pero sí exige una síntesis más acotada.
 

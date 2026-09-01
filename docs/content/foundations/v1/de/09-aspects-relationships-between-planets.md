@@ -5,7 +5,7 @@ courseVersion: v1
 lessonId: foundations.aspects
 canonicalLocale: en
 locale: de
-contentRevision: 1
+contentRevision: 2
 canonicalContentRevision: 1
 contentState: REVIEW
 currentness: CURRENT
@@ -106,12 +106,12 @@ Was bedeutet es hauptsächlich, dass zwei Körper ein Quadrat bilden?
 
 Was unterscheidet einen exakten Aspekt von einem Aspekt innerhalb eines Orbis?
 
-- A. Der exakte stimmt mit dem Referenzwinkel überein; der andere liegt innerhalb einer von der Methode erlaubten Entfernung.
-- B. Der exakte ist immer gut und der andere immer schlecht.
+- A. Der exakte ist immer gut und der andere immer schlecht.
+- B. Der exakte stimmt mit dem Referenzwinkel überein; der andere liegt innerhalb einer von der Methode erlaubten Entfernung.
 - C. Es gibt keinen Unterschied, weil der Orbis Persönlichkeit misst.
 - D. Ein Aspekt innerhalb des Orbis kann in keinem Horoskop erscheinen.
 
-**Richtige Antwort:** A.
+**Richtige Antwort:** B.
 
 **Erklärung:** Der Orbis ist eine methodische Entscheidung über die Entfernung zum exakten Winkel. Er darf nicht mit moralischer Wertung oder persönlicher Ursache verwechselt werden.
 

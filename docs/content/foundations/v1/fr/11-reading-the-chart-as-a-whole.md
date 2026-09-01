@@ -5,7 +5,7 @@ courseVersion: v1
 lessonId: foundations.whole_chart
 canonicalLocale: en
 locale: fr
-contentRevision: 1
+contentRevision: 2
 canonicalContentRevision: 1
 contentState: REVIEW
 currentness: CURRENT
@@ -102,11 +102,11 @@ Qu'est-ce qui distingue une synthèse d'une accumulation de mots-clés ?
 Comment la synthèse doit-elle changer lorsque l'heure de naissance est inconnue ?
 
 - A. Elle doit ajouter des maisons approximatives pour conserver le récit.
-- B. Elle doit retirer ou limiter maisons et angles, et conserver uniquement les couches étayées.
-- C. Elle doit transformer toutes les positions en maisons.
+- B. Elle doit transformer toutes les positions en maisons.
+- C. Elle doit retirer ou limiter maisons et angles, et conserver uniquement les couches étayées.
 - D. Elle doit déclarer qu'aucun aspect ne peut être enseigné.
 
-**Réponse correcte :** B.
+**Réponse correcte :** C.
 
 **Explication :** L'incertitude de l'heure touche particulièrement les angles et les maisons. Elle n'efface pas tous les concepts, mais exige une synthèse plus circonscrite.
 

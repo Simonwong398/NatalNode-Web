@@ -5,7 +5,7 @@ courseVersion: v1
 lessonId: foundations.jupiter_saturn_outer_planets
 canonicalLocale: en
 locale: fr
-contentRevision: 1
+contentRevision: 2
 canonicalContentRevision: 1
 contentState: REVIEW
 currentness: CURRENT
@@ -82,29 +82,29 @@ Réponses indicatives : 1. Astronomie ; 2. Convention interprétative ; 3. Affir
 
 ### Question 1
 
-Quelle formulation respecte le mieux la limite entre Jupiter et Saturne ?
+Pourquoi la position d'une planète extérieure dans un signe doit-elle être traitée avec prudence comme description individuelle ?
 
-- A. Jupiter apporte toujours la chance et Saturne punit toujours.
-- B. Jupiter et Saturne sont des forces physiques qui produisent des résultats personnels.
-- C. Jupiter peut ouvrir une question sur l'expansion et Saturne sur la structure ou les limites, sans transformer ces associations en garantie ou en punition.
-- D. Saturne doit être exclu car toute limite est négative.
-
-**Réponse correcte :** C.
-
-**Explication :** C utilise les associations comme des questions d'une tradition et conserve l'incertitude. Une métaphore interprétative ne devient ni cause ni sentence.
-
-### Question 2
-
-Pourquoi les planètes extérieures demandent-elles une prudence supplémentaire ?
-
-- A. Leur mouvement lent peut produire des positions partagées par des cohortes, de sorte que le contexte générationnel ne suffit pas à décrire une personne.
-- B. Leurs positions ne peuvent apparaître dans aucun thème.
-- C. Pluton est une étoile et n'a pas de classification astronomique.
-- D. Une position partagée prouve que tous les membres d'une cohorte vivront la même vie.
+- A. Uranus, Neptune et Pluton se déplacent lentement ; de nombreuses personnes nées sur une période étendue peuvent donc partager leur position de signe. Les maisons, les angles, les aspects et les relations avec des corps plus rapides peuvent apporter un contexte supplémentaire lorsqu'ils sont étayés.
+- B. Les planètes extérieures n'ont leur place dans aucune tradition astrologique.
+- C. Une position partagée prouve que tous les membres de la cohorte ont une personnalité identique.
+- D. Il faut remplacer chaque position d'une planète extérieure par une maison supposée.
 
 **Réponse correcte :** A.
 
-**Explication :** Le mouvement lent peut fournir un contexte de cohorte, pas une explication individuelle complète. La classification scientifique de Pluton doit aussi rester distincte de son usage astrologique.
+**Explication :** Le mouvement lent rend les signes des planètes extérieures moins distinctifs individuellement. Le signe peut rester un contexte symbolique large, mais les affirmations personnelles plus fortes exigent d'autres données retournées et une interprétation mesurée.
+
+### Question 2
+
+Quelle formulation maintient séparées les couches astronomique et astrologique de Pluton ?
+
+- A. Astronomiquement, Pluton est une planète naine, tandis que certaines traditions astrologiques l'utilisent encore comme corps de la carte.
+- B. L'astrologie a reclassé Pluton comme planète naine.
+- C. L'utilisation astrologique de Pluton prouve qu'il s'agit d'une planète majeure en astronomie.
+- D. Pluton appartenait à l'astrologie ancienne des sept planètes avant sa découverte astronomique.
+
+**Réponse correcte :** A.
+
+**Explication :** La classification astronomique et la convention d'utiliser un corps dans une carte répondent à des questions différentes. Nommer les deux domaines évite de confondre un symbole de carte avec une définition astronomique.
 
 ## Idée clé
 

@@ -17,7 +17,7 @@ runtimeAvailability: UNAVAILABLE
 
 Ce manifest couvre exactement les adaptations françaises des leçons 07–09. Le travail conserve les structures de maisons, l'échafaudage planète × signe × maison et la géométrie des aspects sans ajouter de calcul, de renderer, de données de thème ou de logique runtime.
 
-Chaque leçon déclare `contentRevision: 1`, `canonicalContentRevision: 1`, `contentState: REVIEW` et `currentness: CURRENT`. La disponibilité de cette adaptation non approuvée est `UNAVAILABLE`.
+Les leçons 07–08 déclarent `contentRevision: 1` et la leçon 09 `contentRevision: 2` après une correction circonscrite de parité des questions ; toutes conservent `canonicalContentRevision: 1`, `contentState: REVIEW` et `currentness: CURRENT`. La disponibilité de cette adaptation non approuvée est `UNAVAILABLE`.
 
 ## Identité des leçons
 
@@ -25,7 +25,7 @@ Chaque leçon déclare `contentRevision: 1`, `canonicalContentRevision: 1`, `con
 | ---: | --- | --- | ---: | ---: | --- | --- |
 | 07 | `foundations.houses_angles` | Les douze maisons et les angles | 1 | 1 | `REVIEW` / `CURRENT` | `UNAVAILABLE` |
 | 08 | `foundations.planet_sign_house` | Planète × signe × maison | 1 | 1 | `REVIEW` / `CURRENT` | `UNAVAILABLE` |
-| 09 | `foundations.aspects` | Aspects : relations entre les planètes | 1 | 1 | `REVIEW` / `CURRENT` | `UNAVAILABLE` |
+| 09 | `foundations.aspects` | Aspects : relations entre les planètes | 1 | 2 | `REVIEW` / `CURRENT` | `UNAVAILABLE` |
 
 Sources canoniques : `docs/content/foundations/v1/en/07-the-twelve-houses-and-the-angles.md`, `08-planet-sign-house.md` et `09-aspects-relationships-between-planets.md`.
 
@@ -52,7 +52,7 @@ Le runtime glossary n'a pas été étendu et aucune sémantique de maison ou d'a
 
 ## Revue professionnelle et épistémique
 
-Une passe interne indépendante d'édition professionnelle, de terminologie et de parité épistémique a été effectuée ; cycles de correction ultérieurs : `0`. Le texte conserve le ton modal de la source et évite l'astrologie en recettes, la divination des maisons et les jugements moraux sur les aspects.
+Une passe interne indépendante d'édition professionnelle, de terminologie et de parité épistémique a été effectuée. La revue a détecté une option correcte réordonnée dans la deuxième question de la leçon 09 ; elle a été corrigée de manière circonscrite, puis le lot a été relu. Cycles de correction ultérieurs : `1` (maximum autorisé : 2). Le texte conserve le ton modal de la source et évite l'astrologie en recettes, la divination des maisons et les jugements moraux sur les aspects.
 
 L'audit géométrique de la leçon 09 conserve exactement : 50°–52° = 2° de conjonction ; 10°–190° = 180° d'opposition ; 105°–195° = 90° de carré ; 132°–252° = 120° de trigone ; 65°–125° = 60° de sextile. Ce sont des vérifications de géométrie présentée, pas un calcul produit ni une preuve scientifique.
 
@@ -72,8 +72,8 @@ Aucun registry, loader, route, fallback, UI, CSS, server, API, BFF, database, mi
 
 ## Historique de correction et fichiers exacts
 
-- Adaptation revision : `1` pour Lessons 07–09.
-- Correction cycles after independent internal review : `0`.
+- Adaptation revision : `1` pour Lessons 07–08 ; `2` pour Lesson 09 après la correction de parité.
+- Correction cycles after independent internal review : `1`.
 - Product Owner approval : `NO`.
 - Runtime admission : `NO` ; runtime availability : `UNAVAILABLE`.
 

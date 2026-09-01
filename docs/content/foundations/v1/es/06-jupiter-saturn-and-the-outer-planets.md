@@ -5,7 +5,7 @@ courseVersion: v1
 lessonId: foundations.jupiter_saturn_outer_planets
 canonicalLocale: en
 locale: es
-contentRevision: 1
+contentRevision: 2
 canonicalContentRevision: 1
 contentState: REVIEW
 currentness: CURRENT
@@ -82,29 +82,29 @@ Respuestas orientativas: 1. Astronomía; 2. Convención interpretativa; 3. Afirm
 
 ### Pregunta 1
 
-¿Cuál de estas afirmaciones conserva mejor el límite entre Júpiter y Saturno?
+¿Por qué una posición de un planeta exterior en un signo debe tratarse con cautela como descripción individual?
 
-- A. Júpiter siempre trae suerte y Saturno siempre castiga.
-- B. Júpiter y Saturno son fuerzas físicas que producen resultados personales.
-- C. Júpiter puede abrir una pregunta sobre expansión y Saturno sobre estructura o límites, sin convertir ninguna asociación en garantía o castigo.
-- D. Saturno debe omitirse porque toda limitación es negativa.
-
-**Respuesta correcta:** C.
-
-**Explicación:** C usa las asociaciones como preguntas de una tradición y conserva la incertidumbre. No convierte una metáfora interpretativa en una causa o sentencia.
-
-### Pregunta 2
-
-¿Por qué los planetas exteriores requieren una cautela adicional?
-
-- A. Porque sus movimientos lentos pueden producir posiciones compartidas por cohortes, de modo que el contexto generacional no basta para describir a una persona.
-- B. Porque sus posiciones no pueden aparecer en ninguna carta.
-- C. Porque Plutón es una estrella y no tiene clasificación astronómica.
-- D. Porque una posición compartida demuestra que todos los miembros de una cohorte tendrán la misma vida.
+- A. Urano, Neptuno y Plutón se mueven lentamente, por lo que muchas personas nacidas durante un periodo amplio pueden compartir esa posición; las casas, los ángulos, los aspectos y las relaciones con cuerpos más rápidos pueden aportar contexto adicional cuando están respaldados.
+- B. Los planetas exteriores no tienen lugar en ninguna tradición astrológica.
+- C. Una posición compartida demuestra que toda la cohorte tiene una personalidad idéntica.
+- D. El lector debe sustituir cada posición de un planeta exterior por una casa estimada.
 
 **Respuesta correcta:** A.
 
-**Explicación:** El movimiento lento aporta un posible contexto de cohorte, no una explicación individual completa. Además, la clasificación científica de Plutón debe permanecer separada de su uso astrológico.
+**Explicación:** El movimiento lento hace que los signos de los planetas exteriores sean menos distintivos a nivel individual. El signo puede conservar un contexto simbólico amplio, pero las afirmaciones personales más fuertes necesitan otros datos devueltos y una interpretación matizada.
+
+### Pregunta 2
+
+¿Qué afirmación mantiene separadas las capas astronómica y astrológica de Plutón?
+
+- A. Astronómicamente, Plutón es un planeta enano, mientras que algunas tradiciones astrológicas todavía lo utilizan como cuerpo de la carta.
+- B. La astrología reclasificó a Plutón como planeta enano.
+- C. El uso astrológico de Plutón demuestra que es un planeta mayor en astronomía.
+- D. Plutón formaba parte de la astrología antigua de los siete planetas antes de su descubrimiento astronómico.
+
+**Respuesta correcta:** A.
+
+**Explicación:** La clasificación astronómica y la convención de usar un cuerpo en una carta responden a preguntas distintas. Nombrar ambos ámbitos evita confundir un símbolo de la carta con una definición astronómica.
 
 ## Idea clave
 

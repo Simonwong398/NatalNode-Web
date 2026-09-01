@@ -5,7 +5,7 @@ courseVersion: v1
 lessonId: foundations.whole_chart
 canonicalLocale: en
 locale: de
-contentRevision: 1
+contentRevision: 2
 canonicalContentRevision: 1
 contentState: REVIEW
 currentness: CURRENT
@@ -102,11 +102,11 @@ Was unterscheidet eine Synthese von einer Ansammlung von Schlüsselwörtern?
 Wie soll sich die Synthese ändern, wenn die Geburtszeit unbekannt ist?
 
 - A. Ungefähre Häuser ergänzen, damit die Erzählung erhalten bleibt.
-- B. Häuser und Achsen entfernen oder begrenzen und nur belegte Ebenen bewahren.
-- C. Alle Positionen in Häuser umwandeln.
+- B. Alle Positionen in Häuser umwandeln.
+- C. Häuser und Achsen entfernen oder begrenzen und nur belegte Ebenen bewahren.
 - D. Erklären, dass kein Aspekt gelehrt werden kann.
 
-**Richtige Antwort:** B.
+**Richtige Antwort:** C.
 
 **Erklärung:** Unsichere Zeit betrifft besonders Achsen und Häuser. Sie löscht nicht alle Konzepte, verlangt aber eine enger gefasste Synthese.
 

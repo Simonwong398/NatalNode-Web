@@ -17,7 +17,7 @@ runtimeAvailability: UNAVAILABLE
 
 Este manifest registra la adaptación profesional Class C en español neutro de las lecciones 04–06 de Foundations V1. El lote conserva la identidad canónica y la fuerza epistemológica de las lecciones inglesas; no crea una nueva línea de contenido ni una capa de traducción runtime.
 
-Las tres adaptaciones tienen `contentRevision: 1` y `canonicalContentRevision: 1`. Su estado es `REVIEW`, su currentness es `CURRENT` y su disponibilidad es `UNAVAILABLE`. Ninguna de estas condiciones equivale a aprobación del Product Owner.
+Las lecciones 04–05 tienen `contentRevision: 1` y Lesson 06 tiene `contentRevision: 2` después de una corrección acotada de paridad de respuesta; las tres mantienen `canonicalContentRevision: 1`. Su estado es `REVIEW`, su currentness es `CURRENT` y su disponibilidad es `UNAVAILABLE`. Ninguna de estas condiciones equivale a aprobación del Product Owner.
 
 ## Identidad de las lecciones
 
@@ -25,7 +25,7 @@ Las tres adaptaciones tienen `contentRevision: 1` y `canonicalContentRevision: 1
 | ---: | --- | --- | ---: | ---: | --- | --- |
 | 04 | `foundations.sun_moon` | El Sol y la Luna | 1 | 1 | `REVIEW` / `CURRENT` | `UNAVAILABLE` |
 | 05 | `foundations.mercury_venus_mars` | Mercurio, Venus y Marte | 1 | 1 | `REVIEW` / `CURRENT` | `UNAVAILABLE` |
-| 06 | `foundations.jupiter_saturn_outer_planets` | Júpiter, Saturno y los planetas exteriores | 1 | 1 | `REVIEW` / `CURRENT` | `UNAVAILABLE` |
+| 06 | `foundations.jupiter_saturn_outer_planets` | Júpiter, Saturno y los planetas exteriores | 1 | 2 | `REVIEW` / `CURRENT` | `UNAVAILABLE` |
 
 Las fuentes canónicas exactas son `docs/content/foundations/v1/en/04-the-sun-and-moon.md`, `05-mercury-venus-and-mars.md` y `06-jupiter-saturn-and-the-outer-planets.md`.
 
@@ -52,7 +52,7 @@ Los términos locales se explican en las lecciones porque aún no existe una apr
 
 ## Revisión profesional y epistemológica
 
-Se realizó una pasada interna independiente de edición, terminología y paridad epistemológica; ciclos de corrección posteriores: `0`. La adaptación usa español profesional, lenguaje modal y ejemplos sintéticos. No convierte ninguna asociación planetaria en causa física, predicción, diagnóstico o clasificación personal.
+Se realizó una pasada interna independiente de edición, terminología y paridad epistemológica. La revisión detectó una discordancia en la opción correcta de la Pregunta 1 de Lesson 06; se corrigió de forma acotada y se volvió a revisar el lote. Ciclos de corrección posteriores: `1` (máximo permitido: 2). La adaptación usa español profesional, lenguaje modal y ejemplos sintéticos. No convierte ninguna asociación planetaria en causa física, predicción, diagnóstico o clasificación personal.
 
 La comprobación geométrica de Lesson 04 conserva Sol 8° Cáncer = 98° y Luna 8° Libra = 188°, con separación exacta de 90° y cuadratura. La lección declara que esa geometría es un hecho de carta y que cualquier significado posterior es interpretación. Lessons 05–06 no introducen nuevos grados científicos ni lógica de cálculo.
 
@@ -72,8 +72,8 @@ No se tocaron UI, CSS, server, API, BFF, base de datos, migraciones, Auth, Vault
 
 ## Historial de corrección y archivos exactos
 
-- Adaptation revision: `1` para Lessons 04–06.
-- Correction cycles after independent internal review: `0`.
+- Adaptation revision: `1` para Lessons 04–05; `2` para Lesson 06 después de la corrección de paridad.
+- Correction cycles after independent internal review: `1`.
 - Product Owner approval: `NO`.
 - Runtime admission: `NO`; runtime availability: `UNAVAILABLE`.
 

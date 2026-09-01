@@ -5,7 +5,7 @@ courseVersion: v1
 lessonId: foundations.aspects
 canonicalLocale: en
 locale: fr
-contentRevision: 1
+contentRevision: 2
 canonicalContentRevision: 1
 contentState: REVIEW
 currentness: CURRENT
@@ -106,12 +106,12 @@ Que signifie principalement que deux corps forment un carré ?
 
 Quelle est la différence entre un aspect exact et un aspect dans un orbe ?
 
-- A. L'exact coïncide avec l'angle de référence ; l'autre se trouve dans une distance autorisée par la méthode.
-- B. L'exact est toujours bon et l'autre toujours mauvais.
+- A. L'exact est toujours bon et l'autre toujours mauvais.
+- B. L'exact coïncide avec l'angle de référence ; l'autre se trouve dans une distance autorisée par la méthode.
 - C. Il n'y a aucune différence : l'orbe mesure la personnalité.
 - D. Un aspect dans l'orbe ne peut pas apparaître dans un thème.
 
-**Réponse correcte :** A.
+**Réponse correcte :** B.
 
 **Explication :** L'orbe est une décision méthodologique sur la distance à l'angle exact. Il ne doit pas être confondu avec un jugement moral ou une cause personnelle.
 

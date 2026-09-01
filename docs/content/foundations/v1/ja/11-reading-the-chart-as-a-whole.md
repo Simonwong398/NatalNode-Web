@@ -5,7 +5,7 @@ courseVersion: v1
 lessonId: foundations.whole_chart
 canonicalLocale: en
 locale: ja
-contentRevision: 1
+contentRevision: 2
 canonicalContentRevision: 1
 contentState: REVIEW
 currentness: CURRENT
@@ -102,11 +102,11 @@ currentness: CURRENT
 出生時刻が分からない場合、総合はどう変わりますか。
 
 - A. 話を保つため、概算のハウスを追加する。
-- B. ハウスとアングルを外すか制限し、裏づけのある層だけを残す。
-- C. すべての位置をハウスに変換する。
+- B. すべての位置をハウスに変換する。
+- C. ハウスとアングルを外すか制限し、裏づけのある層だけを残す。
 - D. アスペクトは学べないと宣言する。
 
-**正解：** B。
+**正解：** C。
 
 **解説：** 時刻の不確実性は特にアングルとハウスに影響します。すべての概念を消すのではなく、総合の範囲を狭くします。
 

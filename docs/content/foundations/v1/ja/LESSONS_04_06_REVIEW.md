@@ -17,7 +17,7 @@ runtimeAvailability: UNAVAILABLE
 
 この manifest は、Foundations V1 の Lesson 04–06 に対する日本語の Class C 専門適応を記録します。正規 identity、canonical English の epistemic strength、天文学と解釈の境界を保ち、新しい content track や runtime translation layer は作成していません。
 
-三つの lesson は `contentRevision: 1`、`canonicalContentRevision: 1`、`contentState: REVIEW`、`currentness: CURRENT`、`runtimeAvailability: UNAVAILABLE` です。Product Owner の承認は行っていません。
+Lesson 04–05 は `contentRevision: 1`、Lesson 06 は質問 parity の限定的な correction 後の `contentRevision: 2` です。三つとも `canonicalContentRevision: 1`、`contentState: REVIEW`、`currentness: CURRENT`、`runtimeAvailability: UNAVAILABLE` を保ちます。Product Owner の承認は行っていません。
 
 ## Lesson identity
 
@@ -25,7 +25,7 @@ runtimeAvailability: UNAVAILABLE
 | ---: | --- | --- | ---: | ---: | --- | --- |
 | 04 | `foundations.sun_moon` | 太陽と月 | 1 | 1 | `REVIEW` / `CURRENT` | `UNAVAILABLE` |
 | 05 | `foundations.mercury_venus_mars` | 水星・金星・火星 | 1 | 1 | `REVIEW` / `CURRENT` | `UNAVAILABLE` |
-| 06 | `foundations.jupiter_saturn_outer_planets` | 木星・土星・外惑星 | 1 | 1 | `REVIEW` / `CURRENT` | `UNAVAILABLE` |
+| 06 | `foundations.jupiter_saturn_outer_planets` | 木星・土星・外惑星 | 1 | 2 | `REVIEW` / `CURRENT` | `UNAVAILABLE` |
 
 Canonical source は `docs/content/foundations/v1/en/04-the-sun-and-moon.md`、`05-mercury-venus-and-mars.md`、`06-jupiter-saturn-and-the-outer-planets.md` です。
 
@@ -51,7 +51,7 @@ Canonical source は `docs/content/foundations/v1/en/04-the-sun-and-moon.md`、`
 
 ## 専門性と認識論のレビュー
 
-編集、専門用語、認識論的 parity について独立した内部レビューを実施しました。独立レビュー後の correction cycle は `0` です。惑星の関連づけを物理的原因、予測、診断、個人分類として示していません。
+編集、専門用語、認識論的 parity について独立した内部レビューを実施しました。レビューで Lesson 06 の質問の順序と正解選択肢の parity のずれを検出し、限定的に修正して batch を再レビューしました。独立レビュー後の correction cycle は `1`（許容される最大値は 2）です。惑星の関連づけを物理的原因、予測、診断、個人分類として示していません。
 
 Lesson 04 の合成幾何は、太陽 蟹座8°＝98°、月 天秤座8°＝188°、正確な90°のスクエアを保持します。これはチャート上の事実であり、意味は後の解釈です。Lesson 05–06 には計算や新しい科学データを追加していません。
 
@@ -71,8 +71,8 @@ UI、CSS、server、API、BFF、database、migration、Auth、Vault、Commercial
 
 ## Correction history と exact files
 
-- Adaptation revision: `1`（Lesson 04–06）。
-- Correction cycles after independent internal review: `0`。
+- Adaptation revision: `1`（Lesson 04–05）、`2`（Lesson 06、質問 parity の修正後）。
+- Correction cycles after independent internal review: `1`。
 - Product Owner approval: `NO`。
 - Runtime admission: `NO`、runtime availability: `UNAVAILABLE`。
 

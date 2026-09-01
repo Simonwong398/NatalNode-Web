@@ -5,7 +5,7 @@ courseVersion: v1
 lessonId: foundations.jupiter_saturn_outer_planets
 canonicalLocale: en
 locale: de
-contentRevision: 1
+contentRevision: 2
 canonicalContentRevision: 1
 contentState: REVIEW
 currentness: CURRENT
@@ -82,29 +82,29 @@ Orientierende Lösungen: 1. Astronomie; 2. Interpretative Konvention; 3. Übertr
 
 ### Frage 1
 
-Welche Formulierung wahrt die Grenze zwischen Jupiter und Saturn am besten?
+Warum sollte die Zeichenposition eines äußeren Planeten als individuelle Beschreibung vorsichtig behandelt werden?
 
-- A. Jupiter bringt immer Glück und Saturn bestraft immer.
-- B. Jupiter und Saturn sind physische Kräfte, die persönliche Ergebnisse erzeugen.
-- C. Jupiter kann eine Frage nach Erweiterung und Saturn eine nach Struktur oder Grenzen eröffnen, ohne eine Verbindung zur Garantie oder Strafe zu machen.
-- D. Saturn muss entfallen, weil jede Begrenzung negativ ist.
-
-**Richtige Antwort:** C.
-
-**Erklärung:** C verwendet die Verbindungen als Fragen einer Tradition und bewahrt Unsicherheit. Eine Deutungsmetapher wird weder Ursache noch Urteil.
-
-### Frage 2
-
-Warum erfordern die äußeren Planeten zusätzliche Vorsicht?
-
-- A. Ihre langsame Bewegung kann zu Positionen führen, die Kohorten teilen; Generationenkontext reicht daher nicht als Beschreibung einer Person.
-- B. Ihre Positionen können in keinem Horoskop erscheinen.
-- C. Pluto ist ein Stern und hat keine astronomische Klassifikation.
-- D. Eine geteilte Position beweist, dass alle Mitglieder einer Kohorte dasselbe Leben führen.
+- A. Uranus, Neptun und Pluto bewegen sich langsam, daher können viele Menschen, die in einem längeren Zeitraum geboren wurden, dieselbe Zeichenposition teilen. Häuser, Achsen, Aspekte und Beziehungen zu schnelleren Körpern können zusätzlichen Kontext liefern, wenn sie belegt sind.
+- B. Äußere Planeten haben in keiner astrologischen Tradition einen Platz.
+- C. Eine geteilte Position beweist, dass alle Mitglieder der Kohorte dieselbe Persönlichkeit haben.
+- D. Jede Zeichenposition eines äußeren Planeten sollte durch ein vermutetes Haus ersetzt werden.
 
 **Richtige Antwort:** A.
 
-**Erklärung:** Langsame Bewegung kann Kohortenkontext liefern, aber keine vollständige individuelle Erklärung. Plutos wissenschaftliche Klassifikation muss außerdem von seiner astrologischen Verwendung getrennt bleiben.
+**Erklärung:** Die langsame Bewegung macht Zeichenpositionen äußerer Planeten individuell weniger unterscheidend. Das Zeichen kann ein weiter symbolischer Kontext bleiben; stärkere persönliche Aussagen brauchen zusätzliche zurückgegebene Fakten und eine maßvolle Deutung.
+
+### Frage 2
+
+Welche Aussage hält die astronomische und die astrologische Ebene von Pluto getrennt?
+
+- A. Astronomisch ist Pluto ein Zwergplanet, während manche astrologischen Traditionen Pluto weiterhin als Horoskopfaktor verwenden.
+- B. Die Astrologie hat Pluto als Zwergplaneten neu klassifiziert.
+- C. Plutos astrologische Verwendung beweist, dass er astronomisch ein großer Planet ist.
+- D. Pluto gehörte schon vor seiner astronomischen Entdeckung zur antiken Astrologie der sieben Planeten.
+
+**Richtige Antwort:** A.
+
+**Erklärung:** Astronomische Klassifikation und astrologische Horoskopkonvention beantworten unterschiedliche Fragen. Wer beide Bereiche benennt, verwechselt ein Horoskopsymbol nicht mit einer astronomischen Definition.
 
 ## Kerngedanke
 

@@ -17,7 +17,7 @@ runtimeAvailability: UNAVAILABLE
 
 Este manifest cubre exactamente las adaptaciones españolas de las lecciones 07–09. El trabajo conserva las estructuras de casas, el andamiaje planeta × signo × casa y la geometría de aspectos sin añadir cálculo, renderer, datos de carta ni lógica runtime.
 
-Cada lesson declara `contentRevision: 1`, `canonicalContentRevision: 1`, `contentState: REVIEW` y `currentness: CURRENT`. La disponibilidad resultante de esta adaptación no aprobada es `UNAVAILABLE`.
+Las lecciones 07–08 declaran `contentRevision: 1` y Lesson 09 declara `contentRevision: 2` después de una corrección acotada de paridad de respuesta; todas mantienen `canonicalContentRevision: 1`, `contentState: REVIEW` y `currentness: CURRENT`. La disponibilidad resultante de esta adaptación no aprobada es `UNAVAILABLE`.
 
 ## Identidad de las lecciones
 
@@ -52,7 +52,7 @@ No se amplió el runtime glossary y no se definió ninguna semántica nueva para
 
 ## Revisión profesional y epistemológica
 
-Se realizó una pasada interna independiente de edición profesional, terminología y paridad epistemológica; ciclos de corrección posteriores: `0`. El texto usa los términos españoles de forma estable y conserva el alcance modal de la fuente. No introduce cookbook astrology, adivinación de casas ni valoración moral de aspectos.
+Se realizó una pasada interna independiente de edición profesional, terminología y paridad epistemológica. La revisión detectó una opción correcta reordenada en la segunda pregunta de Lesson 09; se corrigió de forma acotada y se volvió a revisar el lote. Ciclos de corrección posteriores: `1` (máximo permitido: 2). El texto usa los términos españoles de forma estable y conserva el alcance modal de la fuente. No introduce cookbook astrology, adivinación de casas ni valoración moral de aspectos.
 
 La auditoría geométrica de Lesson 09 conserva exactamente estas relaciones sintéticas: 50°–52° = 2° de conjunción; 10°–190° = 180° de oposición; 105°–195° = 90° de cuadratura; 132°–252° = 120° de trígono; 65°–125° = 60° de sextil. Son comprobaciones de geometría presentada, no cálculo de producto ni evidencia científica.
 
@@ -72,8 +72,8 @@ No se modificaron registry, loader, route, fallback, UI, CSS, server, API, BFF, 
 
 ## Historial de corrección y archivos exactos
 
-- Adaptation revision: `1` para Lessons 07–09.
-- Correction cycles after independent internal review: `0`.
+- Adaptation revision: `1` para Lessons 07–08; `2` para Lesson 09 después de la corrección de paridad.
+- Correction cycles after independent internal review: `1`.
 - Product Owner approval: `NO`.
 - Runtime admission: `NO`; runtime availability: `UNAVAILABLE`.
 

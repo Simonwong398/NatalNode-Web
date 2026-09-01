@@ -5,7 +5,7 @@ courseVersion: v1
 lessonId: foundations.aspects
 canonicalLocale: en
 locale: es
-contentRevision: 1
+contentRevision: 2
 canonicalContentRevision: 1
 contentState: REVIEW
 currentness: CURRENT
@@ -106,12 +106,12 @@ Respuestas orientativas: 2° de conjunción; 180° de oposición; 90° de cuadra
 
 ¿Qué diferencia hay entre un aspecto exacto y uno dentro de un orbe?
 
-- A. El exacto coincide con el ángulo de referencia; el otro queda dentro de una distancia permitida por el método.
-- B. El exacto es siempre bueno y el otro siempre malo.
+- A. El exacto es siempre bueno y el otro siempre malo.
+- B. El exacto coincide con el ángulo de referencia; el otro queda dentro de una distancia permitida por el método.
 - C. No hay diferencia: el orbe es una medida de personalidad.
 - D. Un aspecto dentro del orbe no puede aparecer en una carta.
 
-**Respuesta correcta:** A.
+**Respuesta correcta:** B.
 
 **Explicación:** El orbe es una decisión metodológica sobre la distancia al ángulo exacto. No debe confundirse con una valoración moral ni con una causa personal.
 

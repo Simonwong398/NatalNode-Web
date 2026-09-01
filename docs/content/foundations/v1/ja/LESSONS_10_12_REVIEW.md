@@ -17,14 +17,14 @@ runtimeAvailability: UNAVAILABLE
 
 この manifest は、日本語 Foundations V1 の最終 batch、優先順位づけ、チャート全体の総合、責任を持った利用を記録します。三つの lesson は Class C の文書として完成していますが、Product Owner approval と runtime admission は保留です。
 
-各 lesson は `contentRevision: 1`、`canonicalContentRevision: 1`、`contentState: REVIEW`、`currentness: CURRENT`、`runtimeAvailability: UNAVAILABLE` です。`CURRENT` は英語 canon との整合を表し、公開を許可するものではありません。
+Lesson 10 と 12 は `contentRevision: 1`、Lesson 11 は質問 parity の限定的な correction 後の `contentRevision: 2` です。三つとも `canonicalContentRevision: 1`、`contentState: REVIEW`、`currentness: CURRENT`、`runtimeAvailability: UNAVAILABLE` を保ちます。`CURRENT` は英語 canon との整合を表し、公開を許可するものではありません。
 
 ## Lesson identity
 
 | Lesson | Lesson ID | 日本語タイトル | Canonical revision | Adaptation | 状態 | Runtime |
 | ---: | --- | --- | ---: | ---: | --- | --- |
 | 10 | `foundations.chart_priorities` | チャートで最初に見ること | 1 | 1 | `REVIEW` / `CURRENT` | `UNAVAILABLE` |
-| 11 | `foundations.whole_chart` | チャート全体を読む | 1 | 1 | `REVIEW` / `CURRENT` | `UNAVAILABLE` |
+| 11 | `foundations.whole_chart` | チャート全体を読む | 1 | 2 | `REVIEW` / `CURRENT` | `UNAVAILABLE` |
 | 12 | `foundations.responsible_astrology` | 責任を持って占星術を使う | 1 | 1 | `REVIEW` / `CURRENT` | `UNAVAILABLE` |
 
 Canonical source は `docs/content/foundations/v1/en/10-what-matters-first-in-a-chart.md`、`11-reading-the-chart-as-a-whole.md`、`12-using-astrology-responsibly.md` です。
@@ -50,7 +50,7 @@ Canonical source は `docs/content/foundations/v1/en/10-what-matters-first-in-a-
 
 ## 専門性、認識論、幾何学のレビュー
 
-専門的な編集と認識論的 parity について独立した内部レビューを実施しました。独立レビュー後の correction cycle は `0` です。優先順位づけを score とせず、総合をキーワードの寄せ集めとせず、Lesson 12 の境界を弱めていないことを確認しました。
+専門的な編集と認識論的 parity について独立した内部レビューを実施しました。レビューで Lesson 11 の第二問の正解選択肢の並びのずれを検出し、限定的に修正して batch を再レビューしました。独立レビュー後の correction cycle は `1`（許容される最大値は 2）です。優先順位づけを score とせず、総合をキーワードの寄せ集めとせず、Lesson 12 の境界を弱めていないことを確認しました。
 
 Lesson 10 は太陽 牡牛座20°＝50°、月 獅子座20°＝140°、90°のスクエアを保持します。Lesson 11 も同じ幾何学を、太陽 牡牛座20°、月 獅子座20°、水星 双子座5°、太陽–月スクエアの例で保持します。Lesson 12 は度数を追加していません。
 
@@ -78,8 +78,8 @@ UI、CSS、server、API、BFF、database、migration、Auth、Vault、Commercial
 
 ## Correction history と exact files
 
-- Adaptation revision: `1`（Lesson 10–12）。
-- Correction cycles after independent internal review: `0`。
+- Adaptation revision: `1`（Lesson 10 と 12）、`2`（Lesson 11、質問 parity の修正後）。
+- Correction cycles after independent internal review: `1`。
 - Product Owner approval: `NO`。
 - Runtime admission: `NO`、runtime availability: `UNAVAILABLE`。
 

@@ -17,7 +17,7 @@ runtimeAvailability: UNAVAILABLE
 
 Ce manifest consigne l'adaptation professionnelle Class C en français des leçons 04–06 de Foundations V1. Le lot conserve l'identité canonique, la force épistémique et les limites de la source anglaise ; il ne crée ni nouvelle piste de contenu ni couche de traduction runtime.
 
-Les trois leçons ont `contentRevision: 1` et `canonicalContentRevision: 1`. Leur état est `REVIEW`, leur currentness `CURRENT` et leur disponibilité `UNAVAILABLE`. Aucune de ces valeurs ne constitue une approbation du Product Owner.
+Les leçons 04–05 ont `contentRevision: 1` et la leçon 06 a `contentRevision: 2` après une correction circonscrite de parité des questions ; les trois conservent `canonicalContentRevision: 1`. Leur état est `REVIEW`, leur currentness `CURRENT` et leur disponibilité `UNAVAILABLE`. Aucune de ces valeurs ne constitue une approbation du Product Owner.
 
 ## Identité des leçons
 
@@ -25,7 +25,7 @@ Les trois leçons ont `contentRevision: 1` et `canonicalContentRevision: 1`. Leu
 | ---: | --- | --- | ---: | ---: | --- | --- |
 | 04 | `foundations.sun_moon` | Le Soleil et la Lune | 1 | 1 | `REVIEW` / `CURRENT` | `UNAVAILABLE` |
 | 05 | `foundations.mercury_venus_mars` | Mercure, Vénus et Mars | 1 | 1 | `REVIEW` / `CURRENT` | `UNAVAILABLE` |
-| 06 | `foundations.jupiter_saturn_outer_planets` | Jupiter, Saturne et les planètes extérieures | 1 | 1 | `REVIEW` / `CURRENT` | `UNAVAILABLE` |
+| 06 | `foundations.jupiter_saturn_outer_planets` | Jupiter, Saturne et les planètes extérieures | 1 | 2 | `REVIEW` / `CURRENT` | `UNAVAILABLE` |
 
 Sources canoniques exactes : `docs/content/foundations/v1/en/04-the-sun-and-moon.md`, `05-mercury-venus-and-mars.md` et `06-jupiter-saturn-and-the-outer-planets.md`.
 
@@ -52,7 +52,7 @@ Ces termes sont expliqués localement car aucune variante runtime n'est approuv�
 
 ## Revue professionnelle et épistémique
 
-Une passe interne indépendante d'édition, de terminologie et de parité épistémique a été effectuée ; cycles de correction ultérieurs : `0`. Le français conserve les formulations modales et les exemples synthétiques. Aucune association planétaire n'est présentée comme cause physique, prédiction, diagnostic ou classement personnel.
+Une passe interne indépendante d'édition, de terminologie et de parité épistémique a été effectuée. La revue a détecté une discordance dans la séquence et la réponse correcte des questions de la leçon 06 ; elle a été corrigée de manière circonscrite, puis le lot a été relu. Cycles de correction ultérieurs : `1` (maximum autorisé : 2). Le français conserve les formulations modales et les exemples synthétiques. Aucune association planétaire n'est présentée comme cause physique, prédiction, diagnostic ou classement personnel.
 
 La géométrie de la leçon 04 conserve Soleil 8° Cancer = 98° et Lune 8° Balance = 188°, avec un écart exact de 90° et un carré. Cet écart est présenté comme un fait du thème ; tout sens ultérieur relève de l'interprétation. Les leçons 05–06 n'ajoutent pas de calcul ni de nouvelle donnée scientifique.
 
@@ -72,8 +72,8 @@ Aucun changement n'a touché UI, CSS, server, API, BFF, base de données, migrat
 
 ## Historique de correction et fichiers exacts
 
-- Adaptation revision : `1` pour Lessons 04–06.
-- Correction cycles after independent internal review : `0`.
+- Adaptation revision : `1` pour Lessons 04–05 ; `2` pour Lesson 06 après la correction de parité.
+- Correction cycles after independent internal review : `1`.
 - Product Owner approval : `NO`.
 - Runtime admission : `NO` ; runtime availability : `UNAVAILABLE`.
 

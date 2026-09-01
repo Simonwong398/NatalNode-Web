@@ -17,14 +17,14 @@ runtimeAvailability: UNAVAILABLE
 
 Dieses Manifest dokumentiert das abschließende deutsche Foundations-V1-Los: Priorisierung, Synthese des gesamten Horoskops und verantwortungsvolle Nutzung. Die drei Lektionen sind als Class-C-Dokumentation vollständig, doch Product-Owner-Freigabe und Runtime-Aufnahme bleiben ausstehend.
 
-Jede Lektion erklärt `contentRevision: 1`, `canonicalContentRevision: 1`, `contentState: REVIEW`, `currentness: CURRENT` und `runtimeAvailability: UNAVAILABLE`. `CURRENT` bestätigt die Ausrichtung am aktuellen englischen Kanon, nicht die Veröffentlichung.
+Die Lektionen 10 und 12 erklären `contentRevision: 1`; Lektion 11 erklärt nach einer begrenzten Korrektur der Fragenparität `contentRevision: 2`. Alle behalten `canonicalContentRevision: 1`, `contentState: REVIEW`, `currentness: CURRENT` und `runtimeAvailability: UNAVAILABLE`. `CURRENT` bestätigt die Ausrichtung am aktuellen englischen Kanon, nicht die Veröffentlichung.
 
 ## Identität der Lektionen
 
 | Lektion | Lesson ID | Deutscher Titel | Kanonische Revision | Anpassung | Status | Runtime |
 | ---: | --- | --- | ---: | ---: | --- | --- |
 | 10 | `foundations.chart_priorities` | Was in einem Horoskop zuerst zählt | 1 | 1 | `REVIEW` / `CURRENT` | `UNAVAILABLE` |
-| 11 | `foundations.whole_chart` | Das Horoskop als Ganzes lesen | 1 | 1 | `REVIEW` / `CURRENT` | `UNAVAILABLE` |
+| 11 | `foundations.whole_chart` | Das Horoskop als Ganzes lesen | 1 | 2 | `REVIEW` / `CURRENT` | `UNAVAILABLE` |
 | 12 | `foundations.responsible_astrology` | Astrologie verantwortungsvoll verwenden | 1 | 1 | `REVIEW` / `CURRENT` | `UNAVAILABLE` |
 
 Kanonische Quellen: `docs/content/foundations/v1/en/10-what-matters-first-in-a-chart.md`, `11-reading-the-chart-as-a-whole.md` und `12-using-astrology-responsibly.md`.
@@ -50,7 +50,7 @@ Diese Entscheidungen gelten für den Text und schaffen keine Runtime-glossary-ID
 
 ## Professionelle, epistemische und geometrische Prüfung
 
-Eine unabhängige interne Prüfung von professioneller Redaktion und epistemischer Parität wurde durchgeführt; nachfolgende Korrekturzyklen: `0`. Die Anpassung stellt Priorisierung nicht als Score, Synthese nicht als Schlüsselwortsammlung und die Schutzgrenzen von Lektion 12 nicht als optional dar.
+Eine unabhängige interne Prüfung von professioneller Redaktion und epistemischer Parität wurde durchgeführt. Die Prüfung erkannte eine umgestellte richtige Antwort in der zweiten Frage von Lektion 11; sie wurde begrenzt korrigiert und der Los erneut geprüft. Nachfolgende Korrekturzyklen: `1` (zulässiges Maximum: 2). Die Anpassung stellt Priorisierung nicht als Score, Synthese nicht als Schlüsselwortsammlung und die Schutzgrenzen von Lektion 12 nicht als optional dar.
 
 Die synthetische Geometrie von Lektion 10 bewahrt Sonne 20° Stier = 50° und Mond 20° Löwe = 140°, mit 90° Abstand und Quadrat. Lektion 11 bewahrt dieselbe Prüfung in ihrem Beispiel mit Sonne 20° Stier, Mond 20° Löwe, Merkur 5° Zwillinge und Sonne–Mond-Quadrat. Lektion 12 fügt keine Grade hinzu.
 
@@ -78,8 +78,8 @@ UI, CSS, Server, API, BFF, Datenbank, Migrationen, Auth, Vault, Commercial, Engi
 
 ## Korrekturverlauf und exakte Dateien
 
-- Adaptation revision: `1` für Lessons 10–12.
-- Correction cycles after independent internal review: `0`.
+- Adaptation revision: `1` für Lessons 10 und 12; `2` für Lektion 11 nach der Paritätskorrektur.
+- Correction cycles after independent internal review: `1`.
 - Product Owner approval: `NO`.
 - Runtime admission: `NO`; runtime availability: `UNAVAILABLE`.
 

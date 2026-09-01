@@ -17,7 +17,7 @@ runtimeAvailability: UNAVAILABLE
 
 Dieses Manifest umfasst genau die deutschen Anpassungen der Lektionen 07–09. Die Arbeit bewahrt Häuserstruktur, Planet-×-Zeichen-×-Haus-Denkgerüst und Aspektgeometrie, ohne Berechnung, Renderer, Horoskopdaten oder Runtime-Logik hinzuzufügen.
 
-Jede Lektion erklärt `contentRevision: 1`, `canonicalContentRevision: 1`, `contentState: REVIEW` und `currentness: CURRENT`. Die Verfügbarkeit der nicht freigegebenen Anpassung ist `UNAVAILABLE`.
+Die Lektionen 07–08 erklären `contentRevision: 1`; Lektion 09 erklärt nach einer begrenzten Korrektur der Fragenparität `contentRevision: 2`. Alle behalten `canonicalContentRevision: 1`, `contentState: REVIEW` und `currentness: CURRENT`. Die Verfügbarkeit der nicht freigegebenen Anpassung ist `UNAVAILABLE`.
 
 ## Identität der Lektionen
 
@@ -25,7 +25,7 @@ Jede Lektion erklärt `contentRevision: 1`, `canonicalContentRevision: 1`, `cont
 | ---: | --- | --- | ---: | ---: | --- | --- |
 | 07 | `foundations.houses_angles` | Die zwölf Häuser und die Achsen | 1 | 1 | `REVIEW` / `CURRENT` | `UNAVAILABLE` |
 | 08 | `foundations.planet_sign_house` | Planet × Zeichen × Haus | 1 | 1 | `REVIEW` / `CURRENT` | `UNAVAILABLE` |
-| 09 | `foundations.aspects` | Aspekte: Beziehungen zwischen Planeten | 1 | 1 | `REVIEW` / `CURRENT` | `UNAVAILABLE` |
+| 09 | `foundations.aspects` | Aspekte: Beziehungen zwischen Planeten | 1 | 2 | `REVIEW` / `CURRENT` | `UNAVAILABLE` |
 
 Kanonische Quellen: `docs/content/foundations/v1/en/07-the-twelve-houses-and-the-angles.md`, `08-planet-sign-house.md` und `09-aspects-relationships-between-planets.md`.
 
@@ -52,7 +52,7 @@ Das Runtime glossary wurde nicht erweitert und keine neue Haus- oder Aspektseman
 
 ## Professionelle und epistemische Prüfung
 
-Eine unabhängige interne Prüfung von professioneller Redaktion, Terminologie und epistemischer Parität wurde durchgeführt; nachfolgende Korrekturzyklen: `0`. Der Text vermeidet Rezept-Astrologie, das Erraten von Häusern und moralische Wertungen von Aspekten.
+Eine unabhängige interne Prüfung von professioneller Redaktion, Terminologie und epistemischer Parität wurde durchgeführt. Die Prüfung erkannte eine umgestellte richtige Antwort in der zweiten Frage von Lektion 09; sie wurde begrenzt korrigiert und der Los erneut geprüft. Nachfolgende Korrekturzyklen: `1` (zulässiges Maximum: 2). Der Text vermeidet Rezept-Astrologie, das Erraten von Häusern und moralische Wertungen von Aspekten.
 
 Die Geometrieprüfung der Lektion 09 bewahrt exakt: 50°–52° = 2° Konjunktion; 10°–190° = 180° Opposition; 105°–195° = 90° Quadrat; 132°–252° = 120° Trigon; 65°–125° = 60° Sextil. Dies sind Prüfungen der dargestellten Geometrie, kein Produktberechnungsschritt und kein wissenschaftlicher Beleg.
 
@@ -72,8 +72,8 @@ Registry, Loader, Route, Fallback, UI, CSS, Server, API, BFF, Database, Migratio
 
 ## Korrekturverlauf und exakte Dateien
 
-- Adaptation revision: `1` für Lessons 07–09.
-- Correction cycles after independent internal review: `0`.
+- Adaptation revision: `1` für Lessons 07–08; `2` für Lektion 09 nach der Paritätskorrektur.
+- Correction cycles after independent internal review: `1`.
 - Product Owner approval: `NO`.
 - Runtime admission: `NO`; runtime availability: `UNAVAILABLE`.
 

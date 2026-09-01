@@ -17,7 +17,7 @@ runtimeAvailability: UNAVAILABLE
 
 この manifest は、日本語で適応した Lesson 07–09 を対象とします。十二ハウス、天体×サイン×ハウスの足場、アスペクトの幾何学を保ち、計算、renderer、チャートデータ、runtime logic は追加していません。
 
-各 lesson は `contentRevision: 1`、`canonicalContentRevision: 1`、`contentState: REVIEW`、`currentness: CURRENT` であり、runtime availability は `UNAVAILABLE` です。
+Lesson 07–08 は `contentRevision: 1`、Lesson 09 は質問 parity の限定的な correction 後の `contentRevision: 2` です。三つとも `canonicalContentRevision: 1`、`contentState: REVIEW`、`currentness: CURRENT`、runtime availability `UNAVAILABLE` を保ちます。
 
 ## Lesson identity
 
@@ -25,7 +25,7 @@ runtimeAvailability: UNAVAILABLE
 | ---: | --- | --- | ---: | ---: | --- | --- |
 | 07 | `foundations.houses_angles` | 十二ハウスとアングル | 1 | 1 | `REVIEW` / `CURRENT` | `UNAVAILABLE` |
 | 08 | `foundations.planet_sign_house` | 天体 × サイン × ハウス | 1 | 1 | `REVIEW` / `CURRENT` | `UNAVAILABLE` |
-| 09 | `foundations.aspects` | アスペクト：天体同士の関係 | 1 | 1 | `REVIEW` / `CURRENT` | `UNAVAILABLE` |
+| 09 | `foundations.aspects` | アスペクト：天体同士の関係 | 1 | 2 | `REVIEW` / `CURRENT` | `UNAVAILABLE` |
 
 Canonical source は `docs/content/foundations/v1/en/07-the-twelve-houses-and-the-angles.md`、`08-planet-sign-house.md`、`09-aspects-relationships-between-planets.md` です。
 
@@ -52,7 +52,7 @@ runtime glossary は拡張せず、新しいハウスやアスペクトの seman
 
 ## 専門性と認識論のレビュー
 
-専門的な編集、用語、認識論的 parity について独立した内部レビューを実施しました。独立レビュー後の correction cycle は `0` です。cookbook astrology、ハウスの推測、アスペクトへの道徳的評価を避けています。
+専門的な編集、用語、認識論的 parity について独立した内部レビューを実施しました。レビューで Lesson 09 の第二問の正解選択肢の並びのずれを検出し、限定的に修正して batch を再レビューしました。独立レビュー後の correction cycle は `1`（許容される最大値は 2）です。cookbook astrology、ハウスの推測、アスペクトへの道徳的評価を避けています。
 
 Lesson 09 の合成幾何は、50°–52°＝2°コンジャンクション、10°–190°＝180°オポジション、105°–195°＝90°スクエア、132°–252°＝120°トライン、65°–125°＝60°セクスタイルを正確に保持します。これは提示した幾何学の確認であり、製品計算や科学的証拠ではありません。
 
@@ -72,8 +72,8 @@ Registry、loader、route、fallback、UI、CSS、server、API、BFF、database�
 
 ## Correction history と exact files
 
-- Adaptation revision: `1`（Lesson 07–09）。
-- Correction cycles after independent internal review: `0`。
+- Adaptation revision: `1`（Lesson 07–08）、`2`（Lesson 09、質問 parity の修正後）。
+- Correction cycles after independent internal review: `1`。
 - Product Owner approval: `NO`。
 - Runtime admission: `NO`、runtime availability: `UNAVAILABLE`。
 

@@ -17,7 +17,7 @@ runtimeAvailability: UNAVAILABLE
 
 Este manifest registra el lote final de la adaptación española de Foundations V1: priorización, síntesis de carta y uso responsable. Las tres lecciones están completas como documentación Class C, pero la aprobación del Product Owner y la admisión runtime permanecen pendientes.
 
-Cada lesson declara `contentRevision: 1`, `canonicalContentRevision: 1`, `contentState: REVIEW`, `currentness: CURRENT` y `runtimeAvailability: UNAVAILABLE`. `CURRENT` confirma alineación con el canon inglés actual; no autoriza publicación.
+Las lecciones 10 y 12 declaran `contentRevision: 1` y Lesson 11 declara `contentRevision: 2` después de una corrección acotada de paridad de respuesta; las tres mantienen `canonicalContentRevision: 1`, `contentState: REVIEW`, `currentness: CURRENT` y `runtimeAvailability: UNAVAILABLE`. `CURRENT` confirma alineación con el canon inglés actual; no autoriza publicación.
 
 ## Identidad de las lecciones
 
@@ -50,7 +50,7 @@ Estas decisiones son locales a la redacción y no crean runtime glossary IDs, ca
 
 ## Revisión profesional, epistemológica y geométrica
 
-Se realizó una pasada interna independiente de edición profesional y paridad epistemológica; ciclos de corrección posteriores: `0`. Se comprobó que la adaptación no presenta la priorización como score, que la síntesis no acumula keywords y que las salvaguardas de Lesson 12 no se rebajan por razones de estilo.
+Se realizó una pasada interna independiente de edición profesional y paridad epistemológica. La revisión detectó una opción correcta reordenada en la segunda pregunta de Lesson 11; se corrigió de forma acotada y se volvió a revisar el lote. Ciclos de corrección posteriores: `1` (máximo permitido: 2). Se comprobó que la adaptación no presenta la priorización como score, que la síntesis no acumula keywords y que las salvaguardas de Lesson 12 no se rebajan por razones de estilo.
 
 La geometría sintética de Lesson 10 conserva Sol 20° Tauro = 50° y Luna 20° Leo = 140°, con separación de 90° y cuadratura. Lesson 11 conserva la misma comprobación en su ejemplo de Sol 20° Tauro, Luna 20° Leo, Mercurio 5° Géminis y cuadratura Sol–Luna. Lesson 12 no añade grados.
 
@@ -78,8 +78,8 @@ No se modificaron UI, CSS, server, API, BFF, base de datos, migraciones, Auth, V
 
 ## Historial y archivos exactos
 
-- Adaptation revision: `1` para Lessons 10–12.
-- Correction cycles after independent internal review: `0`.
+- Adaptation revision: `1` para Lessons 10 y 12; `2` para Lesson 11 después de la corrección de paridad.
+- Correction cycles after independent internal review: `1`.
 - Product Owner approval: `NO`.
 - Runtime admission: `NO`; runtime availability: `UNAVAILABLE`.
 

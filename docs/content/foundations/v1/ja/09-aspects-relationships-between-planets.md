@@ -5,7 +5,7 @@ courseVersion: v1
 lessonId: foundations.aspects
 canonicalLocale: en
 locale: ja
-contentRevision: 1
+contentRevision: 2
 canonicalContentRevision: 1
 contentState: REVIEW
 currentness: CURRENT
@@ -106,12 +106,12 @@ currentness: CURRENT
 
 正確なアスペクトとオーブ内のアスペクトの違いはどれですか。
 
-- A. 正確なものは基準角度と一致し、もう一つは方法が許す距離の中にある。
-- B. 正確なものは常に良く、もう一つは常に悪い。
+- A. 正確なものは常に良く、もう一つは常に悪い。
+- B. 正確なものは基準角度と一致し、もう一つは方法が許す距離の中にある。
 - C. 違いはない。オーブは人格を測るものだからである。
 - D. オーブ内のアスペクトはチャートに表示できない。
 
-**正解：** A。
+**正解：** B。
 
 **解説：** オーブは正確な角度からの距離についての方法上の判断です。道徳的な評価や個人の原因と混同してはいけません。
 
