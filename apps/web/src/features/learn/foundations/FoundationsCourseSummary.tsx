@@ -1,5 +1,11 @@
 import { useEffect, useState } from 'react';
+import type { FoundationsProgressApiResponse } from '@natalnode/contracts';
 import { getLocalizedPath, type SupportedLocale } from '../../../lib/localization.js';
+import FoundationsAuthorityStatus from './FoundationsAuthorityStatus.js';
+import {
+  syncFoundationsProgress,
+  type FoundationsAuthoritySyncStatus
+} from './authoritative-progress.js';
 import {
   FOUNDATIONS_COURSE,
   FOUNDATIONS_LESSONS
@@ -41,6 +47,8 @@ export default function FoundationsCourseSummary({
   const [progress, setProgress] = useState<FoundationsProgress>(
     () => readFoundationsProgress(null)
   );
+  const [authorityStatus, setAuthorityStatus] = useState<FoundationsAuthoritySyncStatus | null>(null);
+  const [authoritativeProgress, setAuthoritativeProgress] = useState<FoundationsProgressApiResponse | null>(null);
   const completedCount = getFoundationsCompletedLessonCount(progress);
   const resumeLessonId = getFoundationsResumeLessonId(progress);
   const resumeLesson = resumeLessonId === null
@@ -62,7 +70,25 @@ export default function FoundationsCourseSummary({
   );
 
   useEffect(() => {
+    let active = true;
     setProgress(readFoundationsProgress());
+
+    void syncFoundationsProgress()
+      .then((result) => {
+        if (!active) return;
+        setProgress(result.localProgress);
+        setAuthorityStatus(result.status);
+        setAuthoritativeProgress(result.authoritativeProgress);
+      })
+      .catch(() => {
+        if (!active) return;
+        setAuthorityStatus('unavailable');
+        setAuthoritativeProgress(null);
+      });
+
+    return () => {
+      active = false;
+    };
   }, []);
 
   return (
@@ -116,6 +142,11 @@ export default function FoundationsCourseSummary({
               ? message(ui, 'learn.foundations.resume')
               : message(ui, 'learn.foundations.start')}
         </a>
+        <FoundationsAuthorityStatus
+          authoritativeProgress={authoritativeProgress}
+          status={authorityStatus}
+          ui={ui}
+        />
       </div>
     </section>
   );

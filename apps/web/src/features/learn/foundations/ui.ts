@@ -61,7 +61,12 @@ export const FOUNDATIONS_UI_MESSAGE_KEYS = [
   'learn.foundations.browseNote',
   'learn.foundations.available',
   'learn.foundations.notAvailable',
-  'learn.foundations.courseComplete'
+  'learn.foundations.courseComplete',
+  'learn.foundations.authoritativeProgress',
+  'learn.foundations.progressSyncUnavailable',
+  'learn.foundations.rewardGranted',
+  'learn.foundations.rewardPending',
+  'learn.foundations.assessment.assessmentSaved'
 ] as const satisfies readonly UiMessageKey[];
 
 export type FoundationsUiMessageKey = (typeof FOUNDATIONS_UI_MESSAGE_KEYS)[number];

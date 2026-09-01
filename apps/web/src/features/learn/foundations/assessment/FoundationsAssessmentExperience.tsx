@@ -1,10 +1,18 @@
 import { useEffect, useRef, useState, type SyntheticEvent } from 'react';
+import type { FoundationsAssessmentAnswerSubmission, FoundationsProgressApiResponse, FoundationsAssessmentAttemptApiResponse } from '@natalnode/contracts';
 import {
   scoreFoundationsAssessment,
   type AssessmentAnswerId,
   type FoundationsAssessment,
   type FoundationsAssessmentResult
 } from './assessment-contract.js';
+import FoundationsAuthorityStatus from '../FoundationsAuthorityStatus.js';
+import {
+  getFoundationsAuthorityStatus,
+  submitFoundationsAssessment,
+  syncFoundationsProgress,
+  type FoundationsAuthoritySyncStatus
+} from '../authoritative-progress.js';
 import {
   type FoundationsUiMessageKey,
   type FoundationsUiMessages
@@ -80,6 +88,10 @@ export default function FoundationsAssessmentExperience({
     () => createEmptyAnswers(assessment)
   );
   const [result, setResult] = useState<FoundationsAssessmentResult | null>(null);
+  const [authorityStatus, setAuthorityStatus] = useState<FoundationsAuthoritySyncStatus | null>(null);
+  const [authoritativeProgress, setAuthoritativeProgress] = useState<FoundationsProgressApiResponse | null>(null);
+  const [authoritativeAttempt, setAuthoritativeAttempt] = useState<FoundationsAssessmentAttemptApiResponse | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const selectedAssessment = isEnglishView ? englishAssessment : assessment;
   const submitted = result !== null;
   const answeredCount = Object.values(answers).filter((answer) => answer !== null).length;
@@ -96,7 +108,28 @@ export default function FoundationsAssessmentExperience({
   useEffect(() => {
     setAnswers(createEmptyAnswers(selectedAssessment));
     setResult(null);
+    setAuthoritativeAttempt(null);
   }, [selectedAssessment]);
+
+  useEffect(() => {
+    let active = true;
+
+    void syncFoundationsProgress()
+      .then((syncResult) => {
+        if (!active) return;
+        setAuthorityStatus(syncResult.status);
+        setAuthoritativeProgress(syncResult.authoritativeProgress);
+      })
+      .catch(() => {
+        if (!active) return;
+        setAuthorityStatus('unavailable');
+        setAuthoritativeProgress(null);
+      });
+
+    return () => {
+      active = false;
+    };
+  }, []);
 
   useEffect(() => {
     if (result !== null) {
@@ -104,16 +137,57 @@ export default function FoundationsAssessmentExperience({
     }
   }, [result]);
 
-  const handleSubmit = (event: SyntheticEvent<HTMLFormElement>) => {
+  const handleSubmit = async (event: SyntheticEvent<HTMLFormElement>) => {
     event.preventDefault();
-    if (selectedAssessment === null) return;
+    if (selectedAssessment === null || isSubmitting) return;
 
-    setResult(scoreFoundationsAssessment(selectedAssessment, answers));
+    const localResult = scoreFoundationsAssessment(selectedAssessment, answers);
+    setResult(localResult);
+
+    let status = authorityStatus;
+    if (status === null) {
+      status = await getFoundationsAuthorityStatus();
+      setAuthorityStatus(status);
+    }
+
+    if (status !== 'authenticated') {
+      if (status === 'unavailable') {
+        setAuthoritativeProgress(null);
+      }
+      return;
+    }
+
+    const submittedAnswers = selectedAssessment.questions.map(
+      (question): FoundationsAssessmentAnswerSubmission => ({
+        questionId: question.id,
+        answerId: answers[question.id] as AssessmentAnswerId
+      })
+    );
+
+    setIsSubmitting(true);
+    try {
+      const attempt = await submitFoundationsAssessment(submittedAnswers);
+      setAuthoritativeAttempt(attempt);
+      // The browser result still supplies per-question presentation details;
+      // score and pass/fail are replaced by the server-authoritative attempt.
+      setResult({
+        ...localResult,
+        score: attempt.score,
+        passed: attempt.passed
+      });
+      setAuthorityStatus('authenticated');
+    } catch {
+      setAuthorityStatus('unavailable');
+      setAuthoritativeProgress(null);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleRetry = () => {
     setAnswers(createEmptyAnswers(selectedAssessment));
     setResult(null);
+    setAuthoritativeAttempt(null);
     window.requestAnimationFrame(() => {
       formRef.current?.querySelector<HTMLInputElement>('input')?.focus();
     });
@@ -167,8 +241,16 @@ export default function FoundationsAssessmentExperience({
         </h1>
         <p className="nn-type-body max-w-3xl">{selectedAssessment.introduction}</p>
         <p className="nn-notice nn-notice--info max-w-3xl" id="assessment-boundary" role="note">
-          {message(ui, 'learn.foundations.assessment.assessmentNotSaved')}
+          {authorityStatus === 'authenticated'
+            ? message(ui, 'learn.foundations.assessment.assessmentSaved')
+            : message(ui, 'learn.foundations.assessment.assessmentNotSaved')}
         </p>
+        <FoundationsAuthorityStatus
+          authoritativeProgress={authoritativeProgress}
+          authoritativeReward={authoritativeAttempt?.reward}
+          status={authorityStatus}
+          ui={ui}
+        />
         {isEnglishView && locale !== 'en' ? (
           <p className="nn-notice nn-notice--info max-w-3xl" role="note">
             {message(ui, 'learn.foundations.viewingEnglish')}
@@ -267,7 +349,11 @@ export default function FoundationsAssessmentExperience({
         </ol>
 
         {!submitted ? (
-          <button className="nn-button nn-button--primary w-fit" type="submit">
+          <button
+            className="nn-button nn-button--primary w-fit"
+            disabled={isSubmitting}
+            type="submit"
+          >
             {message(ui, 'learn.foundations.assessment.submit')}
           </button>
         ) : null}
@@ -292,8 +378,16 @@ export default function FoundationsAssessmentExperience({
           </div>
           <p className="nn-type-body-small">
             {message(ui, 'learn.foundations.assessment.threshold')}: {result.passThreshold} / {result.questionCount}.{' '}
-            {message(ui, 'learn.foundations.assessment.assessmentNotSaved')}
+            {authoritativeAttempt !== null
+              ? message(ui, 'learn.foundations.assessment.assessmentSaved')
+              : message(ui, 'learn.foundations.assessment.assessmentNotSaved')}
           </p>
+          <FoundationsAuthorityStatus
+            authoritativeProgress={authoritativeProgress}
+            authoritativeReward={authoritativeAttempt?.reward}
+            status={authorityStatus}
+            ui={ui}
+          />
           <button className="nn-button nn-button--secondary w-fit" onClick={handleRetry} type="button">
             {message(ui, 'learn.foundations.assessment.retry')}
           </button>

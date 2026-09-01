@@ -1,6 +1,14 @@
 import { useEffect, useState, type ReactNode } from 'react';
+import type { FoundationsProgressApiResponse } from '@natalnode/contracts';
 import { resolveAstrologyTerm } from '../../../lib/astrology-glossary.js';
 import { getLocalizedPath, type SupportedLocale } from '../../../lib/localization.js';
+import FoundationsAuthorityStatus from './FoundationsAuthorityStatus.js';
+import {
+  applyAuthoritativeFoundationsProgress,
+  completeFoundationsLesson,
+  syncFoundationsProgress,
+  type FoundationsAuthoritySyncStatus
+} from './authoritative-progress.js';
 import {
   getFoundationsAdjacentLessons,
   getFoundationsContentAvailability,
@@ -159,7 +167,7 @@ function ContentSection({
       body = <p className="nn-type-body-small">{objectives[1] ?? objectives[0]}</p>;
       break;
     case 'check_understanding':
-      body = <p className="nn-type-body-small">{message(ui, 'learn.foundations.finalCheckComingLater')}</p>;
+      body = <p className="nn-type-body-small">{message(ui, 'learn.foundations.finalAssessmentDescription')}</p>;
       break;
     case 'key_takeaway':
       body = <p className="nn-type-body-small">{content?.keyTakeaway ?? lesson.shortDescription}</p>;
@@ -193,6 +201,9 @@ export default function FoundationsLessonExperience({
   const [isEnglishView, setIsEnglishView] = useState(
     showEnglishContent || locale === 'en'
   );
+  const [authorityStatus, setAuthorityStatus] = useState<FoundationsAuthoritySyncStatus | null>(null);
+  const [authoritativeProgress, setAuthoritativeProgress] = useState<FoundationsProgressApiResponse | null>(null);
+  const [isCompleting, setIsCompleting] = useState(false);
 
   useEffect(() => {
     if (lesson === null) return;
@@ -208,6 +219,24 @@ export default function FoundationsLessonExperience({
     }
 
     setProgress(openedProgress);
+
+    let active = true;
+    void syncFoundationsProgress()
+      .then((result) => {
+        if (!active) return;
+        setProgress(result.localProgress);
+        setAuthorityStatus(result.status);
+        setAuthoritativeProgress(result.authoritativeProgress);
+      })
+      .catch(() => {
+        if (!active) return;
+        setAuthorityStatus('unavailable');
+        setAuthoritativeProgress(null);
+      });
+
+    return () => {
+      active = false;
+    };
   }, [lesson]);
 
   useEffect(() => {
@@ -227,7 +256,12 @@ export default function FoundationsLessonExperience({
   const content = getFoundationsContentVariant(lesson.lessonId, contentLocale);
   const contentAvailable = getFoundationsContentAvailability(content) === 'AVAILABLE';
   const hasCanonicalContent = contentAvailable && content?.contentKind === 'CANONICAL' && children != null;
-  const state = getFoundationsLessonProgressState(progress, lesson.lessonId);
+  const serverCompleted =
+    authorityStatus === 'authenticated' &&
+    authoritativeProgress?.completedLessonIds.includes(lesson.lessonId) === true;
+  const state = serverCompleted
+    ? 'COMPLETED'
+    : getFoundationsLessonProgressState(progress, lesson.lessonId);
   const completedCount = getFoundationsCompletedLessonCount(progress);
   const progressText = formatMessage(message(ui, 'learn.foundations.progressCount'), {
     completed: completedCount,
@@ -246,6 +280,28 @@ export default function FoundationsLessonExperience({
   };
 
   const handleCompletionToggle = () => {
+    if (serverCompleted || isCompleting) return;
+
+    if (authorityStatus === 'authenticated') {
+      setIsCompleting(true);
+      void completeFoundationsLesson(lesson.lessonId)
+        .then((response) => {
+          setProgress((current) =>
+            applyAuthoritativeFoundationsProgress(current, response)
+          );
+          setAuthorityStatus('authenticated');
+          setAuthoritativeProgress(response);
+        })
+        .catch(() => {
+          setAuthorityStatus('unavailable');
+          setAuthoritativeProgress(null);
+        })
+        .finally(() => {
+          setIsCompleting(false);
+        });
+      return;
+    }
+
     updateProgress(
       state === 'COMPLETED'
         ? markFoundationsLessonIncomplete(progress, lesson.lessonId)
@@ -336,11 +392,27 @@ export default function FoundationsLessonExperience({
             >
               {progressLabel(ui, state)}
             </p>
-            <button className="nn-button nn-button--primary w-fit" onClick={handleCompletionToggle} type="button">
-              {state === 'COMPLETED'
-                ? message(ui, 'learn.foundations.markIncomplete')
-                : message(ui, 'learn.foundations.markComplete')}
-            </button>
+            {serverCompleted ? (
+              <span className="nn-button nn-button--secondary w-fit" aria-disabled="true">
+                {message(ui, 'learn.foundations.completed')}
+              </span>
+            ) : (
+              <button
+                className="nn-button nn-button--primary w-fit"
+                disabled={isCompleting}
+                onClick={handleCompletionToggle}
+                type="button"
+              >
+                {state === 'COMPLETED'
+                  ? message(ui, 'learn.foundations.markIncomplete')
+                  : message(ui, 'learn.foundations.markComplete')}
+              </button>
+            )}
+            <FoundationsAuthorityStatus
+              authoritativeProgress={authoritativeProgress}
+              status={authorityStatus}
+              ui={ui}
+            />
           </section>
         </div>
 
@@ -365,7 +437,7 @@ export default function FoundationsLessonExperience({
             </div>
           </section>
           <p className="nn-notice nn-notice--info" role="note">
-            {message(ui, 'learn.foundations.finalCheckComingLater')}
+            {message(ui, 'learn.foundations.finalAssessmentDescription')}
           </p>
         </aside>
       </div>
