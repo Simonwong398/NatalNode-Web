@@ -1,138 +1,174 @@
-# NatalNode Foundations V1 Assessment and Reward Policy Gaps
+# NatalNode Foundations V1 Assessment and Reward Policy
 
-Status: BOUNDED PRODUCT-OWNER DECISION SURFACE
+Status: FROZEN PRODUCT-OWNER AUTHORITY CONTRACT
 
-Task: `WEB-LEARN-011`
+Task: `WEB-LEARN-012`
 
-Reviewed implementation baseline: `93ad7be` (`feat: admit multilingual Foundations assessments`)
+This document replaces the bounded decision surface recorded after the
+Foundations assessment admission work. The decisions below were approved by
+the Product Owner for Foundations Reward V1 and are the source of truth for
+the implementation. They do not authorize any other learning course,
+entitlement tier, or product feature.
 
-This document records the remaining policy and authority decisions after the
-Foundations final assessment was admitted across all seven frozen locales. It
-is not an attempt schema, API contract, migration plan, entitlement grant
-implementation, or reward policy. No values below should be treated as
-production behavior until the relevant contract is explicitly frozen.
+## 1. Frozen course and assessment identity
 
-## 1. Frozen facts
-
-- Course identity is `foundations.v1`; the assessment identity is
-  `foundations.v1.final_check`, revision `1`.
-- The final assessment has exactly 10 questions, passes at `8/10`, and permits
-  unlimited retries.
-- The approved/current/runtime-available locales are `en`, `es`, `fr`, `de`,
-  `ja`, `ko`, and `zh-Hant`.
-- Canonical English question IDs, option IDs, correct-answer IDs, and lesson
-  links remain authoritative. Localized artifacts provide presentation text
-  only; no locale may redefine assessment identity or answer authority.
-- The assessment has no birth-data, chart, astronomy, provider, Engine, or
-  Core-completion dependency. It does not create certification, leaderboard,
-  XP, paid retries, or any other progression product.
-- An assessment pass by itself does not issue a reward.
-- Reward eligibility, if later implemented, requires authentication, all 12
-  Foundations lessons completed, a final assessment score of at least `8/10`,
-  and no more than one reward for an account and course version.
-- The approved reward value is seven days of the existing appropriate standard
-  paid NatalNode entitlement. No new tier is authorized.
-- `LEARNING_FOUNDATIONS_V1` is a conceptual source identity only. It is not a
-  production entitlement enum or persisted source value.
-
-## 2. Implemented admission boundary
-
-- All seven final-assessment content artifacts are marked `APPROVED`,
-  `CURRENT`, and `AVAILABLE`; the six localized artifacts retain adaptation
+- The course identity is `foundations.v1` and contains exactly the twelve
+  frozen Foundations lesson IDs.
+- The final assessment identity is `foundations.v1.final_check` at assessment
   revision `1`.
-- The web runtime statically maps each supported locale to its own approved
-  assessment and verifies canonical question, option, answer, and lesson-link
-  identity at load time.
-- A localized assessment that is not approved, current, and available is
-  unavailable at runtime. It is never silently replaced with English.
-- `?contentLocale=en` is an explicit English-content view and does not change
-  the route locale or UI locale.
-- The current result is a browser-memory result. It is not account authority,
-  server progress, reward eligibility, or a persisted attempt.
+- The assessment contains exactly ten questions, passes at `8/10`, and allows
+  unlimited retries.
+- The canonical English question IDs, option IDs, correct-answer IDs, and
+  lesson links remain answer authority. Localized artifacts provide
+  presentation text only and may not redefine assessment identity or scoring.
+- All seven approved/current/runtime-available locales remain available:
+  `en`, `es`, `fr`, `de`, `ja`, `ko`, and `zh-Hant`.
+- Assessment completion is independent of lesson completion and Foundations
+  Core readiness. It creates no certification, leaderboard, XP, paid retry, or
+  other progression product.
 
-## 3. Unresolved decision set
+## 2. Anonymous assessment boundary
 
-### 3.1 Authoritative attempt boundary
+- Anonymous visitors may read and submit the browser assessment.
+- Anonymous scoring remains in browser memory and may be retried without a
+  login requirement.
+- An anonymous result is not an authenticated attempt, account state,
+  completion proof, PASS-EVER proof, reward eligibility proof, or entitlement
+  grant.
+- Anonymous lesson progress remains versioned browser-local state.
 
-The repository has no frozen assessment attempt API, persistence schema, or
-server assessment runtime. The owner must choose whether a future attempt is:
+## 3. Authenticated assessment authority
 
-1. Browser-only. This keeps the current lightweight learning experience and
-   leaves reward issuance blocked.
-2. A server-accepted, authenticated, append-only attempt. This can provide a
-   reward-grade pass, but requires an explicit request/response contract,
-   authentication rule, attempt identity, timestamp authority, retained answer
-   fields or answer fingerprint, revision binding, retry/history semantics,
-   and replay/idempotency behavior.
-3. Another explicitly specified authority model.
+- An authenticated browser submits only stable `questionId` and `answerId`
+  values for the current assessment identity and revision.
+- The server derives account identity from the authenticated session. A
+  request body, query parameter, or browser field can never select the
+  account being changed.
+- The server validates the exact question set, rejects unknown or duplicate
+  questions, rejects missing questions and invalid answer IDs, and rejects an
+  unknown assessment or unsupported revision.
+- The server recomputes `score`, `correctCount`, and `passed` from the
+  canonical answer key. Browser-provided score, correct-count, pass, user,
+  timestamp, eligibility, and reward fields are not accepted.
+- Every accepted authenticated submission creates one immutable attempt row.
+  An attempt is bound to the account, course, assessment, and assessment
+  revision and receives its timestamp from the server/database.
+- PASS-EVER is true when at least one authoritative attempt for
+  `foundations.v1` / `foundations.v1.final_check` at the supported revision
+  has `score >= 8`. Later lower scores never revoke PASS-EVER.
+- Assessment retries remain unlimited after a pass and after a reward grant.
 
-No option is implemented here. Any server option must score from authoritative
-answer IDs rather than client-provided score or pass flags.
+## 4. Authenticated lesson-completion authority
 
-### 3.2 Authenticated lesson-progress authority
+- Authenticated completion is stored as one account-scoped completion row per
+  `account × course × lesson`.
+- A completion row is monotonic and server-timestamped. The authenticated
+  server state can move from absent to completed but cannot be reopened or
+  downgraded by a browser request.
+- The server exposes authenticated read, single-lesson completion, and local
+  merge operations. All operations derive account identity from session
+  context and validate the frozen course and lesson identity.
+- Local-to-server synchronization is a deterministic SET UNION of
+  `server COMPLETED ∪ valid local COMPLETED`.
+- Only the twelve stable lesson IDs for `foundations.v1` are eligible for the
+  union. Unknown, future, malformed, unrecognized-course, and local
+  `IN_PROGRESS` values are ignored for merge authority. The server never
+  accepts browser-local state as a downgrade.
+- Repeated completion and merge requests are idempotent and account scoped.
+- A server `12/12` count is the only authoritative lesson-completion proof
+  used by Reward V1.
 
-Current lesson completion is browser-local and is not proof of authenticated
-completion of all 12 lessons. The owner must choose whether to authorize:
+## 5. Reward V1 eligibility and grant
 
-1. Account-scoped server progress with an explicit local-to-server merge,
-   completion, reversal, and course-version contract; or
-2. Deferring reward eligibility until such a server-authoritative progress
-   boundary exists.
+All of the following conditions are required for one account to receive the
+reward:
 
-Until then, local completion must not be accepted for reward issuance. This is
-a reward blocker, not a blocker for reading the Foundations lessons or taking
-the browser assessment.
+1. The request is authenticated.
+2. The server has completed all twelve `foundations.v1` lesson IDs for that
+   account.
+3. The account has PASS-EVER for the current Foundations final assessment.
+4. The account has no prior Foundations V1 reward grant.
 
-### 3.3 Existing entitlement mapping
+An assessment pass alone, one or more lessons alone, browser-local progress,
+browser-local score, or a client-issued claim is insufficient.
 
-The value and reuse of the existing standard paid entitlement are frozen, but
-the physical mapping is not. The owner must identify the existing entitlement
-record/source/repository and choose whether the learning reward is recorded as
-an existing supported source under the canonical commercial transaction path,
-or remains deferred. A new learning entitlement tier or provider-specific
-dependency is not an approved option.
+- The reward is automatic. There is no Claim button or claim endpoint.
+- The reward is exactly seven consecutive `24-hour` days of the existing
+  `PRO` entitlement. No new tier, trial type, or entitlement product is
+  created.
+- The canonical source identity is `LEARNING_FOUNDATIONS_V1`. The current
+  commercial representation uses the existing `PROMOTION` source class and
+  source type for a finite grant credit; the learning source identity is
+  persisted in the Learn reward ledger and canonical commercial event
+  attributes. This does not create a new tier or provider-specific source.
+- The Learn reward ledger is unique on `account × foundations.v1` and the
+  commercial credit is the entitlement authority. A reward ledger row is not
+  an ad-hoc `pro_until` substitute.
+- Grant creation, commercial event append, credit creation, and reward-ledger
+  creation occur in one transaction under the account's commercial authority
+  lock. Database uniqueness is the final duplicate guard.
+- Repeated requests, refreshes, retries, tabs, concurrent completion/merge or
+  pass submissions, server retries, and replayed operations converge on one
+  grant and one seven-day value.
+- The reward start is the first instant after the account's existing
+  authoritative PRO coverage (paid, temporary commercial grant, or Referral
+  time-bank coverage) ends. If no such coverage is present, it starts at the
+  authoritative server instant of grant. The reward expiry is exactly seven
+  `24-hour` days after that start, using server/database time and half-open
+  coverage intervals.
+- Existing paid, promotional, temporary, or Referral PRO coverage is never
+  shortened or consumed by the Foundations reward. An already-PRO account
+  keeps its existing value and receives the reward after that coverage.
+- A later assessment retry cannot create a second reward. A future
+  `foundations.v2` course or assessment revision requires a future product
+  policy and is not silently folded into V1.
 
-### 3.4 Claim, start, expiry, and stacking semantics
+## 6. Commercial compatibility and account lifecycle
 
-The owner must explicitly choose:
+- The existing `FREE` and `PRO` plan model remains unchanged.
+- The existing commercial authority, revision, event journal, source-class,
+  projection, and entitlement capability contracts remain the governing
+  commercial boundary.
+- The finite learning credit is exposed to the canonical entitlement evaluator
+  as an existing `PROMOTION` source class. Paid and Referral coverage remain
+  their own sources and retain their precedence/time-bank behavior.
+- Account deletion cascades learning progress, attempts, reward ledger rows,
+  and commercial learning credits through the existing user/authority
+  lifecycle. Assessment answers are not retained because score/count/pass are
+  sufficient for the frozen reward authority and avoid unnecessary response
+  data.
+- No birth data, chart facts, astronomy calculations, Engine calls, provider
+  identifiers, interpretation content, or notification payloads are part of
+  this contract.
 
-- automatic grant after eligibility versus an explicit claim;
-- immediate start versus a defined time-bank/coverage start rule;
-- behavior when the account already has the entitlement;
-- stacking/extension versus no stacking;
-- expiry calculation and timezone/clock authority; and
-- behavior for an account that is already Pro or otherwise covered.
+## 7. Runtime presentation boundary
 
-These choices affect only the future commercial reward boundary and are not
-assumed by the current assessment runtime.
+- The existing seven-locale assessment admission boundary remains unchanged:
+  a localized assessment is rendered only when it is approved, current, and
+  available; there is no silent English fallback.
+- Anonymous visitors retain the current browser result and local lesson
+  experience.
+- Authenticated Foundations pages may synchronize valid local completed IDs
+  after session authentication. The client preserves local state until a
+  successful server response and then renders server-returned completion and
+  reward status.
+- Authenticated assessment results are labeled as server-scored. The UI may
+  show the minimum authoritative result and reward state, but adds no
+  gamification, certificate, XP, leaderboard, or forced-login gate.
 
-### 3.5 Idempotency and revision binding
+## 8. Explicit non-decisions for future work
 
-The conceptual uniqueness boundary is one reward per account and course
-version, but the physical transaction key and claim record are unresolved. The
-owner must define the exact idempotency key, the relation between course
-version, assessment revision, and accepted attempt, and whether a later
-content revision creates a new eligibility window or leaves a prior grant
-permanent. The server, not the browser, must own timestamps and transaction
-outcomes.
+The following remain outside Foundations Reward V1 and must not be inferred
+from this document:
 
-## 4. Explicit non-decisions
+- `foundations.v2` or any new course/version reward policy;
+- additional entitlement tiers, trials, or reward products;
+- changes to the seven-locale assessment content, lesson prose, or glossary;
+- Engine, astronomy, provider selection, chart calculation, interpretation,
+  notification, or unrelated Learn content work;
+- entitlement claim UX, certificates, XP, badges, or leaderboards.
 
-- No assessment attempt table, endpoint, server scorer, migration, or reward
-  grant has been added.
-- No authenticated 12/12 progress proof has been fabricated from local
-  storage.
-- No production enum or entitlement source has been invented for
-  `LEARNING_FOUNDATIONS_V1`.
-- No reward is issued from the browser, from a client score, or from an
-  assessment pass alone.
-- No English fallback is introduced for missing or non-admitted localized
-  assessment content.
+Provider selection remains: `PROVIDER DECISION DEFERRED`.
 
-## 5. Stop condition
-
-The seven-locale assessment admission work is complete. Further work must
-wait for the Product Owner to freeze the attempt authority, authenticated
-progress proof, and exact commercial entitlement/claim contract. Do not begin
-another Learn content track or implement reward semantics from this gap list
-alone.
+The Foundations Core content matrix remains the existing `12 × 7 = 84/84`
+approved/current/available contract and is not re-opened by Reward V1.
