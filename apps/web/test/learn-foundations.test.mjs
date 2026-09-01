@@ -243,7 +243,10 @@ test('content governance admits only approved canonical English lessons and neve
     ['foundations.jupiter_saturn_outer_planets', 1],
     ['foundations.houses_angles', 1],
     ['foundations.planet_sign_house', 1],
-    ['foundations.aspects', 1]
+    ['foundations.aspects', 1],
+    ['foundations.chart_priorities', 1],
+    ['foundations.whole_chart', 1],
+    ['foundations.responsible_astrology', 1]
   ]);
 
   assert.equal(
@@ -294,6 +297,43 @@ test('content governance admits only approved canonical English lessons and neve
     getFoundationsContentAvailability({ ...english, contentState: 'DRAFT', currentness: 'CURRENT' }),
     'UNAVAILABLE'
   );
+});
+
+test('the final canonical-English batch is admitted without changing locale or course gates', () => {
+  const finalBatch = [
+    'foundations.chart_priorities',
+    'foundations.whole_chart',
+    'foundations.responsible_astrology'
+  ];
+
+  for (const lessonId of finalBatch) {
+    const english = getFoundationsContentVariant(lessonId, 'en');
+    assert.equal(english?.contentState, 'APPROVED');
+    assert.equal(english?.currentness, 'CURRENT');
+    assert.equal(english?.contentKind, 'CANONICAL');
+    assert.equal(english?.contentRevision, 1);
+    assert.equal(english?.canonicalContentRevision, 1);
+    assert.equal(getFoundationsContentAvailability(english), 'AVAILABLE');
+
+    for (const locale of EXPECTED_LOCALES.slice(1)) {
+      const localized = getFoundationsContentVariant(lessonId, locale);
+      assert.equal(localized?.locale, locale);
+      assert.equal(localized?.contentState, 'MISSING');
+      assert.equal(localized?.currentness, 'OUTDATED');
+      assert.equal(getFoundationsContentAvailability(localized), 'UNAVAILABLE');
+    }
+  }
+
+  const canonicalEnglishCount = FOUNDATIONS_LESSONS.filter((lesson) => {
+    const variant = getFoundationsContentVariant(lesson.lessonId, 'en');
+    return variant?.contentKind === 'CANONICAL' && getFoundationsContentAvailability(variant) === 'AVAILABLE';
+  }).length;
+
+  assert.equal(canonicalEnglishCount, 12);
+  assert.equal(FOUNDATIONS_COURSE.lessonCount, 12);
+  assert.equal(isFoundationsCoreReady(), false);
+  assert.equal(getFoundationsContentVariant(finalBatch[0], 'es')?.locale, 'es');
+  assert.equal(getFoundationsContentAvailability(getFoundationsContentVariant(finalBatch[0], 'es')), 'UNAVAILABLE');
 });
 
 test('professional vocabulary resolves through the shared production glossary', () => {

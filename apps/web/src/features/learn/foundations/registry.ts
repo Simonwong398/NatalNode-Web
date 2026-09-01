@@ -210,6 +210,18 @@ const FOUNDATIONS_ADMITTED_ENGLISH_REVISIONS: Readonly<
   'foundations.aspects': Object.freeze({
     contentRevision: 1,
     canonicalContentRevision: 1
+  }),
+  'foundations.chart_priorities': Object.freeze({
+    contentRevision: 1,
+    canonicalContentRevision: 1
+  }),
+  'foundations.whole_chart': Object.freeze({
+    contentRevision: 1,
+    canonicalContentRevision: 1
+  }),
+  'foundations.responsible_astrology': Object.freeze({
+    contentRevision: 1,
+    canonicalContentRevision: 1
   })
 });
 

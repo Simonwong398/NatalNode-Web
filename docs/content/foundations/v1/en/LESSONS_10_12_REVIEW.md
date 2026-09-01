@@ -10,9 +10,9 @@ documentKind: CONTENT_REVIEW_MANIFEST
 
 ## Scope and state
 
-This manifest records the canonical-English authoring pass for `WEB-LEARN-004A`. It covers exactly three new Class C editorial lesson drafts and this review manifest. It does not approve, admit, translate, or connect the lessons to runtime delivery.
+This manifest records canonical-English authoring (`WEB-LEARN-004A`), independent final-batch editorial/professional/epistemic review (`WEB-LEARN-004B`), explicit Product Owner approval, and canonical-English runtime admission (`WEB-LEARN-004C`) for exactly three Class C Foundations lesson records.
 
-All three lessons remain `contentRevision: 1`, `canonicalContentRevision: 1`, `contentState: REVIEW`, and `currentness: CURRENT`. The drafts are authored against the existing Foundations V1 sequence and the existing registry identities; no registry or runtime source was changed.
+All three records remain at `contentRevision: 1` and `canonicalContentRevision: 1`. They are `contentState: APPROVED` and `currentness: CURRENT`; under the frozen availability rule, each is runtime `AVAILABLE` through the existing canonical Markdown and Foundations registry path. Approval applies only to canonical English and is an authorization/admission event, not a content revision.
 
 ## Lesson identities
 
@@ -72,7 +72,7 @@ No broad research, new external dependency, or provider research was performed f
 
 ## Glossary and runtime compatibility
 
-- No new runtime glossary IDs, registry entries, capability IDs, hooks, or API fields were introduced.
+- No new runtime glossary IDs, capability IDs, hooks, or API fields were introduced. The existing Foundations registry and canonical Markdown importer were extended only to admit these three approved lesson records.
 - Editorial terms such as salience, prioritization, synthesis thread, epistemic status, sensitive inference, and proportionate language are explained locally in the lessons; they do not expand the runtime glossary contract.
 - The existing registry mapping for `chart_type.natal` remains the only relevant registry glossary mapping for this batch. Deferred angle mappings remain deferred and are not needed by these lessons.
 - No lesson-side calculator, browser-side interpretation engine, AI behavior, chart score, or production metadata was added.
@@ -82,7 +82,8 @@ No broad research, new external dependency, or provider research was performed f
 PASS for the following negative checks:
 
 - Lessons 01–09 are unchanged.
-- No Product Owner approval, runtime admission, translation, or locale publication was performed.
+- Product Owner approval and canonical-English runtime admission were performed only for the exact revision-1 records in this batch.
+- No translation, multilingual adaptation, or non-English locale publication was performed.
 - No UI, CSS, API, BFF, commercial, database, migration, Engine, provider, or deployment source was changed.
 - No final quiz, rewards, AI interpretation, chart scoring, advanced predictive technique, or P1/P2/P3 functionality was added.
 - No astronomy or provider dependency was added.
@@ -95,6 +96,25 @@ PASS for the following negative checks:
 3. `docs/content/foundations/v1/en/12-using-astrology-responsibly.md`
 4. `docs/content/foundations/v1/en/LESSONS_10_12_REVIEW.md`
 
-## Review gate
+## Approval and admission implementation file set
 
-This batch is ready to be returned to the Product Owner for independent final editorial and professional review. It is not ready for approval, runtime admission, translation, or publication until that review is complete.
+The focused implementation change is limited to the existing admission path
+and its characterization coverage:
+
+1. `apps/web/src/features/learn/foundations/registry.ts`
+2. `apps/web/src/features/learn/foundations/FoundationsLessonContent.astro`
+3. `apps/web/test/learn-foundations.test.mjs`
+
+## Approval and canonical-English runtime gate
+
+`WEB-LEARN-004B` passed the independent final-batch editorial/professional/epistemic gate with final verdict `READY_FOR_OWNER_APPROVAL` and no BLOCKER, MAJOR, MINOR, or EDITORIAL_NOTE findings. The Product Owner explicitly approved these exact canonical-English revisions for runtime admission:
+
+- `foundations.chart_priorities` — revision `1`
+- `foundations.whole_chart` — revision `1`
+- `foundations.responsible_astrology` — revision `1`
+
+The approval record does not invent a reviewer identity, name, email, account, or signature. It applies only to canonical English. It does not approve translations, a final quiz, quiz scoring, attempt persistence, rewards, AI interpretation, chart-prioritization/scoring runtime logic, or Foundations Core seven-locale readiness.
+
+The three lesson files now declare `contentState = APPROVED` and `currentness = CURRENT` without changing their prose or either revision field. The existing Foundations registry admits exactly these revision-1 records, and the existing canonical Markdown importer maps their stable lesson IDs to the corresponding source files. Runtime availability remains derived solely from `APPROVED` plus `CURRENT`.
+
+After admission, all twelve canonical-English Foundations lessons are approved/current and available. The seven-locale Core gate remains unsatisfied because non-English Class C variants for the full twelve-lesson set are not yet approved/current. This batch therefore completes canonical-English Foundations admission only; it does not make Foundations Core ready or authorize translation.

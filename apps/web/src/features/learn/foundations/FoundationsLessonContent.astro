@@ -8,6 +8,9 @@ import LessonSix from '../../../../../../docs/content/foundations/v1/en/06-jupit
 import LessonSeven from '../../../../../../docs/content/foundations/v1/en/07-the-twelve-houses-and-the-angles.md';
 import LessonEight from '../../../../../../docs/content/foundations/v1/en/08-planet-sign-house.md';
 import LessonNine from '../../../../../../docs/content/foundations/v1/en/09-aspects-relationships-between-planets.md';
+import LessonTen from '../../../../../../docs/content/foundations/v1/en/10-what-matters-first-in-a-chart.md';
+import LessonEleven from '../../../../../../docs/content/foundations/v1/en/11-reading-the-chart-as-a-whole.md';
+import LessonTwelve from '../../../../../../docs/content/foundations/v1/en/12-using-astrology-responsibly.md';
 import type { FoundationsLessonId } from './registry';
 
 interface Props {
@@ -25,7 +28,10 @@ const canonicalContentByLessonId = {
   'foundations.jupiter_saturn_outer_planets': LessonSix,
   'foundations.houses_angles': LessonSeven,
   'foundations.planet_sign_house': LessonEight,
-  'foundations.aspects': LessonNine
+  'foundations.aspects': LessonNine,
+  'foundations.chart_priorities': LessonTen,
+  'foundations.whole_chart': LessonEleven,
+  'foundations.responsible_astrology': LessonTwelve
 } as const;
 
 const Content = canonicalContentByLessonId[lessonId as keyof typeof canonicalContentByLessonId];

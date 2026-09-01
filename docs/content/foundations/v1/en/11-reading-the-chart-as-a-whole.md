@@ -6,7 +6,7 @@ lessonId: foundations.whole_chart
 canonicalLocale: en
 contentRevision: 1
 canonicalContentRevision: 1
-contentState: REVIEW
+contentState: APPROVED
 currentness: CURRENT
 ---
 
