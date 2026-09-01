@@ -240,7 +240,10 @@ test('content governance admits only approved canonical English lessons and neve
     ['foundations.chart_calculation', 2],
     ['foundations.sun_moon', 1],
     ['foundations.mercury_venus_mars', 1],
-    ['foundations.jupiter_saturn_outer_planets', 1]
+    ['foundations.jupiter_saturn_outer_planets', 1],
+    ['foundations.houses_angles', 1],
+    ['foundations.planet_sign_house', 1],
+    ['foundations.aspects', 1]
   ]);
 
   assert.equal(

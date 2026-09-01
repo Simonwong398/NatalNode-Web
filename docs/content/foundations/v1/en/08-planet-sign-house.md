@@ -6,7 +6,7 @@ lessonId: foundations.planet_sign_house
 canonicalLocale: en
 contentRevision: 1
 canonicalContentRevision: 1
-contentState: REVIEW
+contentState: APPROVED
 currentness: CURRENT
 ---
 

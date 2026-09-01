@@ -8,23 +8,23 @@ documentKind: CONTENT_REVIEW_MANIFEST
 
 # Foundations V1 Lessons 07–09 Review Manifest
 
-## Review status and authoring boundary
+## Review status, approval, and admission boundary
 
-This manifest records the first canonical-English authoring batch for the structural bridge from chart bodies to later whole-chart work. It covers exactly three Class C Foundations lesson records: houses and angles in Lesson 07, Planet × Sign × House synthesis in Lesson 08, and major aspects in Lesson 09.
+This manifest records canonical-English authoring (`WEB-LEARN-003A`), independent editorial/professional/geometry review (`WEB-LEARN-003B`), Product Owner approval, and runtime admission (`WEB-LEARN-003C`) for exactly three Class C Foundations lesson records: houses and angles in Lesson 07, Planet × Sign × House synthesis in Lesson 08, and major aspects in Lesson 09.
 
-All three records are initial professional drafts at `contentRevision = 1` and `canonicalContentRevision = 1`. They remain `contentState = REVIEW` and are not runtime-admitted. `currentness = CURRENT` means the drafts are intended to represent the current canonical meaning for their frozen lesson identities; under the frozen availability rule, REVIEW content remains `UNAVAILABLE`.
+All three records are approved canonical-English content at `contentRevision = 1` and `canonicalContentRevision = 1`. They are `contentState = APPROVED` and `currentness = CURRENT`; under the frozen availability rule, each is runtime `AVAILABLE` through the existing canonical Markdown and Foundations registry path.
 
-`WEB-LEARN-003A` is content authoring only. No Product Owner approval was performed or claimed, no runtime registry/importer/route was changed, no translation was created, no Lesson 10–12 content was started, and no implementation or provider decision was introduced.
+`WEB-LEARN-003B` passed the independent gate with final verdict `READY_FOR_OWNER_APPROVAL` and no BLOCKER, MAJOR, or MINOR findings. The Product Owner explicitly approved these exact canonical-English revision-1 records for runtime admission. Approval applies only to canonical English; no translation approval, Lessons 10–12 approval, glossary expansion, implementation beyond the existing admission path, or provider decision was introduced.
 
 ## Canonical English inventory
 
 | Order | Lesson ID | Canonical title | Source path | Content revision | Approximate body words | Content state | Currentness | Runtime availability |
 | ---: | --- | --- | --- | ---: | ---: | --- | --- | --- |
-| 7 | `foundations.houses_angles` | The Twelve Houses and the Angles | `docs/content/foundations/v1/en/07-the-twelve-houses-and-the-angles.md` | 1 | ~1,656 | `REVIEW` | `CURRENT` | `UNAVAILABLE` |
-| 8 | `foundations.planet_sign_house` | Planet × Sign × House | `docs/content/foundations/v1/en/08-planet-sign-house.md` | 1 | ~1,650 | `REVIEW` | `CURRENT` | `UNAVAILABLE` |
-| 9 | `foundations.aspects` | Aspects: Relationships Between Planets | `docs/content/foundations/v1/en/09-aspects-relationships-between-planets.md` | 1 | ~1,653 | `REVIEW` | `CURRENT` | `UNAVAILABLE` |
+| 7 | `foundations.houses_angles` | The Twelve Houses and the Angles | `docs/content/foundations/v1/en/07-the-twelve-houses-and-the-angles.md` | 1 | ~1,656 | `APPROVED` | `CURRENT` | `AVAILABLE` |
+| 8 | `foundations.planet_sign_house` | Planet × Sign × House | `docs/content/foundations/v1/en/08-planet-sign-house.md` | 1 | ~1,650 | `APPROVED` | `CURRENT` | `AVAILABLE` |
+| 9 | `foundations.aspects` | Aspects: Relationships Between Planets | `docs/content/foundations/v1/en/09-aspects-relationships-between-planets.md` | 1 | ~1,653 | `APPROVED` | `CURRENT` | `AVAILABLE` |
 
-The file titles, semantic IDs, slugs, order, My Chart capabilities, and birth-time requirements follow the frozen repository registry. No title, slug, semantic ID, revision, or registry value was changed by this authoring batch.
+The file titles, semantic IDs, slugs, order, My Chart capabilities, and birth-time requirements follow the frozen repository registry. The approval and admission changed only the required content state and existing admission metadata; no title, slug, semantic ID, or revision was changed.
 
 ## Pedagogical and scope audit
 
@@ -83,7 +83,7 @@ The drafts reuse the existing glossary families and do not modify the runtime gl
 | 08 | Generic body/sign/house layers and the registry-supported `body.sun`, `sign.aries`, `house.1` concepts; the “interpretive scaffold” and synthesis prose remain Class C, not glossary entries. |
 | 09 | `aspect.conjunction`, `aspect.opposition`, `aspect.square`, `aspect.trine`, `aspect.sextile`, `aspect.orb`, `aspect_phase.applying`, `aspect_phase.exact`, and `aspect_phase.separating`. |
 
-The frozen glossary currently defers `angle.descendant` and `angle.imum_coeli` because the current Web contract/surfaces do not represent them. This task explicitly requires the four-angle teaching coverage, so DSC/Descendant and IC/Imum Coeli are used only in these learner-facing drafts and are recorded here as a potential glossary-governance gap for later owner decision. No glossary runtime term, contract field, or semantic ID was added. The drafts also use descriptive language for houses associated with angles without admitting an angular/succedent/cadent classification.
+The frozen glossary currently defers `angle.descendant` and `angle.imum_coeli` because the current Web contract/surfaces do not represent them. This task explicitly requires the four-angle teaching coverage, so DSC/Descendant and IC/Imum Coeli remain in these professionally correct learner-facing drafts and are recorded here as a deferred, non-blocking glossary-governance note. No glossary runtime term, contract field, or semantic ID was added. The lessons also use descriptive language for houses associated with angles without admitting an angular/succedent/cadent classification.
 
 ## Research, sources, and evidence lanes
 
@@ -146,9 +146,9 @@ All stated degree relationships were checked manually using the zodiac order. Th
 | Famous-person chart speculation | NO |
 | External course prose copied | NO |
 | Translation performed | NO |
-| Product Owner approval performed or claimed | NO |
-| Runtime admission performed | NO |
-| Runtime source changed | NO |
+| Product Owner approval performed or claimed | YES — explicit approval for canonical-English revisions 1, recorded by `WEB-LEARN-003C` |
+| Runtime admission performed | YES — Lessons 07–09 admitted through the existing path |
+| Runtime source changed | YES — existing registry and canonical Markdown mapping extended |
 | Lessons 01–06 changed | NO |
 | Lessons 10–12 started | NO |
 | UI/CSS/API/BFF/commercial/database/Engine work | NO |
@@ -163,15 +163,26 @@ The frozen hooks are preserved as review metadata only:
 | 08 | `my_chart.placement` | `REQUIRED_FOR_TIME_DEPENDENT_FACTS` |
 | 09 | `my_chart.major_aspects` | `NOT_REQUIRED` |
 
-The lessons contain no personal chart data and do not implement the hooks. No non-English variant was authored or translated. These canonical-English Class C drafts are not approved, not runtime-admitted, and do not satisfy the seven-locale Foundations Core gate.
+The lessons contain no personal chart data and do not implement the hooks. The three canonical-English records are now approved/current and runtime-admitted through the existing path. No non-English variant was authored or translated, and the batch does not satisfy the seven-locale Foundations Core gate.
 
-## Files in this authoring batch
+## Approval and admission record
 
-Exactly these four new documentation files belong to `WEB-LEARN-003A`:
+- `WEB-LEARN-003B` passed the independent editorial/professional/geometry gate with final verdict `READY_FOR_OWNER_APPROVAL` and no BLOCKER, MAJOR, or MINOR findings.
+- The Product Owner explicitly approved `foundations.houses_angles` revision `1`, `foundations.planet_sign_house` revision `1`, and `foundations.aspects` revision `1` for canonical-English runtime admission.
+- The approval event did not change any lesson title, slug, canonical prose, source, Practice section, Check Understanding question, example, or content revision.
+- Admission uses the existing Foundations registry and canonical Markdown content path used by Lessons 01–06; no parallel registry, loader, resolver, or content-state system was introduced.
+- Approval and admission apply only to canonical English. They do not approve translations, multilingual adaptations, Lessons 10–12, final-check/reward work, glossary expansion, or any unrelated product boundary.
+
+## Files in this approval and admission batch
+
+Exactly these seven files belong to this approval/admission batch:
 
 1. `docs/content/foundations/v1/en/07-the-twelve-houses-and-the-angles.md`
 2. `docs/content/foundations/v1/en/08-planet-sign-house.md`
 3. `docs/content/foundations/v1/en/09-aspects-relationships-between-planets.md`
 4. `docs/content/foundations/v1/en/LESSONS_07_09_REVIEW.md`
+5. `apps/web/src/features/learn/foundations/registry.ts`
+6. `apps/web/src/features/learn/foundations/FoundationsLessonContent.astro`
+7. `apps/web/test/learn-foundations.test.mjs`
 
-No existing lesson, runtime registry, route, importer, UI, CSS, glossary implementation, server, API/BFF, database, migration, Auth, Vault, Feedback, Notification, Commercial, Engine, provider, translation, or deployment file belongs to this batch. `C:\NatalNode` is outside scope and was not accessed.
+No other runtime, route, importer, UI, CSS, glossary implementation, server, API/BFF, database, migration, Auth, Vault, Feedback, Notification, Commercial, Engine, provider, translation, or deployment file belongs to this batch. Lessons 01–06 canonical prose and Lessons 10–12 scaffolds were not modified. `C:\NatalNode` is outside scope and was not accessed.

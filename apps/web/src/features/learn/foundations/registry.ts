@@ -198,6 +198,18 @@ const FOUNDATIONS_ADMITTED_ENGLISH_REVISIONS: Readonly<
   'foundations.jupiter_saturn_outer_planets': Object.freeze({
     contentRevision: 1,
     canonicalContentRevision: 1
+  }),
+  'foundations.houses_angles': Object.freeze({
+    contentRevision: 1,
+    canonicalContentRevision: 1
+  }),
+  'foundations.planet_sign_house': Object.freeze({
+    contentRevision: 1,
+    canonicalContentRevision: 1
+  }),
+  'foundations.aspects': Object.freeze({
+    contentRevision: 1,
+    canonicalContentRevision: 1
   })
 });
 
