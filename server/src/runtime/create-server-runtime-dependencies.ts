@@ -66,7 +66,10 @@ export function createServerRuntimeDependencies(
 
   assertValidSessionCookiePolicy(sessionCookiePolicy);
 
-  const persistence = createPostgresPersistence(bindings.sqlExecutor);
+  const persistence = createPostgresPersistence(
+    bindings.sqlExecutor,
+    bindings.transactionRunner
+  );
   const notificationAccountService = new NotificationAccountService({
     notificationPreferences: persistence.notificationPreferences,
     pushSubscriptions: persistence.pushSubscriptions,

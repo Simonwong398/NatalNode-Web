@@ -68,3 +68,17 @@ export type {
 export type { VaultChartRepository } from './vault-chart-repository.js';
 export type { UserRepository } from './user-repository.js';
 export type { ChartNoteContentUpdate, VaultChartMetadataUpdate } from './types.js';
+export type {
+  CommunityAnswerRecord,
+  CommunityModerationEventRecord,
+  CommunityModerationOutcome,
+  CommunityOwnershipOutcome,
+  CommunityProfileRecord,
+  CommunityQuestionDetailRecord,
+  CommunityQuestionPage,
+  CommunityQuestionRecord,
+  CommunityReportCreateOutcome,
+  CommunityReportRecord,
+  CommunityRepository,
+  CommunityRetentionPurgeResult
+} from '../community/community-repository.js';

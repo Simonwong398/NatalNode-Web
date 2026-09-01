@@ -67,6 +67,46 @@ export const P0_STAGING_RATE_LIMIT_POLICIES = {
     limit: 60,
     windowMs: 10 * 60 * 1_000
   },
+  communityQuestionCreateHour: {
+    identifier: 'COMMUNITY_QUESTION_CREATE_HOUR',
+    limit: 5,
+    windowMs: 60 * 60 * 1_000
+  },
+  communityQuestionCreateDay: {
+    identifier: 'COMMUNITY_QUESTION_CREATE_DAY',
+    limit: 20,
+    windowMs: 24 * 60 * 60 * 1_000
+  },
+  communityAnswerCreateHour: {
+    identifier: 'COMMUNITY_ANSWER_CREATE_HOUR',
+    limit: 20,
+    windowMs: 60 * 60 * 1_000
+  },
+  communityAnswerCreateDay: {
+    identifier: 'COMMUNITY_ANSWER_CREATE_DAY',
+    limit: 100,
+    windowMs: 24 * 60 * 60 * 1_000
+  },
+  communityReportHour: {
+    identifier: 'COMMUNITY_REPORT_HOUR',
+    limit: 10,
+    windowMs: 60 * 60 * 1_000
+  },
+  communityReportDay: {
+    identifier: 'COMMUNITY_REPORT_DAY',
+    limit: 30,
+    windowMs: 24 * 60 * 60 * 1_000
+  },
+  communityMutationEdge: {
+    identifier: 'COMMUNITY_MUTATION_EDGE',
+    limit: 60,
+    windowMs: 10 * 60 * 1_000
+  },
+  communityMutationAccount: {
+    identifier: 'COMMUNITY_MUTATION_ACCOUNT',
+    limit: 60,
+    windowMs: 60 * 60 * 1_000
+  },
   vaultMutation: {
     identifier: 'VAULT_MUTATION',
     limit: 60,
@@ -255,6 +295,40 @@ function isNotificationMutation(method: string, pathname: string): boolean {
   );
 }
 
+function isCommunityMutation(method: string, pathname: string): boolean {
+  if (method === 'POST' && pathname === '/api/community/questions') {
+    return true;
+  }
+
+  if (
+    (method === 'PATCH' || method === 'DELETE') &&
+    (/^\/api\/community\/questions\/[^/]+$/u.test(pathname) ||
+      /^\/api\/community\/answers\/[^/]+$/u.test(pathname))
+  ) {
+    return true;
+  }
+
+  if (
+    method === 'POST' &&
+    /^\/api\/community\/questions\/[^/]+\/answers$/u.test(pathname)
+  ) {
+    return true;
+  }
+
+  if (
+    (method === 'PUT' || method === 'DELETE') &&
+    /^\/api\/community\/questions\/[^/]+\/accepted-answer$/u.test(pathname)
+  ) {
+    return true;
+  }
+
+  if (method === 'POST' && pathname === '/api/community/reports') {
+    return true;
+  }
+
+  return method === 'PUT' && pathname === '/api/account/community-profile';
+}
+
 export function selectP0StagingRateLimitPolicy(
   method: string,
   pathname: string
@@ -293,6 +367,10 @@ export function selectP0StagingRateLimitPolicy(
 
   if (isNotificationMutation(method, pathname)) {
     return P0_STAGING_RATE_LIMIT_POLICIES.notificationMutationEdge;
+  }
+
+  if (isCommunityMutation(method, pathname)) {
+    return P0_STAGING_RATE_LIMIT_POLICIES.communityMutationEdge;
   }
 
   return isVaultMutation(method, pathname)
@@ -413,6 +491,52 @@ export function enforceNotificationMutationRateLimit(
         code: 'RATE_LIMITED',
         detailKey: 'RATE_LIMITED'
       });
+    }
+
+    await next();
+  };
+}
+
+export type CommunityAccountRateLimitBucket =
+  | 'question-create'
+  | 'answer-create'
+  | 'report'
+  | 'mutation';
+
+export function enforceCommunityAccountRateLimit(
+  limiter: InMemoryP0StagingRateLimiter,
+  bucket: CommunityAccountRateLimitBucket
+): MiddlewareHandler<AuthenticatedRequestEnv> {
+  return async (context, next) => {
+    const principal = context.get('authenticatedPrincipal');
+    const policies =
+      bucket === 'question-create'
+        ? [
+            P0_STAGING_RATE_LIMIT_POLICIES.communityQuestionCreateDay,
+            P0_STAGING_RATE_LIMIT_POLICIES.communityQuestionCreateHour
+          ]
+        : bucket === 'answer-create'
+          ? [
+              P0_STAGING_RATE_LIMIT_POLICIES.communityAnswerCreateDay,
+              P0_STAGING_RATE_LIMIT_POLICIES.communityAnswerCreateHour
+            ]
+          : bucket === 'report'
+            ? [
+                P0_STAGING_RATE_LIMIT_POLICIES.communityReportDay,
+                P0_STAGING_RATE_LIMIT_POLICIES.communityReportHour
+              ]
+            : [P0_STAGING_RATE_LIMIT_POLICIES.communityMutationAccount];
+
+    for (const policy of policies) {
+      const decision = limiter.attempt(policy, principal.userId);
+
+      if (!decision.allowed) {
+        context.header('Retry-After', decision.retryAfterSeconds.toString());
+        return createProblemDetailsContextResponse(context, {
+          code: 'RATE_LIMITED',
+          detailKey: 'RATE_LIMITED'
+        });
+      }
     }
 
     await next();

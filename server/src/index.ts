@@ -250,3 +250,18 @@ export {
   PostgresUserRepository,
   PostgresVaultChartRepository
 } from './persistence/postgres/index.js';
+export { PostgresCommunityRepository } from './persistence/postgres/index.js';
+export type {
+  CommunityAnswerRecord,
+  CommunityModerationEventRecord,
+  CommunityModerationOutcome,
+  CommunityOwnershipOutcome,
+  CommunityProfileRecord,
+  CommunityQuestionDetailRecord,
+  CommunityQuestionPage,
+  CommunityQuestionRecord,
+  CommunityReportCreateOutcome,
+  CommunityReportRecord,
+  CommunityRepository,
+  CommunityRetentionPurgeResult
+} from './community/community-repository.js';

@@ -13,6 +13,7 @@ import type {
   UserRepository,
   VaultChartRepository
 } from '../persistence/index.js';
+import type { CommunityRepository } from '../community/community-repository.js';
 import type {
   AccountDataExportSnapshotOpenOptions,
   AccountDataExportSnapshotOpenResult
@@ -186,6 +187,29 @@ function createUnavailablePushSubscriptionRepository(): PushSubscriptionReposito
   };
 }
 
+function createUnavailableCommunityRepository(): CommunityRepository {
+  return {
+    getProfile: unavailableAsync,
+    saveProfile: unavailableAsync,
+    listVisibleQuestions: unavailableAsync,
+    getQuestion: unavailableAsync,
+    getQuestionRecord: unavailableAsync,
+    getAnswerRecord: unavailableAsync,
+    createQuestion: unavailableAsync,
+    updateQuestion: unavailableAsync,
+    deleteQuestion: unavailableAsync,
+    createAnswer: unavailableAsync,
+    updateAnswer: unavailableAsync,
+    deleteAnswer: unavailableAsync,
+    setAcceptedAnswer: unavailableAsync,
+    createReport: unavailableAsync,
+    isModerator: unavailableAsync,
+    listOpenReports: unavailableAsync,
+    moderate: unavailableAsync,
+    purgeExpiredRetention: unavailableAsync
+  };
+}
+
 /**
  * Provides no persistence substitute: public routes never need these methods,
  * and every protected or unsupported operation fails closed if it is reached.
@@ -203,7 +227,8 @@ function createPublicDevelopmentPersistenceRepositories(): PersistenceRepositori
     vaultCharts: createUnavailableVaultChartRepository(),
     chartNotes: createUnavailableChartNoteRepository(),
     notificationPreferences: createUnavailableNotificationPreferenceRepository(),
-    pushSubscriptions: createUnavailablePushSubscriptionRepository()
+    pushSubscriptions: createUnavailablePushSubscriptionRepository(),
+    community: createUnavailableCommunityRepository()
   };
 }
 
