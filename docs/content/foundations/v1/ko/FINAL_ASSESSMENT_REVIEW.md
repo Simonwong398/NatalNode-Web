@@ -8,26 +8,26 @@ canonicalLocale: en
 contentRevision: 1
 canonicalContentRevision: 1
 adaptationRevision: 1
-contentState: REVIEW
+contentState: APPROVED
 currentness: CURRENT
-runtimeAvailability: UNAVAILABLE
+runtimeAvailability: AVAILABLE
 documentKind: ASSESSMENT_REVIEW_MANIFEST
 questionCount: 10
 passThreshold: "8/10"
 retryPolicy: unlimited
-productOwnerApproval: NO
-runtimeAdmission: NO
+productOwnerApproval: YES
+runtimeAdmission: YES
 reviewType: FRESH_BILINGUAL_PROFESSIONAL_REVIEW
 reviewVerdict: PASS_WITHOUT_BLOCKERS
 correctionCycles: 0
-finalVerdict: READY_FOR_CONSOLIDATED_OWNER_APPROVAL
+finalVerdict: APPROVED_FOR_RUNTIME
 ---
 
 # Foundations V1 최종 평가 리뷰 매니페스트 — 한국어
 
 ## 상태와 범위
 
-이 매니페스트는 `FINAL_ASSESSMENT.md`의 새로운 전문 한국어 적용과 독립적인 이중언어 리뷰를 기록합니다. 정식 revision 1에 대응하며 10문항, 8/10 통과 기준, 무제한 재시도라는 계약을 보존합니다. 상태는 `REVIEW / CURRENT / UNAVAILABLE`이고 Product Owner 승인이나 runtime admission은 없습니다. 인증, 레슨 조건, Foundations Core 조건 또는 보상 동작으로 취급하지 않습니다.
+이 매니페스트는 `FINAL_ASSESSMENT.md`의 새로운 전문 한국어 적용과 독립적인 이중언어 리뷰를 기록합니다. 정식 revision 1에 대응하며 10문항, 8/10 통과 기준, 무제한 재시도라는 계약을 보존합니다. 상태는 `APPROVED / CURRENT / AVAILABLE`이며 Product Owner가 이 revision 1 한국어 적용본을 명시적으로 승인하고 runtime admission을 허가했습니다. 인증, 레슨 조건, Foundations Core 조건 또는 보상 동작으로 취급하지 않습니다.
 
 ## 독립 리뷰 방법
 
@@ -53,8 +53,8 @@ finalVerdict: READY_FOR_CONSOLIDATED_OWNER_APPROVAL
 
 ## Product gate
 
-적용 결과는 `PASS_WITHOUT_BLOCKERS`이며 스페인어, 프랑스어, 독일어, 일본어, 번체 중국어와 함께 Product Owner의 하나의 통합 결정을 받을 준비가 되었습니다. 이 리뷰는 한국어 locale의 runtime 사용을 허가하지 않고 fallback이나 저장을 만들지 않습니다. 브라우저 결과를 계정 또는 보상의 권위로 만들지도 않습니다.
+적용 결과는 `PASS_WITHOUT_BLOCKERS`입니다. Product Owner는 이 revision 1 한국어 적용본을 명시적으로 승인하고 runtime admission을 허가했습니다. 이 승인은 정식 영어 revision을 변경하지 않고, 새로운 유료 플랜이나 보상 정책을 만들지 않으며, 브라우저 결과를 계정 또는 보상의 권위로 만들지도 않습니다.
 
 ## 판정
 
-`READY_FOR_CONSOLIDATED_OWNER_APPROVAL`
+`APPROVED_FOR_RUNTIME`

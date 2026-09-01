@@ -8,9 +8,9 @@ canonicalLocale: en
 contentRevision: 1
 canonicalContentRevision: 1
 adaptationRevision: 1
-contentState: REVIEW
+contentState: APPROVED
 currentness: CURRENT
-runtimeAvailability: UNAVAILABLE
+runtimeAvailability: AVAILABLE
 documentKind: LOCALIZED_ASSESSMENT_CONTENT
 questionCount: 10
 passThreshold: "8/10"
@@ -19,15 +19,15 @@ certification: false
 courseCompletionDependency: false
 coreReadinessDependency: false
 futureRewardEligibilityRelevance: true
-productOwnerApproval: NO
-runtimeAdmission: NO
+productOwnerApproval: YES
+runtimeAdmission: YES
 ---
 
 # Foundations V1 最終アセスメント
 
 これは Foundations V1 の正規英語版の最終チェックを日本語に適応したものです。チャート上の事実、占星術的な解釈、不確実性、責任ある利用を区別できるかを確認します。
 
-問題は正確に10問です。8/10以上が合格で、再挑戦の回数に制限はありません。合格は認定資格を意味せず、12レッスンの完了に代わるものでもありません。この適応版は現在レビュー中であり、Product Owner の統合された判断が出るまで runtime では利用できません。
+問題は正確に10問です。8/10以上が合格で、再挑戦の回数に制限はありません。合格は認定資格を意味せず、12レッスンの完了に代わるものでもありません。この適応版は承認済みで runtime で利用できます。Product Owner の統合承認は、この revision 1 の日本語適応版に適用されます。
 
 この文書はアセスメントのコンテンツだけを扱います。UI、runtime、永続化、アカウント状態、報酬、商用特典、サーバー境界は定義しません。
 
@@ -233,4 +233,4 @@ Foundations の方法に沿った読み方の計画はどれですか。
 
 ## Content boundary
 
-この日本語適応版は `REVIEW / CURRENT / UNAVAILABLE` であり、runtime に入らず、自動 fallback としても使われません。正規英語版の revision 1、10個のID、回答キー、10°/100°/90°の幾何学、出生時刻不明の扱い、科学・責任・同意・プライバシーの境界を保持します。永続化、認定、報酬、商用特典、アカウント、API、Engine、provider は定義しません。
+この日本語適応版は `APPROVED / CURRENT / AVAILABLE` であり、runtime に正式に登録されます。自動 fallback としては使われません。正規英語版の revision 1、10個のID、回答キー、10°/100°/90°の幾何学、出生時刻不明の扱い、科学・責任・同意・プライバシーの境界を保持します。永続化、認定、報酬、商用特典、アカウント、API、Engine、provider は定義しません。

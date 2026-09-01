@@ -1,5 +1,6 @@
 ---
 import FoundationsAssessmentExperience from '@/features/learn/foundations/assessment/FoundationsAssessmentExperience';
+import { getFoundationsAssessment } from '@/features/learn/foundations/assessment/assessment-content';
 import { FOUNDATIONS_FINAL_ASSESSMENT } from '@/features/learn/foundations/assessment/canonical-assessment';
 import { getFoundationsUiMessages } from '@/features/learn/foundations/ui';
 import SiteLayout from '@/layouts/SiteLayout.astro';
@@ -18,6 +19,8 @@ if (locale === null) {
 }
 
 const ui = getFoundationsUiMessages(locale);
+const localizedAssessment = getFoundationsAssessment(locale);
+const showEnglishContent = locale !== 'en' && Astro.url.searchParams.get('contentLocale') === 'en';
 const seo: SeoMetadata = {
   title: `${ui['learn.foundations.finalAssessment']} | ${ui['learn.foundations.title']} | NatalNode`,
   description: ui['learn.foundations.finalAssessmentDescription'],
@@ -34,21 +37,13 @@ const seo: SeoMetadata = {
       ← {ui['learn.foundations.backToCourse']}
     </a>
 
-    {locale === 'en' ? (
-      <FoundationsAssessmentExperience assessment={FOUNDATIONS_FINAL_ASSESSMENT} client:load />
-    ) : (
-      <section aria-labelledby="foundations-final-assessment-title" class="grid gap-5">
-        <p class="nn-eyebrow">{ui['learn.foundations.finalAssessment']}</p>
-        <h1 class="nn-type-page-title" id="foundations-final-assessment-title">
-          {ui['learn.foundations.finalAssessment']}
-        </h1>
-        <p class="nn-type-body max-w-3xl">
-          {ui['learn.foundations.finalAssessmentDescription']}
-        </p>
-        <p class="nn-notice nn-notice--research max-w-3xl" role="status">
-          {ui['learn.foundations.finalAssessmentUnavailable']}
-        </p>
-      </section>
-    )}
+    <FoundationsAssessmentExperience
+      assessment={localizedAssessment}
+      client:load
+      englishAssessment={FOUNDATIONS_FINAL_ASSESSMENT}
+      locale={locale}
+      showEnglishContent={showEnglishContent}
+      ui={ui}
+    />
   </main>
 </SiteLayout>

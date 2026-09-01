@@ -8,9 +8,9 @@ canonicalLocale: en
 contentRevision: 1
 canonicalContentRevision: 1
 adaptationRevision: 1
-contentState: REVIEW
+contentState: APPROVED
 currentness: CURRENT
-runtimeAvailability: UNAVAILABLE
+runtimeAvailability: AVAILABLE
 documentKind: LOCALIZED_ASSESSMENT_CONTENT
 questionCount: 10
 passThreshold: "8/10"
@@ -19,15 +19,15 @@ certification: false
 courseCompletionDependency: false
 coreReadinessDependency: false
 futureRewardEligibilityRelevance: true
-productOwnerApproval: NO
-runtimeAdmission: NO
+productOwnerApproval: YES
+runtimeAdmission: YES
 ---
 
 # Abschließende Foundations-V1-Prüfung
 
 Dies ist die deutsche Adaption der kanonischen abschließenden Prüfung von Foundations V1. Sie prüft, ob die Person Horoskopfakten, astrologische Deutung, Unsicherheit und verantwortungsvolle Nutzung auseinanderhalten kann.
 
-Die Prüfung enthält genau zehn Fragen. 8/10 gilt als bestanden, und die Prüfung kann unbegrenzt wiederholt werden. Das Bestehen ist keine Zertifizierung und ersetzt nicht den Abschluss der zwölf Lektionen. Diese Adaption befindet sich noch in der Prüfung und ist bis zu einer konsolidierten Entscheidung des Product Owners im Runtime nicht verfügbar.
+Die Prüfung enthält genau zehn Fragen. 8/10 gilt als bestanden, und die Prüfung kann unbegrenzt wiederholt werden. Das Bestehen ist keine Zertifizierung und ersetzt nicht den Abschluss der zwölf Lektionen. Diese Adaption ist genehmigt und in der Runtime verfügbar; die konsolidierte Product-Owner-Genehmigung gilt für diese Adaption der Revision 1.
 
 Dieses Dokument enthält ausschließlich Prüfungsinhalt. Es definiert weder Benutzeroberfläche noch Runtime, Persistenz, Kontostatus, Belohnungen, kommerzielle Vorteile oder eine Servergrenze.
 
@@ -233,4 +233,4 @@ Eine Person bittet die Astrologie, eine Depression zu diagnostizieren und zu ent
 
 ## Content boundary
 
-Diese deutsche Adaption ist `REVIEW / CURRENT / UNAVAILABLE` und wird weder in das Runtime aufgenommen noch automatisch als Fallback verwendet. Sie bewahrt die kanonische Revision 1, die zehn IDs, die Antwortschlüssel, die Geometrie 10°/100°/90°, den Umgang mit unbekannter Zeit sowie die Grenzen von Wissenschaft, Verantwortung, Einwilligung und Privatsphäre. Sie definiert weder Persistenz, Zertifizierung, Belohnungen, kommerzielle Vorteile, Konten, API, Engine noch Anbieter.
+Diese deutsche Adaption ist `APPROVED / CURRENT / AVAILABLE` und wird in das Runtime aufgenommen, ohne automatisch als Fallback verwendet zu werden. Sie bewahrt die kanonische Revision 1, die zehn IDs, die Antwortschlüssel, die Geometrie 10°/100°/90°, den Umgang mit unbekannter Zeit sowie die Grenzen von Wissenschaft, Verantwortung, Einwilligung und Privatsphäre. Sie definiert weder Persistenz, Zertifizierung, Belohnungen, kommerzielle Vorteile, Konten, API, Engine noch Anbieter.

@@ -8,26 +8,26 @@ canonicalLocale: en
 contentRevision: 1
 canonicalContentRevision: 1
 adaptationRevision: 1
-contentState: REVIEW
+contentState: APPROVED
 currentness: CURRENT
-runtimeAvailability: UNAVAILABLE
+runtimeAvailability: AVAILABLE
 documentKind: ASSESSMENT_REVIEW_MANIFEST
 questionCount: 10
 passThreshold: "8/10"
 retryPolicy: unlimited
-productOwnerApproval: NO
-runtimeAdmission: NO
+productOwnerApproval: YES
+runtimeAdmission: YES
 reviewType: FRESH_BILINGUAL_PROFESSIONAL_REVIEW
 reviewVerdict: PASS_WITHOUT_BLOCKERS
 correctionCycles: 0
-finalVerdict: READY_FOR_CONSOLIDATED_OWNER_APPROVAL
+finalVerdict: APPROVED_FOR_RUNTIME
 ---
 
 # Review-Manifest der abschließenden Foundations-V1-Prüfung — Deutsch
 
 ## Status und Umfang
 
-Dieses Manifest dokumentiert eine neue professionelle Adaption und eine unabhängige bilinguale Review von `FINAL_ASSESSMENT.md`. Sie entspricht der kanonischen Revision 1 und bewahrt den Vertrag mit zehn Fragen, einem Schwellenwert von 8/10 und unbegrenzten Versuchen. Ihr Status ist `REVIEW / CURRENT / UNAVAILABLE`; sie hat keine Product-Owner-Freigabe und ist nicht für das Runtime zugelassen. Sie ist weder eine Zertifizierung noch eine Voraussetzung für Lektionen, Foundations Core oder Belohnungen.
+Dieses Manifest dokumentiert eine neue professionelle Adaption und eine unabhängige bilinguale Review von `FINAL_ASSESSMENT.md`. Sie entspricht der kanonischen Revision 1 und bewahrt den Vertrag mit zehn Fragen, einem Schwellenwert von 8/10 und unbegrenzten Versuchen. Ihr Status ist `APPROVED / CURRENT / AVAILABLE`; der Product Owner hat diese deutsche Adaption der Revision 1 ausdrücklich freigegeben, und sie ist für die Runtime zugelassen. Sie ist weder eine Zertifizierung noch eine Voraussetzung für Lektionen, Foundations Core oder Belohnungen.
 
 ## Methode der unabhängigen Review
 
@@ -53,8 +53,8 @@ Die professionelle Review fand keinen `BLOCKER`, `MAJOR` oder `MINOR`; alle drei
 
 ## Produkt-Gate
 
-Das Adaptionsresultat lautet `PASS_WITHOUT_BLOCKERS` und ist bereit für eine einzige konsolidierte Product-Owner-Entscheidung zusammen mit Spanisch, Französisch, Japanisch, Koreanisch und traditionellem Chinesisch. Diese Review autorisiert dieses Locale nicht für das Runtime, erstellt keinen Fallback, implementiert keine Persistenz und macht das Browserergebnis nicht zur Konto- oder Belohnungsautorität.
+Das Adaptionsresultat lautet `PASS_WITHOUT_BLOCKERS`. Der Product Owner hat diese deutsche Adaption der Revision 1 ausdrücklich freigegeben und ihre Zulassung für die Runtime autorisiert. Diese Freigabe ändert weder die kanonische Revision noch die Belohnungspolitik, erstellt keinen neuen kostenpflichtigen Plan und macht das Browserergebnis nicht zur Konto- oder Belohnungsautorität.
 
 ## Veredicto
 
-`READY_FOR_CONSOLIDATED_OWNER_APPROVAL`
+`APPROVED_FOR_RUNTIME`

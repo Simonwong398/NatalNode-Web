@@ -8,9 +8,9 @@ canonicalLocale: en
 contentRevision: 1
 canonicalContentRevision: 1
 adaptationRevision: 1
-contentState: REVIEW
+contentState: APPROVED
 currentness: CURRENT
-runtimeAvailability: UNAVAILABLE
+runtimeAvailability: AVAILABLE
 documentKind: LOCALIZED_ASSESSMENT_CONTENT
 questionCount: 10
 passThreshold: "8/10"
@@ -19,15 +19,15 @@ certification: false
 courseCompletionDependency: false
 coreReadinessDependency: false
 futureRewardEligibilityRelevance: true
-productOwnerApproval: NO
-runtimeAdmission: NO
+productOwnerApproval: YES
+runtimeAdmission: YES
 ---
 
 # Évaluation finale de Foundations V1
 
 Cette adaptation française de l’évaluation finale canonique de Foundations V1 vérifie que la personne sait distinguer les faits du thème, l’interprétation astrologique, l’incertitude et l’usage responsable.
 
-L’évaluation contient exactement dix questions. Un résultat de 8/10 est une réussite et les tentatives sont illimitées. La réussir ne constitue pas une certification et ne remplace pas l’achèvement des douze leçons. Cette adaptation reste en révision et n’est pas disponible dans le runtime tant qu’une décision consolidée du Product Owner n’a pas été prise.
+L’évaluation contient exactement dix questions. Un résultat de 8/10 est une réussite et les tentatives sont illimitées. La réussir ne constitue pas une certification et ne remplace pas l’achèvement des douze leçons. Cette adaptation est approuvée et disponible dans le runtime ; l’approbation consolidée du Product Owner s’applique à cette adaptation de la révision 1.
 
 Ce document contient uniquement le contenu de l’évaluation. Il ne définit ni l’interface, ni le runtime, ni la persistance, ni l’état du compte, ni les récompenses, ni les avantages commerciaux, ni une limite serveur.
 
@@ -233,4 +233,4 @@ Une personne demande à l’astrologie de diagnostiquer une dépression et de d�
 
 ## Content boundary
 
-Cette adaptation française est `REVIEW / CURRENT / UNAVAILABLE` et n’entre pas dans le runtime ni dans un fallback automatique. Elle conserve la révision canonique 1, les dix IDs, les clés de réponses, la géométrie 10°/100°/90°, le traitement de l’heure inconnue et les limites de science, de responsabilité, de consentement et de vie privée. Elle ne définit ni persistance, ni certification, ni récompense, ni avantage commercial, ni compte, ni API, ni Engine, ni fournisseur.
+Cette adaptation française est `APPROVED / CURRENT / AVAILABLE` et entre dans le runtime sans fallback automatique. Elle conserve la révision canonique 1, les dix IDs, les clés de réponses, la géométrie 10°/100°/90°, le traitement de l’heure inconnue et les limites de science, de responsabilité, de consentement et de vie privée. Elle ne définit ni persistance, ni certification, ni récompense, ni avantage commercial, ni compte, ni API, ni Engine, ni fournisseur.

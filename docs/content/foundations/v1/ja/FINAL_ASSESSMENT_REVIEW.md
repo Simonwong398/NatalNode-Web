@@ -8,26 +8,26 @@ canonicalLocale: en
 contentRevision: 1
 canonicalContentRevision: 1
 adaptationRevision: 1
-contentState: REVIEW
+contentState: APPROVED
 currentness: CURRENT
-runtimeAvailability: UNAVAILABLE
+runtimeAvailability: AVAILABLE
 documentKind: ASSESSMENT_REVIEW_MANIFEST
 questionCount: 10
 passThreshold: "8/10"
 retryPolicy: unlimited
-productOwnerApproval: NO
-runtimeAdmission: NO
+productOwnerApproval: YES
+runtimeAdmission: YES
 reviewType: FRESH_BILINGUAL_PROFESSIONAL_REVIEW
 reviewVerdict: PASS_WITHOUT_BLOCKERS
 correctionCycles: 0
-finalVerdict: READY_FOR_CONSOLIDATED_OWNER_APPROVAL
+finalVerdict: APPROVED_FOR_RUNTIME
 ---
 
 # Foundations V1 最終アセスメントレビュー・マニフェスト — 日本語
 
 ## ステータスと範囲
 
-このマニフェストは `FINAL_ASSESSMENT.md` の新しい専門的な日本語適応と、独立したバイリンガルレビューを記録します。正規英語版の revision 1 に対応し、10問、8/10の合格基準、無制限の再挑戦という契約を保持します。状態は `REVIEW / CURRENT / UNAVAILABLE` であり、Product Owner の承認も runtime admission もありません。認定、レッスン要件、Foundations Core の要件、報酬の動作として扱いません。
+このマニフェストは `FINAL_ASSESSMENT.md` の新しい専門的な日本語適応と、独立したバイリンガルレビューを記録します。正規英語版の revision 1 に対応し、10問、8/10の合格基準、無制限の再挑戦という契約を保持します。状態は `APPROVED / CURRENT / AVAILABLE` であり、Product Owner はこの revision 1 の日本語適応版を明示的に承認し、runtime admission を許可しました。認定、レッスン要件、Foundations Core の要件、報酬の動作として扱いません。
 
 ## 独立レビューの方法
 
@@ -53,8 +53,8 @@ finalVerdict: READY_FOR_CONSOLIDATED_OWNER_APPROVAL
 
 ## Product gate
 
-適応結果は `PASS_WITHOUT_BLOCKERS` であり、スペイン語、フランス語、ドイツ語、韓国語、繁体字中国語とともに、Product Owner による1回の統合判断を受ける準備ができています。このレビューは日本語 locale の runtime 使用を許可せず、fallback を作らず、永続化も実装しません。ブラウザ結果をアカウントや報酬の権威にすることもありません。
+適応結果は `PASS_WITHOUT_BLOCKERS` です。Product Owner はこの revision 1 の日本語適応版を明示的に承認し、runtime admission を許可しました。この承認は正規英語版の revision を変更せず、新しい有料プランや報酬ポリシーを作成せず、ブラウザ結果をアカウントや報酬の権威にすることもありません。
 
 ## 判定
 
-`READY_FOR_CONSOLIDATED_OWNER_APPROVAL`
+`APPROVED_FOR_RUNTIME`

@@ -8,9 +8,9 @@ canonicalLocale: en
 contentRevision: 1
 canonicalContentRevision: 1
 adaptationRevision: 1
-contentState: REVIEW
+contentState: APPROVED
 currentness: CURRENT
-runtimeAvailability: UNAVAILABLE
+runtimeAvailability: AVAILABLE
 documentKind: LOCALIZED_ASSESSMENT_CONTENT
 questionCount: 10
 passThreshold: "8/10"
@@ -19,15 +19,15 @@ certification: false
 courseCompletionDependency: false
 coreReadinessDependency: false
 futureRewardEligibilityRelevance: true
-productOwnerApproval: NO
-runtimeAdmission: NO
+productOwnerApproval: YES
+runtimeAdmission: YES
 ---
 
 # Foundations V1 최종 평가
 
 이 문서는 Foundations V1의 정식 영어 최종 점검을 한국어로 적용한 버전입니다. 차트 사실, 점성술적 해석, 불확실성, 책임 있는 사용을 서로 구분할 수 있는지 평가합니다.
 
-평가는 정확히 10문항으로 구성됩니다. 8/10 이상이면 통과이며 재시도 횟수에는 제한이 없습니다. 통과는 자격 인증이 아니며 12개 레슨의 완료를 대신하지 않습니다. 이 적용본은 현재 검토 중이고, Product Owner의 통합 결정이 내려질 때까지 runtime에서 사용할 수 없습니다.
+평가는 정확히 10문항으로 구성됩니다. 8/10 이상이면 통과이며 재시도 횟수에는 제한이 없습니다. 통과는 자격 인증이 아니며 12개 레슨의 완료를 대신하지 않습니다. 이 적용본은 승인되었으며 runtime에서 사용할 수 있습니다. Product Owner의 통합 승인은 이 revision 1 한국어 적용본에 적용됩니다.
 
 이 문서는 평가 콘텐츠만 다룹니다. UI, runtime, 저장, 계정 상태, 보상, 상업적 혜택 또는 서버 경계를 정의하지 않습니다.
 
@@ -233,4 +233,4 @@ Foundations의 방법을 따르는 읽기 계획은 무엇입니까?
 
 ## Content boundary
 
-이 한국어 적용본은 `REVIEW / CURRENT / UNAVAILABLE`이며 runtime에 들어가지 않고 자동 fallback으로도 사용되지 않습니다. canonical revision 1, 10개 ID, 답안 키, 10°/100°/90°의 기하학, 출생 시각 불명 처리, 과학·책임·동의·프라이버시의 경계를 유지합니다. 저장, 인증, 보상, 상업적 혜택, 계정, API, Engine 또는 provider를 정의하지 않습니다.
+이 한국어 적용본은 `APPROVED / CURRENT / AVAILABLE`이며 runtime에 등록되고 자동 fallback으로는 사용되지 않습니다. canonical revision 1, 10개 ID, 답안 키, 10°/100°/90°의 기하학, 출생 시각 불명 처리, 과학·책임·동의·프라이버시의 경계를 유지합니다. 저장, 인증, 보상, 상업적 혜택, 계정, API, Engine 또는 provider를 정의하지 않습니다.

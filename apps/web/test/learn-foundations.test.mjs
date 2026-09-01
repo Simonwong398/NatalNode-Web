@@ -476,18 +476,32 @@ test('assessment scoring enforces answer identity, threshold, retryability, and 
   assert.equal(Object.isFrozen(retryAttempt.correctQuestionIds), true);
 });
 
-test('localized assessment artifacts preserve the canonical contract and remain unavailable without fallback', () => {
+test('all localized assessment artifacts are approved, admitted, and served without fallback', () => {
   const canonical = parseApprovedFoundationsAssessment(CANONICAL_ASSESSMENT_MARKDOWN);
   const assessmentRoute = readFileSync(
     new URL('../src/pages/[locale]/learn/foundations/check/index.astro', import.meta.url),
     'utf8'
   );
+  const assessmentContentRuntime = readFileSync(
+    new URL('../src/features/learn/foundations/assessment/assessment-content.ts', import.meta.url),
+    'utf8'
+  );
+  const assessmentExperience = readFileSync(
+    new URL('../src/features/learn/foundations/assessment/FoundationsAssessmentExperience.tsx', import.meta.url),
+    'utf8'
+  );
   let totalQuestions = 0;
   let totalAnswerParities = 0;
 
-  assert.match(assessmentRoute, /locale === 'en'/u);
-  assert.match(assessmentRoute, /finalAssessmentUnavailable/u);
-  assert.doesNotMatch(assessmentRoute, /contentLocale=en/u);
+  assert.match(assessmentRoute, /getFoundationsAssessment/u);
+  assert.match(assessmentRoute, /englishAssessment=\{FOUNDATIONS_FINAL_ASSESSMENT\}/u);
+  assert.match(assessmentRoute, /showEnglishContent/u);
+  assert.match(assessmentRoute, /searchParams\.get\('contentLocale'\).*=== 'en'/u);
+  assert.match(assessmentExperience, /finalAssessmentUnavailable/u);
+  assert.match(assessmentContentRuntime, /assertCanonicalAnswerIdentity/u);
+  assert.match(assessmentContentRuntime, /parseApprovedFoundationsAssessment/u);
+  assert.match(assessmentContentRuntime, /runtimeAvailability === 'AVAILABLE'/u);
+  assert.doesNotMatch(assessmentContentRuntime, /FOUNDATIONS_FINAL_ASSESSMENTS\.en\s*\|\|/u);
 
   for (const locale of LOCALIZED_ASSESSMENT_LOCALES) {
     const content = readFileSync(
@@ -498,14 +512,14 @@ test('localized assessment artifacts preserve the canonical contract and remain 
       new URL(`../../../docs/content/foundations/v1/${locale}/FINAL_ASSESSMENT_REVIEW.md`, import.meta.url),
       'utf8'
     );
-    const assessment = parseFoundationsAssessment(content);
+    const assessment = parseApprovedFoundationsAssessment(content);
 
     assert.equal(assessment.locale, locale);
     assert.equal(assessment.canonicalLocale, 'en');
     assert.equal(assessment.contentRevision, 1);
-    assert.equal(assessment.contentState, 'REVIEW');
+    assert.equal(assessment.contentState, 'APPROVED');
     assert.equal(assessment.currentness, 'CURRENT');
-    assert.equal(assessment.runtimeAvailability, 'UNAVAILABLE');
+    assert.equal(assessment.runtimeAvailability, 'AVAILABLE');
     assert.equal(assessment.questionCount, 10);
     assert.equal(assessment.passThreshold, 8);
     assert.equal(assessment.retryPolicy, 'unlimited');
@@ -523,23 +537,24 @@ test('localized assessment artifacts preserve the canonical contract and remain 
 
     assert.match(content, /^canonicalContentRevision: 1$/mu);
     assert.match(content, /^adaptationRevision: 1$/mu);
-    assert.match(content, /^productOwnerApproval: NO$/mu);
-    assert.match(content, /^runtimeAdmission: NO$/mu);
-    assert.doesNotMatch(content, /^contentState: APPROVED$/mu);
-    assert.doesNotMatch(content, /^runtimeAvailability: AVAILABLE$/mu);
+    assert.match(content, /^productOwnerApproval: YES$/mu);
+    assert.match(content, /^runtimeAdmission: YES$/mu);
+    assert.match(content, /^contentState: APPROVED$/mu);
+    assert.match(content, /^runtimeAvailability: AVAILABLE$/mu);
     assert.doesNotMatch(content, /^(?:birthDate|birthTime|birthPlace|chart):/mu);
 
     assert.match(review, new RegExp(`^locale: ${locale}$`, 'mu'));
-    assert.match(review, /^contentState: REVIEW$/mu);
+    assert.match(review, /^contentState: APPROVED$/mu);
     assert.match(review, /^currentness: CURRENT$/mu);
-    assert.match(review, /^runtimeAvailability: UNAVAILABLE$/mu);
-    assert.match(review, /^productOwnerApproval: NO$/mu);
-    assert.match(review, /^runtimeAdmission: NO$/mu);
+    assert.match(review, /^runtimeAvailability: AVAILABLE$/mu);
+    assert.match(review, /^productOwnerApproval: YES$/mu);
+    assert.match(review, /^runtimeAdmission: YES$/mu);
     assert.match(review, /^reviewType: FRESH_BILINGUAL_PROFESSIONAL_REVIEW$/mu);
     assert.match(review, /^reviewVerdict: PASS_WITHOUT_BLOCKERS$/mu);
-    assert.match(review, /^finalVerdict: READY_FOR_CONSOLIDATED_OWNER_APPROVAL$/mu);
-    assert.doesNotMatch(review, /^contentState: APPROVED$/mu);
-    assert.doesNotMatch(review, /^runtimeAvailability: AVAILABLE$/mu);
+    assert.match(review, /^finalVerdict: APPROVED_FOR_RUNTIME$/mu);
+    assert.doesNotMatch(review, /^contentState: REVIEW$/mu);
+    assert.doesNotMatch(review, /^runtimeAvailability: UNAVAILABLE$/mu);
+    assert.doesNotMatch(review, /READY_FOR_CONSOLIDATED_OWNER_APPROVAL/u);
 
     totalQuestions += assessment.questions.length;
     totalAnswerParities += assessment.questions.filter(

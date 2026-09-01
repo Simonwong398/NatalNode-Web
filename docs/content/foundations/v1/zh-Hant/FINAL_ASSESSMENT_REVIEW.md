@@ -8,26 +8,26 @@ canonicalLocale: en
 contentRevision: 1
 canonicalContentRevision: 1
 adaptationRevision: 1
-contentState: REVIEW
+contentState: APPROVED
 currentness: CURRENT
-runtimeAvailability: UNAVAILABLE
+runtimeAvailability: AVAILABLE
 documentKind: ASSESSMENT_REVIEW_MANIFEST
 questionCount: 10
 passThreshold: "8/10"
 retryPolicy: unlimited
-productOwnerApproval: NO
-runtimeAdmission: NO
+productOwnerApproval: YES
+runtimeAdmission: YES
 reviewType: FRESH_BILINGUAL_PROFESSIONAL_REVIEW
 reviewVerdict: PASS_WITHOUT_BLOCKERS
 correctionCycles: 0
-finalVerdict: READY_FOR_CONSOLIDATED_OWNER_APPROVAL
+finalVerdict: APPROVED_FOR_RUNTIME
 ---
 
 # Foundations V1 最終評量審查清單 — 繁體中文
 
 ## 狀態與範圍
 
-本清單記錄 `FINAL_ASSESSMENT.md` 的全新專業繁體中文適配與獨立雙語審查。它對應正規 revision 1，保留十題、8/10 通過門檻與無限重試的契約。狀態為 `REVIEW / CURRENT / UNAVAILABLE`，尚未取得 Product Owner 核准，也未獲 runtime admission。它不是認證，不是課程單元或 Foundations Core 的硬性條件，也不定義獎勵行為。
+本清單記錄 `FINAL_ASSESSMENT.md` 的全新專業繁體中文適配與獨立雙語審查。它對應正規 revision 1，保留十題、8/10 通過門檻與無限重試的契約。狀態為 `APPROVED / CURRENT / AVAILABLE`；Product Owner 已明確核准此 revision 1 繁體中文適配版本，並授權 runtime admission。它不是認證，不是課程單元或 Foundations Core 的硬性條件，也不定義獎勵行為。
 
 ## 獨立審查方法
 
@@ -53,8 +53,8 @@ finalVerdict: READY_FOR_CONSOLIDATED_OWNER_APPROVAL
 
 ## Product gate
 
-適配結果為 `PASS_WITHOUT_BLOCKERS`，可與西班牙文、法文、德文、日文及韓文一同提交 Product Owner 作一次整合決策。本審查不授權繁體中文 locale 進入 runtime，不建立 fallback 或持久化，也不把瀏覽器結果提升為帳戶或獎勵權威。
+適配結果為 `PASS_WITHOUT_BLOCKERS`。Product Owner 已明確核准此 revision 1 繁體中文適配版本，並授權其 runtime admission。此核准不會改變正規英文 revision、不會建立新的付費方案或變更獎勵政策，也不會把瀏覽器結果提升為帳戶或獎勵權威。
 
 ## 判定
 
-`READY_FOR_CONSOLIDATED_OWNER_APPROVAL`
+`APPROVED_FOR_RUNTIME`

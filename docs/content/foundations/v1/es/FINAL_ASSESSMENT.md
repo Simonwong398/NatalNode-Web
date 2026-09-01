@@ -8,9 +8,9 @@ canonicalLocale: en
 contentRevision: 1
 canonicalContentRevision: 1
 adaptationRevision: 1
-contentState: REVIEW
+contentState: APPROVED
 currentness: CURRENT
-runtimeAvailability: UNAVAILABLE
+runtimeAvailability: AVAILABLE
 documentKind: LOCALIZED_ASSESSMENT_CONTENT
 questionCount: 10
 passThreshold: "8/10"
@@ -19,15 +19,15 @@ certification: false
 courseCompletionDependency: false
 coreReadinessDependency: false
 futureRewardEligibilityRelevance: true
-productOwnerApproval: NO
-runtimeAdmission: NO
+productOwnerApproval: YES
+runtimeAdmission: YES
 ---
 
 # Evaluación final de Foundations V1
 
 Esta es la adaptación en español de la comprobación final canónica de Foundations V1. Evalúa si la persona puede mantener diferenciados los hechos de la carta, la interpretación astrológica, la incertidumbre y el uso responsable.
 
-La comprobación contiene exactamente diez preguntas. Un resultado de 8/10 es aprobado y los intentos pueden repetirse sin límite. Aprobarla no es una certificación ni sustituye la finalización de las doce lecciones. Esta adaptación permanece en revisión y no está disponible para el runtime hasta una decisión consolidada del Product Owner.
+La comprobación contiene exactamente diez preguntas. Un resultado de 8/10 es aprobado y los intentos pueden repetirse sin límite. Aprobarla no es una certificación ni sustituye la finalización de las doce lecciones. Esta adaptación está aprobada y disponible para el runtime; la aprobación consolidada del Product Owner se aplica a esta adaptación de revisión 1.
 
 Este documento contiene únicamente contenido de evaluación. No define la interfaz, el runtime, la persistencia, el estado de cuenta, las recompensas, las ventajas comerciales ni un límite de servidor.
 
@@ -233,4 +233,4 @@ Una persona pide usar la astrología para diagnosticar una depresión y decidir 
 
 ## Content boundary
 
-Esta adaptación en español está en estado `REVIEW / CURRENT / UNAVAILABLE` y no entra en el runtime ni en un fallback automático. Conserva la revisión canónica 1, los diez IDs, la clave de respuestas, la geometría 10°/100°/90°, el tratamiento de la hora desconocida y los límites de ciencia, responsabilidad, consentimiento y privacidad. No define persistencia, certificación, recompensas, ventajas comerciales, cuenta, API, Engine ni proveedor.
+Esta adaptación en español está en estado `APPROVED / CURRENT / AVAILABLE` y entra en el runtime sin un fallback automático. Conserva la revisión canónica 1, los diez IDs, la clave de respuestas, la geometría 10°/100°/90°, el tratamiento de la hora desconocida y los límites de ciencia, responsabilidad, consentimiento y privacidad. No define persistencia, certificación, recompensas, ventajas comerciales, cuenta, API, Engine ni proveedor.

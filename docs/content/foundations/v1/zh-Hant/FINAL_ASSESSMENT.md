@@ -8,9 +8,9 @@ canonicalLocale: en
 contentRevision: 1
 canonicalContentRevision: 1
 adaptationRevision: 1
-contentState: REVIEW
+contentState: APPROVED
 currentness: CURRENT
-runtimeAvailability: UNAVAILABLE
+runtimeAvailability: AVAILABLE
 documentKind: LOCALIZED_ASSESSMENT_CONTENT
 questionCount: 10
 passThreshold: "8/10"
@@ -19,15 +19,15 @@ certification: false
 courseCompletionDependency: false
 coreReadinessDependency: false
 futureRewardEligibilityRelevance: true
-productOwnerApproval: NO
-runtimeAdmission: NO
+productOwnerApproval: YES
+runtimeAdmission: YES
 ---
 
 # Foundations V1 最終評量
 
 這是 Foundations V1 正規英文版最終檢核的繁體中文適配版本，用來評估學習者是否能區分星盤事實、占星詮釋、不確定性與負責任的使用方式。
 
-評量恰好包含十題。答對 8/10 即為通過，重試次數不限。通過不代表取得認證，也不取代十二個課程單元的完成。本適配版本目前仍在審查中，在 Product Owner 完成一次整合決策前，不會於 runtime 提供。
+評量恰好包含十題。答對 8/10 即為通過，重試次數不限。通過不代表取得認證，也不取代十二個課程單元的完成。本適配版本已獲核准，並可在 runtime 提供；Product Owner 的整合核准適用於此 revision 1 繁體中文適配版本。
 
 本文件只包含評量內容，不定義 UI、runtime、持久化、帳戶狀態、獎勵、商業權益或伺服器邊界。
 
@@ -233,4 +233,4 @@ runtimeAdmission: NO
 
 ## Content boundary
 
-此繁體中文適配版本為 `REVIEW / CURRENT / UNAVAILABLE`，不會進入 runtime，也不會作為自動 fallback。它保留正規 revision 1、10 個 stable IDs、回答鍵、10°/100°/90° 幾何、未知出生時間的處理，以及科學、責任、同意和隱私邊界。不定義持久化、認證、獎勵、商業權益、帳戶、API、Engine 或 provider。
+此繁體中文適配版本為 `APPROVED / CURRENT / AVAILABLE`，並進入 runtime，但不會作為自動 fallback。它保留正規 revision 1、10 個 stable IDs、回答鍵、10°/100°/90° 幾何、未知出生時間的處理，以及科學、責任、同意和隱私邊界。不定義持久化、認證、獎勵、商業權益、帳戶、API、Engine 或 provider。
