@@ -1,13 +1,14 @@
 ---
 title: "Foundations V1 Final Assessment"
+locale: en
 courseId: foundations.v1
 courseVersion: v1
 checkId: foundations.v1.final_check
 canonicalLocale: en
 contentRevision: 1
-contentState: REVIEW
+contentState: APPROVED
 currentness: CURRENT
-runtimeAvailability: UNAVAILABLE
+runtimeAvailability: AVAILABLE
 documentKind: CANONICAL_ASSESSMENT_CONTENT
 questionCount: 10
 passThreshold: "8/10"
@@ -228,4 +229,4 @@ A user asks astrology to diagnose depression and decide whether they should stop
 
 ## Content boundary
 
-The assessment remains `REVIEW / CURRENT / UNAVAILABLE` until the Product Owner makes one approval decision. No assessment runtime, UI, scoring service, persistence model, completion state, certification claim, reward implementation, entitlement, or account behavior is defined by this content file.
+The canonical-English assessment is `APPROVED / CURRENT / AVAILABLE` for its approved runtime. The six localized adaptations remain `REVIEW / CURRENT / UNAVAILABLE` pending one consolidated Product Owner decision. No assessment persistence model, completion state, certification claim, reward implementation, entitlement, or account behavior is defined by this content file.

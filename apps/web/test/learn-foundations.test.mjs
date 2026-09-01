@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
 import test from 'node:test';
 import {
   FOUNDATIONS_CANONICAL_LOCALE,
@@ -33,6 +34,18 @@ import {
   writeFoundationsProgress
 } from '../dist/learn-foundations-characterization/features/learn/foundations/progress.js';
 import { resolveAstrologyTerm } from '../dist/learn-foundations-characterization/lib/astrology-glossary.js';
+import {
+  FOUNDATIONS_FINAL_ASSESSMENT_ID,
+  FOUNDATIONS_FINAL_ASSESSMENT_PASS_THRESHOLD,
+  FOUNDATIONS_FINAL_ASSESSMENT_QUESTION_COUNT,
+  parseApprovedFoundationsAssessment,
+  scoreFoundationsAssessment
+} from '../dist/learn-foundations-characterization/features/learn/foundations/assessment/assessment-contract.js';
+
+const CANONICAL_ASSESSMENT_MARKDOWN = readFileSync(
+  new URL('../../../docs/content/foundations/v1/en/FINAL_ASSESSMENT.md', import.meta.url),
+  'utf8'
+);
 
 const EXPECTED_LESSON_IDS = [
   'foundations.natal_chart',
@@ -50,6 +63,22 @@ const EXPECTED_LESSON_IDS = [
 ];
 
 const EXPECTED_LOCALES = ['en', 'es', 'fr', 'de', 'ja', 'ko', 'zh-Hant'];
+const EXPECTED_ASSESSMENT_IDS = [
+  'foundations.final_check.q01.chart_fact_interpretation',
+  'foundations.final_check.q02.sign_constellation_distinction',
+  'foundations.final_check.q03.unknown_birth_time',
+  'foundations.final_check.q04.local_time_and_timezone',
+  'foundations.final_check.q05.planet_sign_house_synthesis',
+  'foundations.final_check.q06.major_aspect_geometry',
+  'foundations.final_check.q07.houses_angles_cusps',
+  'foundations.final_check.q08.prioritization_and_synthesis',
+  'foundations.final_check.q09.precision_is_not_validation',
+  'foundations.final_check.q10.responsible_use'
+];
+
+function wrongAnswer(question) {
+  return question.options.find((option) => option.id !== question.correctAnswerId).id;
+}
 
 test('the Foundations registry contains one course and the exact frozen lesson backbone', () => {
   assert.deepEqual(FOUNDATIONS_COURSE, {
@@ -383,4 +412,64 @@ test('professional vocabulary resolves through the shared production glossary', 
   assert.equal(resolveAstrologyTerm('body.sun', 'ja').displayTerm, '太陽');
   assert.equal(resolveAstrologyTerm('body.sun', 'ja').fallbackUsed, false);
   assert.equal(resolveAstrologyTerm('body.sun', 'ja').availability, 'LOCALIZED_APPROVED_CURRENT');
+});
+
+test('the approved canonical assessment is loaded from one artifact with the frozen contract', () => {
+  const assessment = parseApprovedFoundationsAssessment(CANONICAL_ASSESSMENT_MARKDOWN);
+
+  assert.equal(assessment.locale, 'en');
+  assert.equal(assessment.checkId, FOUNDATIONS_FINAL_ASSESSMENT_ID);
+  assert.equal(assessment.contentState, 'APPROVED');
+  assert.equal(assessment.currentness, 'CURRENT');
+  assert.equal(assessment.runtimeAvailability, 'AVAILABLE');
+  assert.equal(assessment.questionCount, FOUNDATIONS_FINAL_ASSESSMENT_QUESTION_COUNT);
+  assert.equal(assessment.passThreshold, FOUNDATIONS_FINAL_ASSESSMENT_PASS_THRESHOLD);
+  assert.equal(assessment.retryPolicy, 'unlimited');
+  assert.deepEqual(assessment.questions.map((question) => question.id), EXPECTED_ASSESSMENT_IDS);
+  assert.deepEqual(assessment.questions.map((question) => question.correctAnswerId), [
+    'C', 'B', 'A', 'D', 'B', 'C', 'A', 'D', 'C', 'B'
+  ]);
+  assert.equal(assessment.questions.every((question) => question.options.length === 4), true);
+  assert.equal(Object.isFrozen(assessment), true);
+  assert.equal(Object.isFrozen(assessment.questions), true);
+  assert.equal(Object.isFrozen(assessment.questions[0]), true);
+  assert.equal(Object.isFrozen(assessment.questions[0].options), true);
+});
+
+test('assessment scoring enforces answer identity, threshold, retryability, and no lesson/Core side effects', () => {
+  const assessment = parseApprovedFoundationsAssessment(CANONICAL_ASSESSMENT_MARKDOWN);
+  const initialProgress = createInitialFoundationsProgress();
+  const correctAnswers = Object.fromEntries(
+    assessment.questions.map((question) => [question.id, question.correctAnswerId])
+  );
+  const sevenAnswers = Object.fromEntries(
+    assessment.questions.map((question, index) => [
+      question.id,
+      index < 7 ? question.correctAnswerId : wrongAnswer(question)
+    ])
+  );
+  const eightAnswers = Object.fromEntries(
+    assessment.questions.map((question, index) => [
+      question.id,
+      index < 8 ? question.correctAnswerId : wrongAnswer(question)
+    ])
+  );
+
+  assert.equal(scoreFoundationsAssessment(assessment, correctAnswers).score, 10);
+  assert.equal(scoreFoundationsAssessment(assessment, correctAnswers).passed, true);
+  assert.equal(scoreFoundationsAssessment(assessment, eightAnswers).score, 8);
+  assert.equal(scoreFoundationsAssessment(assessment, eightAnswers).passed, true);
+  assert.equal(scoreFoundationsAssessment(assessment, sevenAnswers).score, 7);
+  assert.equal(scoreFoundationsAssessment(assessment, sevenAnswers).passed, false);
+  assert.equal(scoreFoundationsAssessment(assessment, { score: 10 }).score, 0);
+  assert.equal(scoreFoundationsAssessment(assessment, {}).answeredCount, 0);
+
+  const firstAttempt = scoreFoundationsAssessment(assessment, sevenAnswers);
+  const retryAttempt = scoreFoundationsAssessment(assessment, correctAnswers);
+  assert.equal(firstAttempt.passed, false);
+  assert.equal(retryAttempt.passed, true);
+  assert.deepEqual(initialProgress, createInitialFoundationsProgress());
+  assert.equal(Object.isFrozen(retryAttempt), true);
+  assert.equal(Object.isFrozen(retryAttempt.answers), true);
+  assert.equal(Object.isFrozen(retryAttempt.correctQuestionIds), true);
 });

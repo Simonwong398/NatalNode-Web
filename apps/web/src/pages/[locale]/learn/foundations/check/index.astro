@@ -1,0 +1,54 @@
+---
+import FoundationsAssessmentExperience from '@/features/learn/foundations/assessment/FoundationsAssessmentExperience';
+import { FOUNDATIONS_FINAL_ASSESSMENT } from '@/features/learn/foundations/assessment/canonical-assessment';
+import { getFoundationsUiMessages } from '@/features/learn/foundations/ui';
+import SiteLayout from '@/layouts/SiteLayout.astro';
+import {
+  getLocalizedPath,
+  getLocaleStaticPaths,
+  parseSupportedLocale
+} from '@/lib/localization';
+import type { SeoMetadata } from '@/lib/seo';
+
+export const getStaticPaths = getLocaleStaticPaths;
+
+const locale = parseSupportedLocale(Astro.params.locale);
+if (locale === null) {
+  throw new Error('Unsupported locale route parameter');
+}
+
+const ui = getFoundationsUiMessages(locale);
+const seo: SeoMetadata = {
+  title: `${ui['learn.foundations.finalAssessment']} | ${ui['learn.foundations.title']} | NatalNode`,
+  description: ui['learn.foundations.finalAssessmentDescription'],
+  canonical: getLocalizedPath(locale, '/learn/foundations/check/')
+};
+---
+
+<SiteLayout seo={seo}>
+  <main class="nn-container nn-container--editorial pb-20 pt-8 sm:pb-24 sm:pt-12">
+    <a
+      class="nn-button nn-button--quiet -ml-3 mb-8 w-fit"
+      href={getLocalizedPath(locale, '/learn/foundations/')}
+    >
+      ← {ui['learn.foundations.backToCourse']}
+    </a>
+
+    {locale === 'en' ? (
+      <FoundationsAssessmentExperience assessment={FOUNDATIONS_FINAL_ASSESSMENT} client:load />
+    ) : (
+      <section aria-labelledby="foundations-final-assessment-title" class="grid gap-5">
+        <p class="nn-eyebrow">{ui['learn.foundations.finalAssessment']}</p>
+        <h1 class="nn-type-page-title" id="foundations-final-assessment-title">
+          {ui['learn.foundations.finalAssessment']}
+        </h1>
+        <p class="nn-type-body max-w-3xl">
+          {ui['learn.foundations.finalAssessmentDescription']}
+        </p>
+        <p class="nn-notice nn-notice--research max-w-3xl" role="status">
+          {ui['learn.foundations.finalAssessmentUnavailable']}
+        </p>
+      </section>
+    )}
+  </main>
+</SiteLayout>

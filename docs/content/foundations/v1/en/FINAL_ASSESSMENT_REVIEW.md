@@ -1,29 +1,32 @@
 ---
 title: "Foundations V1 Final Assessment Review Manifest"
+locale: en
 courseId: foundations.v1
 courseVersion: v1
 checkId: foundations.v1.final_check
 canonicalLocale: en
 contentRevision: 1
-contentState: REVIEW
+contentState: APPROVED
 currentness: CURRENT
-runtimeAvailability: UNAVAILABLE
+runtimeAvailability: AVAILABLE
 documentKind: ASSESSMENT_REVIEW_MANIFEST
 questionCount: 10
 passThreshold: "8/10"
 retryPolicy: unlimited
-finalVerdict: READY_FOR_OWNER_APPROVAL
+productOwnerApproval: YES
+runtimeAdmission: YES
+finalVerdict: APPROVED_FOR_RUNTIME
 ---
 
 # Foundations V1 Final Assessment Review Manifest
 
 ## Scope and contract
 
-This manifest records the independent review of the canonical-English Foundations V1 final assessment authored in `FINAL_ASSESSMENT.md`. The review covers content quality and the frozen product boundary only. It does not approve or implement assessment runtime behavior.
+This manifest records the independent review of the canonical-English Foundations V1 final assessment authored in `FINAL_ASSESSMENT.md`, followed by the Product Owner's explicit approval of revision 1 and authorization of its canonical-English runtime. The review covers content quality and the frozen product boundary; runtime implementation is recorded separately in the focused Web source files.
 
 The assessment contract is fixed at exactly ten questions, an 8/10 pass threshold, and unlimited retries. It is not certification. It is separate from lesson completion, and it is not required for Foundations Core readiness. A future reward system may treat a passing result as an eligibility input, but no reward behavior is approved or implemented here.
 
-The assessment remains `contentState: REVIEW`, `currentness: CURRENT`, and `runtimeAvailability: UNAVAILABLE`. Product Owner approval is pending. Runtime admission is not part of this task.
+The canonical-English assessment is `contentState: APPROVED`, `currentness: CURRENT`, and `runtimeAvailability: AVAILABLE`. Product Owner approval is `YES` for canonical English revision 1 only. The six localized adaptations remain unapproved and unavailable; reward entitlement/product policy is not expanded by this approval.
 
 ## Independent review method
 
@@ -115,7 +118,9 @@ The file contains content only. It does not create assessment runtime, UI, scori
 
 ## Approval and runtime gate
 
-The assessment content is `READY_FOR_OWNER_APPROVAL`. Product Owner approval: `NO` pending the owner's decision. Runtime admission: `NO`. Assessment runtime implementation: `NO`. Reward approval: `NO`.
+The assessment content passed independent review with zero findings. The Product Owner explicitly approved the exact canonical-English revision 1 represented by `FINAL_ASSESSMENT.md`. Product Owner approval: `YES` for canonical English only. Runtime admission: `YES` for the canonical English artifact. Assessment runtime implementation: `YES` through the bounded browser-only runtime recorded by `WEB-LEARN-010`. Reward approval: `NO`; this approval does not authorize entitlement mutation, claim behavior, or commercial policy expansion.
+
+The runtime consumes this approved Markdown artifact through the existing Astro Markdown `rawContent` mechanism and validates its identity, revision, question count, answer IDs, answer key, and frozen metadata at build time. The browser can calculate a presentation result from selected answer IDs, but no browser result is persisted or accepted as reward authority. Attempt persistence and server scoring remain deferred by the learning architecture.
 
 ## Exact files
 
@@ -124,4 +129,4 @@ The assessment content is `READY_FOR_OWNER_APPROVAL`. Product Owner approval: `N
 
 ## Final verdict
 
-`READY_FOR_OWNER_APPROVAL`
+`APPROVED_FOR_RUNTIME`

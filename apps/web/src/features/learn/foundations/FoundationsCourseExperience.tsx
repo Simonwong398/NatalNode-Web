@@ -222,9 +222,23 @@ export default function FoundationsCourseExperience({
         </ol>
       </section>
 
-      <p className="nn-notice nn-notice--info" role="note">
-        {message(ui, 'learn.foundations.finalCheckComingLater')}
-      </p>
+      <section aria-labelledby="foundations-final-assessment-title" className="nn-surface grid gap-4 p-5 sm:p-6">
+        <div className="grid gap-2">
+          <p className="nn-eyebrow">{message(ui, 'learn.foundations.finalAssessment')}</p>
+          <h2 className="nn-type-section-title" id="foundations-final-assessment-title">
+            {message(ui, 'learn.foundations.finalAssessment')}
+          </h2>
+          <p className="nn-type-body-small max-w-3xl">
+            {message(ui, 'learn.foundations.finalAssessmentDescription')}
+          </p>
+        </div>
+        <a
+          className="nn-button nn-button--secondary w-fit"
+          href={getLocalizedPath(locale, '/learn/foundations/check/')}
+        >
+          {message(ui, 'learn.foundations.openFinalAssessment')}
+        </a>
+      </section>
     </section>
   );
 }
