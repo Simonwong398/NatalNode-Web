@@ -3,7 +3,7 @@ title: "Foundations V1 Lessons 01–03 Review Manifest"
 courseId: foundations.v1
 courseVersion: v1
 canonicalLocale: en
-contentRevision: 2
+contentRevision: 3
 publicationStatus: REVIEW
 productionAdmission: NOT_APPROVED
 documentKind: CONTENT_REVIEW_MANIFEST
@@ -13,7 +13,7 @@ documentKind: CONTENT_REVIEW_MANIFEST
 
 ## Review status and boundary
 
-This manifest records the research and editorial review boundary for exactly three canonical-English Class C lesson drafts. It is a review artifact, not runtime content and not a publication approval. The three drafts use the frozen Foundations identities `foundations.v1`, `v1`, `en`, and content revision `2`.
+This manifest records the research and editorial review boundary for exactly three canonical-English Class C lesson drafts. It is a review artifact, not runtime content and not a publication approval. The three drafts use the frozen Foundations identities `foundations.v1`, `v1`, and `en`; Lesson 01 is at content revision `3`, while Lessons 02 and 03 remain at content revision `2`.
 
 The editorial revision is complete for this batch. It teaches the astrology first, keeps the astronomy/astrology boundary clear, and remains pending final editorial approval.
 
@@ -42,7 +42,7 @@ The four public curriculum references from WEB-LEARN-001C were reused for this e
 
 ## Public source and evidence-lane matrix
 
-The source lists in each lesson carry the required title, organization/author, URL, source type, and claim note. The following matrix summarizes their role.
+Each lesson's source section uses concise bullets with the source title, organization/author, URL, and a short relevance description. The following matrix summarizes their evidence-lane role.
 
 | Lesson | Astrology education/reference sources | Astronomy/time/technical sources | NatalNode internal sources |
 | --- | --- | --- | --- |
@@ -59,6 +59,7 @@ The three evidence lanes remain separate:
 ## Editorial revision record
 
 - Editorial revision completed for Lessons 01–03; all three remain canonical-English Class C review drafts.
+- Lesson 01's synthetic example now states 15° Taurus and 15° Leo, preserving a geometrically coherent square aspect while keeping the example non-personal.
 - Lesson 02 title changed to **The Zodiac: Elements and Modes** without changing its semantic lesson ID.
 - Polarity was removed as a primary lesson axis and reduced to a short optional school-level note. No glossary expansion or polarity semantic ID was added.
 - Lesson 02 now teaches conventional interpretive vocabulary for Fire, Earth, Air, Water, Cardinal, Fixed, and Mutable, including an element × mode synthesis exercise.
@@ -139,13 +140,18 @@ The generic words “body,” “zodiac sign,” “angle,” and “house” in
 
 ## Publication and runtime gate
 
-All three lesson files declare:
+The lesson files declare the following content revisions:
 
 ```text
-courseId              = foundations.v1
-courseVersion         = v1
-canonicalLocale       = en
+Lesson 01:
+contentRevision       = 3
+canonicalContentRevision = 3
+
+Lessons 02–03:
 contentRevision       = 2
+canonicalContentRevision = 2
+
+All three:
 contentState          = REVIEW
 publicationStatus     = REVIEW
 productionAdmission   = NOT_APPROVED

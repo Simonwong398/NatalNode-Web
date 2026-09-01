@@ -4,8 +4,8 @@ courseId: foundations.v1
 courseVersion: v1
 lessonId: foundations.natal_chart
 canonicalLocale: en
-contentRevision: 2
-canonicalContentRevision: 2
+contentRevision: 3
+canonicalContentRevision: 3
 contentState: REVIEW
 currentness: CURRENT
 publicationStatus: REVIEW
@@ -75,8 +75,8 @@ These terms describe different layers of a chart. They do not promise that every
 
 Imagine a synthetic teaching card—not a real person's chart or a NatalNode calculation—with these labels:
 
-- the Sun in Taurus;
-- the Moon in Gemini;
+- the Sun at 15° Taurus;
+- the Moon at 15° Leo;
 - the Ascendant in Virgo;
 - a fourth house beginning in Sagittarius; and
 - a square aspect listed between the Sun and Moon.
