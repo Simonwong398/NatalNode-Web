@@ -63,6 +63,10 @@ function problem(context: Context, code: Parameters<typeof createProblemDetailsC
   return createProblemDetailsContextResponse(context, { code });
 }
 
+function isInvalidCommunityCursor(error: unknown): boolean {
+  return error instanceof Error && error.message === 'Community cursor is invalid.';
+}
+
 function isApplicationJson(request: Request): boolean {
   const contentType = request.headers.get('content-type');
 
@@ -293,8 +297,10 @@ export function registerCommunityRoutes(
         questions: page.questions.map(presentCommunityQuestion),
         nextCursor: page.nextCursor
       });
-    } catch (_error) {
-      return internalError(context);
+    } catch (error) {
+      return isInvalidCommunityCursor(error)
+        ? invalid(context)
+        : internalError(context);
     }
   });
 
@@ -428,7 +434,7 @@ export function registerCommunityRoutes(
       const principal = context.get('authenticatedPrincipal');
       try {
         const existing = await repository.getQuestionRecord(questionId);
-        if (existing === null || existing.status === 'DELETED') {
+        if (existing === null || existing.status !== 'VISIBLE') {
           return notFound(context);
         }
         if (existing.authorUserId !== principal.userId) {
@@ -558,11 +564,15 @@ export function registerCommunityRoutes(
       const principal = context.get('authenticatedPrincipal');
       try {
         const existing = await repository.getAnswerRecord(answerId);
-        if (existing === null || existing.status === 'DELETED') {
+        if (existing === null || existing.status !== 'VISIBLE') {
           return notFound(context);
         }
         if (existing.authorUserId !== principal.userId) {
           return forbidden(context);
+        }
+        const parentQuestion = await repository.getQuestionRecord(existing.questionId);
+        if (parentQuestion === null || parentQuestion.status !== 'VISIBLE') {
+          return notFound(context);
         }
 
         const answer = await repository.updateAnswer({

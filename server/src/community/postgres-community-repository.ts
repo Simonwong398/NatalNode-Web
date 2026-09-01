@@ -268,6 +268,15 @@ const DELETE_QUESTION_BY_OWNER_SQL = `
     AND status <> 'DELETED'
   RETURNING question_id`;
 
+const DELETE_ANSWERS_BY_QUESTION_SQL = `
+  UPDATE community_answers
+  SET status = 'DELETED',
+      deleted_at = COALESCE(deleted_at, $2),
+      retention_expires_at = COALESCE(retention_expires_at, $3),
+      updated_at = $2
+  WHERE question_id = $1
+    AND status <> 'DELETED'`;
+
 const DELETE_ANSWER_BY_OWNER_SQL = `
   UPDATE community_answers
   SET status = 'DELETED',
@@ -325,6 +334,9 @@ const INSERT_REPORT_SQL = `
     created_at
   )
   VALUES ($1, $2, $3, $4, $5, $6, 'OPEN', $7)
+  ON CONFLICT (reporter_user_id, target_type, target_id)
+    WHERE state = 'OPEN' AND reporter_user_id IS NOT NULL
+    DO NOTHING
   RETURNING
     report_id,
     reporter_user_id,
@@ -462,6 +474,14 @@ const DELETE_EMPTY_EXPIRED_QUESTIONS_SQL = `
   DELETE FROM community_questions AS q
   WHERE q.status = 'DELETED'
     AND q.content_purged_at IS NOT NULL
+    AND q.retention_hold = 'NONE'
+    AND NOT EXISTS (
+      SELECT 1
+      FROM community_reports AS r
+      WHERE r.target_type = 'QUESTION'
+        AND r.target_id = q.question_id
+        AND r.state = 'OPEN'
+    )
     AND NOT EXISTS (
       SELECT 1 FROM community_answers AS a WHERE a.question_id = q.question_id
     )
@@ -789,6 +809,11 @@ export class PostgresCommunityRepository implements CommunityRepository {
           input.deletedAt,
           input.retentionExpiresAt
         ]);
+        await executor.query<never>(DELETE_ANSWERS_BY_QUESTION_SQL, [
+          input.questionId,
+          input.deletedAt,
+          input.retentionExpiresAt
+        ]);
       }
 
       return 'deleted';
@@ -958,7 +983,7 @@ export class PostgresCommunityRepository implements CommunityRepository {
       const row = result.rows[0];
 
       if (row === undefined) {
-        throw new Error('Community report was not persisted.');
+        return { outcome: 'duplicate' };
       }
 
       return { outcome: 'created', report: mapReport(row) };
@@ -1042,7 +1067,10 @@ export class PostgresCommunityRepository implements CommunityRepository {
           return { outcome: 'not-found' };
         }
 
-        if (input.action === 'RESTORE' && target.status === 'DELETED') {
+        if (
+          target.status === 'DELETED' &&
+          (input.action === 'HIDE' || input.action === 'RESTORE')
+        ) {
           return { outcome: 'invalid-target' };
         }
 
@@ -1070,6 +1098,14 @@ export class PostgresCommunityRepository implements CommunityRepository {
               : DELETE_ACCEPTED_BY_ANSWER_SQL,
             [input.targetId]
           );
+
+          if (input.targetType === 'QUESTION') {
+            await executor.query<never>(DELETE_ANSWERS_BY_QUESTION_SQL, [
+              input.targetId,
+              input.createdAt,
+              input.retentionExpiresAt
+            ]);
+          }
         }
 
         await executor.query<never>(RESOLVE_TARGET_REPORTS_SQL, [

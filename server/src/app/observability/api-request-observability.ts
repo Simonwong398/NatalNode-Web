@@ -21,6 +21,7 @@ export type EndpointFamily =
   | 'account.export'
   | 'account.export.prepare'
   | 'account.notifications'
+  | 'community'
   | 'feedback'
   | 'vault.charts'
   | 'vault.chart'
@@ -103,6 +104,13 @@ export function classifyApiEndpointFamily(pathname: string): EndpointFamily {
     pathname.startsWith('/api/account/notifications/')
   ) {
     return 'account.notifications';
+  }
+  if (
+    pathname === '/api/account/community-profile' ||
+    pathname === '/api/community' ||
+    pathname.startsWith('/api/community/')
+  ) {
+    return 'community';
   }
   if (pathname === '/api/feedback') return 'feedback';
   if (pathname === '/api/vault/charts') return 'vault.charts';
