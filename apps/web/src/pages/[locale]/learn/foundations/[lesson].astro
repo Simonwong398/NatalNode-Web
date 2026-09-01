@@ -39,6 +39,11 @@ const canonicalEnglishVariant = getFoundationsContentVariant(lesson.lessonId, 'e
 const shouldRenderCanonicalContent =
   getFoundationsContentAvailability(canonicalEnglishVariant) === 'AVAILABLE' &&
   canonicalEnglishVariant?.contentKind === 'CANONICAL';
+const localizedVariant = getFoundationsContentVariant(lesson.lessonId, locale);
+const shouldRenderLocalizedContent =
+  locale !== 'en' &&
+  getFoundationsContentAvailability(localizedVariant) === 'AVAILABLE' &&
+  localizedVariant?.contentKind === 'CANONICAL';
 const ui = getFoundationsUiMessages(locale);
 const seo: SeoMetadata = {
   title: `${lesson.title} | ${ui['learn.foundations.title']} | NatalNode`,
@@ -58,7 +63,14 @@ const seo: SeoMetadata = {
       showEnglishContent={showEnglishContent}
       ui={ui}
     >
-      {shouldRenderCanonicalContent ? <FoundationsLessonContent lessonId={lesson.lessonId} /> : null}
+      {shouldRenderCanonicalContent ? (
+        <>
+          {shouldRenderLocalizedContent ? (
+            <FoundationsLessonContent lessonId={lesson.lessonId} locale={locale} />
+          ) : null}
+          <FoundationsLessonContent lessonId={lesson.lessonId} locale="en" />
+        </>
+      ) : null}
     </FoundationsLessonExperience>
   </main>
 </SiteLayout>

@@ -6,34 +6,40 @@ canonicalLocale: en
 locale: zh-Hant
 adaptationRevision: 1
 documentKind: LOCALE_ADAPTATION_REVIEW_MANIFEST
-contentState: REVIEW
+contentState: APPROVED
 currentness: CURRENT
-runtimeAvailability: UNAVAILABLE
+runtimeAvailability: AVAILABLE
 ---
 
 # Foundations V1 zh-Hant Lessons 04–06 Review Manifest
 
 ## 適配範圍與狀態邊界
 
-本 review manifest 記錄 Foundations V1 `zh-Hant` Lessons 04–06 的 Class C 專業內容適配與獨立審查。本批範圍恰好是第四至第六課；它不是 Product Owner 核准記錄，也不是 runtime 內容。
+本 review manifest 記錄 Foundations V1 `zh-Hant` Lessons 04–06 的 Class C 專業內容適配與獨立審查。本批範圍恰好是第四至第六課；它也記錄 `WEB-LEARN-007` 全課程 gate 後對 zh-Hant 01–12 的 Product Owner 核准，以及透過既有 runtime path 的 admission。
 
 三份適配稿都連結到固定的 `foundations.v1`、`v1`、`en` canonical identity，並以 `adaptationRevision: 1`（各 lesson 檔案的 `contentRevision: 1`）記錄本次適配。三份適配稿均為：
 
 ```text
-contentState         = REVIEW
+contentState         = APPROVED
 currentness          = CURRENT
-runtime availability = UNAVAILABLE
+runtime availability = AVAILABLE
 ```
 
-`UNAVAILABLE` 是由 `REVIEW` 狀態推導出的非發布結果。本批不修改 Foundations runtime registry、content loader、fallback、locale detection、路由或 runtime glossary。沒有 Product Owner approval，也沒有 runtime admission。
+`AVAILABLE` 是由 `APPROVED` 與 `CURRENT` 狀態推導出的發布結果。核准範圍只涵蓋 `zh-Hant` Foundations Lessons 01–12 的當前適配版本；其他 locale、assessment/reward 與其他產品行為不在核准範圍內。
+
+## Product Owner approval and runtime admission
+
+`WEB-LEARN-007` 的 zh-Hant 全課程 01–12 gate 已通過，最終結果為 `READY_FOR_OWNER_APPROVAL`，且 `BLOCKER`、`MAJOR`、`MINOR` 與 `EDITORIAL_NOTE` 均為 0。Product Owner 明確核准 `zh-Hant` Foundations Lessons 01–12 的當前適配版本；本批對應的核准版本為 Lesson 04 revision `1`、Lesson 05 revision `1`、Lesson 06 revision `1`，其 canonical revisions 均為 `1`。
+
+此核准只適用於 locale `zh-Hant`、course `foundations.v1` 的 12 課，不表示 `es`、`fr`、`de`、`ja` 或 `ko` 已獲核准，也不表示 assessment 或 reward 已獲核准。三課已透過現有 Foundations locale-aware runtime path admission；沒有新增 loader、renderer、fallback 或 runtime translation。
 
 ## 適配內容清單
 
 | 順序 | Lesson ID | zh-Hant 標題 | Canonical English 標題 | Canonical source revision | Adaptation revision | Content state | Currentness | Runtime availability |
 | ---: | --- | --- | --- | ---: | ---: | --- | --- | --- |
-| 4 | `foundations.sun_moon` | 太陽與月亮 | The Sun and Moon | 1 | 1 | `REVIEW` | `CURRENT` | `UNAVAILABLE` |
-| 5 | `foundations.mercury_venus_mars` | 水星、金星與火星 | Mercury, Venus, and Mars | 1 | 1 | `REVIEW` | `CURRENT` | `UNAVAILABLE` |
-| 6 | `foundations.jupiter_saturn_outer_planets` | 木星、土星與外行星 | Jupiter, Saturn, and the Outer Planets | 1 | 1 | `REVIEW` | `CURRENT` | `UNAVAILABLE` |
+| 4 | `foundations.sun_moon` | 太陽與月亮 | The Sun and Moon | 1 | 1 | `APPROVED` | `CURRENT` | `AVAILABLE` |
+| 5 | `foundations.mercury_venus_mars` | 水星、金星與火星 | Mercury, Venus, and Mars | 1 | 1 | `APPROVED` | `CURRENT` | `AVAILABLE` |
+| 6 | `foundations.jupiter_saturn_outer_planets` | 木星、土星與外行星 | Jupiter, Saturn, and the Outer Planets | 1 | 1 | `APPROVED` | `CURRENT` | `AVAILABLE` |
 
 精確的來源與適配稿對應：
 
@@ -163,15 +169,15 @@ runtime availability = UNAVAILABLE
 | `MINOR` | 0 | NONE |
 | `EDITORIAL_NOTE` | 0 | NONE |
 
-`Correction cycles: 0`。沒有觸發第二輪修正，也沒有 lesson 的 adaptation revision 增加。04–06 批次獨立審查結論為 `PASS`，但內容仍保持 `REVIEW`、`CURRENT`、`UNAVAILABLE`，等待 Product Owner 的後續決策。
+`Correction cycles: 0`。沒有觸發第二輪修正，也沒有 lesson 的 adaptation revision 增加。04–06 批次獨立審查結論為 `PASS`；在 `WEB-LEARN-007` 全課程 gate 後，內容依 Product Owner 核准轉為 `APPROVED`、`CURRENT`、`AVAILABLE`。
 
 ## 發布與範圍安全
 
 | 檢查項目 | 結果 |
 | --- | --- |
-| Product Owner approval claimed | NO |
-| Runtime admission performed | NO |
-| Runtime Learn source、registry、loader、route changed | NO |
+| Product Owner approval claimed | YES — zh-Hant Lessons 01–12 only |
+| Runtime admission performed | YES — existing Foundations locale-aware path |
+| Runtime Learn source、registry、loader、route changed | YES — shared locale-aware path extended for zh-Hant only |
 | Fallback behavior changed | NO |
 | Runtime machine translation introduced | NO |
 | Automatic `zh-Hans` ↔ `zh-Hant` conversion performed | NO |
@@ -193,6 +199,10 @@ runtime availability = UNAVAILABLE
 3. `docs/content/foundations/v1/zh-Hant/06-jupiter-saturn-and-the-outer-planets.md`
 4. `docs/content/foundations/v1/zh-Hant/LESSONS_04_06_REVIEW.md`
 
+**04–06 approval and admission: PASS**
+
+這個 PASS 表示本批已完成既有獨立審查、`WEB-LEARN-007` 全課程 gate、Product Owner 對 zh-Hant 01–12 的明確核准，以及現有 runtime path admission。它不表示其他 locale、assessment 或 reward 已獲核准。
+
 **04–06 independent review: PASS**
 
-這個 PASS 只表示本批已完成內容適配與內部審查，不表示 Product Owner approval，不表示 runtime availability，也不改變後續 full-locale gate 的必要性。
+這個 PASS 表示本批已完成內容適配、內部審查、`WEB-LEARN-007` 全課程 gate、Product Owner 對 zh-Hant 01–12 的明確核准，以及現有 runtime path admission。它不表示其他 locale、assessment 或 reward 已獲核准。

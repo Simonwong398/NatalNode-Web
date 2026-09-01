@@ -6,34 +6,40 @@ canonicalLocale: en
 locale: zh-Hant
 adaptationRevision: 1
 documentKind: LOCALE_ADAPTATION_REVIEW_MANIFEST
-contentState: REVIEW
+contentState: APPROVED
 currentness: CURRENT
-runtimeAvailability: UNAVAILABLE
+runtimeAvailability: AVAILABLE
 ---
 
 # Foundations V1 zh-Hant Lessons 01–03 Review Manifest
 
 ## 適配範圍與狀態邊界
 
-本 review manifest 記錄 Foundations V1 首批 `zh-Hant` Class C 專業內容適配，範圍**恰好**是前三課。這是供獨立雙語、編輯與專業審查使用的審查記錄，不是 Product Owner 核准記錄，也不是 runtime 內容。
+本 review manifest 記錄 Foundations V1 首批 `zh-Hant` Class C 專業內容適配，範圍**恰好**是前三課。它保留獨立雙語、編輯與專業審查證據，並記錄本批在 `WEB-LEARN-007` 完成全課程 gate 後的 Product Owner 核准與既有 runtime path admission。
 
 三份適配稿都連結到固定的 `foundations.v1`、`v1`、`en` canonical identity，並以 `adaptationRevision: 1`（各 lesson 檔案的 `contentRevision: 1`）記錄本次適配。三份適配稿均為：
 
 ```text
-contentState         = REVIEW
+contentState         = APPROVED
 currentness          = CURRENT
-runtime availability = UNAVAILABLE
+runtime availability = AVAILABLE
 ```
 
-`UNAVAILABLE` 是由 `REVIEW` 狀態推導出的非發布結果；本批不修改 Foundations runtime registry、content loader、fallback、locale detection 或任何路由。沒有 Product Owner approval，也沒有 runtime admission。
+`AVAILABLE` 是由 `APPROVED` 與 `CURRENT` 狀態推導出的發布結果。核准範圍只涵蓋本批 `zh-Hant` 三課的既有適配版本；其他 locale、assessment/reward 與其他產品行為不在核准範圍內。
+
+## Product Owner approval and runtime admission
+
+`WEB-LEARN-007` 的 zh-Hant 全課程 01–12 gate 已通過，最終結果為 `READY_FOR_OWNER_APPROVAL`，且 `BLOCKER`、`MAJOR`、`MINOR` 與 `EDITORIAL_NOTE` 均為 0。Product Owner 明確核准 `zh-Hant` Foundations Lessons 01–12 的當前適配版本；本批對應的核准版本為 Lesson 01 revision `1`、Lesson 02 revision `1`、Lesson 03 revision `1`，其 canonical revisions 分別為 `3`、`2`、`2`。
+
+此核准只適用於 locale `zh-Hant`、course `foundations.v1` 的 12 課，不表示 `es`、`fr`、`de`、`ja` 或 `ko` 已獲核准，也不表示 assessment 或 reward 已獲核准。三課已透過現有 Foundations locale-aware runtime path admission；沒有新增 loader、renderer、fallback 或 runtime translation。
 
 ## 適配內容清單
 
 | 順序 | Lesson ID | zh-Hant 標題 | Canonical English 標題 | Canonical source revision | Adaptation revision | Content state | Currentness | Runtime availability |
 | ---: | --- | --- | --- | ---: | ---: | --- | --- | --- |
-| 1 | `foundations.natal_chart` | 本命盤究竟是什麼 | What a Natal Chart Actually Is | 3 | 1 | `REVIEW` | `CURRENT` | `UNAVAILABLE` |
-| 2 | `foundations.zodiac_structure` | 黃道：元素與模式 | The Zodiac: Elements and Modes | 2 | 1 | `REVIEW` | `CURRENT` | `UNAVAILABLE` |
-| 3 | `foundations.chart_calculation` | 天空如何成為命盤 | How the Sky Becomes a Chart | 2 | 1 | `REVIEW` | `CURRENT` | `UNAVAILABLE` |
+| 1 | `foundations.natal_chart` | 本命盤究竟是什麼 | What a Natal Chart Actually Is | 3 | 1 | `APPROVED` | `CURRENT` | `AVAILABLE` |
+| 2 | `foundations.zodiac_structure` | 黃道：元素與模式 | The Zodiac: Elements and Modes | 2 | 1 | `APPROVED` | `CURRENT` | `AVAILABLE` |
+| 3 | `foundations.chart_calculation` | 天空如何成為命盤 | How the Sky Becomes a Chart | 2 | 1 | `APPROVED` | `CURRENT` | `AVAILABLE` |
 
 精確的來源與適配稿對應：
 
@@ -149,15 +155,15 @@ The frozen Midheaven variant lists `天頂` as a historical/recognition alias, b
 
 | 檢查項目 | 結果 |
 | --- | --- |
-| Product Owner approval claimed | NO |
-| Runtime admission performed | NO |
+| Product Owner approval claimed | YES — zh-Hant Lessons 01–12 only |
+| Runtime admission performed | YES — existing Foundations locale-aware path |
 | Fallback behavior changed | NO |
 | Runtime machine translation introduced | NO |
 | Automatic `zh-Hans` ↔ `zh-Hant` conversion performed | NO |
 | Lessons 04–12 adapted or created | NO |
 | Another locale adapted or changed | NO |
 | English Lessons 01–12 changed | NO |
-| Runtime Learn source, registry, loader, or route changed | NO |
+| Runtime Learn source, registry, loader, or route changed | YES — shared locale-aware path extended for zh-Hant only |
 | Runtime glossary changed | NO |
 | UI/CSS/server/API/BFF/database/Auth/Vault/Commercial changed | NO |
 | Assessment, progress, or reward behavior changed | NO |
@@ -171,5 +177,9 @@ Exactly these four documentation files are intended for this task:
 2. `docs/content/foundations/v1/zh-Hant/02-the-zodiac-structure.md`
 3. `docs/content/foundations/v1/zh-Hant/03-how-the-sky-becomes-a-chart.md`
 4. `docs/content/foundations/v1/zh-Hant/LESSONS_01_03_REVIEW.md`
+
+**01–03 approval and admission: PASS**
+
+這個 PASS 表示本批已完成既有獨立審查、`WEB-LEARN-007` 全課程 gate、Product Owner 對 zh-Hant 01–12 的明確核准，以及現有 runtime path admission。它不表示其他 locale、assessment 或 reward 已獲核准。
 
 No `.gitkeep`, runtime source, route, style, package, test, API, BFF, database, migration, Engine, provider, fallback, or other locale file belongs to this batch. `C:\NatalNode` is outside the repository and is not part of this task.

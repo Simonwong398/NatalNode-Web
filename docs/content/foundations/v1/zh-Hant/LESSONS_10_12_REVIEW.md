@@ -6,34 +6,40 @@ canonicalLocale: en
 locale: zh-Hant
 adaptationRevision: 2
 documentKind: LOCALE_ADAPTATION_REVIEW_MANIFEST
-contentState: REVIEW
+contentState: APPROVED
 currentness: CURRENT
-runtimeAvailability: UNAVAILABLE
+runtimeAvailability: AVAILABLE
 ---
 
 # Foundations V1 zh-Hant Lessons 10–12 Review Manifest
 
 ## 適配範圍與狀態邊界
 
-本 review manifest 記錄 Foundations V1 `zh-Hant` Lessons 10–12 的 Class C 專業內容適配、獨立審查、一次 bounded correction cycle 與修正後複審。本批範圍恰好是第十至第十二課；它不是 Product Owner 核准記錄，也不是 runtime 內容。
+本 review manifest 記錄 Foundations V1 `zh-Hant` Lessons 10–12 的 Class C 專業內容適配、獨立審查、一次 bounded correction cycle 與修正後複審。本批範圍恰好是第十至第十二課；它也記錄 `WEB-LEARN-007` 全課程 gate 後對 zh-Hant 01–12 的 Product Owner 核准，以及透過既有 runtime path 的 admission。
 
 三份適配稿都連結到固定的 `foundations.v1`、`v1`、`en` canonical identity。初始適配從 `contentRevision: 1` 開始；獨立審查後完成一次內容／編輯修正，因此三份 lesson 目前均為 `contentRevision: 2`，而 `canonicalContentRevision` 均維持 `1`。三份適配稿均為：
 
 ```text
-contentState         = REVIEW
+contentState         = APPROVED
 currentness          = CURRENT
-runtime availability = UNAVAILABLE
+runtime availability = AVAILABLE
 ```
 
-`UNAVAILABLE` 是由 `REVIEW` 狀態推導出的非發布結果。本批不修改 Foundations runtime registry、content loader、fallback、locale detection、路由或 runtime glossary。沒有 Product Owner approval，也沒有 runtime admission。
+`AVAILABLE` 是由 `APPROVED` 與 `CURRENT` 狀態推導出的發布結果。核准範圍只涵蓋 `zh-Hant` Foundations Lessons 01–12 的當前適配版本；其他 locale、assessment/reward 與其他產品行為不在核准範圍內。
+
+## Product Owner approval and runtime admission
+
+`WEB-LEARN-007` 的 zh-Hant 全課程 01–12 gate 已通過，最終結果為 `READY_FOR_OWNER_APPROVAL`，且 `BLOCKER`、`MAJOR`、`MINOR` 與 `EDITORIAL_NOTE` 均為 0。Product Owner 明確核准 `zh-Hant` Foundations Lessons 01–12 的當前適配版本；本批對應的核准版本為 Lesson 10 revision `2`、Lesson 11 revision `2`、Lesson 12 revision `2`，其 canonical revisions 均為 `1`。
+
+此核准只適用於 locale `zh-Hant`、course `foundations.v1` 的 12 課，不表示 `es`、`fr`、`de`、`ja` 或 `ko` 已獲核准，也不表示 assessment 或 reward 已獲核准。三課已透過現有 Foundations locale-aware runtime path admission；沒有新增 loader、renderer、fallback 或 runtime translation。
 
 ## 適配內容清單
 
 | 順序 | Lesson ID | zh-Hant 標題 | Canonical English 標題 | Canonical source revision | Adaptation revision | Content state | Currentness | Runtime availability |
 | ---: | --- | --- | --- | ---: | ---: | --- | --- | --- |
-| 10 | `foundations.chart_priorities` | 命盤中什麼應該先看 | What Matters First in a Chart | 1 | 2 | `REVIEW` | `CURRENT` | `UNAVAILABLE` |
-| 11 | `foundations.whole_chart` | 整體閱讀命盤 | Reading the Chart as a Whole | 1 | 2 | `REVIEW` | `CURRENT` | `UNAVAILABLE` |
-| 12 | `foundations.responsible_astrology` | 負責任地使用占星術 | Using Astrology Responsibly | 1 | 2 | `REVIEW` | `CURRENT` | `UNAVAILABLE` |
+| 10 | `foundations.chart_priorities` | 命盤中什麼應該先看 | What Matters First in a Chart | 1 | 2 | `APPROVED` | `CURRENT` | `AVAILABLE` |
+| 11 | `foundations.whole_chart` | 整體閱讀命盤 | Reading the Chart as a Whole | 1 | 2 | `APPROVED` | `CURRENT` | `AVAILABLE` |
+| 12 | `foundations.responsible_astrology` | 負責任地使用占星術 | Using Astrology Responsibly | 1 | 2 | `APPROVED` | `CURRENT` | `AVAILABLE` |
 
 精確的來源與適配稿對應：
 
@@ -170,15 +176,15 @@ Foundations、product freeze、learning architecture 與 localization policy 的
 2. Lesson 11：將「按比例」改為「以相稱的方式」、重寫合成範例的事實句型、將 `競合主題` 改為 `對照主題`，並將來源說明中的非必要英文技術詞改為中文。
 3. Lesson 12：將示例與理解檢核中不自然的支持語句統一為「合格的專業支持」。
 
-`Correction cycles: 1`（低於每批最多兩次）。修正後重新檢視三份 canonical English 與 zh-Hant source，最終 finding set 為 `BLOCKER 0 / MAJOR 0 / MINOR 0 / EDITORIAL_NOTE 0`。三課 adaptation revision 因真實內容／編輯修正提升至 `2`；canonical revision 沒有提升。
+`Correction cycles: 1`（低於每批最多兩次）。修正後重新檢視三份 canonical English 與 zh-Hant source，最終 finding set 為 `BLOCKER 0 / MAJOR 0 / MINOR 0 / EDITORIAL_NOTE 0`。三課 adaptation revision 因真實內容／編輯修正提升至 `2`；canonical revision 沒有提升。`WEB-LEARN-007` gate 與 Product Owner 核准後，本批狀態為 `APPROVED`、`CURRENT`、`AVAILABLE`。
 
 ## 發布與範圍安全
 
 | 檢查項目 | 結果 |
 | --- | --- |
-| Product Owner approval claimed | NO |
-| Runtime admission performed | NO |
-| Runtime Learn source、registry、loader、route changed | NO |
+| Product Owner approval claimed | YES — zh-Hant Lessons 01–12 only |
+| Runtime admission performed | YES — existing Foundations locale-aware path |
+| Runtime Learn source、registry、loader、route changed | YES — shared locale-aware path extended for zh-Hant only |
 | Fallback behavior changed | NO |
 | Runtime machine translation introduced | NO |
 | Automatic `zh-Hans` ↔ `zh-Hant` conversion performed | NO |
@@ -200,6 +206,10 @@ Foundations、product freeze、learning architecture 與 localization policy 的
 3. `docs/content/foundations/v1/zh-Hant/12-using-astrology-responsibly.md`
 4. `docs/content/foundations/v1/zh-Hant/LESSONS_10_12_REVIEW.md`
 
+**10–12 approval and admission: PASS**
+
+這個 PASS 表示本批已完成既有獨立審查、`WEB-LEARN-007` 全課程 gate、Product Owner 對 zh-Hant 01–12 的明確核准，以及現有 runtime path admission。它不表示其他 locale、assessment 或 reward 已獲核准。
+
 **10–12 independent review: PASS**
 
-這個 PASS 只表示本批已完成內容適配、一次 bounded correction cycle 與修正後複審，不表示 Product Owner approval，不表示 runtime availability，也不改變後續 full-locale gate 的必要性。
+這個 PASS 表示本批已完成內容適配、一次 bounded correction cycle、修正後複審、`WEB-LEARN-007` 全課程 gate、Product Owner 對 zh-Hant 01–12 的明確核准，以及現有 runtime path admission。它不表示其他 locale、assessment 或 reward 已獲核准。

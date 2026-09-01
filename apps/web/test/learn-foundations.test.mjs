@@ -231,7 +231,7 @@ test('browser storage is best effort and serialization contains only minimal pro
   assert.deepEqual(JSON.parse(serializeFoundationsProgress(progress)), persisted);
 });
 
-test('content governance admits only approved canonical English lessons and never silently falls back', () => {
+test('content governance admits canonical English and approved zh-Hant without silent fallback', () => {
   assert.equal(isFoundationsCoreReady(), false);
 
   const admittedRevisions = new Map([
@@ -270,7 +270,7 @@ test('content governance admits only approved canonical English lessons and neve
       assert.equal(english.contentKind, 'SCAFFOLD');
     }
 
-    for (const locale of EXPECTED_LOCALES.slice(1)) {
+    for (const locale of EXPECTED_LOCALES.slice(1, -1)) {
       const variant = FOUNDATIONS_CONTENT_VARIANTS[lesson.lessonId][locale];
       assert.equal(variant.contentState, 'MISSING');
       assert.equal(variant.currentness, 'OUTDATED');
@@ -278,6 +278,13 @@ test('content governance admits only approved canonical English lessons and neve
       assert.equal('learningObjectives' in variant, false);
       assert.notEqual(variant.locale, 'en');
     }
+
+    const zhHant = FOUNDATIONS_CONTENT_VARIANTS[lesson.lessonId]['zh-Hant'];
+    assert.equal(zhHant.contentState, 'APPROVED');
+    assert.equal(zhHant.currentness, 'CURRENT');
+    assert.equal(zhHant.contentKind, 'CANONICAL');
+    assert.equal(getFoundationsContentAvailability(zhHant), 'AVAILABLE');
+    assert.equal(zhHant.locale, 'zh-Hant');
   }
 
   const english = getFoundationsContentVariant(EXPECTED_LESSON_IDS[0], 'en');
@@ -286,6 +293,10 @@ test('content governance admits only approved canonical English lessons and neve
   assert.equal(getFoundationsContentAvailability(english), 'AVAILABLE');
   assert.equal(getFoundationsContentAvailability(spanish), 'UNAVAILABLE');
   assert.notEqual(spanish.locale, 'en');
+
+  const zhHant = getFoundationsContentVariant(EXPECTED_LESSON_IDS[0], 'zh-Hant');
+  assert.equal(zhHant.contentKind, 'CANONICAL');
+  assert.equal(getFoundationsContentAvailability(zhHant), 'AVAILABLE');
 
   for (const contentState of ['DRAFT', 'REVIEW', 'APPROVED']) {
     assert.equal(
@@ -315,13 +326,19 @@ test('the final canonical-English batch is admitted without changing locale or c
     assert.equal(english?.canonicalContentRevision, 1);
     assert.equal(getFoundationsContentAvailability(english), 'AVAILABLE');
 
-    for (const locale of EXPECTED_LOCALES.slice(1)) {
+    for (const locale of EXPECTED_LOCALES.slice(1, -1)) {
       const localized = getFoundationsContentVariant(lessonId, locale);
       assert.equal(localized?.locale, locale);
       assert.equal(localized?.contentState, 'MISSING');
       assert.equal(localized?.currentness, 'OUTDATED');
       assert.equal(getFoundationsContentAvailability(localized), 'UNAVAILABLE');
     }
+
+    const zhHant = getFoundationsContentVariant(lessonId, 'zh-Hant');
+    assert.equal(zhHant?.contentState, 'APPROVED');
+    assert.equal(zhHant?.currentness, 'CURRENT');
+    assert.equal(zhHant?.contentKind, 'CANONICAL');
+    assert.equal(getFoundationsContentAvailability(zhHant), 'AVAILABLE');
   }
 
   const canonicalEnglishCount = FOUNDATIONS_LESSONS.filter((lesson) => {

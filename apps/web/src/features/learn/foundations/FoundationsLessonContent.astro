@@ -11,13 +11,27 @@ import LessonNine from '../../../../../../docs/content/foundations/v1/en/09-aspe
 import LessonTen from '../../../../../../docs/content/foundations/v1/en/10-what-matters-first-in-a-chart.md';
 import LessonEleven from '../../../../../../docs/content/foundations/v1/en/11-reading-the-chart-as-a-whole.md';
 import LessonTwelve from '../../../../../../docs/content/foundations/v1/en/12-using-astrology-responsibly.md';
+import LessonOneZhHant from '../../../../../../docs/content/foundations/v1/zh-Hant/01-what-a-natal-chart-actually-is.md';
+import LessonTwoZhHant from '../../../../../../docs/content/foundations/v1/zh-Hant/02-the-zodiac-structure.md';
+import LessonThreeZhHant from '../../../../../../docs/content/foundations/v1/zh-Hant/03-how-the-sky-becomes-a-chart.md';
+import LessonFourZhHant from '../../../../../../docs/content/foundations/v1/zh-Hant/04-the-sun-and-moon.md';
+import LessonFiveZhHant from '../../../../../../docs/content/foundations/v1/zh-Hant/05-mercury-venus-and-mars.md';
+import LessonSixZhHant from '../../../../../../docs/content/foundations/v1/zh-Hant/06-jupiter-saturn-and-the-outer-planets.md';
+import LessonSevenZhHant from '../../../../../../docs/content/foundations/v1/zh-Hant/07-the-twelve-houses-and-the-angles.md';
+import LessonEightZhHant from '../../../../../../docs/content/foundations/v1/zh-Hant/08-planet-sign-house.md';
+import LessonNineZhHant from '../../../../../../docs/content/foundations/v1/zh-Hant/09-aspects-relationships-between-planets.md';
+import LessonTenZhHant from '../../../../../../docs/content/foundations/v1/zh-Hant/10-what-matters-first-in-a-chart.md';
+import LessonElevenZhHant from '../../../../../../docs/content/foundations/v1/zh-Hant/11-reading-the-chart-as-a-whole.md';
+import LessonTwelveZhHant from '../../../../../../docs/content/foundations/v1/zh-Hant/12-using-astrology-responsibly.md';
+import type { SupportedLocale } from '../../../lib/localization';
 import type { FoundationsLessonId } from './registry';
 
 interface Props {
   lessonId: FoundationsLessonId;
+  locale: SupportedLocale;
 }
 
-const { lessonId } = Astro.props;
+const { lessonId, locale } = Astro.props;
 
 const canonicalContentByLessonId = {
   'foundations.natal_chart': LessonOne,
@@ -34,13 +48,45 @@ const canonicalContentByLessonId = {
   'foundations.responsible_astrology': LessonTwelve
 } as const;
 
-const Content = canonicalContentByLessonId[lessonId as keyof typeof canonicalContentByLessonId];
+const zhHantContentByLessonId = {
+  'foundations.natal_chart': LessonOneZhHant,
+  'foundations.zodiac_structure': LessonTwoZhHant,
+  'foundations.chart_calculation': LessonThreeZhHant,
+  'foundations.sun_moon': LessonFourZhHant,
+  'foundations.mercury_venus_mars': LessonFiveZhHant,
+  'foundations.jupiter_saturn_outer_planets': LessonSixZhHant,
+  'foundations.houses_angles': LessonSevenZhHant,
+  'foundations.planet_sign_house': LessonEightZhHant,
+  'foundations.aspects': LessonNineZhHant,
+  'foundations.chart_priorities': LessonTenZhHant,
+  'foundations.whole_chart': LessonElevenZhHant,
+  'foundations.responsible_astrology': LessonTwelveZhHant
+} as const;
+
+const contentByLocale = {
+  en: canonicalContentByLessonId,
+  'zh-Hant': zhHantContentByLessonId
+} as const;
+
+const localeContent = contentByLocale[locale as keyof typeof contentByLocale];
+const Content = localeContent?.[lessonId as keyof typeof localeContent];
 
 if (Content === undefined) {
-  throw new Error('Canonical Foundations content is unavailable for this lesson');
+  throw new Error(`Foundations content is unavailable for ${locale}`);
 }
 ---
 
-<div class="content-prose max-w-reading">
+<div class="content-prose max-w-reading" data-foundations-content-variant={locale}>
   <Content />
 </div>
+
+<script>
+  const contentVariants = document.querySelectorAll<HTMLElement>('[data-foundations-content-variant]');
+  const requestedLocale = new URLSearchParams(window.location.search).get('contentLocale');
+  const defaultLocale = contentVariants[0]?.dataset.foundationsContentVariant ?? 'en';
+  const visibleLocale = requestedLocale === 'en' ? 'en' : defaultLocale;
+
+  for (const contentVariant of contentVariants) {
+    contentVariant.hidden = contentVariant.dataset.foundationsContentVariant !== visibleLocale;
+  }
+</script>

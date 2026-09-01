@@ -6,34 +6,40 @@ canonicalLocale: en
 locale: zh-Hant
 adaptationRevision: 3
 documentKind: LOCALE_ADAPTATION_REVIEW_MANIFEST
-contentState: REVIEW
+contentState: APPROVED
 currentness: CURRENT
-runtimeAvailability: UNAVAILABLE
+runtimeAvailability: AVAILABLE
 ---
 
 # Foundations V1 zh-Hant Lessons 07–09 Review Manifest
 
 ## 適配範圍與狀態邊界
 
-本 review manifest 記錄 Foundations V1 `zh-Hant` Lessons 07–09 的 Class C 專業內容適配、獨立審查、兩次 bounded correction cycles 與修正後複審。本批範圍恰好是第七至第九課；它不是 Product Owner 核准記錄，也不是 runtime 內容。
+本 review manifest 記錄 Foundations V1 `zh-Hant` Lessons 07–09 的 Class C 專業內容適配、獨立審查、兩次 bounded correction cycles 與修正後複審。本批範圍恰好是第七至第九課；它也記錄 `WEB-LEARN-007` 全課程 gate 後對 zh-Hant 01–12 的 Product Owner 核准，以及透過既有 runtime path 的 admission。
 
 三份適配稿都連結到固定的 `foundations.v1`、`v1`、`en` canonical identity。初始適配從 `contentRevision: 1` 開始；獨立審查後完成一次內容修正，full-locale gate 再完成一次跨課程術語對齊。因此 Lesson 07 目前為 `contentRevision: 3`，Lessons 08–09 為 `contentRevision: 2`，而三份的 `canonicalContentRevision` 均維持 `1`。三份適配稿均為：
 
 ```text
-contentState         = REVIEW
+contentState         = APPROVED
 currentness          = CURRENT
-runtime availability = UNAVAILABLE
+runtime availability = AVAILABLE
 ```
 
-`UNAVAILABLE` 是由 `REVIEW` 狀態推導出的非發布結果。本批不修改 Foundations runtime registry、content loader、fallback、locale detection、路由或 runtime glossary。沒有 Product Owner approval，也沒有 runtime admission。
+`AVAILABLE` 是由 `APPROVED` 與 `CURRENT` 狀態推導出的發布結果。核准範圍只涵蓋 `zh-Hant` Foundations Lessons 01–12 的當前適配版本；其他 locale、assessment/reward 與其他產品行為不在核准範圍內。
+
+## Product Owner approval and runtime admission
+
+`WEB-LEARN-007` 的 zh-Hant 全課程 01–12 gate 已通過，最終結果為 `READY_FOR_OWNER_APPROVAL`，且 `BLOCKER`、`MAJOR`、`MINOR` 與 `EDITORIAL_NOTE` 均為 0。Product Owner 明確核准 `zh-Hant` Foundations Lessons 01–12 的當前適配版本；本批對應的核准版本為 Lesson 07 revision `3`、Lesson 08 revision `2`、Lesson 09 revision `2`，其 canonical revisions 均為 `1`。
+
+此核准只適用於 locale `zh-Hant`、course `foundations.v1` 的 12 課，不表示 `es`、`fr`、`de`、`ja` 或 `ko` 已獲核准，也不表示 assessment 或 reward 已獲核准。三課已透過現有 Foundations locale-aware runtime path admission；沒有新增 loader、renderer、fallback 或 runtime translation。
 
 ## 適配內容清單
 
 | 順序 | Lesson ID | zh-Hant 標題 | Canonical English 標題 | Canonical source revision | Adaptation revision | Content state | Currentness | Runtime availability |
 | ---: | --- | --- | --- | ---: | ---: | --- | --- | --- |
-| 7 | `foundations.houses_angles` | 十二宮位與角點 | The Twelve Houses and the Angles | 1 | 3 | `REVIEW` | `CURRENT` | `UNAVAILABLE` |
-| 8 | `foundations.planet_sign_house` | 行星 × 星座 × 宮位 | Planet × Sign × House | 1 | 2 | `REVIEW` | `CURRENT` | `UNAVAILABLE` |
-| 9 | `foundations.aspects` | 相位：行星之間的關係 | Aspects: Relationships Between Planets | 1 | 2 | `REVIEW` | `CURRENT` | `UNAVAILABLE` |
+| 7 | `foundations.houses_angles` | 十二宮位與角點 | The Twelve Houses and the Angles | 1 | 3 | `APPROVED` | `CURRENT` | `AVAILABLE` |
+| 8 | `foundations.planet_sign_house` | 行星 × 星座 × 宮位 | Planet × Sign × House | 1 | 2 | `APPROVED` | `CURRENT` | `AVAILABLE` |
+| 9 | `foundations.aspects` | 相位：行星之間的關係 | Aspects: Relationships Between Planets | 1 | 2 | `APPROVED` | `CURRENT` | `AVAILABLE` |
 
 精確的來源與適配稿對應：
 
@@ -173,15 +179,15 @@ NASA 來源用於天球、黃道與當地天空的高層次天文脈絡；Facult
 3. Lesson 09：將 `受控制的命盤詞彙` 改為 `受規範的命盤術語`，移除冗餘措辭，並將幾何句改為「與 0° 合相的目標角度相差 2°」以保持數學語義清楚。
 4. Full-locale gate 的跨課程術語對齊：既有 Lesson 03 使用 `子午線`，而 Lesson 07 初稿使用 `子午圈`；將 Lesson 07 及本 manifest 的對應術語與審計說明統一為 `子午線`。
 
-`Correction cycles: 2`（仍未超過每批最多兩次）。原始獨立審查 finding set 的 `MINOR 4` 加上 full-locale gate 發現的跨課程術語 `MINOR 1` 均已完成 bounded correction；修正後重新檢視三份 canonical English、zh-Hant source 與全課程術語矩陣，最終 finding set 為 `BLOCKER 0 / MAJOR 0 / MINOR 0 / EDITORIAL_NOTE 0`。Lesson 07 adaptation revision 因跨課程術語對齊提升至 `3`，Lessons 08–09 維持 `2`；canonical revision 沒有提升。
+`Correction cycles: 2`（仍未超過每批最多兩次）。原始獨立審查 finding set 的 `MINOR 4` 加上 full-locale gate 發現的跨課程術語 `MINOR 1` 均已完成 bounded correction；修正後重新檢視三份 canonical English、zh-Hant source 與全課程術語矩陣，最終 finding set 為 `BLOCKER 0 / MAJOR 0 / MINOR 0 / EDITORIAL_NOTE 0`。Lesson 07 adaptation revision 因跨課程術語對齊提升至 `3`，Lessons 08–09 維持 `2`；canonical revision 沒有提升。`WEB-LEARN-007` gate 與 Product Owner 核准後，本批狀態為 `APPROVED`、`CURRENT`、`AVAILABLE`。
 
 ## 發布與範圍安全
 
 | 檢查項目 | 結果 |
 | --- | --- |
-| Product Owner approval claimed | NO |
-| Runtime admission performed | NO |
-| Runtime Learn source、registry、loader、route changed | NO |
+| Product Owner approval claimed | YES — zh-Hant Lessons 01–12 only |
+| Runtime admission performed | YES — existing Foundations locale-aware path |
+| Runtime Learn source、registry、loader、route changed | YES — shared locale-aware path extended for zh-Hant only |
 | Fallback behavior changed | NO |
 | Runtime machine translation introduced | NO |
 | Automatic `zh-Hans` ↔ `zh-Hant` conversion performed | NO |
@@ -203,6 +209,10 @@ NASA 來源用於天球、黃道與當地天空的高層次天文脈絡；Facult
 3. `docs/content/foundations/v1/zh-Hant/09-aspects-relationships-between-planets.md`
 4. `docs/content/foundations/v1/zh-Hant/LESSONS_07_09_REVIEW.md`
 
+**07–09 approval and admission: PASS**
+
+這個 PASS 表示本批已完成既有獨立審查、`WEB-LEARN-007` 全課程 gate、Product Owner 對 zh-Hant 01–12 的明確核准，以及現有 runtime path admission。它不表示其他 locale、assessment 或 reward 已獲核准。
+
 **07–09 independent review: PASS**
 
-這個 PASS 只表示本批已完成內容適配、一次 bounded correction cycle 與修正後複審，不表示 Product Owner approval，不表示 runtime availability，也不改變後續 full-locale gate 的必要性。
+這個 PASS 表示本批已完成內容適配、兩次 bounded correction cycles、修正後複審、`WEB-LEARN-007` 全課程 gate、Product Owner 對 zh-Hant 01–12 的明確核准，以及現有 runtime path admission。它不表示其他 locale、assessment 或 reward 已獲核准。

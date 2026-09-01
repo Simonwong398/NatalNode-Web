@@ -225,6 +225,139 @@ const FOUNDATIONS_ADMITTED_ENGLISH_REVISIONS: Readonly<
   })
 });
 
+type FoundationsLocalizedAdmission = Readonly<{
+  contentRevision: number;
+  canonicalContentRevision: number;
+  shortDescription: string;
+  learningObjectives: readonly [string, string];
+  keyTakeaway: string;
+}>;
+
+const FOUNDATIONS_ADMITTED_ZH_HANT: Readonly<
+  Partial<Record<FoundationsLessonId, FoundationsLocalizedAdmission>>
+> = Object.freeze({
+  'foundations.natal_chart': Object.freeze({
+    contentRevision: 1,
+    canonicalContentRevision: 3,
+    shortDescription: '建立本命盤作為結構化地圖的概念，並區分輸入、命盤事實與占星術詮釋。',
+    learningObjectives: [
+      '辨認命盤的天體、星座、宮位、角點與相位層次。',
+      '區分計算結果、輸入脈絡、詮釋與不受支持的過度主張。'
+    ] as const,
+    keyTakeaway: '本命盤以特定出生輸入建立結構；詮釋為這個結構提供占星術語言，但不等於對完整個人的判決。'
+  }),
+  'foundations.zodiac_structure': Object.freeze({
+    contentRevision: 1,
+    canonicalContentRevision: 2,
+    shortDescription: '認識十二個黃道星座、元素與模式，並將傳統分類保持為詮釋提示而非人格定論。',
+    learningObjectives: [
+      '依照十二星座的元素與模式分類讀取黃道結構。',
+      '說明黃道星座與天文星座的差異，以及元素與模式不能單獨確立什麼。'
+    ] as const,
+    keyTakeaway: '每個黃道星座都有一種元素與一種模式；兩者提供不同的傳統面向，但不會決定一個人。'
+  }),
+  'foundations.chart_calculation': Object.freeze({
+    contentRevision: 1,
+    canonicalContentRevision: 2,
+    shortDescription: '沿著出生日期、當地時間與地點到命盤呈現的路徑，理解時間規則、角點、宮位與未知時間限制。',
+    learningObjectives: [
+      '追蹤從出生輸入到位置、星座、角點、宮位系統與命盤呈現的高層次流程。',
+      '說明為什麼出生時間未知會限制上升點、中天、宮位、宮頭與宮位詮釋。'
+    ] as const,
+    keyTakeaway: '命盤把記錄下來的當地出生時刻與地點轉換成結構化地圖；詮釋必須在受支持的結構建立並呈現之後進行。'
+  }),
+  'foundations.sun_moon': Object.freeze({
+    contentRevision: 1,
+    canonicalContentRevision: 1,
+    shortDescription: '區分太陽與月亮作為命盤天體的不同詮釋問題，同時保留天文學分類與占星術慣例的分層。',
+    learningObjectives: [
+      '用有意識的取向、能動性與目的描述太陽的廣泛象徵問題。',
+      '用反應、需求、習慣與熟悉感描述月亮的廣泛象徵問題，並加入受支持的脈絡。'
+    ] as const,
+    keyTakeaway: '太陽與月亮是不同的命盤天體象徵；星座、宮位與相位增加脈絡，但不會把任何一個光體變成決定論的判決。'
+  }),
+  'foundations.mercury_venus_mars': Object.freeze({
+    contentRevision: 1,
+    canonicalContentRevision: 1,
+    shortDescription: '建立水星、金星與火星的初學功能詞彙，並避免把它們縮減為 IQ、浪漫或攻擊性的刻板印象。',
+    learningObjectives: [
+      '區分水星的資訊處理、金星的價值與關係互動，以及火星的追求、自我主張與行動。',
+      '在加入星座、宮位或相位脈絡時，保持天體功能與詮釋的界線。'
+    ] as const,
+    keyTakeaway: '水星處理與交換資訊，金星探索價值與關係互動，火星探索追求、自我主張與行動；它們都需要脈絡與限定語言。'
+  }),
+  'foundations.jupiter_saturn_outer_planets': Object.freeze({
+    contentRevision: 1,
+    canonicalContentRevision: 1,
+    shortDescription: '認識木星、土星與外行星的入門分組，並區分個人詮釋、世代脈絡與天文學分類。',
+    learningObjectives: [
+      '比較木星的擴展與意義、土星的結構與責任，以及外行星較慢的集體脈絡。',
+      '說明冥王星作為命盤天體的占星術用法不會改變它在天文學上的矮行星分類。'
+    ] as const,
+    keyTakeaway: '木星開啟成長與意義的問題，土星關於結構與責任，外行星需要更廣脈絡；冥王星在天文學上仍是矮行星。'
+  }),
+  'foundations.houses_angles': Object.freeze({
+    contentRevision: 3,
+    canonicalContentRevision: 1,
+    shortDescription: '理解十二宮位與 ASC、DSC、MC、IC 兩條軸線，並掌握出生時間與地點對這一層的限制。',
+    learningObjectives: [
+      '區分星座、天體、宮位、宮頭與角點，並辨認三種入門宮位系統。',
+      '說明可靠出生時間未知時，為什麼不能猜出角點、宮位或宮頭。'
+    ] as const,
+    keyTakeaway: '宮位整理命盤空間脈絡，四個角點形成兩條對時間與地點敏感的軸線；未知時間不得被猜測填補。'
+  }),
+  'foundations.planet_sign_house': Object.freeze({
+    contentRevision: 2,
+    canonicalContentRevision: 1,
+    shortDescription: '用「天體 × 星座 × 宮位」作為有限的入門詮釋框架，先分層再把受支持的脈絡謹慎連結。',
+    learningObjectives: [
+      '按天體功能、星座風格與受支持的宮位脈絡順序閱讀一個落點。',
+      '在宮位缺失或出生時間未知時，只討論受支持的天體與星座層次。'
+    ] as const,
+    keyTakeaway: '天體 × 星座 × 宮位是入門框架，不是完整公式、食譜，也不能取代更廣的命盤脈絡與可靠輸入。'
+  }),
+  'foundations.aspects': Object.freeze({
+    contentRevision: 2,
+    canonicalContentRevision: 1,
+    shortDescription: '認識五種主要相位、容許度與階段標籤，並將幾何關係與占星術詮釋保持在不同證據層。',
+    learningObjectives: [
+      '辨認 0°、60°、90°、120° 與 180° 的主要相位目標角度。',
+      '說明容許度與 applying、exact、separating 是如何描述回傳關係，而不是好壞分數或預測。'
+    ] as const,
+    keyTakeaway: '相位是角度關係；容許度與階段標籤可以細化描述，但詮釋仍由天體與更廣脈絡形塑。'
+  }),
+  'foundations.chart_priorities': Object.freeze({
+    contentRevision: 2,
+    canonicalContentRevision: 1,
+    shortDescription: '建立從受支持事實到相關關係與綜合的透明閱讀順序，不建立主導行星分數或排名演算法。',
+    learningObjectives: [
+      '先確認輸入品質與回傳結構，再依照相關角點、重複主題與主要相位安排注意順序。',
+      '說明顯著性可以引導詮釋注意，但不等於客觀重要性、因果或確定性。'
+    ] as const,
+    keyTakeaway: '優先順序是一種透明的詮釋安排：從受支持事實開始，限定結果，並排除不受支持的層次。'
+  }),
+  'foundations.whole_chart': Object.freeze({
+    contentRevision: 2,
+    canonicalContentRevision: 1,
+    shortDescription: '把受支持的命盤事實連結成少數有界線的線索，讓對照主題與未知狀態保持可見。',
+    learningObjectives: [
+      '依照事實、詮釋觀察、相關模式與有條件綜合的順序建立短而可追溯的閱讀。',
+      '在證據、脈絡或出生時間不足時套用停止規則，不把整體命盤當成完整的人生解釋。'
+    ] as const,
+    keyTakeaway: '整體閱讀命盤，是把受支持的事實連結成有條件的線索，讓張力保持可見，並在證據用盡時停止。'
+  }),
+  'foundations.responsible_astrology': Object.freeze({
+    contentRevision: 2,
+    canonicalContentRevision: 1,
+    shortDescription: '以相稱語言區分事實、慣例與不確定性，保護同意與隱私，並拒絕診斷及高風險確定性。',
+    learningObjectives: [
+      '辨認過度主張，將其改寫為保留方法、證據、限制與能動性的有界線語句。',
+      '在要求診斷、敏感推論、捏造事實或高風險決策時，知道何時停止並指向合格支持。'
+    ] as const,
+    keyTakeaway: '負責任地使用占星術，意味著區分事實與慣例、保護同意與隱私、拒絕診斷或高風險確定性，並在要求不受支持時停止。'
+  })
+});
+
 export const FOUNDATIONS_LESSONS: readonly FoundationsLesson[] = Object.freeze([
   createLesson(
     'foundations.natal_chart',
@@ -446,6 +579,29 @@ function createContentVariant(
   locale: SupportedLocale
 ): FoundationsContentVariant {
   if (locale !== FOUNDATIONS_CANONICAL_LOCALE) {
+    const admittedLocalized = locale === 'zh-Hant'
+      ? FOUNDATIONS_ADMITTED_ZH_HANT[lesson.lessonId]
+      : undefined;
+
+    if (admittedLocalized !== undefined) {
+      return Object.freeze({
+        courseId: FOUNDATIONS_COURSE_ID,
+        courseVersion: FOUNDATIONS_COURSE_VERSION,
+        lessonId: lesson.lessonId,
+        canonicalLocale: FOUNDATIONS_CANONICAL_LOCALE,
+        locale,
+        contentRevision: admittedLocalized.contentRevision,
+        canonicalContentRevision: admittedLocalized.canonicalContentRevision,
+        contentState: 'APPROVED',
+        currentness: 'CURRENT',
+        contentKind: 'CANONICAL',
+        shortDescription: admittedLocalized.shortDescription,
+        learningObjectives: Object.freeze([...admittedLocalized.learningObjectives]),
+        sectionIds,
+        keyTakeaway: admittedLocalized.keyTakeaway
+      });
+    }
+
     return Object.freeze({
       courseId: FOUNDATIONS_COURSE_ID,
       courseVersion: FOUNDATIONS_COURSE_VERSION,
