@@ -424,10 +424,10 @@ test('Feedback frontend is private, semantic, bounded, and create-only', async (
   assert.match(page, /<textarea[\s\S]*?required/u);
   assert.doesNotMatch(page, /<(?:textarea)[^>]*(?:minlength|maxlength)=/u);
   assert.match(page, /data-feedback-success[\s\S]*?aria-live="polite"[\s\S]*?tabindex="-1"/u);
-  assert.match(page, /Send another feedback/u);
+  assert.match(page, /data-feedback-submit-another/u);
   assert.match(controller, /credentials: 'same-origin'/u);
   assert.match(controller, /cache: 'no-store'/u);
-  assert.match(controller, /window\.location\.replace\(SIGN_IN_PATH\)/u);
+  assert.match(controller, /getLocalizedCurrentPath[\s\S]*SIGN_IN_PATH/u);
   assert.doesNotMatch(route, /engineClient|emailMagicLink|AstronomyProvider|resolver/iu);
   assert.equal(classifyApiEndpointFamily('/api/feedback'), 'feedback');
 });
