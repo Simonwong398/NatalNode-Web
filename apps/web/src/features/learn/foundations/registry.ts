@@ -358,6 +358,18 @@ const FOUNDATIONS_ADMITTED_ZH_HANT: Readonly<
   })
 });
 
+type FoundationsRemainingLocale = Exclude<SupportedLocale, 'en' | 'zh-Hant'>;
+
+const FOUNDATIONS_ADMITTED_REMAINING_LOCALE_REVISIONS: Readonly<
+  Record<FoundationsRemainingLocale, readonly number[]>
+> = Object.freeze({
+  es: Object.freeze([1, 1, 1, 1, 1, 2, 1, 1, 2, 1, 2, 1]),
+  fr: Object.freeze([1, 1, 1, 1, 1, 2, 1, 1, 2, 1, 2, 1]),
+  de: Object.freeze([1, 1, 1, 1, 1, 2, 1, 1, 2, 1, 2, 1]),
+  ja: Object.freeze([1, 1, 1, 1, 1, 2, 1, 1, 2, 1, 2, 1]),
+  ko: Object.freeze([1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1])
+});
+
 export const FOUNDATIONS_LESSONS: readonly FoundationsLesson[] = Object.freeze([
   createLesson(
     'foundations.natal_chart',
@@ -582,6 +594,33 @@ function createContentVariant(
     const admittedLocalized = locale === 'zh-Hant'
       ? FOUNDATIONS_ADMITTED_ZH_HANT[lesson.lessonId]
       : undefined;
+
+    const admittedRemainingRevision = locale === 'zh-Hant'
+      ? undefined
+      : FOUNDATIONS_ADMITTED_REMAINING_LOCALE_REVISIONS[locale][lesson.order - 1];
+
+    if (admittedRemainingRevision !== undefined) {
+      const canonicalAdmission = FOUNDATIONS_ADMITTED_ENGLISH_REVISIONS[lesson.lessonId];
+      const scaffold = ENGLISH_SCAFFOLDS[lesson.lessonId];
+
+      return Object.freeze({
+        courseId: FOUNDATIONS_COURSE_ID,
+        courseVersion: FOUNDATIONS_COURSE_VERSION,
+        lessonId: lesson.lessonId,
+        canonicalLocale: FOUNDATIONS_CANONICAL_LOCALE,
+        locale,
+        contentRevision: admittedRemainingRevision,
+        canonicalContentRevision:
+          canonicalAdmission?.canonicalContentRevision ?? FOUNDATIONS_INITIAL_CONTENT_REVISION,
+        contentState: 'APPROVED',
+        currentness: 'CURRENT',
+        contentKind: 'CANONICAL',
+        shortDescription: scaffold.shortDescription,
+        learningObjectives: Object.freeze([...scaffold.learningObjectives]),
+        sectionIds,
+        keyTakeaway: scaffold.keyTakeaway
+      });
+    }
 
     if (admittedLocalized !== undefined) {
       return Object.freeze({

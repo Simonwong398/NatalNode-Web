@@ -6,26 +6,26 @@ canonicalLocale: en
 locale: ja
 adaptationRevision: 1
 documentKind: LOCALE_ADAPTATION_REVIEW_MANIFEST
-contentState: REVIEW
+contentState: APPROVED
 currentness: CURRENT
-runtimeAvailability: UNAVAILABLE
+runtimeAvailability: AVAILABLE
 ---
 
 # Foundations V1 ja Lessons 10–12 Review Manifest
 
 ## 対象範囲と状態
 
-この manifest は、日本語 Foundations V1 の最終 batch、優先順位づけ、チャート全体の総合、責任を持った利用を記録します。三つの lesson は Class C の文書として完成していますが、Product Owner approval と runtime admission は保留です。
+この manifest は、日本語 Foundations V1 の最終 batch、優先順位づけ、チャート全体の総合、責任を持った利用を記録します。三つの lesson は Class C の文書として完成し、`WEB-LEARN-009` により Product Owner approval と runtime admission が完了しています。
 
-Lesson 10 と 12 は `contentRevision: 1`、Lesson 11 は質問 parity の限定的な correction 後の `contentRevision: 2` です。三つとも `canonicalContentRevision: 1`、`contentState: REVIEW`、`currentness: CURRENT`、`runtimeAvailability: UNAVAILABLE` を保ちます。`CURRENT` は英語 canon との整合を表し、公開を許可するものではありません。
+Lesson 10 と 12 は `contentRevision: 1`、Lesson 11 は質問 parity の限定的な correction 後の `contentRevision: 2` です。三つとも `canonicalContentRevision: 1` を保ち、`WEB-LEARN-009` による runtime admission 後の状態は `contentState: APPROVED`、`currentness: CURRENT`、`runtimeAvailability: AVAILABLE` です。
 
 ## Lesson identity
 
 | Lesson | Lesson ID | 日本語タイトル | Canonical revision | Adaptation | 状態 | Runtime |
 | ---: | --- | --- | ---: | ---: | --- | --- |
-| 10 | `foundations.chart_priorities` | チャートで最初に見ること | 1 | 1 | `REVIEW` / `CURRENT` | `UNAVAILABLE` |
-| 11 | `foundations.whole_chart` | チャート全体を読む | 1 | 2 | `REVIEW` / `CURRENT` | `UNAVAILABLE` |
-| 12 | `foundations.responsible_astrology` | 責任を持って占星術を使う | 1 | 1 | `REVIEW` / `CURRENT` | `UNAVAILABLE` |
+| 10 | `foundations.chart_priorities` | チャートで最初に見ること | 1 | 1 | `APPROVED` / `CURRENT` | `AVAILABLE` |
+| 11 | `foundations.whole_chart` | チャート全体を読む | 1 | 2 | `APPROVED` / `CURRENT` | `AVAILABLE` |
+| 12 | `foundations.responsible_astrology` | 責任を持って占星術を使う | 1 | 1 | `APPROVED` / `CURRENT` | `AVAILABLE` |
 
 Canonical source は `docs/content/foundations/v1/en/10-what-matters-first-in-a-chart.md`、`11-reading-the-chart-as-a-whole.md`、`12-using-astrology-responsibly.md` です。
 
@@ -68,20 +68,20 @@ Lesson 10 は太陽 牡牛座20°＝50°、月 獅子座20°＝140°、90°の�
 | `EDITORIAL_NOTE` | 0 |
 | 完了した lesson | 12 / 12 |
 
-これは Product Owner review に進める状態を示します。Product Owner approval ではありません：`NO`。Runtime admission でもありません：`NO`。すべての日本語 lesson は `REVIEW / CURRENT / UNAVAILABLE` のままです。
+これは Product Owner review を経て承認された状態を示します。日本語 Foundations V1 Lessons 01–12 の Product Owner approval は `YES`、Runtime admission は `YES` です。既存の Foundations locale-aware path により、すべての日本語 lesson は `APPROVED / CURRENT / AVAILABLE` です。Assessment approval と reward approval は `NO` です。
 
 ## Source、correction、scope integrity
 
 三つの lesson の canonical URL を完全に保持しています。占星術の source は curriculum の文脈に使い、外部 prose はコピーしていません。広範な web research も行っていません。product canon、architecture、localization policy が state、fallback、公開を統括します。
 
-UI、CSS、server、API、BFF、database、migration、Auth、Vault、Commercial、Engine、provider、assessment、reward、renderer、英語、他 locale は変更していません。自動翻訳や P1/P2/P3 機能も追加していません。
+admission では既存の Foundations locale-aware path の content mapping と imports だけを拡張し、新しい loader、parallel registry、fallback、runtime translation layer は追加していません。UI、CSS、server、API、BFF、database、migration、Auth、Vault、Commercial、Engine、provider、assessment、reward、renderer、英語、他 locale は変更していません。自動翻訳や P1/P2/P3 機能も追加していません。
 
 ## Correction history と exact files
 
 - Adaptation revision: `1`（Lesson 10 と 12）、`2`（Lesson 11、質問 parity の修正後）。
 - Correction cycles after independent internal review: `1`。
-- Product Owner approval: `NO`。
-- Runtime admission: `NO`、runtime availability: `UNAVAILABLE`。
+- Product Owner approval: `YES`（日本語 Foundations V1 Lessons 01–12）。
+- Runtime admission: `YES`、runtime availability: `AVAILABLE`。
 
 この batch の exact files:
 

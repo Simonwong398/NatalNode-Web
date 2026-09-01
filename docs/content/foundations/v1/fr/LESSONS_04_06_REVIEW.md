@@ -6,9 +6,9 @@ canonicalLocale: en
 locale: fr
 adaptationRevision: 1
 documentKind: LOCALE_ADAPTATION_REVIEW_MANIFEST
-contentState: REVIEW
+contentState: APPROVED
 currentness: CURRENT
-runtimeAvailability: UNAVAILABLE
+runtimeAvailability: AVAILABLE
 ---
 
 # Foundations V1 fr Lessons 04–06 Review Manifest
@@ -17,15 +17,15 @@ runtimeAvailability: UNAVAILABLE
 
 Ce manifest consigne l'adaptation professionnelle Class C en français des leçons 04–06 de Foundations V1. Le lot conserve l'identité canonique, la force épistémique et les limites de la source anglaise ; il ne crée ni nouvelle piste de contenu ni couche de traduction runtime.
 
-Les leçons 04–05 ont `contentRevision: 1` et la leçon 06 a `contentRevision: 2` après une correction circonscrite de parité des questions ; les trois conservent `canonicalContentRevision: 1`. Leur état est `REVIEW`, leur currentness `CURRENT` et leur disponibilité `UNAVAILABLE`. Aucune de ces valeurs ne constitue une approbation du Product Owner.
+Les leçons 04–05 ont `contentRevision: 1` et la leçon 06 a `contentRevision: 2` après une correction circonscrite de parité des questions ; les trois conservent `canonicalContentRevision: 1`. Elles sont `APPROVED`, `CURRENT` et `AVAILABLE` après l'admission de l'adaptation française dans le cadre de `WEB-LEARN-009`.
 
 ## Identité des leçons
 
 | Leçon | Lesson ID | Titre français | Révision canonique | Adaptation | État | Runtime |
 | ---: | --- | --- | ---: | ---: | --- | --- |
-| 04 | `foundations.sun_moon` | Le Soleil et la Lune | 1 | 1 | `REVIEW` / `CURRENT` | `UNAVAILABLE` |
-| 05 | `foundations.mercury_venus_mars` | Mercure, Vénus et Mars | 1 | 1 | `REVIEW` / `CURRENT` | `UNAVAILABLE` |
-| 06 | `foundations.jupiter_saturn_outer_planets` | Jupiter, Saturne et les planètes extérieures | 1 | 2 | `REVIEW` / `CURRENT` | `UNAVAILABLE` |
+| 04 | `foundations.sun_moon` | Le Soleil et la Lune | 1 | 1 | `APPROVED` / `CURRENT` | `AVAILABLE` |
+| 05 | `foundations.mercury_venus_mars` | Mercure, Vénus et Mars | 1 | 1 | `APPROVED` / `CURRENT` | `AVAILABLE` |
+| 06 | `foundations.jupiter_saturn_outer_planets` | Jupiter, Saturne et les planètes extérieures | 1 | 2 | `APPROVED` / `CURRENT` | `AVAILABLE` |
 
 Sources canoniques exactes : `docs/content/foundations/v1/en/04-the-sun-and-moon.md`, `05-mercury-venus-and-mars.md` et `06-jupiter-saturn-and-the-outer-planets.md`.
 
@@ -66,16 +66,16 @@ Aucune recherche web large, aucune prose externe copiée et aucune traduction au
 
 ## Gate de publication et non-admission
 
-Résultat éditorial du lot : `READY_FOR_INTERNAL_LOCALE_REVIEW`. Product Owner approval : `NO`. Runtime admission : `NO`. Les trois leçons restent `REVIEW / CURRENT / UNAVAILABLE` et n'existent que comme documentation de contenu.
+Résultat éditorial du lot : `READY_FOR_OWNER_APPROVAL`, puis approbation du Product Owner pour l'adaptation française des Foundations V1 Lessons 01–12 dans le cadre de `WEB-LEARN-009`. Product Owner approval : `YES`. Runtime admission : `YES` via le chemin Foundations locale-aware existant ; les trois leçons sont `APPROVED / CURRENT / AVAILABLE`. Assessment approval et reward approval : `NO`.
 
-Aucun changement n'a touché UI, CSS, server, API, BFF, base de données, migrations, Auth, Vault, Commercial, Engine, provider, assessment, reward ou les autres locales.
+L'admission a étendu uniquement le mapping de contenu et les imports du chemin Foundations locale-aware existant ; aucun nouveau loader, registry parallèle, fallback ou système de traduction runtime n'a été créé. Aucun changement n'a touché UI, CSS, server, API, BFF, base de données, migrations, Auth, Vault, Commercial, Engine, provider, assessment, reward ou les autres locales.
 
 ## Historique de correction et fichiers exacts
 
 - Adaptation revision : `1` pour Lessons 04–05 ; `2` pour Lesson 06 après la correction de parité.
 - Correction cycles after independent internal review : `1`.
-- Product Owner approval : `NO`.
-- Runtime admission : `NO` ; runtime availability : `UNAVAILABLE`.
+- Product Owner approval : `YES` pour les Foundations V1 Lessons 01–12 en français.
+- Runtime admission : `YES` ; runtime availability : `AVAILABLE`.
 
 Fichiers exacts de ce lot :
 

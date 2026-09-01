@@ -6,9 +6,9 @@ canonicalLocale: en
 locale: de
 adaptationRevision: 1
 documentKind: LOCALE_ADAPTATION_REVIEW_MANIFEST
-contentState: REVIEW
+contentState: APPROVED
 currentness: CURRENT
-runtimeAvailability: UNAVAILABLE
+runtimeAvailability: AVAILABLE
 ---
 
 # Foundations V1 de Lessons 10–12 Review Manifest
@@ -17,15 +17,15 @@ runtimeAvailability: UNAVAILABLE
 
 Dieses Manifest dokumentiert das abschließende deutsche Foundations-V1-Los: Priorisierung, Synthese des gesamten Horoskops und verantwortungsvolle Nutzung. Die drei Lektionen sind als Class-C-Dokumentation vollständig, doch Product-Owner-Freigabe und Runtime-Aufnahme bleiben ausstehend.
 
-Die Lektionen 10 und 12 erklären `contentRevision: 1`; Lektion 11 erklärt nach einer begrenzten Korrektur der Fragenparität `contentRevision: 2`. Alle behalten `canonicalContentRevision: 1`, `contentState: REVIEW`, `currentness: CURRENT` und `runtimeAvailability: UNAVAILABLE`. `CURRENT` bestätigt die Ausrichtung am aktuellen englischen Kanon, nicht die Veröffentlichung.
+Die Lektionen 10 und 12 erklären `contentRevision: 1`; Lektion 11 erklärt nach einer begrenzten Korrektur der Fragenparität `contentRevision: 2`. Alle behalten `canonicalContentRevision: 1` und sind nach der Aufnahme der deutschen Anpassung im Rahmen von `WEB-LEARN-009` `APPROVED / CURRENT / AVAILABLE`.
 
 ## Identität der Lektionen
 
 | Lektion | Lesson ID | Deutscher Titel | Kanonische Revision | Anpassung | Status | Runtime |
 | ---: | --- | --- | ---: | ---: | --- | --- |
-| 10 | `foundations.chart_priorities` | Was in einem Horoskop zuerst zählt | 1 | 1 | `REVIEW` / `CURRENT` | `UNAVAILABLE` |
-| 11 | `foundations.whole_chart` | Das Horoskop als Ganzes lesen | 1 | 2 | `REVIEW` / `CURRENT` | `UNAVAILABLE` |
-| 12 | `foundations.responsible_astrology` | Astrologie verantwortungsvoll verwenden | 1 | 1 | `REVIEW` / `CURRENT` | `UNAVAILABLE` |
+| 10 | `foundations.chart_priorities` | Was in einem Horoskop zuerst zählt | 1 | 1 | `APPROVED` / `CURRENT` | `AVAILABLE` |
+| 11 | `foundations.whole_chart` | Das Horoskop als Ganzes lesen | 1 | 2 | `APPROVED` / `CURRENT` | `AVAILABLE` |
+| 12 | `foundations.responsible_astrology` | Astrologie verantwortungsvoll verwenden | 1 | 1 | `APPROVED` / `CURRENT` | `AVAILABLE` |
 
 Kanonische Quellen: `docs/content/foundations/v1/en/10-what-matters-first-in-a-chart.md`, `11-reading-the-chart-as-a-whole.md` und `12-using-astrology-responsibly.md`.
 
@@ -68,20 +68,20 @@ Das interne redaktionelle Gate für alle zwölf deutschen Lektionen ist `READY_F
 | `EDITORIAL_NOTE` | 0 |
 | Vollständige Lektionen | 12 / 12 |
 
-Damit kann das Locale dem Product Owner zur Prüfung vorgelegt werden. Es ist keine Product-Owner-Freigabe: `NO`. Es ist keine Runtime-Aufnahme: `NO`. Alle deutschen Lektionen bleiben `REVIEW / CURRENT / UNAVAILABLE`.
+Das Locale wurde dem Product Owner vorgelegt und die deutsche Anpassung der Foundations V1 Lessons 01–12 im Rahmen von `WEB-LEARN-009` freigegeben. Product Owner approval: `YES`. Runtime admission: `YES` über den bestehenden locale-aware Foundations-Pfad; alle deutschen Lektionen sind `APPROVED / CURRENT / AVAILABLE`. Assessment approval und reward approval: `NO`.
 
 ## Quellen, Korrektur und sicherer Umfang
 
 Die URL der drei Lektionen werden exakt beibehalten. Astrologische Quellen dienen dem curricularen Kontext; keine Prosa wurde kopiert und keine breite Webrecherche durchgeführt. Produktkanon, Architektur und Lokalisierungspolitik steuern weiterhin Status, Fallback und Veröffentlichung.
 
-UI, CSS, Server, API, BFF, Datenbank, Migrationen, Auth, Vault, Commercial, Engine, Provider, Assessment, Reward, Renderer, Englisch und andere Locales wurden nicht geändert. Keine automatische Übersetzung und keine P1/P2/P3-Funktion wurde hinzugefügt.
+Die Aufnahme erweiterte ausschließlich das bestehende Content-Mapping und die Imports des locale-aware Foundations-Pfads; kein neuer Loader, kein paralleles Registry, kein Fallback und kein Runtime-Übersetzungssystem wurde hinzugefügt. UI, CSS, Server, API, BFF, Datenbank, Migrationen, Auth, Vault, Commercial, Engine, Provider, Assessment, Reward, Renderer, Englisch und andere Locales wurden nicht geändert. Keine automatische Übersetzung und keine P1/P2/P3-Funktion wurde hinzugefügt.
 
 ## Korrekturverlauf und exakte Dateien
 
 - Adaptation revision: `1` für Lessons 10 und 12; `2` für Lektion 11 nach der Paritätskorrektur.
 - Correction cycles after independent internal review: `1`.
-- Product Owner approval: `NO`.
-- Runtime admission: `NO`; runtime availability: `UNAVAILABLE`.
+- Product Owner approval: `YES` für die Foundations V1 Lessons 01–12 auf Deutsch.
+- Runtime admission: `YES`; runtime availability: `AVAILABLE`.
 
 Exakte Dateien dieses Loses:
 

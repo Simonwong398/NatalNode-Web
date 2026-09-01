@@ -6,9 +6,9 @@ canonicalLocale: en
 locale: ko
 adaptationRevision: 1
 documentKind: LOCALE_ADAPTATION_REVIEW_MANIFEST
-contentState: REVIEW
+contentState: APPROVED
 currentness: CURRENT
-runtimeAvailability: UNAVAILABLE
+runtimeAvailability: AVAILABLE
 ---
 
 # Foundations V1 ko Lessons 07–09 Review Manifest
@@ -17,15 +17,15 @@ runtimeAvailability: UNAVAILABLE
 
 이 manifest는 Foundations V1 Lesson 07–09의 한국어 Class C 전문 적응을 기록합니다. 하우스와 앵글, 행성×사인×하우스 발판, 애스펙트 기하의 순서를 독립적으로 적응했으며 runtime 자동 번역은 사용하지 않았습니다.
 
-세 lesson은 모두 `contentRevision: 1`, `canonicalContentRevision: 1`, `contentState: REVIEW`, `currentness: CURRENT`, `runtimeAvailability: UNAVAILABLE`입니다. `CURRENT`는 현재 canon과의 정합성만 나타냅니다.
+세 lesson은 모두 `contentRevision: 1`, `canonicalContentRevision: 1`을 유지합니다. `WEB-LEARN-009`에 따른 runtime admission 후 상태는 `APPROVED / CURRENT / AVAILABLE`입니다.
 
 ## Lesson identity
 
 | Lesson | Lesson ID | 한국어 제목 | Canonical revision | Adaptation | 상태 | Runtime |
 | ---: | --- | --- | ---: | ---: | --- | --- |
-| 07 | `foundations.houses_angles` | 열두 하우스와 앵글 | 1 | 1 | `REVIEW` / `CURRENT` | `UNAVAILABLE` |
-| 08 | `foundations.planet_sign_house` | 행성 × 사인 × 하우스 | 1 | 1 | `REVIEW` / `CURRENT` | `UNAVAILABLE` |
-| 09 | `foundations.aspects` | 애스펙트: 행성 사이의 관계 | 1 | 1 | `REVIEW` / `CURRENT` | `UNAVAILABLE` |
+| 07 | `foundations.houses_angles` | 열두 하우스와 앵글 | 1 | 1 | `APPROVED` / `CURRENT` | `AVAILABLE` |
+| 08 | `foundations.planet_sign_house` | 행성 × 사인 × 하우스 | 1 | 1 | `APPROVED` / `CURRENT` | `AVAILABLE` |
+| 09 | `foundations.aspects` | 애스펙트: 행성 사이의 관계 | 1 | 1 | `APPROVED` / `CURRENT` | `AVAILABLE` |
 
 Canonical source는 `docs/content/foundations/v1/en/07-the-twelve-houses-and-the-angles.md`, `08-planet-sign-house.md`, `09-aspects-relationships-between-planets.md`입니다. 영어 파일은 변경하지 않았습니다.
 
@@ -58,18 +58,18 @@ Lesson 07은 ASC 쌍둥이자리 14°, DSC 사수자리 14°, MC 물병자리 3�
 
 Canonical URL은 완전히 보존했습니다. 점성술 자료는 관습적 학습 맥락으로, NASA 자료는 황도·천구의 천문학적 맥락으로 사용했습니다. 외부 prose 복사, 자동 번역, lesson-side 계산은 수행하지 않았습니다. `PROVIDER DECISION DEFERRED`.
 
-## 공개 gate와 runtime 비 admission
+## 공개 gate와 runtime admission
 
-이 batch의 내부 editorial 결과는 `READY_FOR_INTERNAL_LOCALE_REVIEW`이며 Product Owner approval이 아닙니다. Product Owner approval: `NO`. Runtime admission: `NO`. 이 한국어 적응의 규칙은 `REVIEW + CURRENT = UNAVAILABLE`입니다.
+이 batch의 내부 editorial 결과는 `READY_FOR_OWNER_APPROVAL`이었고, 한국어 Foundations V1 Lessons 01–12는 `WEB-LEARN-009` 범위에서 Product Owner의 승인을 받았습니다. Product Owner approval: `YES`. Runtime admission: `YES`. 기존 Foundations locale-aware path를 통해 세 lesson은 `APPROVED / CURRENT / AVAILABLE`입니다. Assessment approval과 reward approval은 `NO`입니다.
 
-Registry, loader, route, fallback, UI, CSS, server, API, BFF, database, migration, Auth, Vault, Engine, provider, assessment, reward, 영어 본문은 변경하지 않았습니다.
+admission에서는 기존 Foundations locale-aware path의 content mapping과 imports만 확장했습니다. parallel loader, parallel registry, silent fallback, runtime translation layer는 만들지 않았습니다. Registry, route, UI, CSS, server, API, BFF, database, migration, Auth, Vault, Engine, provider, assessment, reward, 영어 본문은 변경하지 않았습니다.
 
 ## Correction history와 exact files
 
 - Adaptation revision: `1`.
 - 독립 내부 검토 이후 correction cycle: `0`.
-- Product Owner approval: `NO`.
-- Runtime admission: `NO`, runtime availability: `UNAVAILABLE`.
+- Product Owner approval: `YES` (한국어 Foundations V1 Lessons 01–12).
+- Runtime admission: `YES`, runtime availability: `AVAILABLE`.
 
 이 batch의 exact files:
 

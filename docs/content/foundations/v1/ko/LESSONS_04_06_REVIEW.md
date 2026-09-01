@@ -6,9 +6,9 @@ canonicalLocale: en
 locale: ko
 adaptationRevision: 1
 documentKind: LOCALE_ADAPTATION_REVIEW_MANIFEST
-contentState: REVIEW
+contentState: APPROVED
 currentness: CURRENT
-runtimeAvailability: UNAVAILABLE
+runtimeAvailability: AVAILABLE
 ---
 
 # Foundations V1 ko Lessons 04–06 Review Manifest
@@ -17,15 +17,15 @@ runtimeAvailability: UNAVAILABLE
 
 이 manifest는 Foundations V1 Lesson 04–06의 한국어 Class C 전문 적응을 기록합니다. 내용은 독립적으로 작성했으며 runtime 자동 번역이 아닙니다. 루미너리, 개인 행성, 사회 행성, 외행성의 차이와 천문학·점성술의 별도 evidence lane을 보존합니다.
 
-세 lesson은 모두 `contentRevision: 1`, `canonicalContentRevision: 1`, `contentState: REVIEW`, `currentness: CURRENT`, `runtimeAvailability: UNAVAILABLE`입니다. `CURRENT`는 영어 canon과의 정합성을 나타내지만 공개를 허가하지 않습니다.
+세 lesson은 모두 `contentRevision: 1`, `canonicalContentRevision: 1`을 유지합니다. `WEB-LEARN-009`에 따른 runtime admission 후 상태는 `APPROVED / CURRENT / AVAILABLE`입니다.
 
 ## Lesson identity
 
 | Lesson | Lesson ID | 한국어 제목 | Canonical revision | Adaptation | 상태 | Runtime |
 | ---: | --- | --- | ---: | ---: | --- | --- |
-| 04 | `foundations.sun_moon` | 태양과 달 | 1 | 1 | `REVIEW` / `CURRENT` | `UNAVAILABLE` |
-| 05 | `foundations.mercury_venus_mars` | 수성, 금성, 화성 | 1 | 1 | `REVIEW` / `CURRENT` | `UNAVAILABLE` |
-| 06 | `foundations.jupiter_saturn_outer_planets` | 목성, 토성, 외행성 | 1 | 1 | `REVIEW` / `CURRENT` | `UNAVAILABLE` |
+| 04 | `foundations.sun_moon` | 태양과 달 | 1 | 1 | `APPROVED` / `CURRENT` | `AVAILABLE` |
+| 05 | `foundations.mercury_venus_mars` | 수성, 금성, 화성 | 1 | 1 | `APPROVED` / `CURRENT` | `AVAILABLE` |
+| 06 | `foundations.jupiter_saturn_outer_planets` | 목성, 토성, 외행성 | 1 | 1 | `APPROVED` / `CURRENT` | `AVAILABLE` |
 
 Canonical source는 `docs/content/foundations/v1/en/04-the-sun-and-moon.md`, `05-mercury-venus-and-mars.md`, `06-jupiter-saturn-and-the-outer-planets.md`입니다. 영어 파일은 변경하지 않았습니다.
 
@@ -59,18 +59,18 @@ Lesson 04는 태양 게자리 8°와 달 천칭자리 8°, 경도 98°·188°, 9
 
 Canonical URL은 완전히 보존했습니다. 점성술 학습 자료와 NASA·IAU 천문학 자료를 서로 다른 evidence lane으로 유지했으며 외부 prose를 복사하지 않았습니다. `PROVIDER DECISION DEFERRED`.
 
-## 공개 gate와 runtime 비 admission
+## 공개 gate와 runtime admission
 
-이 batch의 내부 editorial 결과는 `READY_FOR_INTERNAL_LOCALE_REVIEW`이며 Product Owner approval이 아닙니다. Product Owner approval: `NO`. Runtime admission: `NO`. 이 한국어 적응의 규칙은 `REVIEW + CURRENT = UNAVAILABLE`입니다.
+이 batch의 내부 editorial 결과는 `READY_FOR_OWNER_APPROVAL`이었고, 한국어 Foundations V1 Lessons 01–12는 `WEB-LEARN-009` 범위에서 Product Owner의 승인을 받았습니다. Product Owner approval: `YES`. Runtime admission: `YES`. 기존 Foundations locale-aware path를 통해 세 lesson은 `APPROVED / CURRENT / AVAILABLE`입니다. Assessment approval과 reward approval은 `NO`입니다.
 
-Registry, loader, route, fallback, UI, CSS, server, API, BFF, database, migration, Auth, Vault, Engine, provider, assessment, reward, 영어 본문은 변경하지 않았습니다.
+admission에서는 기존 Foundations locale-aware path의 content mapping과 imports만 확장했습니다. 새 loader, parallel registry, fallback, runtime translation layer는 만들지 않았습니다. UI, CSS, server, API, BFF, database, migration, Auth, Vault, Engine, provider, assessment, reward, 영어 본문은 변경하지 않았습니다.
 
 ## Correction history와 exact files
 
 - Adaptation revision: `1`.
 - 독립 내부 검토 이후 correction cycle: `0`.
-- Product Owner approval: `NO`.
-- Runtime admission: `NO`, runtime availability: `UNAVAILABLE`.
+- Product Owner approval: `YES` (한국어 Foundations V1 Lessons 01–12).
+- Runtime admission: `YES`, runtime availability: `AVAILABLE`.
 
 이 batch의 exact files:
 

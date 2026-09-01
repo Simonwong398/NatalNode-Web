@@ -6,9 +6,9 @@ canonicalLocale: en
 locale: de
 adaptationRevision: 1
 documentKind: LOCALE_ADAPTATION_REVIEW_MANIFEST
-contentState: REVIEW
+contentState: APPROVED
 currentness: CURRENT
-runtimeAvailability: UNAVAILABLE
+runtimeAvailability: AVAILABLE
 ---
 
 # Foundations V1 de Lessons 04–06 Review Manifest
@@ -17,15 +17,15 @@ runtimeAvailability: UNAVAILABLE
 
 Dieses Manifest dokumentiert die professionelle Class-C-Anpassung von Foundations V1 für die Lektionen 04–06 auf Deutsch. Der Inhalt bewahrt kanonische Identität, epistemische Stärke und die Grenzen der englischen Quelle; er schafft weder einen neuen Track noch eine Runtime-Übersetzungsschicht.
 
-Die Lektionen 04–05 haben `contentRevision: 1`; Lektion 06 hat nach einer begrenzten Korrektur der Fragenparität `contentRevision: 2`. Alle drei behalten `canonicalContentRevision: 1`. Ihr Status ist `REVIEW`, ihre Currentness `CURRENT` und ihre Verfügbarkeit `UNAVAILABLE`. Keine dieser Angaben ist eine Product-Owner-Freigabe.
+Die Lektionen 04–05 haben `contentRevision: 1`; Lektion 06 hat nach einer begrenzten Korrektur der Fragenparität `contentRevision: 2`. Alle drei behalten `canonicalContentRevision: 1`. Nach der Aufnahme der deutschen Anpassung im Rahmen von `WEB-LEARN-009` sind sie `APPROVED / CURRENT / AVAILABLE`.
 
 ## Identität der Lektionen
 
 | Lektion | Lesson ID | Deutscher Titel | Kanonische Revision | Anpassung | Status | Runtime |
 | ---: | --- | --- | ---: | ---: | --- | --- |
-| 04 | `foundations.sun_moon` | Sonne und Mond | 1 | 1 | `REVIEW` / `CURRENT` | `UNAVAILABLE` |
-| 05 | `foundations.mercury_venus_mars` | Merkur, Venus und Mars | 1 | 1 | `REVIEW` / `CURRENT` | `UNAVAILABLE` |
-| 06 | `foundations.jupiter_saturn_outer_planets` | Jupiter, Saturn und die äußeren Planeten | 1 | 2 | `REVIEW` / `CURRENT` | `UNAVAILABLE` |
+| 04 | `foundations.sun_moon` | Sonne und Mond | 1 | 1 | `APPROVED` / `CURRENT` | `AVAILABLE` |
+| 05 | `foundations.mercury_venus_mars` | Merkur, Venus und Mars | 1 | 1 | `APPROVED` / `CURRENT` | `AVAILABLE` |
+| 06 | `foundations.jupiter_saturn_outer_planets` | Jupiter, Saturn und die äußeren Planeten | 1 | 2 | `APPROVED` / `CURRENT` | `AVAILABLE` |
 
 Exakte kanonische Quellen: `docs/content/foundations/v1/en/04-the-sun-and-moon.md`, `05-mercury-venus-and-mars.md` und `06-jupiter-saturn-and-the-outer-planets.md`.
 
@@ -64,18 +64,18 @@ Die kanonischen URL jeder Lektion werden exakt beibehalten. Faculty of Astrologi
 
 Keine breite Webrecherche, keine kopierte externe Prosa und keine automatische Übersetzung wurden verwendet. Die eingefrorenen Produkt- und Architektur-Dokumente bleiben maßgeblich.
 
-## Veröffentlichungs-Gate und Nicht-Aufnahme
+## Veröffentlichungs-Gate und Runtime-Aufnahme
 
-Ergebnis des redaktionellen Loses: `READY_FOR_INTERNAL_LOCALE_REVIEW`. Product Owner approval: `NO`. Runtime admission: `NO`. Alle drei Lektionen bleiben `REVIEW / CURRENT / UNAVAILABLE` und sind ausschließlich Inhaltsdokumentation.
+Ergebnis des redaktionellen Loses: `READY_FOR_OWNER_APPROVAL`; die deutsche Anpassung der Foundations V1 Lessons 01–12 wurde im Rahmen von `WEB-LEARN-009` vom Product Owner freigegeben. Product Owner approval: `YES`. Runtime admission: `YES` über den bestehenden locale-aware Foundations-Pfad. Die drei Lektionen sind `APPROVED / CURRENT / AVAILABLE`. Assessment approval und reward approval: `NO`.
 
-UI, CSS, Server, API, BFF, Datenbank, Migrationen, Auth, Vault, Commercial, Engine, Provider, Assessment, Reward und andere Locales wurden nicht geändert.
+Die Aufnahme erweiterte ausschließlich das bestehende Content-Mapping und die Imports des locale-aware Foundations-Pfads; kein neuer Loader, kein paralleles Registry, kein Fallback und keine Runtime-Übersetzung wurde erstellt. UI, CSS, Server, API, BFF, Datenbank, Migrationen, Auth, Vault, Commercial, Engine, Provider, Assessment, Reward und andere Locales wurden nicht geändert.
 
 ## Korrekturverlauf und exakte Dateien
 
 - Adaptation revision: `1` für Lessons 04–05; `2` für Lektion 06 nach der Paritätskorrektur.
 - Correction cycles after independent internal review: `1`.
-- Product Owner approval: `NO`.
-- Runtime admission: `NO`; runtime availability: `UNAVAILABLE`.
+- Product Owner approval: `YES` für die Foundations V1 Lessons 01–12 auf Deutsch.
+- Runtime admission: `YES`; runtime availability: `AVAILABLE`.
 
 Exakte Dateien dieses Loses:
 

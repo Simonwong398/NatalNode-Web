@@ -6,26 +6,26 @@ canonicalLocale: en
 locale: ko
 adaptationRevision: 1
 documentKind: LOCALE_ADAPTATION_REVIEW_MANIFEST
-contentState: REVIEW
+contentState: APPROVED
 currentness: CURRENT
-runtimeAvailability: UNAVAILABLE
+runtimeAvailability: AVAILABLE
 ---
 
 # Foundations V1 ko Lessons 10–12 Review Manifest
 
 ## 범위와 상태
 
-이 manifest는 한국어 Foundations V1의 마지막 batch인 차트 우선순위, 전체 차트 종합, 책임 있는 사용을 기록합니다. 세 lesson은 Class C 문서로 완성되었지만 Product Owner approval과 runtime admission은 보류 상태입니다.
+이 manifest는 한국어 Foundations V1의 마지막 batch인 차트 우선순위, 전체 차트 종합, 책임 있는 사용을 기록합니다. 세 lesson은 Class C 문서로 완성되었고 `WEB-LEARN-009`에 따라 Product Owner approval과 runtime admission이 완료되었습니다.
 
-각 lesson은 `contentRevision: 1`, `canonicalContentRevision: 1`, `contentState: REVIEW`, `currentness: CURRENT`, `runtimeAvailability: UNAVAILABLE`입니다. `CURRENT`는 영어 canon과의 정합성을 나타내며 공개를 허가하지 않습니다.
+각 lesson은 `contentRevision: 1`, `canonicalContentRevision: 1`을 유지하며, `WEB-LEARN-009`에 따른 runtime admission 후 `contentState: APPROVED`, `currentness: CURRENT`, `runtimeAvailability: AVAILABLE`입니다.
 
 ## Lesson identity
 
 | Lesson | Lesson ID | 한국어 제목 | Canonical revision | Adaptation | 상태 | Runtime |
 | ---: | --- | --- | ---: | ---: | --- | --- |
-| 10 | `foundations.chart_priorities` | 차트에서 먼저 볼 것은 무엇인가 | 1 | 1 | `REVIEW` / `CURRENT` | `UNAVAILABLE` |
-| 11 | `foundations.whole_chart` | 차트 전체 읽기 | 1 | 1 | `REVIEW` / `CURRENT` | `UNAVAILABLE` |
-| 12 | `foundations.responsible_astrology` | 책임 있게 점성술 사용하기 | 1 | 1 | `REVIEW` / `CURRENT` | `UNAVAILABLE` |
+| 10 | `foundations.chart_priorities` | 차트에서 먼저 볼 것은 무엇인가 | 1 | 1 | `APPROVED` / `CURRENT` | `AVAILABLE` |
+| 11 | `foundations.whole_chart` | 차트 전체 읽기 | 1 | 1 | `APPROVED` / `CURRENT` | `AVAILABLE` |
+| 12 | `foundations.responsible_astrology` | 책임 있게 점성술 사용하기 | 1 | 1 | `APPROVED` / `CURRENT` | `AVAILABLE` |
 
 Canonical source는 `docs/content/foundations/v1/en/10-what-matters-first-in-a-chart.md`, `11-reading-the-chart-as-a-whole.md`, `12-using-astrology-responsibly.md`입니다.
 
@@ -68,20 +68,20 @@ Lesson 10은 태양 황소자리 20°=50°, 달 사자자리 20°=140°, 90° �
 | `EDITORIAL_NOTE` | 0 |
 | 완료한 lesson | 12 / 12 |
 
-이는 Product Owner review로 진행할 수 있는 내부 상태를 뜻합니다. Product Owner approval은 아닙니다: `NO`. Runtime admission도 아닙니다: `NO`. 모든 한국어 lesson은 `REVIEW / CURRENT / UNAVAILABLE` 상태로 남아 있습니다.
+이는 Product Owner review를 거쳐 승인된 상태를 뜻합니다. 한국어 Foundations V1 Lessons 01–12의 Product Owner approval은 `YES`, Runtime admission은 `YES`입니다. 기존 Foundations locale-aware path를 통해 모든 한국어 lesson은 `APPROVED / CURRENT / AVAILABLE`입니다. Assessment approval과 reward approval은 `NO`입니다.
 
 ## Source, correction, scope integrity
 
 세 lesson의 canonical URL을 완전히 보존했습니다. 점성술 자료는 curriculum 맥락에 사용했고 외부 prose를 복사하지 않았습니다. 광범위한 web research도 수행하지 않았습니다. product canon, architecture, localization policy가 state, fallback, 공개를 통제합니다.
 
-UI, CSS, server, API, BFF, database, migration, Auth, Vault, Commercial, Engine, provider, assessment, reward, renderer, 영어, 다른 locale은 변경하지 않았습니다. 자동 번역이나 P1/P2/P3 기능도 추가하지 않았습니다.
+admission에서는 기존 Foundations locale-aware path의 content mapping과 imports만 확장했고, 새 loader, parallel registry, fallback, runtime translation layer는 추가하지 않았습니다. UI, CSS, server, API, BFF, database, migration, Auth, Vault, Commercial, Engine, provider, assessment, reward, renderer, 영어, 다른 locale은 변경하지 않았습니다. 자동 번역이나 P1/P2/P3 기능도 추가하지 않았습니다.
 
 ## Correction history와 exact files
 
 - Adaptation revision: `1` (Lesson 10–12).
 - 독립 내부 검토 이후 correction cycle: `0`.
-- Product Owner approval: `NO`.
-- Runtime admission: `NO`, runtime availability: `UNAVAILABLE`.
+- Product Owner approval: `YES` (한국어 Foundations V1 Lessons 01–12).
+- Runtime admission: `YES`, runtime availability: `AVAILABLE`.
 
 이 batch의 exact files:
 

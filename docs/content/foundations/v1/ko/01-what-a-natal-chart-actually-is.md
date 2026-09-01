@@ -7,7 +7,7 @@ canonicalLocale: en
 locale: ko
 contentRevision: 1
 canonicalContentRevision: 3
-contentState: REVIEW
+contentState: APPROVED
 currentness: CURRENT
 ---
 

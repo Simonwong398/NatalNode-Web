@@ -6,9 +6,9 @@ canonicalLocale: en
 locale: fr
 adaptationRevision: 1
 documentKind: LOCALE_ADAPTATION_REVIEW_MANIFEST
-contentState: REVIEW
+contentState: APPROVED
 currentness: CURRENT
-runtimeAvailability: UNAVAILABLE
+runtimeAvailability: AVAILABLE
 ---
 
 # Foundations V1 fr Lessons 07–09 Review Manifest
@@ -17,15 +17,15 @@ runtimeAvailability: UNAVAILABLE
 
 Ce manifest couvre exactement les adaptations françaises des leçons 07–09. Le travail conserve les structures de maisons, l'échafaudage planète × signe × maison et la géométrie des aspects sans ajouter de calcul, de renderer, de données de thème ou de logique runtime.
 
-Les leçons 07–08 déclarent `contentRevision: 1` et la leçon 09 `contentRevision: 2` après une correction circonscrite de parité des questions ; toutes conservent `canonicalContentRevision: 1`, `contentState: REVIEW` et `currentness: CURRENT`. La disponibilité de cette adaptation non approuvée est `UNAVAILABLE`.
+Les leçons 07–08 déclarent `contentRevision: 1` et la leçon 09 `contentRevision: 2` après une correction circonscrite de parité des questions ; toutes conservent `canonicalContentRevision: 1` et sont `APPROVED / CURRENT / AVAILABLE` après l'admission de l'adaptation française dans le cadre de `WEB-LEARN-009`.
 
 ## Identité des leçons
 
 | Leçon | Lesson ID | Titre français | Révision canonique | Adaptation | État | Runtime |
 | ---: | --- | --- | ---: | ---: | --- | --- |
-| 07 | `foundations.houses_angles` | Les douze maisons et les angles | 1 | 1 | `REVIEW` / `CURRENT` | `UNAVAILABLE` |
-| 08 | `foundations.planet_sign_house` | Planète × signe × maison | 1 | 1 | `REVIEW` / `CURRENT` | `UNAVAILABLE` |
-| 09 | `foundations.aspects` | Aspects : relations entre les planètes | 1 | 2 | `REVIEW` / `CURRENT` | `UNAVAILABLE` |
+| 07 | `foundations.houses_angles` | Les douze maisons et les angles | 1 | 1 | `APPROVED` / `CURRENT` | `AVAILABLE` |
+| 08 | `foundations.planet_sign_house` | Planète × signe × maison | 1 | 1 | `APPROVED` / `CURRENT` | `AVAILABLE` |
+| 09 | `foundations.aspects` | Aspects : relations entre les planètes | 1 | 2 | `APPROVED` / `CURRENT` | `AVAILABLE` |
 
 Sources canoniques : `docs/content/foundations/v1/en/07-the-twelve-houses-and-the-angles.md`, `08-planet-sign-house.md` et `09-aspects-relationships-between-planets.md`.
 
@@ -66,16 +66,16 @@ Aucune recherche web large, prose externe copiée ou traduction automatique n'a 
 
 ## Gate de publication et non-admission
 
-Résultat du lot : `READY_FOR_INTERNAL_LOCALE_REVIEW`. Product Owner approval : `NO` ; runtime admission : `NO`. Les trois leçons restent `REVIEW / CURRENT / UNAVAILABLE` et sont uniquement documentaires.
+Résultat du lot : `READY_FOR_OWNER_APPROVAL`, puis approbation du Product Owner pour l'adaptation française des Foundations V1 Lessons 01–12 dans le cadre de `WEB-LEARN-009`. Product Owner approval : `YES` ; runtime admission : `YES` via le chemin Foundations locale-aware existant. Les trois leçons sont `APPROVED / CURRENT / AVAILABLE`. Assessment approval et reward approval : `NO`.
 
-Aucun registry, loader, route, fallback, UI, CSS, server, API, BFF, database, migration, Auth, Vault, Commercial, Engine, provider, assessment, reward, renderer ou autre locale n'a été modifié.
+L'admission a étendu uniquement le mapping de contenu et les imports du chemin Foundations locale-aware existant ; aucun loader parallèle, registry parallèle, fallback silencieux ou traduction runtime n'a été créé. Aucun UI, CSS, server, API, BFF, database, migration, Auth, Vault, Commercial, Engine, provider, assessment, reward, renderer ou autre locale n'a été modifié.
 
 ## Historique de correction et fichiers exacts
 
 - Adaptation revision : `1` pour Lessons 07–08 ; `2` pour Lesson 09 après la correction de parité.
 - Correction cycles after independent internal review : `1`.
-- Product Owner approval : `NO`.
-- Runtime admission : `NO` ; runtime availability : `UNAVAILABLE`.
+- Product Owner approval : `YES` pour les Foundations V1 Lessons 01–12 en français.
+- Runtime admission : `YES` ; runtime availability : `AVAILABLE`.
 
 Fichiers exacts de ce lot :
 

@@ -6,9 +6,9 @@ canonicalLocale: en
 locale: fr
 adaptationRevision: 1
 documentKind: LOCALE_ADAPTATION_REVIEW_MANIFEST
-contentState: REVIEW
+contentState: APPROVED
 currentness: CURRENT
-runtimeAvailability: UNAVAILABLE
+runtimeAvailability: AVAILABLE
 ---
 
 # Foundations V1 fr Lessons 01–03 Review Manifest
@@ -17,15 +17,15 @@ runtimeAvailability: UNAVAILABLE
 
 Ce manifest consigne l'adaptation professionnelle Class C en français des leçons 01–03 de Foundations V1. Il s'agit d'une rédaction adaptée de manière indépendante, non d'une traduction exécutée au runtime. L'identité `foundations.v1`, la provenance `en` et les frontières entre astronomie, calcul, interprétation et usage responsable sont conservées.
 
-Les trois leçons ont `contentRevision: 1`; leurs révisions canoniques sont respectivement 3, 2 et 2. Elles restent `contentState: REVIEW`, `currentness: CURRENT` et `runtimeAvailability: UNAVAILABLE`. `CURRENT` signifie que l'adaptation suit le canon actuel ; cela ne constitue ni une approbation du Product Owner ni une admission runtime.
+Les trois leçons ont `contentRevision: 1`; leurs révisions canoniques sont respectivement 3, 2 et 2. Elles sont `contentState: APPROVED`, `currentness: CURRENT` et `runtimeAvailability: AVAILABLE` après l'admission de l'adaptation française dans le cadre de `WEB-LEARN-009`.
 
 ## Identité des leçons
 
 | Leçon | Lesson ID | Titre français | Révision canonique | Adaptation | État | Runtime |
 | ---: | --- | --- | ---: | ---: | --- | --- |
-| 01 | `foundations.natal_chart` | Ce qu'est réellement un thème natal | 3 | 1 | `REVIEW` / `CURRENT` | `UNAVAILABLE` |
-| 02 | `foundations.zodiac_structure` | Le zodiaque : éléments et modalités | 2 | 1 | `REVIEW` / `CURRENT` | `UNAVAILABLE` |
-| 03 | `foundations.chart_calculation` | Comment le ciel devient un thème | 2 | 1 | `REVIEW` / `CURRENT` | `UNAVAILABLE` |
+| 01 | `foundations.natal_chart` | Ce qu'est réellement un thème natal | 3 | 1 | `APPROVED` / `CURRENT` | `AVAILABLE` |
+| 02 | `foundations.zodiac_structure` | Le zodiaque : éléments et modalités | 2 | 1 | `APPROVED` / `CURRENT` | `AVAILABLE` |
+| 03 | `foundations.chart_calculation` | Comment le ciel devient un thème | 2 | 1 | `APPROVED` / `CURRENT` | `AVAILABLE` |
 
 Sources canoniques exactes : `docs/content/foundations/v1/en/01-what-a-natal-chart-actually-is.md`, `02-the-zodiac-structure.md` et `03-how-the-sky-becomes-a-chart`. Aucun fichier anglais n'a été modifié.
 
@@ -65,16 +65,16 @@ Aucune recherche web large, aucune prose externe copiée et aucune traduction au
 
 ## Gate de publication et non-admission
 
-Le résultat éditorial interne de ce lot est `READY_FOR_INTERNAL_LOCALE_REVIEW`, et non une approbation du Product Owner. Product Owner approval : `NO`. Runtime admission : `NO`. La règle demeure `REVIEW + CURRENT = UNAVAILABLE` pour cette adaptation française.
+Le résultat éditorial interne de ce lot était `READY_FOR_OWNER_APPROVAL`; l'adaptation française des Foundations V1 Lessons 01–12 a ensuite reçu l'approbation du Product Owner dans le cadre de `WEB-LEARN-009`. Product Owner approval : `YES`. Runtime admission : `YES` via le chemin Foundations locale-aware existant ; les leçons sont `APPROVED / CURRENT / AVAILABLE`. Assessment approval et reward approval : `NO`.
 
-Aucun registry, loader, route, fallback, UI, CSS, server, API, BFF, base de données, migration, Auth, Vault, Engine, provider, assessment, reward ou contenu anglais n'a été modifié. Les autres lots de locale ne font pas partie de ce manifest.
+L'admission a étendu uniquement le mapping de contenu et les imports du chemin Foundations locale-aware existant ; aucun loader parallèle, registry parallèle, fallback silencieux ou traduction runtime n'a été créé. Le fallback explicite reste limité au contenu localisé indisponible. Aucun UI, CSS, server, API, BFF, base de données, migration, Auth, Vault, Engine, provider, assessment, reward ou contenu anglais n'a été modifié. Les autres lots de locale ne font pas partie de ce manifest.
 
 ## Historique de correction et fichiers exacts
 
 - Adaptation revision : `1`.
 - Correction cycles after independent internal review : `0`.
-- Product Owner approval : `NO`.
-- Runtime admission : `NO` ; runtime availability : `UNAVAILABLE`.
+- Product Owner approval : `YES` pour les Foundations V1 Lessons 01–12 en français.
+- Runtime admission : `YES` ; runtime availability : `AVAILABLE`.
 
 Fichiers exacts de ce lot :
 

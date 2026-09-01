@@ -6,9 +6,9 @@ canonicalLocale: en
 locale: de
 adaptationRevision: 1
 documentKind: LOCALE_ADAPTATION_REVIEW_MANIFEST
-contentState: REVIEW
+contentState: APPROVED
 currentness: CURRENT
-runtimeAvailability: UNAVAILABLE
+runtimeAvailability: AVAILABLE
 ---
 
 # Foundations V1 de Lessons 01–03 Review Manifest
@@ -17,15 +17,15 @@ runtimeAvailability: UNAVAILABLE
 
 Dieses Manifest dokumentiert die professionelle Class-C-Anpassung von Foundations V1 für die Lektionen 01–03 auf Deutsch. Die Texte sind unabhängig redigiert und keine Übersetzung zur Laufzeit. Die kanonische Identität `foundations.v1`, die Herkunft `en` und die Grenzen zwischen Astronomie, Berechnung, Deutung und verantwortungsvoller Nutzung bleiben erhalten.
 
-Alle drei Lektionen haben `contentRevision: 1`; ihre kanonischen Revisionen sind 3, 2 und 2. Sie bleiben `contentState: REVIEW`, `currentness: CURRENT` und `runtimeAvailability: UNAVAILABLE`. `CURRENT` bezeichnet die Ausrichtung am aktuellen Kanon, nicht die Freigabe durch den Product Owner oder eine Runtime-Aufnahme.
+Alle drei Lektionen haben `contentRevision: 1`; ihre kanonischen Revisionen sind 3, 2 und 2. Nach der Aufnahme der deutschen Anpassung im Rahmen von `WEB-LEARN-009` sind sie `contentState: APPROVED`, `currentness: CURRENT` und `runtimeAvailability: AVAILABLE`.
 
 ## Identität der Lektionen
 
 | Lektion | Lesson ID | Deutscher Titel | Kanonische Revision | Anpassung | Status | Runtime |
 | ---: | --- | --- | ---: | ---: | --- | --- |
-| 01 | `foundations.natal_chart` | Was ein Geburtshoroskop tatsächlich ist | 3 | 1 | `REVIEW` / `CURRENT` | `UNAVAILABLE` |
-| 02 | `foundations.zodiac_structure` | Der Tierkreis: Elemente und Modalitäten | 2 | 1 | `REVIEW` / `CURRENT` | `UNAVAILABLE` |
-| 03 | `foundations.chart_calculation` | Wie der Himmel zu einem Horoskop wird | 2 | 1 | `REVIEW` / `CURRENT` | `UNAVAILABLE` |
+| 01 | `foundations.natal_chart` | Was ein Geburtshoroskop tatsächlich ist | 3 | 1 | `APPROVED` / `CURRENT` | `AVAILABLE` |
+| 02 | `foundations.zodiac_structure` | Der Tierkreis: Elemente und Modalitäten | 2 | 1 | `APPROVED` / `CURRENT` | `AVAILABLE` |
+| 03 | `foundations.chart_calculation` | Wie der Himmel zu einem Horoskop wird | 2 | 1 | `APPROVED` / `CURRENT` | `AVAILABLE` |
 
 Die exakten kanonischen Dateien sind `docs/content/foundations/v1/en/01-what-a-natal-chart-actually-is.md`, `02-the-zodiac-structure.md` und `03-how-the-sky-becomes-a-chart.md`. Englisch wurde nicht geändert.
 
@@ -63,18 +63,18 @@ Die kanonischen URL werden exakt beibehalten. Faculty of Astrological Studies, A
 
 Keine breite Webrecherche, keine kopierte externe Prosa und keine automatische Übersetzung wurden verwendet. `PROVIDER DECISION DEFERRED`.
 
-## Veröffentlichungs-Gate und Nicht-Aufnahme
+## Veröffentlichungs-Gate und Runtime-Aufnahme
 
-Das Ergebnis der internen Redaktion ist `READY_FOR_INTERNAL_LOCALE_REVIEW`, nicht Product-Owner-Freigabe. Product Owner approval: `NO`. Runtime admission: `NO`. Die Regel bleibt für diese deutsche Anpassung `REVIEW + CURRENT = UNAVAILABLE`.
+Das Ergebnis der internen Redaktion war `READY_FOR_OWNER_APPROVAL`; die deutsche Anpassung der Foundations V1 Lessons 01–12 wurde im Rahmen von `WEB-LEARN-009` vom Product Owner freigegeben. Product Owner approval: `YES`. Runtime admission: `YES` über den bestehenden locale-aware Foundations-Pfad; die Lektionen sind `APPROVED / CURRENT / AVAILABLE`. Assessment approval und reward approval: `NO`.
 
-Registry, Loader, Route, Fallback, UI, CSS, Server, API, BFF, Datenbank, Migration, Auth, Vault, Engine, Provider, Assessment, Reward und englischer Inhalt wurden nicht geändert. Die anderen Locale-Lose gehören nicht zu diesem Manifest.
+Die Aufnahme erweiterte ausschließlich das bestehende Content-Mapping und die Imports des locale-aware Foundations-Pfads; es wurde kein paralleler Loader, kein paralleles Registry, kein stiller Fallback und keine Runtime-Übersetzung erstellt. Der explizite Fallback bleibt auf nicht verfügbare lokalisierte Inhalte begrenzt. UI, CSS, Server, API, BFF, Datenbank, Migration, Auth, Vault, Engine, Provider, Assessment, Reward und englischer Inhalt wurden nicht geändert. Die anderen Locale-Lose gehören nicht zu diesem Manifest.
 
 ## Korrekturverlauf und exakte Dateien
 
 - Adaptation revision: `1`.
 - Correction cycles after independent internal review: `0`.
-- Product Owner approval: `NO`.
-- Runtime admission: `NO`; runtime availability: `UNAVAILABLE`.
+- Product Owner approval: `YES` für die Foundations V1 Lessons 01–12 auf Deutsch.
+- Runtime admission: `YES`; runtime availability: `AVAILABLE`.
 
 Exakte Dateien dieses Loses:
 

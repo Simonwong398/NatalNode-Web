@@ -6,9 +6,9 @@ canonicalLocale: en
 locale: de
 adaptationRevision: 1
 documentKind: LOCALE_ADAPTATION_REVIEW_MANIFEST
-contentState: REVIEW
+contentState: APPROVED
 currentness: CURRENT
-runtimeAvailability: UNAVAILABLE
+runtimeAvailability: AVAILABLE
 ---
 
 # Foundations V1 de Lessons 07–09 Review Manifest
@@ -17,15 +17,15 @@ runtimeAvailability: UNAVAILABLE
 
 Dieses Manifest umfasst genau die deutschen Anpassungen der Lektionen 07–09. Die Arbeit bewahrt Häuserstruktur, Planet-×-Zeichen-×-Haus-Denkgerüst und Aspektgeometrie, ohne Berechnung, Renderer, Horoskopdaten oder Runtime-Logik hinzuzufügen.
 
-Die Lektionen 07–08 erklären `contentRevision: 1`; Lektion 09 erklärt nach einer begrenzten Korrektur der Fragenparität `contentRevision: 2`. Alle behalten `canonicalContentRevision: 1`, `contentState: REVIEW` und `currentness: CURRENT`. Die Verfügbarkeit der nicht freigegebenen Anpassung ist `UNAVAILABLE`.
+Die Lektionen 07–08 erklären `contentRevision: 1`; Lektion 09 erklärt nach einer begrenzten Korrektur der Fragenparität `contentRevision: 2`. Alle behalten `canonicalContentRevision: 1` und sind nach der Aufnahme der deutschen Anpassung im Rahmen von `WEB-LEARN-009` `APPROVED / CURRENT / AVAILABLE`.
 
 ## Identität der Lektionen
 
 | Lektion | Lesson ID | Deutscher Titel | Kanonische Revision | Anpassung | Status | Runtime |
 | ---: | --- | --- | ---: | ---: | --- | --- |
-| 07 | `foundations.houses_angles` | Die zwölf Häuser und die Achsen | 1 | 1 | `REVIEW` / `CURRENT` | `UNAVAILABLE` |
-| 08 | `foundations.planet_sign_house` | Planet × Zeichen × Haus | 1 | 1 | `REVIEW` / `CURRENT` | `UNAVAILABLE` |
-| 09 | `foundations.aspects` | Aspekte: Beziehungen zwischen Planeten | 1 | 2 | `REVIEW` / `CURRENT` | `UNAVAILABLE` |
+| 07 | `foundations.houses_angles` | Die zwölf Häuser und die Achsen | 1 | 1 | `APPROVED` / `CURRENT` | `AVAILABLE` |
+| 08 | `foundations.planet_sign_house` | Planet × Zeichen × Haus | 1 | 1 | `APPROVED` / `CURRENT` | `AVAILABLE` |
+| 09 | `foundations.aspects` | Aspekte: Beziehungen zwischen Planeten | 1 | 2 | `APPROVED` / `CURRENT` | `AVAILABLE` |
 
 Kanonische Quellen: `docs/content/foundations/v1/en/07-the-twelve-houses-and-the-angles.md`, `08-planet-sign-house.md` und `09-aspects-relationships-between-planets.md`.
 
@@ -64,18 +64,18 @@ Jede Lektion bewahrt ihre kanonischen URL exakt. Faculty of Astrological Studies
 
 Keine breite Webrecherche, kopierte Prosa oder automatische Übersetzung wurde verwendet. PRD sowie Architektur- und Lokalisierungs-Freeze bleiben die Produktautorität.
 
-## Veröffentlichungs-Gate und Nicht-Aufnahme
+## Veröffentlichungs-Gate und Runtime-Aufnahme
 
-Ergebnis dieses Loses: `READY_FOR_INTERNAL_LOCALE_REVIEW`. Product Owner approval: `NO`; runtime admission: `NO`. Die drei Lektionen bleiben `REVIEW / CURRENT / UNAVAILABLE` und sind rein dokumentarisch.
+Ergebnis dieses Loses: `READY_FOR_OWNER_APPROVAL`; die deutsche Anpassung der Foundations V1 Lessons 01–12 wurde im Rahmen von `WEB-LEARN-009` vom Product Owner freigegeben. Product Owner approval: `YES`; runtime admission: `YES` über den bestehenden locale-aware Foundations-Pfad. Die drei Lektionen sind `APPROVED / CURRENT / AVAILABLE`. Assessment approval und reward approval: `NO`.
 
-Registry, Loader, Route, Fallback, UI, CSS, Server, API, BFF, Database, Migration, Auth, Vault, Commercial, Engine, Provider, Assessment, Reward, Renderer und andere Locales wurden nicht geändert.
+Die Aufnahme erweiterte ausschließlich das bestehende Content-Mapping und die Imports des locale-aware Foundations-Pfads; kein paralleler Loader, kein paralleles Registry, kein stiller Fallback und keine Runtime-Übersetzung wurde erstellt. Registry, Route, UI, CSS, Server, API, BFF, Database, Migration, Auth, Vault, Commercial, Engine, Provider, Assessment, Reward, Renderer und andere Locales wurden nicht geändert.
 
 ## Korrekturverlauf und exakte Dateien
 
 - Adaptation revision: `1` für Lessons 07–08; `2` für Lektion 09 nach der Paritätskorrektur.
 - Correction cycles after independent internal review: `1`.
-- Product Owner approval: `NO`.
-- Runtime admission: `NO`; runtime availability: `UNAVAILABLE`.
+- Product Owner approval: `YES` für die Foundations V1 Lessons 01–12 auf Deutsch.
+- Runtime admission: `YES`; runtime availability: `AVAILABLE`.
 
 Exakte Dateien dieses Loses:
 

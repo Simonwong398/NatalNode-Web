@@ -6,9 +6,9 @@ canonicalLocale: en
 locale: ja
 adaptationRevision: 1
 documentKind: LOCALE_ADAPTATION_REVIEW_MANIFEST
-contentState: REVIEW
+contentState: APPROVED
 currentness: CURRENT
-runtimeAvailability: UNAVAILABLE
+runtimeAvailability: AVAILABLE
 ---
 
 # Foundations V1 ja Lessons 07–09 Review Manifest
@@ -17,15 +17,15 @@ runtimeAvailability: UNAVAILABLE
 
 この manifest は、日本語で適応した Lesson 07–09 を対象とします。十二ハウス、天体×サイン×ハウスの足場、アスペクトの幾何学を保ち、計算、renderer、チャートデータ、runtime logic は追加していません。
 
-Lesson 07–08 は `contentRevision: 1`、Lesson 09 は質問 parity の限定的な correction 後の `contentRevision: 2` です。三つとも `canonicalContentRevision: 1`、`contentState: REVIEW`、`currentness: CURRENT`、runtime availability `UNAVAILABLE` を保ちます。
+Lesson 07–08 は `contentRevision: 1`、Lesson 09 は質問 parity の限定的な correction 後の `contentRevision: 2` です。三つとも `canonicalContentRevision: 1` を保ち、`WEB-LEARN-009` による runtime admission 後の状態は `APPROVED / CURRENT / AVAILABLE` です。
 
 ## Lesson identity
 
 | Lesson | Lesson ID | 日本語タイトル | Canonical revision | Adaptation | 状態 | Runtime |
 | ---: | --- | --- | ---: | ---: | --- | --- |
-| 07 | `foundations.houses_angles` | 十二ハウスとアングル | 1 | 1 | `REVIEW` / `CURRENT` | `UNAVAILABLE` |
-| 08 | `foundations.planet_sign_house` | 天体 × サイン × ハウス | 1 | 1 | `REVIEW` / `CURRENT` | `UNAVAILABLE` |
-| 09 | `foundations.aspects` | アスペクト：天体同士の関係 | 1 | 2 | `REVIEW` / `CURRENT` | `UNAVAILABLE` |
+| 07 | `foundations.houses_angles` | 十二ハウスとアングル | 1 | 1 | `APPROVED` / `CURRENT` | `AVAILABLE` |
+| 08 | `foundations.planet_sign_house` | 天体 × サイン × ハウス | 1 | 1 | `APPROVED` / `CURRENT` | `AVAILABLE` |
+| 09 | `foundations.aspects` | アスペクト：天体同士の関係 | 1 | 2 | `APPROVED` / `CURRENT` | `AVAILABLE` |
 
 Canonical source は `docs/content/foundations/v1/en/07-the-twelve-houses-and-the-angles.md`、`08-planet-sign-house.md`、`09-aspects-relationships-between-planets.md` です。
 
@@ -64,18 +64,18 @@ Lesson 09 の合成幾何は、50°–52°＝2°コンジャンクション、10
 
 広範な web research、外部 prose のコピー、自動翻訳は行っていません。PRD と architecture/localization freeze が authority です。
 
-## 公開 gate と runtime 非 admission
+## 公開 gate と runtime admission
 
-この batch の内部 editorial 結果は `READY_FOR_INTERNAL_LOCALE_REVIEW` です。Product Owner approval: `NO`。Runtime admission: `NO`。三つの lesson は `REVIEW / CURRENT / UNAVAILABLE` のままです。
+この batch の内部 editorial 結果は `READY_FOR_OWNER_APPROVAL` でした。日本語 Foundations V1 Lessons 01–12 は `WEB-LEARN-009` の範囲で Product Owner に承認されました。Product Owner approval: `YES`。Runtime admission: `YES`。既存の Foundations locale-aware path により、三つの lesson は `APPROVED / CURRENT / AVAILABLE` です。Assessment approval と reward approval は `NO` です。
 
-Registry、loader、route、fallback、UI、CSS、server、API、BFF、database、migration、Auth、Vault、Commercial、Engine、provider、assessment、reward、renderer、他 locale は変更していません。
+admission では既存の Foundations locale-aware path の content mapping と imports だけを拡張しました。parallel loader、parallel registry、silent fallback、runtime translation layer は作成していません。Registry、route、UI、CSS、server、API、BFF、database、migration、Auth、Vault、Commercial、Engine、provider、assessment、reward、renderer、他 locale は変更していません。
 
 ## Correction history と exact files
 
 - Adaptation revision: `1`（Lesson 07–08）、`2`（Lesson 09、質問 parity の修正後）。
 - Correction cycles after independent internal review: `1`。
-- Product Owner approval: `NO`。
-- Runtime admission: `NO`、runtime availability: `UNAVAILABLE`。
+- Product Owner approval: `YES`（日本語 Foundations V1 Lessons 01–12）。
+- Runtime admission: `YES`、runtime availability: `AVAILABLE`。
 
 この batch の exact files:
 

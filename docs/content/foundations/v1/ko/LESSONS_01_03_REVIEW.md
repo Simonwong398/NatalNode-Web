@@ -6,9 +6,9 @@ canonicalLocale: en
 locale: ko
 adaptationRevision: 1
 documentKind: LOCALE_ADAPTATION_REVIEW_MANIFEST
-contentState: REVIEW
+contentState: APPROVED
 currentness: CURRENT
-runtimeAvailability: UNAVAILABLE
+runtimeAvailability: AVAILABLE
 ---
 
 # Foundations V1 ko Lessons 01–03 Review Manifest
@@ -17,15 +17,15 @@ runtimeAvailability: UNAVAILABLE
 
 이 manifest는 Foundations V1 Lesson 01–03의 한국어 Class C 전문 적응을 기록합니다. 내용은 독립적으로 작성했으며 runtime 자동 번역이 아닙니다. `foundations.v1`의 canonical identity, `en`의 canonical provenance, 천문학·계산·해석·책임 있는 사용의 경계를 보존합니다.
 
-세 lesson은 모두 `contentRevision: 1`이며 canonical revision은 각각 3, 2, 2입니다. 상태는 `contentState: REVIEW`, `currentness: CURRENT`, `runtimeAvailability: UNAVAILABLE`입니다. `CURRENT`는 현재 canon과의 정합성만 나타내며 Product Owner 승인이나 runtime admission을 의미하지 않습니다.
+세 lesson은 모두 `contentRevision: 1`이며 canonical revision은 각각 3, 2, 2입니다. `WEB-LEARN-009`에 따라 한국어 적응이 runtime에 admission되었으므로 상태는 `contentState: APPROVED`, `currentness: CURRENT`, `runtimeAvailability: AVAILABLE`입니다.
 
 ## Lesson identity
 
 | Lesson | Lesson ID | 한국어 제목 | Canonical revision | Adaptation | 상태 | Runtime |
 | ---: | --- | --- | ---: | ---: | --- | --- |
-| 01 | `foundations.natal_chart` | 네이털 차트란 실제로 무엇인가 | 3 | 1 | `REVIEW` / `CURRENT` | `UNAVAILABLE` |
-| 02 | `foundations.zodiac_structure` | 황도의 구조: 원소와 모드 | 2 | 1 | `REVIEW` / `CURRENT` | `UNAVAILABLE` |
-| 03 | `foundations.chart_calculation` | 하늘이 차트가 되는 과정 | 2 | 1 | `REVIEW` / `CURRENT` | `UNAVAILABLE` |
+| 01 | `foundations.natal_chart` | 네이털 차트란 실제로 무엇인가 | 3 | 1 | `APPROVED` / `CURRENT` | `AVAILABLE` |
+| 02 | `foundations.zodiac_structure` | 황도의 구조: 원소와 모드 | 2 | 1 | `APPROVED` / `CURRENT` | `AVAILABLE` |
+| 03 | `foundations.chart_calculation` | 하늘이 차트가 되는 과정 | 2 | 1 | `APPROVED` / `CURRENT` | `AVAILABLE` |
 
 Canonical source는 `docs/content/foundations/v1/en/01-what-a-natal-chart-actually-is.md`, `02-the-zodiac-structure.md`, `03-how-the-sky-becomes-a-chart.md`입니다. 영어 파일은 변경하지 않았습니다.
 
@@ -63,18 +63,18 @@ Canonical URL은 완전히 보존했습니다. Faculty of Astrological Studies, 
 
 광범위한 web research, 외부 prose 복사, 자동 번역은 수행하지 않았습니다. `PROVIDER DECISION DEFERRED`.
 
-## 공개 gate와 runtime 비 admission
+## 공개 gate와 runtime admission
 
-이 batch의 내부 editorial 결과는 `READY_FOR_INTERNAL_LOCALE_REVIEW`이며 Product Owner approval이 아닙니다. Product Owner approval: `NO`. Runtime admission: `NO`. 이 한국어 적응의 규칙은 `REVIEW + CURRENT = UNAVAILABLE`입니다.
+이 batch의 내부 editorial 결과는 `READY_FOR_OWNER_APPROVAL`이었고, 한국어 Foundations V1 Lessons 01–12는 `WEB-LEARN-009` 범위에서 Product Owner의 승인을 받았습니다. Product Owner approval: `YES`. Runtime admission: `YES`. 기존 Foundations locale-aware path를 통해 lesson은 `APPROVED / CURRENT / AVAILABLE`입니다. Assessment approval과 reward approval은 `NO`입니다.
 
-Registry, loader, route, fallback, UI, CSS, server, API, BFF, database, migration, Auth, Vault, Engine, provider, assessment, reward, 영어 본문은 변경하지 않았습니다.
+admission에서는 기존 Foundations locale-aware path의 content mapping과 imports만 확장했습니다. parallel loader, parallel registry, silent fallback, runtime translation layer는 만들지 않았습니다. 명시적 fallback은 localized content가 unavailable한 경우로 한정됩니다. UI, CSS, server, API, BFF, database, migration, Auth, Vault, Engine, provider, assessment, reward, 영어 본문은 변경하지 않았습니다.
 
 ## Correction history와 exact files
 
 - Adaptation revision: `1`.
 - 독립 내부 검토 이후 correction cycle: `0`.
-- Product Owner approval: `NO`.
-- Runtime admission: `NO`, runtime availability: `UNAVAILABLE`.
+- Product Owner approval: `YES` (한국어 Foundations V1 Lessons 01–12).
+- Runtime admission: `YES`, runtime availability: `AVAILABLE`.
 
 이 batch의 exact files:
 

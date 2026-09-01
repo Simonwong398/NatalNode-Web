@@ -6,9 +6,9 @@ canonicalLocale: en
 locale: es
 adaptationRevision: 1
 documentKind: LOCALE_ADAPTATION_REVIEW_MANIFEST
-contentState: REVIEW
+contentState: APPROVED
 currentness: CURRENT
-runtimeAvailability: UNAVAILABLE
+runtimeAvailability: AVAILABLE
 ---
 
 # Foundations V1 es Lessons 01–03 Review Manifest
@@ -17,15 +17,15 @@ runtimeAvailability: UNAVAILABLE
 
 Este manifest registra la adaptación profesional Class C en español neutro de Foundations V1 para exactamente las lecciones 01–03. Es una adaptación escrita de forma independiente, no una traducción en tiempo de ejecución. Conserva la identidad canónica `foundations.v1`, la procedencia `en` y los límites de astronomía, cálculo, interpretación y uso responsable.
 
-Las tres lecciones usan `contentRevision: 1` y sus revisiones canónicas son 3, 2 y 2. Permanecen en `contentState: REVIEW`, `currentness: CURRENT` y `runtimeAvailability: UNAVAILABLE`. `CURRENT` aquí significa que la adaptación se ajusta al contenido canónico actual; no significa aprobación del Product Owner ni admisión en runtime.
+Las tres lecciones usan `contentRevision: 1` y sus revisiones canónicas son 3, 2 y 2. Con la aprobación consolidada de `WEB-LEARN-009`, quedan en `contentState: APPROVED`, `currentness: CURRENT` y `runtimeAvailability: AVAILABLE`. La aprobación se limita a `es` Foundations V1 Lessons 01–12; no aprueba el assessment ni el reward.
 
 ## Identidad de las lecciones
 
 | Lección | Lesson ID | Título en español | Revisión canónica | Adaptación | Estado | Runtime |
 | ---: | --- | --- | ---: | ---: | --- | --- |
-| 01 | `foundations.natal_chart` | Qué es realmente una carta natal | 3 | 1 | `REVIEW` / `CURRENT` | `UNAVAILABLE` |
-| 02 | `foundations.zodiac_structure` | El zodíaco: elementos y modalidades | 2 | 1 | `REVIEW` / `CURRENT` | `UNAVAILABLE` |
-| 03 | `foundations.chart_calculation` | Cómo se convierte el cielo en una carta | 2 | 1 | `REVIEW` / `CURRENT` | `UNAVAILABLE` |
+| 01 | `foundations.natal_chart` | Qué es realmente una carta natal | 3 | 1 | `APPROVED` / `CURRENT` | `AVAILABLE` |
+| 02 | `foundations.zodiac_structure` | El zodíaco: elementos y modalidades | 2 | 1 | `APPROVED` / `CURRENT` | `AVAILABLE` |
+| 03 | `foundations.chart_calculation` | Cómo se convierte el cielo en una carta | 2 | 1 | `APPROVED` / `CURRENT` | `AVAILABLE` |
 
 Fuentes canónicas exactas: `docs/content/foundations/v1/en/01-what-a-natal-chart-actually-is.md`, `02-the-zodiac-structure.md` y `03-how-the-sky-becomes-a-chart.md`. No se modificó el inglés.
 
@@ -63,18 +63,19 @@ Las lecciones conservan exactamente las URL del conjunto canónico. Las fuentes 
 
 No se realizó investigación web amplia, no se copió prosa externa y no se usó traducción automática. `PROVIDER DECISION DEFERRED`.
 
-## Gate de publicación y no admisión
+## Aprobación del Product Owner y admisión runtime
 
-La revisión editorial interna de este lote queda registrada como `READY_FOR_INTERNAL_LOCALE_REVIEW`, no como aprobación del propietario. No existe aprobación explícita del Product Owner para `es`; tampoco existe admisión runtime. La regla prevista sigue siendo `REVIEW + CURRENT = UNAVAILABLE` para esta adaptación.
+El gate completo de `WEB-LEARN-008` queda registrado como `READY_FOR_OWNER_APPROVAL` y fue aprobado por el Product Owner dentro del alcance de `WEB-LEARN-009`. Product Owner approval: `YES` para `es`, Foundations V1, Lessons 01–12. Runtime admission: `YES` a través de la ruta Foundations locale-aware existente; las lecciones quedan `APPROVED / CURRENT / AVAILABLE`. Assessment y reward approval: `NO`.
 
-No se modificaron registry, loader, route, fallback, UI, CSS, server, API, BFF, base de datos, migraciones, Auth, Vault, Engine, provider, assessment, reward o contenido inglés. Los otros cuatro locales de esta campaña no forman parte de este manifest.
+La admisión extendió únicamente el mapping de contenido de la ruta Foundations existente; no creó loader, registry paralelo, traducción runtime ni fallback nuevo. No se modificaron UI, CSS, server, API, BFF, base de datos, migraciones, Auth, Vault, Engine, provider, assessment, reward o contenido inglés. Los otros cuatro locales de esta campaña no forman parte de este manifest.
 
 ## Historial de corrección y archivos exactos
 
 - Adaptation revision: `1`.
 - Correction cycles after independent internal review: `0`.
-- Product Owner approval: `NO`.
-- Runtime admission: `NO`; runtime availability: `UNAVAILABLE`.
+- Product Owner approval: `YES` para `es` Foundations V1 Lessons 01–12.
+- Runtime admission: `YES`; runtime availability: `AVAILABLE`.
+- Assessment approval: `NO`; reward approval: `NO`.
 
 Archivos exactos de este lote:
 

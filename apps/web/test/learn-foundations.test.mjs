@@ -231,8 +231,8 @@ test('browser storage is best effort and serialization contains only minimal pro
   assert.deepEqual(JSON.parse(serializeFoundationsProgress(progress)), persisted);
 });
 
-test('content governance admits canonical English and approved zh-Hant without silent fallback', () => {
-  assert.equal(isFoundationsCoreReady(), false);
+test('content governance admits all frozen locales without silent fallback', () => {
+  assert.equal(isFoundationsCoreReady(), true);
 
   const admittedRevisions = new Map([
     ['foundations.natal_chart', 3],
@@ -248,6 +248,14 @@ test('content governance admits canonical English and approved zh-Hant without s
     ['foundations.whole_chart', 1],
     ['foundations.responsible_astrology', 1]
   ]);
+
+  const admittedLocalizedRevisions = {
+    es: [1, 1, 1, 1, 1, 2, 1, 1, 2, 1, 2, 1],
+    fr: [1, 1, 1, 1, 1, 2, 1, 1, 2, 1, 2, 1],
+    de: [1, 1, 1, 1, 1, 2, 1, 1, 2, 1, 2, 1],
+    ja: [1, 1, 1, 1, 1, 2, 1, 1, 2, 1, 2, 1],
+    ko: [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
+  };
 
   assert.equal(
     FOUNDATIONS_LESSONS.find((lesson) => lesson.lessonId === 'foundations.zodiac_structure').title,
@@ -272,10 +280,13 @@ test('content governance admits canonical English and approved zh-Hant without s
 
     for (const locale of EXPECTED_LOCALES.slice(1, -1)) {
       const variant = FOUNDATIONS_CONTENT_VARIANTS[lesson.lessonId][locale];
-      assert.equal(variant.contentState, 'MISSING');
-      assert.equal(variant.currentness, 'OUTDATED');
-      assert.equal(getFoundationsContentAvailability(variant), 'UNAVAILABLE');
-      assert.equal('learningObjectives' in variant, false);
+      assert.equal(variant.contentState, 'APPROVED');
+      assert.equal(variant.currentness, 'CURRENT');
+      assert.equal(variant.contentKind, 'CANONICAL');
+      assert.equal(variant.contentRevision, admittedLocalizedRevisions[locale][lesson.order - 1]);
+      assert.equal(variant.canonicalContentRevision, english.canonicalContentRevision);
+      assert.equal(getFoundationsContentAvailability(variant), 'AVAILABLE');
+      assert.equal('learningObjectives' in variant, true);
       assert.notEqual(variant.locale, 'en');
     }
 
@@ -291,7 +302,8 @@ test('content governance admits canonical English and approved zh-Hant without s
   const spanish = getFoundationsContentVariant(EXPECTED_LESSON_IDS[0], 'es');
   assert.equal(english.contentKind, 'CANONICAL');
   assert.equal(getFoundationsContentAvailability(english), 'AVAILABLE');
-  assert.equal(getFoundationsContentAvailability(spanish), 'UNAVAILABLE');
+  assert.equal(spanish.contentKind, 'CANONICAL');
+  assert.equal(getFoundationsContentAvailability(spanish), 'AVAILABLE');
   assert.notEqual(spanish.locale, 'en');
 
   const zhHant = getFoundationsContentVariant(EXPECTED_LESSON_IDS[0], 'zh-Hant');
@@ -308,9 +320,19 @@ test('content governance admits canonical English and approved zh-Hant without s
     getFoundationsContentAvailability({ ...english, contentState: 'DRAFT', currentness: 'CURRENT' }),
     'UNAVAILABLE'
   );
+
+  const availableMatrixCells = FOUNDATIONS_LESSONS.reduce(
+    (count, lesson) => count + EXPECTED_LOCALES.filter((locale) => (
+      getFoundationsContentAvailability(
+        FOUNDATIONS_CONTENT_VARIANTS[lesson.lessonId][locale]
+      ) === 'AVAILABLE'
+    )).length,
+    0
+  );
+  assert.equal(availableMatrixCells, 84);
 });
 
-test('the final canonical-English batch is admitted without changing locale or course gates', () => {
+test('the final canonical-English batch remains compatible with all admitted locale gates', () => {
   const finalBatch = [
     'foundations.chart_priorities',
     'foundations.whole_chart',
@@ -329,9 +351,10 @@ test('the final canonical-English batch is admitted without changing locale or c
     for (const locale of EXPECTED_LOCALES.slice(1, -1)) {
       const localized = getFoundationsContentVariant(lessonId, locale);
       assert.equal(localized?.locale, locale);
-      assert.equal(localized?.contentState, 'MISSING');
-      assert.equal(localized?.currentness, 'OUTDATED');
-      assert.equal(getFoundationsContentAvailability(localized), 'UNAVAILABLE');
+      assert.equal(localized?.contentState, 'APPROVED');
+      assert.equal(localized?.currentness, 'CURRENT');
+      assert.equal(localized?.contentKind, 'CANONICAL');
+      assert.equal(getFoundationsContentAvailability(localized), 'AVAILABLE');
     }
 
     const zhHant = getFoundationsContentVariant(lessonId, 'zh-Hant');
@@ -348,9 +371,9 @@ test('the final canonical-English batch is admitted without changing locale or c
 
   assert.equal(canonicalEnglishCount, 12);
   assert.equal(FOUNDATIONS_COURSE.lessonCount, 12);
-  assert.equal(isFoundationsCoreReady(), false);
+  assert.equal(isFoundationsCoreReady(), true);
   assert.equal(getFoundationsContentVariant(finalBatch[0], 'es')?.locale, 'es');
-  assert.equal(getFoundationsContentAvailability(getFoundationsContentVariant(finalBatch[0], 'es')), 'UNAVAILABLE');
+  assert.equal(getFoundationsContentAvailability(getFoundationsContentVariant(finalBatch[0], 'es')), 'AVAILABLE');
 });
 
 test('professional vocabulary resolves through the shared production glossary', () => {

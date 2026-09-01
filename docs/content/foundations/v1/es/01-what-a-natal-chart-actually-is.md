@@ -7,7 +7,7 @@ canonicalLocale: en
 locale: es
 contentRevision: 1
 canonicalContentRevision: 3
-contentState: REVIEW
+contentState: APPROVED
 currentness: CURRENT
 ---
 

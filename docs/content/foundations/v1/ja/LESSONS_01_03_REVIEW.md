@@ -6,9 +6,9 @@ canonicalLocale: en
 locale: ja
 adaptationRevision: 1
 documentKind: LOCALE_ADAPTATION_REVIEW_MANIFEST
-contentState: REVIEW
+contentState: APPROVED
 currentness: CURRENT
-runtimeAvailability: UNAVAILABLE
+runtimeAvailability: AVAILABLE
 ---
 
 # Foundations V1 ja Lessons 01–03 Review Manifest
@@ -17,15 +17,15 @@ runtimeAvailability: UNAVAILABLE
 
 この manifest は、Foundations V1 の Lesson 01–03 に対する日本語の Class C 専門適応を記録します。内容は独立して執筆したものであり、runtime の自動翻訳ではありません。`foundations.v1` の正規 identity、`en` の canonical provenance、天文学・計算・解釈・責任ある利用の境界を保っています。
 
-三つの lesson はすべて `contentRevision: 1` で、canonical revision はそれぞれ 3、2、2 です。状態は `contentState: REVIEW`、`currentness: CURRENT`、`runtimeAvailability: UNAVAILABLE` のままです。`CURRENT` は現行 canon との整合を示すだけで、Product Owner の承認や runtime admission ではありません。
+三つの lesson はすべて `contentRevision: 1` で、canonical revision はそれぞれ 3、2、2 です。`WEB-LEARN-009` により日本語適応が runtime に admitted されたため、状態は `contentState: APPROVED`、`currentness: CURRENT`、`runtimeAvailability: AVAILABLE` です。
 
 ## Lesson identity
 
 | Lesson | Lesson ID | 日本語タイトル | Canonical revision | Adaptation | 状態 | Runtime |
 | ---: | --- | --- | ---: | ---: | --- | --- |
-| 01 | `foundations.natal_chart` | ネイタルチャートとは実際には何か | 3 | 1 | `REVIEW` / `CURRENT` | `UNAVAILABLE` |
-| 02 | `foundations.zodiac_structure` | 黄道の構造：エレメントとモダリティ | 2 | 1 | `REVIEW` / `CURRENT` | `UNAVAILABLE` |
-| 03 | `foundations.chart_calculation` | 空がチャートになるまで | 2 | 1 | `REVIEW` / `CURRENT` | `UNAVAILABLE` |
+| 01 | `foundations.natal_chart` | ネイタルチャートとは実際には何か | 3 | 1 | `APPROVED` / `CURRENT` | `AVAILABLE` |
+| 02 | `foundations.zodiac_structure` | 黄道の構造：エレメントとモダリティ | 2 | 1 | `APPROVED` / `CURRENT` | `AVAILABLE` |
+| 03 | `foundations.chart_calculation` | 空がチャートになるまで | 2 | 1 | `APPROVED` / `CURRENT` | `AVAILABLE` |
 
 Canonical source は `docs/content/foundations/v1/en/01-what-a-natal-chart-actually-is.md`、`02-the-zodiac-structure.md`、`03-how-the-sky-becomes-a-chart.md` です。英語ファイルは変更していません。
 
@@ -63,18 +63,18 @@ Canonical URL は完全に保持しています。Faculty of Astrological Studie
 
 広範な web research、外部 prose のコピー、自動翻訳は行っていません。`PROVIDER DECISION DEFERRED`。
 
-## 公開 gate と runtime 非 admission
+## 公開 gate と runtime admission
 
-この batch の内部 editorial 結果は `READY_FOR_INTERNAL_LOCALE_REVIEW` であり、Product Owner approval ではありません。Product Owner approval: `NO`。Runtime admission: `NO`。この日本語適応のルールは `REVIEW + CURRENT = UNAVAILABLE` です。
+この batch の内部 editorial 結果は `READY_FOR_OWNER_APPROVAL` でした。日本語 Foundations V1 Lessons 01–12 は `WEB-LEARN-009` の範囲で Product Owner に承認されました。Product Owner approval: `YES`。Runtime admission: `YES`。既存の Foundations locale-aware path により、lesson は `APPROVED / CURRENT / AVAILABLE` です。Assessment approval と reward approval は `NO` です。
 
-Registry、loader、route、fallback、UI、CSS、server、API、BFF、database、migration、Auth、Vault、Engine、provider、assessment、reward、英語本文は変更していません。他の locale はこの manifest の範囲外です。
+admission では既存の Foundations locale-aware path の content mapping と imports だけを拡張しました。parallel loader、parallel registry、silent fallback、runtime translation layer は作成していません。明示的な fallback は localized content が unavailable の場合に限られます。UI、CSS、server、API、BFF、database、migration、Auth、Vault、Engine、provider、assessment、reward、英語本文は変更していません。他の locale はこの manifest の範囲外です。
 
 ## Correction history と exact files
 
 - Adaptation revision: `1`。
 - Correction cycles after independent internal review: `0`。
-- Product Owner approval: `NO`。
-- Runtime admission: `NO`、runtime availability: `UNAVAILABLE`。
+- Product Owner approval: `YES`（日本語 Foundations V1 Lessons 01–12）。
+- Runtime admission: `YES`、runtime availability: `AVAILABLE`。
 
 この batch の exact files:
 

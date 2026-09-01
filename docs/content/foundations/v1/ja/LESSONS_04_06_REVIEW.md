@@ -6,9 +6,9 @@ canonicalLocale: en
 locale: ja
 adaptationRevision: 1
 documentKind: LOCALE_ADAPTATION_REVIEW_MANIFEST
-contentState: REVIEW
+contentState: APPROVED
 currentness: CURRENT
-runtimeAvailability: UNAVAILABLE
+runtimeAvailability: AVAILABLE
 ---
 
 # Foundations V1 ja Lessons 04–06 Review Manifest
@@ -17,15 +17,15 @@ runtimeAvailability: UNAVAILABLE
 
 この manifest は、Foundations V1 の Lesson 04–06 に対する日本語の Class C 専門適応を記録します。正規 identity、canonical English の epistemic strength、天文学と解釈の境界を保ち、新しい content track や runtime translation layer は作成していません。
 
-Lesson 04–05 は `contentRevision: 1`、Lesson 06 は質問 parity の限定的な correction 後の `contentRevision: 2` です。三つとも `canonicalContentRevision: 1`、`contentState: REVIEW`、`currentness: CURRENT`、`runtimeAvailability: UNAVAILABLE` を保ちます。Product Owner の承認は行っていません。
+Lesson 04–05 は `contentRevision: 1`、Lesson 06 は質問 parity の限定的な correction 後の `contentRevision: 2` です。三つとも `canonicalContentRevision: 1` を保ち、`WEB-LEARN-009` による runtime admission 後の状態は `APPROVED / CURRENT / AVAILABLE` です。
 
 ## Lesson identity
 
 | Lesson | Lesson ID | 日本語タイトル | Canonical revision | Adaptation | 状態 | Runtime |
 | ---: | --- | --- | ---: | ---: | --- | --- |
-| 04 | `foundations.sun_moon` | 太陽と月 | 1 | 1 | `REVIEW` / `CURRENT` | `UNAVAILABLE` |
-| 05 | `foundations.mercury_venus_mars` | 水星・金星・火星 | 1 | 1 | `REVIEW` / `CURRENT` | `UNAVAILABLE` |
-| 06 | `foundations.jupiter_saturn_outer_planets` | 木星・土星・外惑星 | 1 | 2 | `REVIEW` / `CURRENT` | `UNAVAILABLE` |
+| 04 | `foundations.sun_moon` | 太陽と月 | 1 | 1 | `APPROVED` / `CURRENT` | `AVAILABLE` |
+| 05 | `foundations.mercury_venus_mars` | 水星・金星・火星 | 1 | 1 | `APPROVED` / `CURRENT` | `AVAILABLE` |
+| 06 | `foundations.jupiter_saturn_outer_planets` | 木星・土星・外惑星 | 1 | 2 | `APPROVED` / `CURRENT` | `AVAILABLE` |
 
 Canonical source は `docs/content/foundations/v1/en/04-the-sun-and-moon.md`、`05-mercury-venus-and-mars.md`、`06-jupiter-saturn-and-the-outer-planets.md` です。
 
@@ -63,18 +63,18 @@ Lesson 04 の合成幾何は、太陽 蟹座8°＝98°、月 天秤座8°＝188�
 
 広範な web research、外部 prose のコピー、自動翻訳は行っていません。凍結済みの product・architecture 文書が authority です。
 
-## 公開 gate と runtime 非 admission
+## 公開 gate と runtime admission
 
-Batch の内部 editorial 結果は `READY_FOR_INTERNAL_LOCALE_REVIEW` です。Product Owner approval: `NO`。Runtime admission: `NO`。三つの lesson は `REVIEW / CURRENT / UNAVAILABLE` のままです。
+Batch の内部 editorial 結果は `READY_FOR_OWNER_APPROVAL` でした。日本語 Foundations V1 Lessons 01–12 は `WEB-LEARN-009` の範囲で Product Owner に承認されました。Product Owner approval: `YES`。Runtime admission: `YES`。既存の Foundations locale-aware path により、三つの lesson は `APPROVED / CURRENT / AVAILABLE` です。Assessment approval と reward approval は `NO` です。
 
-UI、CSS、server、API、BFF、database、migration、Auth、Vault、Commercial、Engine、provider、assessment、reward、他 locale は変更していません。
+admission では既存の Foundations locale-aware path の content mapping と imports だけを拡張しました。新しい loader、parallel registry、fallback、runtime translation layer は作成していません。UI、CSS、server、API、BFF、database、migration、Auth、Vault、Commercial、Engine、provider、assessment、reward、他 locale は変更していません。
 
 ## Correction history と exact files
 
 - Adaptation revision: `1`（Lesson 04–05）、`2`（Lesson 06、質問 parity の修正後）。
 - Correction cycles after independent internal review: `1`。
-- Product Owner approval: `NO`。
-- Runtime admission: `NO`、runtime availability: `UNAVAILABLE`。
+- Product Owner approval: `YES`（日本語 Foundations V1 Lessons 01–12）。
+- Runtime admission: `YES`、runtime availability: `AVAILABLE`。
 
 この batch の exact files:
 
