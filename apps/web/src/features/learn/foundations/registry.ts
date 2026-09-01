@@ -186,6 +186,18 @@ const FOUNDATIONS_ADMITTED_ENGLISH_REVISIONS: Readonly<
   'foundations.chart_calculation': Object.freeze({
     contentRevision: 2,
     canonicalContentRevision: 2
+  }),
+  'foundations.sun_moon': Object.freeze({
+    contentRevision: 1,
+    canonicalContentRevision: 1
+  }),
+  'foundations.mercury_venus_mars': Object.freeze({
+    contentRevision: 1,
+    canonicalContentRevision: 1
+  }),
+  'foundations.jupiter_saturn_outer_planets': Object.freeze({
+    contentRevision: 1,
+    canonicalContentRevision: 1
   })
 });
 

@@ -6,7 +6,7 @@ lessonId: foundations.mercury_venus_mars
 canonicalLocale: en
 contentRevision: 1
 canonicalContentRevision: 1
-contentState: REVIEW
+contentState: APPROVED
 currentness: CURRENT
 ---
 

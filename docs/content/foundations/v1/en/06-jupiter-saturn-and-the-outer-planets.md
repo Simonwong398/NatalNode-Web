@@ -6,7 +6,7 @@ lessonId: foundations.jupiter_saturn_outer_planets
 canonicalLocale: en
 contentRevision: 1
 canonicalContentRevision: 1
-contentState: REVIEW
+contentState: APPROVED
 currentness: CURRENT
 ---
 

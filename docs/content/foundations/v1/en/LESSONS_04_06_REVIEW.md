@@ -10,19 +10,19 @@ documentKind: CONTENT_REVIEW_MANIFEST
 
 ## Review status and admission boundary
 
-This manifest records the canonical-English authoring and review boundary for exactly three new Class C Foundations lesson drafts. The batch covers the planet/body layer after Lessons 01–03: the luminaries in Lesson 04, the personal planets in Lesson 05, and Jupiter, Saturn, and the outer planets in Lesson 06.
+This manifest records the canonical-English authoring, independent review, Product Owner approval, and runtime-admission boundary for exactly three Class C Foundations lessons. The batch covers the planet/body layer after Lessons 01–03: the luminaries in Lesson 04, the personal planets in Lesson 05, and Jupiter, Saturn, and the outer planets in Lesson 06.
 
-All three records are professional English drafts with `contentState = REVIEW`, `currentness = CURRENT`, and `contentRevision = 1`. `CURRENT` identifies the current draft record for this lesson identity; it does not make the record production-available. Under the frozen availability rule, `REVIEW` content remains unavailable for runtime admission. No Product Owner approval, production admission, or translation was performed.
+All three records are approved canonical-English content with `contentState = APPROVED`, `currentness = CURRENT`, and `contentRevision = 1`. `CURRENT` identifies the current approved record for this lesson identity. Under the frozen availability rule, `APPROVED` + `CURRENT` content is available through the existing runtime path. `WEB-LEARN-002B` passed the independent editorial/professional gate with final verdict `READY_FOR_OWNER_APPROVAL` and no BLOCKER, MAJOR, MINOR, or actionable EDITORIAL_NOTE findings. The Product Owner explicitly approved these exact canonical-English revisions for runtime admission. No translation or multilingual adaptation was performed.
 
-The runtime Foundations registry already contains the semantic scaffold for Lessons 04–06. This authoring batch does not modify that registry or any route, UI, glossary runtime, API/BFF, server, database, migration, Engine, provider, Auth, Vault, Feedback, Notification, Commercial, or deployment file. Lessons 01–03 remain unchanged, and Lessons 07–12 were not started.
+The existing Foundations registry and canonical Markdown importer were extended to admit Lessons 04–06 through the same path already used for Lessons 01–03. The focused Learn characterization test was updated for the approved revisions. No second registry, loader, content-state resolver, route, UI, glossary runtime, API/BFF, server, database, migration, Engine, provider, Auth, Vault, Feedback, Notification, Commercial, or deployment mechanism was created. Lessons 01–03 remain unchanged, and Lessons 07–12 were not started.
 
 ## Canonical English inventory
 
 | Order | Lesson ID | Canonical title | Source path | Content revision | Approximate body words | Content state | Currentness | Runtime availability |
 | ---: | --- | --- | --- | ---: | ---: | --- | --- | --- |
-| 4 | `foundations.sun_moon` | The Sun and Moon | `docs/content/foundations/v1/en/04-the-sun-and-moon.md` | 1 | ~1,575 | `REVIEW` | `CURRENT` | `UNAVAILABLE` |
-| 5 | `foundations.mercury_venus_mars` | Mercury, Venus, and Mars | `docs/content/foundations/v1/en/05-mercury-venus-and-mars.md` | 1 | ~1,600 | `REVIEW` | `CURRENT` | `UNAVAILABLE` |
-| 6 | `foundations.jupiter_saturn_outer_planets` | Jupiter, Saturn, and the Outer Planets | `docs/content/foundations/v1/en/06-jupiter-saturn-and-the-outer-planets.md` | 1 | ~1,590 | `REVIEW` | `CURRENT` | `UNAVAILABLE` |
+| 4 | `foundations.sun_moon` | The Sun and Moon | `docs/content/foundations/v1/en/04-the-sun-and-moon.md` | 1 | ~1,575 | `APPROVED` | `CURRENT` | `AVAILABLE` |
+| 5 | `foundations.mercury_venus_mars` | Mercury, Venus, and Mars | `docs/content/foundations/v1/en/05-mercury-venus-and-mars.md` | 1 | ~1,600 | `APPROVED` | `CURRENT` | `AVAILABLE` |
+| 6 | `foundations.jupiter_saturn_outer_planets` | Jupiter, Saturn, and the Outer Planets | `docs/content/foundations/v1/en/06-jupiter-saturn-and-the-outer-planets.md` | 1 | ~1,590 | `APPROVED` | `CURRENT` | `AVAILABLE` |
 
 The file titles follow the frozen repository registry, which uses **The Sun and Moon** for Lesson 04. The task shorthand “Sun and Moon” refers to the same semantic lesson identity. Each lesson contains the established nine-section sequence: Orientation; Core Concept; Professional Vocabulary; Example; My Chart; Practice; Check Understanding; Key Takeaway; Sources and Further Reading. Each contains exactly two Check Understanding questions with a correct answer and concise explanation.
 
@@ -115,19 +115,30 @@ The evidence lanes remain separate:
 | Lessons 07–12 started | NO |
 | P1/P2/P3 or unrelated product work performed | NO |
 
-## Publication, revision, and runtime gate
+## Product Owner approval, publication, and runtime gate
 
-The three lesson files declare `canonicalLocale = en`, `contentRevision = 1`, `canonicalContentRevision = 1`, `contentState = REVIEW`, and `currentness = CURRENT`. These are the initial professional canonical drafts for their lesson identities; the revision number is not copied from the approved Lessons 01–03.
+The three lesson files declare `canonicalLocale = en`, `contentRevision = 1`, `canonicalContentRevision = 1`, `contentState = APPROVED`, and `currentness = CURRENT`. These are the approved professional canonical records for their lesson identities; the revision number is not copied from the approved Lessons 01–03.
 
-The frozen availability rule requires `contentState = APPROVED` and `currentness = CURRENT`. Because these records remain in `REVIEW`, their derived runtime availability is `UNAVAILABLE`. No approval, admission, route change, runtime registry change, translation, localization adaptation, or production publication was performed. The review state must remain in place until a separate Product Owner review and a separately authorized admission task.
+The frozen availability rule requires `contentState = APPROVED` and `currentness = CURRENT`. These records therefore have derived runtime availability `AVAILABLE` through the existing Foundations registry and Markdown content path. Product Owner approval applies only to canonical English revisions 1 for Lessons 04–06. It does not approve translations, multilingual adaptations, Lessons 07–12, or Foundations Core seven-locale readiness.
 
-## Files in this review batch
+## Approval and admission record
 
-Exactly these four documentation files belong to this authoring batch:
+- `WEB-LEARN-002B` independent editorial/professional gate passed with final verdict `READY_FOR_OWNER_APPROVAL` and zero BLOCKER, MAJOR, MINOR, or actionable EDITORIAL_NOTE findings.
+- The Product Owner explicitly approved `foundations.sun_moon` revision `1`, `foundations.mercury_venus_mars` revision `1`, and `foundations.jupiter_saturn_outer_planets` revision `1` for canonical-English runtime admission.
+- The approval event did not change any lesson title, slug, canonical prose, source, Practice section, Check Understanding question, or content revision.
+- Admission uses the existing Foundations registry and canonical Markdown importer used by Lessons 01–03; no parallel admission system was introduced.
+- This approval does not apply to non-English content, multilingual adaptation, Lessons 07–12, the final check, rewards, or any unrelated product boundary.
+
+## Files in this review and admission batch
+
+Exactly these seven files belong to this approval/admission batch:
 
 1. `docs/content/foundations/v1/en/04-the-sun-and-moon.md`
 2. `docs/content/foundations/v1/en/05-mercury-venus-and-mars.md`
 3. `docs/content/foundations/v1/en/06-jupiter-saturn-and-the-outer-planets.md`
 4. `docs/content/foundations/v1/en/LESSONS_04_06_REVIEW.md`
+5. `apps/web/src/features/learn/foundations/registry.ts`
+6. `apps/web/src/features/learn/foundations/FoundationsLessonContent.astro`
+7. `apps/web/test/learn-foundations.test.mjs`
 
-No runtime, UI, CSS, glossary implementation, server, API/BFF, database, migration, Engine, provider, Auth, Vault, Feedback, Notification, Commercial, translation, or deployment file belongs to this batch. Lessons 01–03 were not modified. Lessons 07–12 were not started. `C:\NatalNode` was not accessed or modified.
+No other runtime, UI, CSS, glossary implementation, server, API/BFF, database, migration, Engine, provider, Auth, Vault, Feedback, Notification, Commercial, translation, or deployment file belongs to this batch. Lessons 01–03 canonical prose was not modified. Lessons 07–12 were not started. `C:\NatalNode` was not accessed or modified.

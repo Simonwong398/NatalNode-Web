@@ -2,6 +2,9 @@
 import LessonOne from '../../../../../../docs/content/foundations/v1/en/01-what-a-natal-chart-actually-is.md';
 import LessonTwo from '../../../../../../docs/content/foundations/v1/en/02-the-zodiac-structure.md';
 import LessonThree from '../../../../../../docs/content/foundations/v1/en/03-how-the-sky-becomes-a-chart.md';
+import LessonFour from '../../../../../../docs/content/foundations/v1/en/04-the-sun-and-moon.md';
+import LessonFive from '../../../../../../docs/content/foundations/v1/en/05-mercury-venus-and-mars.md';
+import LessonSix from '../../../../../../docs/content/foundations/v1/en/06-jupiter-saturn-and-the-outer-planets.md';
 import type { FoundationsLessonId } from './registry';
 
 interface Props {
@@ -13,7 +16,10 @@ const { lessonId } = Astro.props;
 const canonicalContentByLessonId = {
   'foundations.natal_chart': LessonOne,
   'foundations.zodiac_structure': LessonTwo,
-  'foundations.chart_calculation': LessonThree
+  'foundations.chart_calculation': LessonThree,
+  'foundations.sun_moon': LessonFour,
+  'foundations.mercury_venus_mars': LessonFive,
+  'foundations.jupiter_saturn_outer_planets': LessonSix
 } as const;
 
 const Content = canonicalContentByLessonId[lessonId as keyof typeof canonicalContentByLessonId];
