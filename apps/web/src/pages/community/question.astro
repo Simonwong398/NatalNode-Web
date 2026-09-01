@@ -1,0 +1,122 @@
+---
+import SiteLayout from '@/layouts/SiteLayout.astro';
+import {
+  getLocalizedPath,
+  getPresentationLocale,
+  type SupportedLocale
+} from '@/lib/localization';
+import { getUiMessage, type UiMessageKey } from '@/lib/ui-catalog';
+import type { SeoMetadata } from '@/lib/seo';
+
+interface Props {
+  readonly locale?: SupportedLocale;
+}
+
+const { locale: requestedLocale } = Astro.props as Props;
+const locale = getPresentationLocale(
+  Astro.url.pathname,
+  requestedLocale ?? Astro.locals.locale
+);
+const localize = (path: string): string => getLocalizedPath(locale, path);
+const t = (key: UiMessageKey): string => getUiMessage(locale, key);
+const seo: SeoMetadata = {
+  title: 'Community Question | NatalNode',
+  description: 'A public NatalNode Community question and its user-generated answers.',
+  canonical: '/community/question',
+  robots: 'index,follow'
+};
+---
+
+<SiteLayout seo={seo} mode="editorial">
+  <main class="nn-container nn-container--reading pb-20 pt-10 sm:pb-24 sm:pt-14">
+    <a class="font-semibold text-natal-accent underline decoration-natal-accent/50 underline-offset-4" href={localize('/community/')}>
+      ← {t('community.back')}
+    </a>
+
+    <section
+      class="mt-8"
+      data-community-question-page
+      aria-busy="true"
+    >
+      <p class="nn-async-state" data-community-question-loading role="status" aria-live="polite">
+        {t('community.loading')}
+      </p>
+      <p
+        class="nn-async-state nn-async-state--error"
+        data-community-question-error
+        role="alert"
+        tabindex="-1"
+        hidden
+      ></p>
+
+      <div data-community-question-content hidden>
+        <article>
+          <header>
+            <p class="nn-eyebrow" data-community-question-meta>{t('community.topic')}</p>
+            <h1 class="nn-type-page-title mt-3" data-community-question-title>{t('community.loading')}</h1>
+            <p class="mt-4 whitespace-pre-wrap text-lg leading-8 text-[var(--nn-text-secondary)]" data-community-question-body></p>
+            <p class="nn-badge mt-5" data-community-question-acceptance hidden></p>
+            <div class="mt-5" data-community-question-actions></div>
+          </header>
+
+          <section
+            class="mt-14 border-t border-natal-border/70 pt-8 sm:mt-16 sm:pt-10"
+            aria-labelledby="community-answers-title"
+          >
+            <h2 class="nn-type-section-title" id="community-answers-title" data-community-answers-heading>
+              {t('community.answers')}
+            </h2>
+            <ol class="mt-6 grid gap-5" data-community-answers></ol>
+          </section>
+
+          <section class="mt-12 border-t border-natal-border/70 pt-8" aria-labelledby="community-answer-form-title">
+            <h2 class="nn-type-section-title" id="community-answer-form-title">{t('community.answer')}</h2>
+            <p class="nn-type-body-small mt-3" data-community-question-auth hidden>
+              {t('community.authRequired')}
+              <a class="font-semibold text-natal-accent underline underline-offset-4" href={localize('/auth/sign-in')}>
+                {t('auth.signIn')}
+              </a>
+            </p>
+            <p class="nn-type-body-small mt-3" data-community-question-profile-gate hidden>
+              {t('community.displayNameRequired')}
+              <a class="font-semibold text-natal-accent underline underline-offset-4" href={localize('/account')}>
+                {t('community.profileTitle')}
+              </a>
+            </p>
+            <form class="mt-5 grid gap-4" data-community-answer-form hidden novalidate>
+              <div data-community-answer-fields>
+                <label class="nn-type-label" for="community-answer-body">{t('community.answer')}</label>
+                <textarea
+                  class="nn-field mt-2 min-h-40 resize-y"
+                  id="community-answer-body"
+                  name="body"
+                  rows="7"
+                  minlength="10"
+                  maxlength="10000"
+                  required
+                  placeholder={t('community.answerPlaceholder')}
+                ></textarea>
+                <p class="nn-type-body-small mt-2">{t('community.disclaimer')}</p>
+              </div>
+              <button class="nn-button nn-button--primary justify-self-start" type="submit">
+                {t('community.submitAnswer')}
+              </button>
+              <p class="nn-status" data-community-answer-status role="status" aria-live="polite" hidden></p>
+            </form>
+          </section>
+        </article>
+      </div>
+    </section>
+  </main>
+</SiteLayout>
+
+<script>
+  import { initializeCommunityQuestion } from '@/features/community/community';
+  import { getPresentationLocale } from '@/lib/localization';
+
+  const root = document.querySelector<HTMLElement>('[data-community-question-page]');
+  const locale = getPresentationLocale(document.documentElement.lang);
+  if (root) {
+    initializeCommunityQuestion({ root, locale });
+  }
+</script>

@@ -1,0 +1,115 @@
+---
+import SiteLayout from '@/layouts/SiteLayout.astro';
+import {
+  getLocalizedPath,
+  getPresentationLocale,
+  type SupportedLocale
+} from '@/lib/localization';
+import { getUiMessage, type UiMessageKey } from '@/lib/ui-catalog';
+import type { SeoMetadata } from '@/lib/seo';
+
+interface Props {
+  readonly locale?: SupportedLocale;
+}
+
+const { locale: requestedLocale } = Astro.props as Props;
+const locale = getPresentationLocale(
+  Astro.url.pathname,
+  requestedLocale ?? Astro.locals.locale
+);
+const localize = (path: string): string => getLocalizedPath(locale, path);
+const t = (key: UiMessageKey): string => getUiMessage(locale, key);
+const seo: SeoMetadata = {
+  title: 'Ask a Community Question | NatalNode',
+  description: 'Ask a public question in the NatalNode Community.',
+  canonical: '/community/ask',
+  robots: 'noindex,nofollow'
+};
+---
+
+<SiteLayout seo={seo} mode="editorial">
+  <main class="nn-container nn-container--form pb-20 pt-12 sm:pb-24 sm:pt-16">
+    <a class="font-semibold text-natal-accent underline decoration-natal-accent/50 underline-offset-4" href={localize('/community/')}>
+      ← {t('community.back')}
+    </a>
+    <header class="mt-8 max-w-2xl">
+      <p class="nn-eyebrow">{t('community.eyebrow')}</p>
+      <h1 class="nn-type-page-title mt-3">{t('community.ask')}</h1>
+      <p class="nn-type-body mt-4">{t('community.description')}</p>
+    </header>
+
+    <section class="mt-10" data-community-ask-page aria-busy="true">
+      <p class="nn-async-state" data-community-ask-loading role="status" aria-live="polite">
+        {t('community.loading')}
+      </p>
+      <p class="nn-notice nn-notice--error mt-6" data-community-ask-session role="alert" hidden>
+        {t('community.authRequired')}
+        <a class="font-semibold underline underline-offset-4" href={localize('/auth/sign-in')}>
+          {t('auth.signIn')}
+        </a>
+      </p>
+
+      <div data-community-ask-content hidden>
+        <section class="nn-surface nn-surface--elevated p-6 sm:p-8" data-community-profile hidden aria-labelledby="community-profile-title">
+          <p class="nn-eyebrow">{t('community.profileEyebrow')}</p>
+          <h2 class="nn-type-section-title mt-3" id="community-profile-title">{t('community.profileTitle')}</h2>
+          <p class="nn-type-body-small mt-3 max-w-xl">{t('community.profileDescription')}</p>
+          <p class="nn-async-state mt-5" data-community-profile-loading role="status" aria-live="polite">{t('community.loading')}</p>
+          <div data-community-profile-content hidden>
+            <form class="mt-5 grid max-w-xl gap-4" data-community-profile-form novalidate>
+              <label class="nn-type-label" for="community-display-name">{t('community.displayName')}</label>
+              <input class="nn-field" id="community-display-name" data-community-display-name name="displayName" type="text" minlength="3" maxlength="40" required aria-describedby="community-display-name-help" />
+              <p class="nn-type-body-small" id="community-display-name-help">{t('community.displayNameHelp')}</p>
+              <button class="nn-button nn-button--secondary justify-self-start" data-community-profile-save type="submit">{t('community.displayNameSave')}</button>
+              <p class="nn-status" data-community-profile-status role="status" aria-live="polite" hidden></p>
+            </form>
+          </div>
+        </section>
+
+        <p class="nn-notice nn-notice--info mt-8" data-community-profile-gate hidden>
+          {t('community.displayNameRequired')}
+        </p>
+
+        <div class="mt-8" data-community-ask-fields hidden>
+          <form class="nn-surface nn-surface--elevated grid gap-6 p-6 sm:p-8" data-community-ask-form novalidate>
+            <div>
+              <label class="nn-type-label" for="community-question-title">{t('community.questionTitle')}</label>
+              <input class="nn-field mt-2" id="community-question-title" name="title" type="text" minlength="10" maxlength="180" required />
+            </div>
+            <div>
+              <label class="nn-type-label" for="community-question-body">{t('community.questionBody')}</label>
+              <textarea class="nn-field mt-2 min-h-52 resize-y" id="community-question-body" name="body" rows="9" minlength="20" maxlength="10000" required></textarea>
+            </div>
+            <div>
+              <label class="nn-type-label" for="community-question-topic">{t('community.topic')}</label>
+              <select class="nn-field mt-2" id="community-question-topic" name="topicId" required>
+                <option value="FOUNDATIONS">{t('community.topic.foundations')}</option>
+                <option value="CHART_READING">{t('community.topic.chartReading')}</option>
+                <option value="PLANETS_SIGNS_HOUSES">{t('community.topic.planetsSignsHouses')}</option>
+                <option value="ASPECTS">{t('community.topic.aspects')}</option>
+                <option value="BIRTH_TIME_AND_CALCULATION">{t('community.topic.birthTimeAndCalculation')}</option>
+                <option value="NATALNODE_PRODUCT">{t('community.topic.natalnodeProduct')}</option>
+                <option value="OTHER">{t('community.topic.other')}</option>
+              </select>
+            </div>
+            <p class="nn-type-body-small">{t('community.disclaimer')}</p>
+            <button class="nn-button nn-button--primary justify-self-start" type="submit">{t('community.submitQuestion')}</button>
+            <p class="nn-status" data-community-ask-status role="status" aria-live="polite" hidden></p>
+          </form>
+        </div>
+      </div>
+    </section>
+  </main>
+</SiteLayout>
+
+<script>
+  import { initializeCommunityAsk, initializeCommunityProfile } from '@/features/community/community';
+  import { getPresentationLocale } from '@/lib/localization';
+
+  const root = document.querySelector<HTMLElement>('[data-community-ask-page]');
+  const locale = getPresentationLocale(document.documentElement.lang);
+  if (root) {
+    initializeCommunityProfile({ root, locale });
+    initializeCommunityAsk({ root, locale });
+  }
+</script>

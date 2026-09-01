@@ -1,0 +1,96 @@
+---
+import SiteLayout from '@/layouts/SiteLayout.astro';
+import {
+  getLocalizedPath,
+  getPresentationLocale,
+  type SupportedLocale
+} from '@/lib/localization';
+import { getUiMessage, type UiMessageKey } from '@/lib/ui-catalog';
+import type { SeoMetadata } from '@/lib/seo';
+
+interface Props {
+  readonly locale?: SupportedLocale;
+}
+
+const { locale: requestedLocale } = Astro.props as Props;
+const locale = getPresentationLocale(
+  Astro.url.pathname,
+  requestedLocale ?? Astro.locals.locale
+);
+const localize = (path: string): string => getLocalizedPath(locale, path);
+const t = (key: UiMessageKey): string => getUiMessage(locale, key);
+const seo: SeoMetadata = {
+  title: 'Community Questions | NatalNode',
+  description: 'Public questions and user-generated answers about astrology and NatalNode.',
+  canonical: '/community/',
+  robots: 'index,follow'
+};
+---
+
+<SiteLayout seo={seo} mode="editorial">
+  <main class="nn-container nn-container--editorial pb-20 pt-12 sm:pb-24 sm:pt-16">
+    <header class="max-w-3xl">
+      <p class="nn-eyebrow">{t('community.eyebrow')}</p>
+      <h1 class="nn-type-page-title mt-3" id="community-page-title">{t('community.title')}</h1>
+      <p class="nn-type-body mt-5">{t('community.description')}</p>
+      <a class="nn-button nn-button--primary mt-7" href={localize('/community/ask')}>
+        {t('community.ask')}
+      </a>
+    </header>
+
+    <section
+      class="mt-14 max-w-4xl border-t border-natal-border/70 pt-8 sm:mt-16 sm:pt-10"
+      data-community-list-page
+      aria-labelledby="community-questions-title"
+      aria-busy="true"
+    >
+      <div class="nn-section-header">
+        <p class="nn-eyebrow">{t('community.eyebrow')}</p>
+        <h2 class="nn-type-section-title" id="community-questions-title">{t('community.questions')}</h2>
+      </div>
+
+      <p class="nn-async-state mt-8" data-community-list-loading role="status" aria-live="polite">
+        {t('community.loading')}
+      </p>
+      <p
+        class="nn-async-state nn-async-state--error mt-8"
+        data-community-list-error
+        role="alert"
+        tabindex="-1"
+        hidden
+      ></p>
+      <p class="nn-async-state nn-async-state--empty mt-8" data-community-list-empty hidden>
+        {t('community.empty')}
+      </p>
+      <div class="mt-8 grid gap-5" data-community-list></div>
+
+      <nav class="mt-8 flex flex-wrap gap-3" data-community-list-pagination aria-label={t('community.questions')} hidden>
+        <button class="nn-button nn-button--secondary" type="button" data-community-list-previous hidden>
+          {t('community.previous')}
+        </button>
+        <button class="nn-button nn-button--secondary" type="button" data-community-list-next hidden>
+          {t('community.next')}
+        </button>
+      </nav>
+    </section>
+  </main>
+</SiteLayout>
+
+<script>
+  import { initializeCommunityList } from '@/features/community/community';
+  import { getPresentationLocale } from '@/lib/localization';
+
+  const root = document.querySelector<HTMLElement>('[data-community-list-page]');
+  const locale = getPresentationLocale(document.documentElement.lang);
+  const list = root?.querySelector<HTMLElement>('[data-community-list]');
+  const loading = root?.querySelector<HTMLElement>('[data-community-list-loading]');
+  const empty = root?.querySelector<HTMLElement>('[data-community-list-empty]');
+  const error = root?.querySelector<HTMLElement>('[data-community-list-error]');
+  const pagination = root?.querySelector<HTMLElement>('[data-community-list-pagination]');
+  const previous = root?.querySelector<HTMLButtonElement>('[data-community-list-previous]');
+  const next = root?.querySelector<HTMLButtonElement>('[data-community-list-next]');
+
+  if (root && list && loading && empty && error && pagination && previous && next) {
+    initializeCommunityList({ root, list, loading, empty, error, pagination, previous, next, locale });
+  }
+</script>

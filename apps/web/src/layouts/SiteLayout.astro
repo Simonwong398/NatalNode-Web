@@ -42,8 +42,9 @@ const isLearnPage = routeIdentity === '/learn' || routeIdentity.startsWith('/lea
 const isToolsPage = routeIdentity === '/tools' || routeIdentity.startsWith('/tools/');
 const isVaultPage = routeIdentity === '/vault' || routeIdentity.startsWith('/vault/');
 const isAuthPage = routeIdentity === '/auth' || routeIdentity.startsWith('/auth/');
+const isCommunityPage = routeIdentity === '/community' || routeIdentity.startsWith('/community/');
 const isCalculatePage = routeIdentity === '/';
-const shellMode: ShellMode = mode ?? (isLearnPage || isToolsPage || isAuthPage ? 'editorial' : 'observatory');
+const shellMode: ShellMode = mode ?? (isLearnPage || isToolsPage || isAuthPage || isCommunityPage ? 'editorial' : 'observatory');
 const robots = seo.robots ?? DEFAULT_ROBOTS;
 const websiteStructuredData = robots === 'index,follow'
   ? { '@context': 'https://schema.org', '@type': 'WebSite', name: SITE_NAME, url: SITE_ORIGIN }
@@ -156,6 +157,15 @@ const websiteStructuredData = robots === 'index,follow'
                 aria-current={isVaultPage ? 'page' : undefined}
               >
                 {t('nav.vault')}
+              </a>
+            </li>
+            <li class="nn-primary-nav__item">
+              <a
+                class="nn-nav-link"
+                href={localize('/community/')}
+                aria-current={isCommunityPage ? 'page' : undefined}
+              >
+                {t('nav.community')}
               </a>
             </li>
             <li class="nn-primary-nav__item">

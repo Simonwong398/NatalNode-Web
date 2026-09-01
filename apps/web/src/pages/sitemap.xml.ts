@@ -10,7 +10,9 @@ const publicPaths = [
   '/tools/',
   '/tools/sign-lookup',
   '/tools/house-lookup',
-  '/tools/aspect-lookup'
+  '/tools/aspect-lookup',
+  '/community/',
+  '/community/question'
 ];
 
 const escapeXml = (value: string): string =>

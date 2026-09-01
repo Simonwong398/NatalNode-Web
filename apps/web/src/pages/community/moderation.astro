@@ -1,0 +1,69 @@
+---
+import SiteLayout from '@/layouts/SiteLayout.astro';
+import {
+  getPresentationLocale,
+  type SupportedLocale
+} from '@/lib/localization';
+import { getUiMessage, type UiMessageKey } from '@/lib/ui-catalog';
+import type { SeoMetadata } from '@/lib/seo';
+
+interface Props {
+  readonly locale?: SupportedLocale;
+}
+
+const { locale: requestedLocale } = Astro.props as Props;
+const locale = getPresentationLocale(
+  Astro.url.pathname,
+  requestedLocale ?? Astro.locals.locale
+);
+const t = (key: UiMessageKey): string => getUiMessage(locale, key);
+const seo: SeoMetadata = {
+  title: 'Community moderation | NatalNode',
+  description: 'Protected moderation tools for NatalNode Community reports.',
+  canonical: '/community/moderation',
+  robots: 'noindex,nofollow'
+};
+---
+
+<SiteLayout seo={seo} mode="editorial">
+  <main class="nn-container nn-container--reading pb-20 pt-12 sm:pb-24 sm:pt-16">
+    <header class="max-w-3xl">
+      <p class="nn-eyebrow">{t('community.eyebrow')}</p>
+      <h1 class="nn-type-page-title mt-3">{t('community.moderationTitle')}</h1>
+    </header>
+
+    <section
+      class="mt-10 max-w-4xl"
+      data-community-moderation-page
+      aria-busy="true"
+      aria-labelledby="community-moderation-title"
+    >
+      <h2 class="sr-only" id="community-moderation-title">{t('community.moderationTitle')}</h2>
+      <p class="nn-async-state" data-community-moderation-loading role="status" aria-live="polite">
+        {t('community.reportsLoading')}
+      </p>
+      <p
+        class="nn-async-state nn-async-state--error"
+        data-community-moderation-error
+        role="alert"
+        tabindex="-1"
+        hidden
+      ></p>
+      <p class="nn-async-state nn-async-state--empty" data-community-moderation-empty hidden>
+        {t('community.moderationEmpty')}
+      </p>
+      <ol class="grid gap-5" data-community-moderation-list hidden></ol>
+    </section>
+  </main>
+</SiteLayout>
+
+<script>
+  import { initializeCommunityModeration } from '@/features/community/community';
+  import { getPresentationLocale } from '@/lib/localization';
+
+  const root = document.querySelector<HTMLElement>('[data-community-moderation-page]');
+  const locale = getPresentationLocale(document.documentElement.lang);
+  if (root) {
+    initializeCommunityModeration({ root, locale });
+  }
+</script>

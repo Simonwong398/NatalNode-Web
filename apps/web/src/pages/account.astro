@@ -203,6 +203,48 @@ const t = (key: UiMessageKey): string => getUiMessage(locale, key);
 
         <section
           class="nn-surface nn-surface--elevated mt-8 p-6 sm:p-8"
+          data-community-profile
+          aria-labelledby="account-community-profile-title"
+        >
+          <p class="nn-eyebrow">{t('community.profileEyebrow')}</p>
+          <h2 class="nn-type-section-title mt-3" id="account-community-profile-title">
+            {t('community.profileTitle')}
+          </h2>
+          <p class="nn-type-body-small mt-3 max-w-xl">
+            {t('community.profileDescription')}
+          </p>
+          <p class="nn-async-state mt-5" data-community-profile-loading role="status" aria-live="polite">
+            {t('community.loading')}
+          </p>
+          <div data-community-profile-content hidden>
+            <form class="mt-5 grid max-w-xl gap-4" data-community-profile-form novalidate>
+              <label class="nn-type-label" for="account-community-display-name">
+                {t('community.displayName')}
+              </label>
+              <input
+                class="nn-field"
+                id="account-community-display-name"
+                data-community-display-name
+                name="displayName"
+                type="text"
+                minlength="3"
+                maxlength="40"
+                required
+                aria-describedby="account-community-display-name-help"
+              />
+              <p class="nn-type-body-small" id="account-community-display-name-help">
+                {t('community.displayNameHelp')}
+              </p>
+              <button class="nn-button nn-button--secondary justify-self-start" data-community-profile-save type="submit">
+                {t('community.displayNameSave')}
+              </button>
+              <p class="nn-status" data-community-profile-status role="status" aria-live="polite" hidden></p>
+            </form>
+          </div>
+        </section>
+
+        <section
+          class="nn-surface nn-surface--elevated mt-8 p-6 sm:p-8"
           data-account-export
           aria-labelledby="account-export-title"
         >
@@ -392,7 +434,9 @@ const t = (key: UiMessageKey): string => getUiMessage(locale, key);
   import type { NotificationCategory } from '@natalnode/contracts';
   import { initializeAccountExport } from '@/features/account/account-export';
   import { initializeAccountDeletion } from '@/features/account/account-deletion';
+  import { initializeCommunityProfile } from '@/features/community/community';
   import { initializeNotificationSettings } from '@/features/notifications/notification-settings';
+  import { getPresentationLocale } from '@/lib/localization';
 
   const root = document.querySelector<HTMLElement>('[data-account-page]');
   const loading = root?.querySelector<HTMLElement>('[data-account-loading]');
@@ -414,6 +458,7 @@ const t = (key: UiMessageKey): string => getUiMessage(locale, key);
   const exportReauthStatus = root?.querySelector<HTMLElement>('[data-account-export-reauth]');
   const exportResponseFrame = root?.querySelector<HTMLIFrameElement>('[data-account-export-response]');
   const notificationsRoot = root?.querySelector<HTMLElement>('[data-account-notifications]');
+  const communityProfileRoot = root?.querySelector<HTMLElement>('[data-community-profile]');
   const notificationsLoading = notificationsRoot?.querySelector<HTMLElement>('[data-notifications-loading]');
   const notificationsContent = notificationsRoot?.querySelector<HTMLElement>('[data-notifications-content]');
   const notificationsPermission = notificationsRoot?.querySelector<HTMLElement>('[data-notifications-permission]');
@@ -462,6 +507,13 @@ const t = (key: UiMessageKey): string => getUiMessage(locale, key);
       pendingStatus,
       errorStatus,
       reauthStatus
+    });
+  }
+
+  if (root && communityProfileRoot) {
+    initializeCommunityProfile({
+      root,
+      locale: getPresentationLocale(document.documentElement.lang)
     });
   }
 
