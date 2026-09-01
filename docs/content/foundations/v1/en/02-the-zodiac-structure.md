@@ -6,10 +6,8 @@ lessonId: foundations.zodiac_structure
 canonicalLocale: en
 contentRevision: 2
 canonicalContentRevision: 2
-contentState: REVIEW
+contentState: APPROVED
 currentness: CURRENT
-publicationStatus: REVIEW
-productionAdmission: NOT_APPROVED
 ---
 
 # The Zodiac: Elements and Modes

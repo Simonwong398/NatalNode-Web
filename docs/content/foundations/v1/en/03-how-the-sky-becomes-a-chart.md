@@ -6,10 +6,8 @@ lessonId: foundations.chart_calculation
 canonicalLocale: en
 contentRevision: 2
 canonicalContentRevision: 2
-contentState: REVIEW
+contentState: APPROVED
 currentness: CURRENT
-publicationStatus: REVIEW
-productionAdmission: NOT_APPROVED
 ---
 
 # How the Sky Becomes a Chart

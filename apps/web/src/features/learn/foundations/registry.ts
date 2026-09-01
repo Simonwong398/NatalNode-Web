@@ -45,7 +45,7 @@ export type FoundationsMyChartHookId = (typeof FOUNDATIONS_MY_CHART_HOOK_IDS)[nu
 export type FoundationsContentState = 'MISSING' | 'DRAFT' | 'REVIEW' | 'APPROVED';
 export type FoundationsContentCurrentness = 'CURRENT' | 'OUTDATED';
 export type FoundationsContentAvailability = 'AVAILABLE' | 'UNAVAILABLE';
-export type FoundationsContentKind = 'SCAFFOLD';
+export type FoundationsContentKind = 'SCAFFOLD' | 'CANONICAL';
 
 export interface FoundationsMyChartHook {
   readonly hookId: FoundationsMyChartHookId;
@@ -167,6 +167,28 @@ export const FOUNDATIONS_LESSON_IDS = [
 
 export type FoundationsLessonId = (typeof FOUNDATIONS_LESSON_IDS)[number];
 
+type FoundationsCanonicalEnglishAdmission = Readonly<{
+  contentRevision: number;
+  canonicalContentRevision: number;
+}>;
+
+const FOUNDATIONS_ADMITTED_ENGLISH_REVISIONS: Readonly<
+  Partial<Record<FoundationsLessonId, FoundationsCanonicalEnglishAdmission>>
+> = Object.freeze({
+  'foundations.natal_chart': Object.freeze({
+    contentRevision: 3,
+    canonicalContentRevision: 3
+  }),
+  'foundations.zodiac_structure': Object.freeze({
+    contentRevision: 2,
+    canonicalContentRevision: 2
+  }),
+  'foundations.chart_calculation': Object.freeze({
+    contentRevision: 2,
+    canonicalContentRevision: 2
+  })
+});
+
 export const FOUNDATIONS_LESSONS: readonly FoundationsLesson[] = Object.freeze([
   createLesson(
     'foundations.natal_chart',
@@ -181,8 +203,8 @@ export const FOUNDATIONS_LESSONS: readonly FoundationsLesson[] = Object.freeze([
     'foundations.zodiac_structure',
     2,
     'the-zodiac-polarity-elements-and-modes',
-    'The Zodiac: Polarity, Elements, and Modes',
-    'Introduce the twelve-sign framework and its polarity, element, and mode groupings without turning groupings into personality determinism.',
+    'The Zodiac: Elements and Modes',
+    'Introduce the twelve-sign framework, elements, and modes without turning groupings into personality determinism.',
     createMyChartHook('my_chart.zodiac_structure', 'ZODIAC_STRUCTURE', '/', 'NOT_REQUIRED'),
     ['sign_element.fire', 'sign_element.earth', 'sign_element.air', 'sign_element.water', 'sign_modality.cardinal', 'sign_modality.fixed', 'sign_modality.mutable']
   ),
@@ -404,6 +426,27 @@ function createContentVariant(
   }
 
   const scaffold = ENGLISH_SCAFFOLDS[lesson.lessonId];
+  const admittedRevision = FOUNDATIONS_ADMITTED_ENGLISH_REVISIONS[lesson.lessonId];
+
+  if (admittedRevision !== undefined) {
+    return Object.freeze({
+      courseId: FOUNDATIONS_COURSE_ID,
+      courseVersion: FOUNDATIONS_COURSE_VERSION,
+      lessonId: lesson.lessonId,
+      canonicalLocale: FOUNDATIONS_CANONICAL_LOCALE,
+      locale,
+      contentRevision: admittedRevision.contentRevision,
+      canonicalContentRevision: admittedRevision.canonicalContentRevision,
+      contentState: 'APPROVED',
+      currentness: 'CURRENT',
+      contentKind: 'CANONICAL',
+      shortDescription: scaffold.shortDescription,
+      learningObjectives: Object.freeze([...scaffold.learningObjectives]),
+      sectionIds,
+      keyTakeaway: scaffold.keyTakeaway
+    });
+  }
+
   return Object.freeze({
     courseId: FOUNDATIONS_COURSE_ID,
     courseVersion: FOUNDATIONS_COURSE_VERSION,

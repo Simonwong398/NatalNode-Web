@@ -6,6 +6,7 @@ import {
   FOUNDATIONS_COURSE,
   FOUNDATIONS_COURSE_ID,
   FOUNDATIONS_COURSE_VERSION,
+  FOUNDATIONS_INITIAL_CONTENT_REVISION,
   FOUNDATIONS_LESSON_COUNT,
   FOUNDATIONS_LESSON_IDS,
   FOUNDATIONS_LESSONS,
@@ -230,8 +231,19 @@ test('browser storage is best effort and serialization contains only minimal pro
   assert.deepEqual(JSON.parse(serializeFoundationsProgress(progress)), persisted);
 });
 
-test('content governance keeps only the canonical English scaffold available and never silently falls back', () => {
+test('content governance admits only approved canonical English lessons and never silently falls back', () => {
   assert.equal(isFoundationsCoreReady(), false);
+
+  const admittedRevisions = new Map([
+    ['foundations.natal_chart', 3],
+    ['foundations.zodiac_structure', 2],
+    ['foundations.chart_calculation', 2]
+  ]);
+
+  assert.equal(
+    FOUNDATIONS_LESSONS.find((lesson) => lesson.lessonId === 'foundations.zodiac_structure').title,
+    'The Zodiac: Elements and Modes'
+  );
 
   for (const lesson of FOUNDATIONS_LESSONS) {
     const english = FOUNDATIONS_CONTENT_VARIANTS[lesson.lessonId].en;
@@ -239,17 +251,33 @@ test('content governance keeps only the canonical English scaffold available and
     assert.equal(english.currentness, 'CURRENT');
     assert.equal(getFoundationsContentAvailability(english), 'AVAILABLE');
 
+    if (admittedRevisions.has(lesson.lessonId)) {
+      assert.equal(english.contentRevision, admittedRevisions.get(lesson.lessonId));
+      assert.equal(english.canonicalContentRevision, admittedRevisions.get(lesson.lessonId));
+      assert.equal(english.contentKind, 'CANONICAL');
+    } else {
+      assert.equal(english.contentRevision, FOUNDATIONS_INITIAL_CONTENT_REVISION);
+      assert.equal(english.canonicalContentRevision, FOUNDATIONS_INITIAL_CONTENT_REVISION);
+      assert.equal(english.contentKind, 'SCAFFOLD');
+    }
+
     for (const locale of EXPECTED_LOCALES.slice(1)) {
-       const variant = FOUNDATIONS_CONTENT_VARIANTS[lesson.lessonId][locale];
-       assert.equal(variant.contentState, 'MISSING');
-       assert.equal(variant.currentness, 'OUTDATED');
+      const variant = FOUNDATIONS_CONTENT_VARIANTS[lesson.lessonId][locale];
+      assert.equal(variant.contentState, 'MISSING');
+      assert.equal(variant.currentness, 'OUTDATED');
       assert.equal(getFoundationsContentAvailability(variant), 'UNAVAILABLE');
       assert.equal('learningObjectives' in variant, false);
       assert.notEqual(variant.locale, 'en');
     }
   }
 
-  const english = FOUNDATIONS_CONTENT_VARIANTS[EXPECTED_LESSON_IDS[0]].en;
+  const english = getFoundationsContentVariant(EXPECTED_LESSON_IDS[0], 'en');
+  const spanish = getFoundationsContentVariant(EXPECTED_LESSON_IDS[0], 'es');
+  assert.equal(english.contentKind, 'CANONICAL');
+  assert.equal(getFoundationsContentAvailability(english), 'AVAILABLE');
+  assert.equal(getFoundationsContentAvailability(spanish), 'UNAVAILABLE');
+  assert.notEqual(spanish.locale, 'en');
+
   for (const contentState of ['DRAFT', 'REVIEW', 'APPROVED']) {
     assert.equal(
       getFoundationsContentAvailability({ ...english, contentState, currentness: 'OUTDATED' }),

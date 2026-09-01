@@ -1,0 +1,28 @@
+---
+import LessonOne from '../../../../../../docs/content/foundations/v1/en/01-what-a-natal-chart-actually-is.md';
+import LessonTwo from '../../../../../../docs/content/foundations/v1/en/02-the-zodiac-structure.md';
+import LessonThree from '../../../../../../docs/content/foundations/v1/en/03-how-the-sky-becomes-a-chart.md';
+import type { FoundationsLessonId } from './registry';
+
+interface Props {
+  lessonId: FoundationsLessonId;
+}
+
+const { lessonId } = Astro.props;
+
+const canonicalContentByLessonId = {
+  'foundations.natal_chart': LessonOne,
+  'foundations.zodiac_structure': LessonTwo,
+  'foundations.chart_calculation': LessonThree
+} as const;
+
+const Content = canonicalContentByLessonId[lessonId as keyof typeof canonicalContentByLessonId];
+
+if (Content === undefined) {
+  throw new Error('Canonical Foundations content is unavailable for this lesson');
+}
+---
+
+<div class="content-prose max-w-reading">
+  <Content />
+</div>

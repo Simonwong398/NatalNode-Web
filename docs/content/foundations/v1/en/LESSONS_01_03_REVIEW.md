@@ -4,30 +4,28 @@ courseId: foundations.v1
 courseVersion: v1
 canonicalLocale: en
 contentRevision: 3
-publicationStatus: REVIEW
-productionAdmission: NOT_APPROVED
 documentKind: CONTENT_REVIEW_MANIFEST
 ---
 
 # Foundations V1 Lessons 01–03 Review Manifest
 
-## Review status and boundary
+## Review status and admission boundary
 
-This manifest records the research and editorial review boundary for exactly three canonical-English Class C lesson drafts. It is a review artifact, not runtime content and not a publication approval. The three drafts use the frozen Foundations identities `foundations.v1`, `v1`, and `en`; Lesson 01 is at content revision `3`, while Lessons 02 and 03 remain at content revision `2`.
+This manifest records the research, editorial review, and owner-approval boundary for exactly three canonical-English Class C lesson records. It is an approval record, not runtime content. The three records use the frozen Foundations identities `foundations.v1`, `v1`, and `en`; Lesson 01 is at content revision `3`, while Lessons 02 and 03 remain at content revision `2`.
 
-The editorial revision is complete for this batch. It teaches the astrology first, keeps the astronomy/astrology boundary clear, and remains pending final editorial approval.
+The R4 final professional gate passed with no blocker, major, minor, or editorial-note findings. The Product Owner explicitly approved the canonical English revisions listed below for runtime admission.
 
-The drafts do not replace the existing Learn runtime scaffold. They do not change the lesson registry, route resolution, UI Catalog, progress state, final check, rewards, commercial state, API/BFF, Engine, calculation behavior, or localization runtime. No translation or multilingual adaptation was performed.
+The approved records are admitted only for canonical English Lessons 01–03. They do not change the route locale, UI Catalog, progress state, final check, rewards, commercial state, API/BFF, Engine, calculation behavior, or localization runtime. No translation or multilingual adaptation was performed.
 
-## Draft inventory
+## Canonical English inventory
 
-| Order | Lesson ID | Canonical title | Draft path | Approximate body words | Publication state | Production admission |
-| ---: | --- | --- | --- | ---: | --- | --- |
-| 1 | `foundations.natal_chart` | What a Natal Chart Actually Is | `docs/content/foundations/v1/en/01-what-a-natal-chart-actually-is.md` | ~1,226 | `REVIEW` | `NOT_APPROVED` |
-| 2 | `foundations.zodiac_structure` | The Zodiac: Elements and Modes | `docs/content/foundations/v1/en/02-the-zodiac-structure.md` | ~1,338 | `REVIEW` | `NOT_APPROVED` |
-| 3 | `foundations.chart_calculation` | How the Sky Becomes a Chart | `docs/content/foundations/v1/en/03-how-the-sky-becomes-a-chart.md` | ~1,426 | `REVIEW` | `NOT_APPROVED` |
+| Order | Lesson ID | Canonical title | Source path | Approximate body words | Content state | Currentness | Runtime availability |
+| ---: | --- | --- | --- | ---: | --- | --- | --- |
+| 1 | `foundations.natal_chart` | What a Natal Chart Actually Is | `docs/content/foundations/v1/en/01-what-a-natal-chart-actually-is.md` | ~1,226 | `APPROVED` | `CURRENT` | `AVAILABLE` |
+| 2 | `foundations.zodiac_structure` | The Zodiac: Elements and Modes | `docs/content/foundations/v1/en/02-the-zodiac-structure.md` | ~1,338 | `APPROVED` | `CURRENT` | `AVAILABLE` |
+| 3 | `foundations.chart_calculation` | How the Sky Becomes a Chart | `docs/content/foundations/v1/en/03-how-the-sky-becomes-a-chart.md` | ~1,426 | `APPROVED` | `CURRENT` | `AVAILABLE` |
 
-Each draft contains exactly these nine pedagogical sections, in this order: Orientation; Core Concept; Professional Vocabulary; Example; My Chart; Practice; Check Understanding; Key Takeaway; Sources and Further Reading. Each contains exactly two Check Understanding questions with answers and explanations.
+Each lesson contains exactly these nine pedagogical sections, in this order: Orientation; Core Concept; Professional Vocabulary; Example; My Chart; Practice; Check Understanding; Key Takeaway; Sources and Further Reading. Each contains exactly two Check Understanding questions with answers and explanations.
 
 ## Curriculum benchmark research
 
@@ -56,9 +54,12 @@ The three evidence lanes remain separate:
 2. **Astrology conventions:** Faculty, Kepler, Astrology University, The Astrology School, Astrodienst, and Skyscript sources support the explicitly scoped chart, zodiac, sign-grouping, angle, and house vocabulary.
 3. **NatalNode product behavior:** the PRD and frozen Foundations/learning/glossary documents support identities, hooks, unknown-time handling, provider neutrality, status/provenance boundaries, and current admitted terminology.
 
-## Editorial revision record
+## Editorial revision and approval record
 
-- Editorial revision completed for Lessons 01–03; all three remain canonical-English Class C review drafts.
+- Editorial revision completed for Lessons 01–03; all three are canonical-English Class C records admitted at their approved revisions.
+- WEB-LEARN-001C-R4 final professional gate passed with zero BLOCKER, MAJOR, MINOR, or EDITORIAL_NOTE findings.
+- Product Owner explicitly approved `foundations.natal_chart` revision `3`, `foundations.zodiac_structure` revision `2`, and `foundations.chart_calculation` revision `2` for canonical-English runtime admission.
+- This approval does not apply to translations or Lessons 04–12.
 - Lesson 01's synthetic example now states 15° Taurus and 15° Leo, preserving a geometrically coherent square aspect while keeping the example non-personal.
 - Lesson 02 title changed to **The Zodiac: Elements and Modes** without changing its semantic lesson ID.
 - Polarity was removed as a primary lesson axis and reduced to a short optional school-level note. No glossary expansion or polarity semantic ID was added.
@@ -66,7 +67,7 @@ The three evidence lanes remain separate:
 - Lesson 03 was technically simplified around the birth-input-to-chart sequence. BFF/API, provider, and ownership language was removed from learner-facing prose; UT1/TT teaching was removed from the lesson body while the existing technical references remain traceable below.
 - Cross-lesson repetition around calculation versus interpretation, unknown time, and epistemic safeguards was reduced while intentional reinforcement was retained.
 - Narrow additional source verification: none. The existing WEB-LEARN-001C source set was reused.
-- Unresolved review issues: final editorial approval is still required. The drafts remain outside production runtime and are not approved for translation or multilingual adaptation.
+- Unresolved review issues: none for the approved canonical-English revisions in this batch. Translation and multilingual adaptation remain outside this approval.
 
 ## Lesson-specific research notes
 
@@ -138,9 +139,9 @@ The generic words “body,” “zodiac sign,” “angle,” and “house” in
 | Translation or runtime localization performed | NO |
 | P1/P2/P3 feature work performed | NO |
 
-## Publication and runtime gate
+## Frozen publication and runtime gate
 
-The lesson files declare the following content revisions:
+The lesson files declare the following content revisions and frozen runtime states:
 
 ```text
 Lesson 01:
@@ -152,12 +153,12 @@ contentRevision       = 2
 canonicalContentRevision = 2
 
 All three:
-contentState          = REVIEW
-publicationStatus     = REVIEW
-productionAdmission   = NOT_APPROVED
+contentState          = APPROVED
+currentness           = CURRENT
+availability          = AVAILABLE
 ```
 
-These drafts are not `APPROVED`, `APPROVED_CURRENT`, or `CURRENT_FOR_PRODUCTION`. They must not be admitted to the Foundations runtime or represented as satisfying the seven-locale Core gate until accountable content/professional review and the frozen publication checks are complete. No translation, multilingual adaptation, or runtime content-state change is part of this batch.
+The frozen availability rule is `contentState == APPROVED` and `currentness == CURRENT`. Product-owner approval is recorded for these exact canonical revisions, so the English records may be served through the existing Foundations content model. This does not satisfy the seven-locale Core gate: non-English variants remain unavailable/outdated, and Lessons 04–12 remain in their prior scaffold state.
 
 ## Files in this review batch
 

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, type ReactNode } from 'react';
 import { resolveAstrologyTerm } from '../../../lib/astrology-glossary.js';
 import { getLocalizedPath, type SupportedLocale } from '../../../lib/localization.js';
 import {
@@ -29,6 +29,7 @@ interface FoundationsLessonExperienceProps {
   readonly lessonId: string;
   readonly showEnglishContent?: boolean;
   readonly ui: FoundationsUiMessages;
+  readonly children?: ReactNode;
 }
 
 const SECTION_UI_KEYS: Readonly<Record<FoundationsSectionId, FoundationsUiMessageKey>> = {
@@ -70,6 +71,41 @@ function progressLabel(
 
 function lessonHref(locale: SupportedLocale, slug: string): string {
   return getLocalizedPath(locale, `/learn/foundations/${slug}/`);
+}
+
+function MyChartHook({
+  lesson,
+  locale,
+  ui
+}: {
+  readonly lesson: FoundationsLesson;
+  readonly locale: SupportedLocale;
+  readonly ui: FoundationsUiMessages;
+}) {
+  return (
+    <div
+      className="grid gap-3 rounded-[var(--nn-radius-medium)] border border-natal-border/70 bg-natal-surface/60 p-4"
+      data-my-chart-hook={lesson.myChartHook.hookId}
+    >
+      <p className="nn-type-label">{message(ui, 'learn.foundations.myChart')}</p>
+      <p className="nn-type-body-small">
+        {message(ui, 'learn.foundations.createChart')}
+      </p>
+      {lesson.myChartHook.birthTimeRequirement === 'REQUIRED_FOR_TIME_DEPENDENT_FACTS' ? (
+        <p className="nn-type-metadata">
+          {message(ui, 'learn.foundations.timeLimitation')}
+        </p>
+      ) : null}
+      <a
+        className="font-semibold text-natal-accent underline decoration-natal-accent/50 underline-offset-4 transition-colors hover:text-white"
+        href={getLocalizedPath(locale, lesson.myChartHook.targetPath)}
+      >
+        {lesson.myChartHook.targetPath === '/'
+          ? message(ui, 'learn.foundations.createChart')
+          : message(ui, 'learn.foundations.openContext')}
+      </a>
+    </div>
+  );
 }
 
 function ContentSection({
@@ -117,30 +153,7 @@ function ContentSection({
       body = <p className="nn-type-body-small">{message(ui, 'learn.foundations.scaffoldDescription')}</p>;
       break;
     case 'my_chart':
-      body = (
-        <div
-          className="grid gap-3 rounded-[var(--nn-radius-medium)] border border-natal-border/70 bg-natal-surface/60 p-4"
-          data-my-chart-hook={lesson.myChartHook.hookId}
-        >
-          <p className="nn-type-label">{message(ui, 'learn.foundations.myChart')}</p>
-          <p className="nn-type-body-small">
-            {message(ui, 'learn.foundations.createChart')}
-          </p>
-          {lesson.myChartHook.birthTimeRequirement === 'REQUIRED_FOR_TIME_DEPENDENT_FACTS' ? (
-            <p className="nn-type-metadata">
-              {message(ui, 'learn.foundations.timeLimitation')}
-            </p>
-          ) : null}
-          <a
-            className="font-semibold text-natal-accent underline decoration-natal-accent/50 underline-offset-4 transition-colors hover:text-white"
-            href={getLocalizedPath(locale, lesson.myChartHook.targetPath)}
-          >
-            {lesson.myChartHook.targetPath === '/'
-              ? message(ui, 'learn.foundations.createChart')
-              : message(ui, 'learn.foundations.openContext')}
-          </a>
-        </div>
-      );
+      body = <MyChartHook lesson={lesson} locale={locale} ui={ui} />;
       break;
     case 'practice':
       body = <p className="nn-type-body-small">{objectives[1] ?? objectives[0]}</p>;
@@ -170,7 +183,8 @@ export default function FoundationsLessonExperience({
   locale,
   lessonId,
   showEnglishContent = false,
-  ui
+  ui,
+  children
 }: FoundationsLessonExperienceProps) {
   const lesson = getFoundationsLessonById(lessonId);
   const [progress, setProgress] = useState<FoundationsProgress>(
@@ -212,6 +226,7 @@ export default function FoundationsLessonExperience({
   const contentLocale: SupportedLocale = isEnglishView ? 'en' : locale;
   const content = getFoundationsContentVariant(lesson.lessonId, contentLocale);
   const contentAvailable = getFoundationsContentAvailability(content) === 'AVAILABLE';
+  const hasCanonicalContent = contentAvailable && content?.contentKind === 'CANONICAL' && children != null;
   const state = getFoundationsLessonProgressState(progress, lesson.lessonId);
   const completedCount = getFoundationsCompletedLessonCount(progress);
   const progressText = formatMessage(message(ui, 'learn.foundations.progressCount'), {
@@ -251,7 +266,7 @@ export default function FoundationsLessonExperience({
             {progressLabel(ui, state)}
           </span>
         </div>
-        <h1 className="nn-type-page-title">{lesson.title}</h1>
+        {hasCanonicalContent ? null : <h1 className="nn-type-page-title">{lesson.title}</h1>}
 
         {contentAvailable && content?.shortDescription ? (
           <p className="nn-type-body max-w-3xl">{content.shortDescription}</p>
@@ -279,23 +294,32 @@ export default function FoundationsLessonExperience({
       <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(16rem,20rem)] lg:items-start">
         <div className="grid gap-6">
           {contentAvailable ? (
-            <div className="grid gap-6 rounded-[var(--nn-radius-large)] border border-natal-border/70 bg-natal-surface/40 p-5 sm:p-7">
-              <div className="grid gap-2">
-                <p className="nn-eyebrow">{message(ui, 'learn.foundations.scaffold')}</p>
-                <p className="nn-type-body-small">
-                  {message(ui, 'learn.foundations.scaffoldDescription')}
-                </p>
+            hasCanonicalContent ? (
+              <div className="grid gap-8 rounded-[var(--nn-radius-large)] border border-natal-border/70 bg-natal-surface/40 p-5 sm:p-7">
+                {children}
+                <div className="border-t border-natal-border/70 pt-6">
+                  <MyChartHook lesson={lesson} locale={locale} ui={ui} />
+                </div>
               </div>
-              {FOUNDATIONS_SECTION_IDS.map((sectionId) => (
-                <ContentSection
-                  key={sectionId}
-                  lesson={lesson}
-                  locale={locale}
-                  sectionId={sectionId}
-                  ui={ui}
-                />
-              ))}
-            </div>
+            ) : (
+              <div className="grid gap-6 rounded-[var(--nn-radius-large)] border border-natal-border/70 bg-natal-surface/40 p-5 sm:p-7">
+                <div className="grid gap-2">
+                  <p className="nn-eyebrow">{message(ui, 'learn.foundations.scaffold')}</p>
+                  <p className="nn-type-body-small">
+                    {message(ui, 'learn.foundations.scaffoldDescription')}
+                  </p>
+                </div>
+                {FOUNDATIONS_SECTION_IDS.map((sectionId) => (
+                  <ContentSection
+                    key={sectionId}
+                    lesson={lesson}
+                    locale={locale}
+                    sectionId={sectionId}
+                    ui={ui}
+                  />
+                ))}
+              </div>
+            )
           ) : null}
 
           <section aria-labelledby="foundations-completion-title" className="nn-surface grid gap-4 p-5 sm:p-6">

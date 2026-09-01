@@ -1,8 +1,11 @@
 ---
 import FoundationsLessonExperience from '@/features/learn/foundations/FoundationsLessonExperience';
+import FoundationsLessonContent from '@/features/learn/foundations/FoundationsLessonContent.astro';
 import { getFoundationsUiMessages } from '@/features/learn/foundations/ui';
 import {
   FOUNDATIONS_LESSONS,
+  getFoundationsContentAvailability,
+  getFoundationsContentVariant,
   getFoundationsLessonBySlug
 } from '@/features/learn/foundations/registry';
 import SiteLayout from '@/layouts/SiteLayout.astro';
@@ -32,6 +35,10 @@ if (lesson === null) {
 }
 
 const showEnglishContent = locale !== 'en' && Astro.url.searchParams.get('contentLocale') === 'en';
+const canonicalEnglishVariant = getFoundationsContentVariant(lesson.lessonId, 'en');
+const shouldRenderCanonicalContent =
+  getFoundationsContentAvailability(canonicalEnglishVariant) === 'AVAILABLE' &&
+  canonicalEnglishVariant?.contentKind === 'CANONICAL';
 const ui = getFoundationsUiMessages(locale);
 const seo: SeoMetadata = {
   title: `${lesson.title} | ${ui['learn.foundations.title']} | NatalNode`,
@@ -50,6 +57,8 @@ const seo: SeoMetadata = {
       locale={locale}
       showEnglishContent={showEnglishContent}
       ui={ui}
-    />
+    >
+      {shouldRenderCanonicalContent ? <FoundationsLessonContent lessonId={lesson.lessonId} /> : null}
+    </FoundationsLessonExperience>
   </main>
 </SiteLayout>

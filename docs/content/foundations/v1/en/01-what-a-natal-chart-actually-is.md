@@ -6,10 +6,8 @@ lessonId: foundations.natal_chart
 canonicalLocale: en
 contentRevision: 3
 canonicalContentRevision: 3
-contentState: REVIEW
+contentState: APPROVED
 currentness: CURRENT
-publicationStatus: REVIEW
-productionAdmission: NOT_APPROVED
 ---
 
 # What a Natal Chart Actually Is
