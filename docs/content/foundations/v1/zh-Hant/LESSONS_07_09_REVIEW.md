@@ -4,7 +4,7 @@ courseId: foundations.v1
 courseVersion: v1
 canonicalLocale: en
 locale: zh-Hant
-adaptationRevision: 2
+adaptationRevision: 3
 documentKind: LOCALE_ADAPTATION_REVIEW_MANIFEST
 contentState: REVIEW
 currentness: CURRENT
@@ -15,9 +15,9 @@ runtimeAvailability: UNAVAILABLE
 
 ## 適配範圍與狀態邊界
 
-本 review manifest 記錄 Foundations V1 `zh-Hant` Lessons 07–09 的 Class C 專業內容適配、獨立審查、一次 bounded correction cycle 與修正後複審。本批範圍恰好是第七至第九課；它不是 Product Owner 核准記錄，也不是 runtime 內容。
+本 review manifest 記錄 Foundations V1 `zh-Hant` Lessons 07–09 的 Class C 專業內容適配、獨立審查、兩次 bounded correction cycles 與修正後複審。本批範圍恰好是第七至第九課；它不是 Product Owner 核准記錄，也不是 runtime 內容。
 
-三份適配稿都連結到固定的 `foundations.v1`、`v1`、`en` canonical identity。初始適配從 `contentRevision: 1` 開始；獨立審查後完成一次內容修正，因此三份 lesson 目前均為 `contentRevision: 2`，而 `canonicalContentRevision` 均維持 `1`。三份適配稿均為：
+三份適配稿都連結到固定的 `foundations.v1`、`v1`、`en` canonical identity。初始適配從 `contentRevision: 1` 開始；獨立審查後完成一次內容修正，full-locale gate 再完成一次跨課程術語對齊。因此 Lesson 07 目前為 `contentRevision: 3`，Lessons 08–09 為 `contentRevision: 2`，而三份的 `canonicalContentRevision` 均維持 `1`。三份適配稿均為：
 
 ```text
 contentState         = REVIEW
@@ -31,7 +31,7 @@ runtime availability = UNAVAILABLE
 
 | 順序 | Lesson ID | zh-Hant 標題 | Canonical English 標題 | Canonical source revision | Adaptation revision | Content state | Currentness | Runtime availability |
 | ---: | --- | --- | --- | ---: | ---: | --- | --- | --- |
-| 7 | `foundations.houses_angles` | 十二宮位與角點 | The Twelve Houses and the Angles | 1 | 2 | `REVIEW` | `CURRENT` | `UNAVAILABLE` |
+| 7 | `foundations.houses_angles` | 十二宮位與角點 | The Twelve Houses and the Angles | 1 | 3 | `REVIEW` | `CURRENT` | `UNAVAILABLE` |
 | 8 | `foundations.planet_sign_house` | 行星 × 星座 × 宮位 | Planet × Sign × House | 1 | 2 | `REVIEW` | `CURRENT` | `UNAVAILABLE` |
 | 9 | `foundations.aspects` | 相位：行星之間的關係 | Aspects: Relationships Between Planets | 1 | 2 | `REVIEW` | `CURRENT` | `UNAVAILABLE` |
 
@@ -78,7 +78,7 @@ runtime availability = UNAVAILABLE
 | House / house cusp / house system | `宮位` / `宮頭` / `宮位系統` | `宮頭`與既有 frozen variant 對齊；宮位是命盤空間脈絡，不是天文物體或事件保證。 |
 | Ascendant / Descendant | `上升點（ASC）` / `下降點（DSC）` | `上升點`與既有 frozen variant 對齊；`下降點`保留為內容適配詞，並明示它與 ASC 相對。 |
 | Midheaven / Imum Coeli | `中天（MC）` / `天底（IC）` | `中天`使用既有 primary variant；`天底`作為 IC 的內容適配詞，兩者形成 MC–IC 軸線。 |
-| Horizon / meridian / zenith | `地平線` / `子午圈` / `天頂` | `天頂`只表示正上方的天文方向；`中天（MC）`不是天頂。 |
+| Horizon / meridian / zenith | `地平線` / `子午線` / `天頂` | `天頂`只表示正上方的天文方向；`中天（MC）`不是天頂。 |
 | Placidus / Whole Sign / Equal House | `普拉西德制` / `整宮制` / `等宮制` | 使用既有 frozen system variants；三者以中性方式說明，不宣稱任何一個是科學或普遍唯一正確。 |
 | Empty house | `空宮` | 空宮仍是命盤區段，不是不存在、不重要或可以省略的生活領域。 |
 | Planet / sign / house scaffold | `行星／命盤天體`、`星座`、`宮位`、`詮釋框架` | 保持天體功能、星座風格與宮位脈絡分開；「什麼／如何／在哪裡」不是科學方程式、食譜或普遍公式。 |
@@ -111,7 +111,7 @@ runtime availability = UNAVAILABLE
 
 - 宮位、星座、天體、宮頭與角點保持不同層次；宮位只提供生活領域脈絡，不保證結果。
 - 十二宮位表以入門領域呈現，不把第七宮寫成婚姻決定、第十宮寫成職業保證，也不把第八或第十二宮寫成診斷。
-- ASC／DSC 與 MC／IC 的兩條軸線保留；MC 是黃道與當地子午圈的上中天關係，明確不等於天文學上的天頂。
+- ASC／DSC 與 MC／IC 的兩條軸線保留；MC 是黃道與當地子午線的上中天關係，明確不等於天文學上的天頂。
 - `普拉西德制`、`整宮制`與`等宮制`均以中性介紹；更換系統可能改變宮位歸屬，但不改變天體黃道位置。
 - 星座不是宮位；牡羊座不等於第一宮，且自然黃道只可作教學助記。空宮仍是宮位，不需要以進階守護星方法改寫。
 - 可靠出生時間與地點、約略時間、未知時間及不可用欄位的限制均保留；不以中午、午夜或猜測製造角點、宮頭或宮位。
@@ -166,13 +166,14 @@ NASA 來源用於天球、黃道與當地天空的高層次天文脈絡；Facult
 | `MINOR` | 4 | 07 的一處繁體中文詞界筆誤；08 的英文 `client` 殘留與句型標點／結構需本地化；09 的直譯式容許度措辭與一處幾何說明語序需修正。 |
 | `EDITORIAL_NOTE` | 0 | NONE |
 
-在一次 correction cycle 中完成以下 bounded changes：
+在兩次 correction cycles 中完成以下 bounded changes：
 
 1. Lesson 07：將 `慣例性生活領域` 修正為自然且正確的 `慣例性的生活領域`。
 2. Lesson 08：將 `client` 改為 `用戶端`，並將句型改為 `位於[星座]、[宮位]`，補足中文標點與語義邊界。
 3. Lesson 09：將 `受控制的命盤詞彙` 改為 `受規範的命盤術語`，移除冗餘措辭，並將幾何句改為「與 0° 合相的目標角度相差 2°」以保持數學語義清楚。
+4. Full-locale gate 的跨課程術語對齊：既有 Lesson 03 使用 `子午線`，而 Lesson 07 初稿使用 `子午圈`；將 Lesson 07 及本 manifest 的對應術語與審計說明統一為 `子午線`。
 
-`Correction cycles: 1`（低於每批最多兩次）。修正後重新檢視三份 canonical English 與 zh-Hant source，最終 finding set 為 `BLOCKER 0 / MAJOR 0 / MINOR 0 / EDITORIAL_NOTE 0`。三課 adaptation revision 因真實內容／編輯修正提升至 `2`；canonical revision 沒有提升。
+`Correction cycles: 2`（仍未超過每批最多兩次）。原始獨立審查 finding set 的 `MINOR 4` 加上 full-locale gate 發現的跨課程術語 `MINOR 1` 均已完成 bounded correction；修正後重新檢視三份 canonical English、zh-Hant source 與全課程術語矩陣，最終 finding set 為 `BLOCKER 0 / MAJOR 0 / MINOR 0 / EDITORIAL_NOTE 0`。Lesson 07 adaptation revision 因跨課程術語對齊提升至 `3`，Lessons 08–09 維持 `2`；canonical revision 沒有提升。
 
 ## 發布與範圍安全
 
