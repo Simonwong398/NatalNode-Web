@@ -1,0 +1,223 @@
+---
+import SiteLayout from '@/layouts/SiteLayout.astro';
+import {
+  getLocalizedPath,
+  getPresentationLocale,
+  LOCALE_REGISTRY,
+  type SupportedLocale
+} from '@/lib/localization';
+import { getUiMessage, type UiMessageKey } from '@/lib/ui-catalog';
+import type { SeoMetadata } from '@/lib/seo';
+
+interface Props {
+  readonly locale?: SupportedLocale;
+}
+
+const { locale: requestedLocale } = Astro.props as Props;
+const locale = getPresentationLocale(
+  Astro.url.pathname,
+  requestedLocale ?? Astro.locals.locale
+);
+const localize = (path: string): string => getLocalizedPath(locale, path);
+const t = (key: UiMessageKey): string => getUiMessage(locale, key);
+const practiceAreas = [
+  'NATAL_ASTROLOGY',
+  'CHART_INTERPRETATION',
+  'ASTROLOGY_EDUCATION',
+  'ASTROLOGY_RESEARCH',
+  'RELATIONSHIP_ASTROLOGY',
+  'TIMING_AND_CYCLES',
+  'OTHER'
+] as const;
+const seo: SeoMetadata = {
+  title: `${t('practitioner.application.title')} | NatalNode`,
+  description: t('practitioner.application.description'),
+  canonical: '/practitioners/apply',
+  robots: 'noindex,nofollow'
+};
+---
+
+<SiteLayout seo={seo} mode="editorial">
+  <main class="nn-container nn-container--form pb-20 pt-12 sm:pb-24 sm:pt-16">
+    <header class="max-w-3xl">
+      <p class="nn-eyebrow">{t('practitioner.application.eyebrow')}</p>
+      <h1 class="nn-type-page-title mt-3" id="practitioner-application-title">
+        {t('practitioner.application.title')}
+      </h1>
+      <p class="nn-type-body mt-5">{t('practitioner.application.description')}</p>
+      <p class="nn-type-body-small mt-4">{t('practitioner.application.userContentNote')}</p>
+    </header>
+
+    <section
+      class="mt-10 max-w-3xl"
+      data-practitioner-application-page
+      aria-labelledby="practitioner-application-title"
+      aria-busy="true"
+    >
+      <p class="nn-async-state" data-practitioner-application-loading role="status" aria-live="polite">
+        {t('practitioner.loading')}
+      </p>
+      <p class="nn-type-body-small" data-practitioner-application-auth hidden>
+        {t('practitioner.application.noAccount')}
+        <a class="font-semibold text-natal-accent underline underline-offset-4" href={localize('/auth/sign-in')}>
+          {t('auth.signIn')}
+        </a>
+      </p>
+      <p
+        class="nn-notice nn-notice--error"
+        data-practitioner-application-error
+        role="alert"
+        tabindex="-1"
+        hidden
+      ></p>
+      <p class="nn-status" data-practitioner-application-status role="status" aria-live="polite" hidden></p>
+      <p class="nn-notice mt-4" data-practitioner-application-cooldown hidden>
+        {t('practitioner.application.cooldown')}
+      </p>
+
+      <form class="mt-8 grid gap-6" data-practitioner-application-form novalidate hidden>
+        <div>
+          <h2 class="nn-type-section-title" data-practitioner-application-form-title>
+            {t('practitioner.application.form')}
+          </h2>
+        </div>
+
+        <label class="grid gap-2" for="practitioner-requested-display-name">
+          <span class="nn-type-label">{t('practitioner.application.displayName')}</span>
+          <input class="nn-field" id="practitioner-requested-display-name" name="requestedDisplayName" minlength="3" maxlength="40" required />
+        </label>
+
+        <label class="grid gap-2" for="practitioner-professional-headline">
+          <span class="nn-type-label">{t('practitioner.application.headline')}</span>
+          <input class="nn-field" id="practitioner-professional-headline" name="professionalHeadline" minlength="3" maxlength="160" required />
+        </label>
+
+        <label class="grid gap-2" for="practitioner-bio">
+          <span class="nn-type-label">{t('practitioner.application.bio')}</span>
+          <textarea class="nn-field min-h-40 resize-y" id="practitioner-bio" name="bio" minlength="20" maxlength="2000" required></textarea>
+        </label>
+
+        <fieldset class="grid gap-3">
+          <legend class="nn-type-label">{t('practitioner.application.practiceAreas')}</legend>
+          <div class="grid gap-3 sm:grid-cols-2">
+            {practiceAreas.map((area) => (
+              <label class="flex items-start gap-3 text-sm leading-6 text-[var(--nn-text-secondary)]" for={`practitioner-area-${area}`}>
+                <input class="nn-checkbox mt-1 shrink-0" id={`practitioner-area-${area}`} name="practiceAreas" type="checkbox" value={area} />
+                <span>{t(`practitioner.practiceArea.${area}` as UiMessageKey)}</span>
+              </label>
+            ))}
+          </div>
+        </fieldset>
+
+        <fieldset class="grid gap-3">
+          <legend class="nn-type-label">{t('practitioner.application.languages')}</legend>
+          <div class="grid gap-3 sm:grid-cols-2">
+            {LOCALE_REGISTRY.map((language) => (
+              <label class="flex items-start gap-3 text-sm leading-6 text-[var(--nn-text-secondary)]" for={`practitioner-language-${language.id}`}>
+                <input class="nn-checkbox mt-1 shrink-0" id={`practitioner-language-${language.id}`} name="languages" type="checkbox" value={language.id} />
+                <span>{language.displayName}</span>
+              </label>
+            ))}
+          </div>
+        </fieldset>
+
+        <label class="grid gap-2" for="practitioner-country">
+          <span class="nn-type-label">{t('practitioner.application.countryOrRegion')}</span>
+          <input class="nn-field" id="practitioner-country" name="countryOrRegion" minlength="2" maxlength="100" required />
+        </label>
+
+        <label class="grid gap-2" for="practitioner-website">
+          <span class="nn-type-label">{t('practitioner.application.website')}</span>
+          <input class="nn-field" id="practitioner-website" name="websiteUrl" type="url" maxlength="2048" inputmode="url" />
+        </label>
+
+        <label class="grid gap-2" for="practitioner-practice-statement">
+          <span class="nn-type-label">{t('practitioner.application.practiceStatement')}</span>
+          <textarea class="nn-field min-h-32 resize-y" id="practitioner-practice-statement" name="practiceStatement" minlength="20" maxlength="2000" required></textarea>
+        </label>
+
+        <label class="grid gap-2" for="practitioner-evidence">
+          <span class="nn-type-label">{t('practitioner.application.evidence')}</span>
+          <textarea class="nn-field min-h-32 resize-y" id="practitioner-evidence" name="evidenceUrls" maxlength="10240" inputmode="url" required></textarea>
+        </label>
+
+        <label class="flex items-start gap-3 text-sm leading-6 text-[var(--nn-text-secondary)]" for="practitioner-consent">
+          <input class="nn-checkbox mt-1 shrink-0" id="practitioner-consent" name="consentToPublicProfile" type="checkbox" required />
+          <span>{t('practitioner.application.consent')}</span>
+        </label>
+
+        <div class="flex flex-wrap gap-3">
+          <button class="nn-button nn-button--primary" data-practitioner-application-submit type="submit">
+            {t('practitioner.application.submit')}
+          </button>
+          <button class="nn-button nn-button--secondary" data-practitioner-application-withdraw type="button" hidden>
+            {t('practitioner.application.withdraw')}
+          </button>
+        </div>
+      </form>
+
+      <section class="mt-12 border-t border-natal-border/70 pt-8" data-practitioner-revision-panel aria-labelledby="practitioner-revision-title" hidden>
+        <h2 class="nn-type-section-title" id="practitioner-revision-title">{t('practitioner.application.form')}</h2>
+        <p class="nn-type-body-small mt-3">{t('practitioner.application.description')}</p>
+        <p class="nn-status mt-4" data-practitioner-revision-pending role="status" aria-live="polite" hidden></p>
+        <form class="mt-6 grid gap-6" data-practitioner-revision-form novalidate>
+          <label class="grid gap-2" for="practitioner-revision-display-name">
+            <span class="nn-type-label">{t('practitioner.application.displayName')}</span>
+            <input class="nn-field" id="practitioner-revision-display-name" name="displayName" minlength="3" maxlength="40" required />
+          </label>
+          <label class="grid gap-2" for="practitioner-revision-headline">
+            <span class="nn-type-label">{t('practitioner.application.headline')}</span>
+            <input class="nn-field" id="practitioner-revision-headline" name="professionalHeadline" minlength="3" maxlength="160" required />
+          </label>
+          <label class="grid gap-2" for="practitioner-revision-bio">
+            <span class="nn-type-label">{t('practitioner.application.bio')}</span>
+            <textarea class="nn-field min-h-40 resize-y" id="practitioner-revision-bio" name="bio" minlength="20" maxlength="2000" required></textarea>
+          </label>
+          <fieldset class="grid gap-3">
+            <legend class="nn-type-label">{t('practitioner.application.practiceAreas')}</legend>
+            <div class="grid gap-3 sm:grid-cols-2">
+              {practiceAreas.map((area) => (
+                <label class="flex items-start gap-3 text-sm leading-6 text-[var(--nn-text-secondary)]" for={`practitioner-revision-area-${area}`}>
+                  <input class="nn-checkbox mt-1 shrink-0" id={`practitioner-revision-area-${area}`} name="practiceAreas" type="checkbox" value={area} />
+                  <span>{t(`practitioner.practiceArea.${area}` as UiMessageKey)}</span>
+                </label>
+              ))}
+            </div>
+          </fieldset>
+          <fieldset class="grid gap-3">
+            <legend class="nn-type-label">{t('practitioner.application.languages')}</legend>
+            <div class="grid gap-3 sm:grid-cols-2">
+              {LOCALE_REGISTRY.map((language) => (
+                <label class="flex items-start gap-3 text-sm leading-6 text-[var(--nn-text-secondary)]" for={`practitioner-revision-language-${language.id}`}>
+                  <input class="nn-checkbox mt-1 shrink-0" id={`practitioner-revision-language-${language.id}`} name="languages" type="checkbox" value={language.id} />
+                  <span>{language.displayName}</span>
+                </label>
+              ))}
+            </div>
+          </fieldset>
+          <label class="grid gap-2" for="practitioner-revision-country">
+            <span class="nn-type-label">{t('practitioner.application.countryOrRegion')}</span>
+            <input class="nn-field" id="practitioner-revision-country" name="countryOrRegion" minlength="2" maxlength="100" required />
+          </label>
+          <label class="grid gap-2" for="practitioner-revision-website">
+            <span class="nn-type-label">{t('practitioner.application.website')}</span>
+            <input class="nn-field" id="practitioner-revision-website" name="websiteUrl" type="url" maxlength="2048" inputmode="url" />
+          </label>
+          <button class="nn-button nn-button--secondary justify-self-start" type="submit">{t('practitioner.application.submit')}</button>
+          <p class="nn-status" data-practitioner-revision-status role="status" aria-live="polite" hidden></p>
+        </form>
+      </section>
+    </section>
+  </main>
+</SiteLayout>
+
+<script>
+  import { initializePractitionerApplication } from '@/features/practitioner/practitioner-application';
+  import { parseSupportedLocale } from '@/lib/localization';
+
+  const root = document.querySelector<HTMLElement>('[data-practitioner-application-page]');
+  const locale = parseSupportedLocale(document.documentElement.lang) ?? 'en';
+  if (root) {
+    initializePractitionerApplication({ root, locale });
+  }
+</script>

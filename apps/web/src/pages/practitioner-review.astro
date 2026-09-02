@@ -1,0 +1,116 @@
+---
+import SiteLayout from '@/layouts/SiteLayout.astro';
+import {
+  getPresentationLocale,
+  type SupportedLocale
+} from '@/lib/localization';
+import { getUiMessage, type UiMessageKey } from '@/lib/ui-catalog';
+import type { SeoMetadata } from '@/lib/seo';
+
+interface Props {
+  readonly locale?: SupportedLocale;
+}
+
+const { locale: requestedLocale } = Astro.props as Props;
+const locale = getPresentationLocale(
+  Astro.url.pathname,
+  requestedLocale ?? Astro.locals.locale
+);
+const t = (key: UiMessageKey): string => getUiMessage(locale, key);
+const reviewStatuses = [
+  'SUBMITTED',
+  'CHANGES_REQUESTED',
+  'APPROVED',
+  'REJECTED',
+  'REVOKED'
+] as const;
+const seo: SeoMetadata = {
+  title: `${t('practitioner.reviewer.title')} | NatalNode`,
+  description: t('practitioner.reviewer.description'),
+  canonical: '/practitioner-review',
+  robots: 'noindex,nofollow'
+};
+---
+
+<SiteLayout seo={seo} mode="editorial">
+  <main class="nn-container nn-container--reading pb-20 pt-12 sm:pb-24 sm:pt-16">
+    <header class="max-w-3xl">
+      <p class="nn-eyebrow">{t('practitioner.reviewer.eyebrow')}</p>
+      <h1 class="nn-type-page-title mt-3" id="practitioner-review-title">
+        {t('practitioner.reviewer.title')}
+      </h1>
+      <p class="nn-type-body mt-5">{t('practitioner.reviewer.description')}</p>
+    </header>
+
+    <section
+      class="mt-12 max-w-4xl border-t border-natal-border/70 pt-8 sm:mt-16 sm:pt-10"
+      data-practitioner-review-page
+      aria-labelledby="practitioner-review-title"
+      aria-busy="true"
+    >
+      <p class="nn-async-state" data-practitioner-review-loading role="status" aria-live="polite">
+        {t('practitioner.reviewer.loading')}
+      </p>
+      <p
+        class="nn-async-state nn-async-state--error"
+        data-practitioner-review-error
+        role="alert"
+        tabindex="-1"
+        hidden
+      ></p>
+      <p class="nn-async-state nn-async-state--empty" data-practitioner-review-empty hidden>
+        {t('practitioner.reviewer.empty')}
+      </p>
+
+      <section class="mt-8" aria-labelledby="practitioner-review-queue-title">
+        <h2 class="nn-type-section-title" id="practitioner-review-queue-title">
+          {t('practitioner.reviewer.application')}
+        </h2>
+        <label class="mt-5 grid max-w-sm gap-2" for="practitioner-review-status">
+          <span class="nn-type-label">{t('practitioner.reviewer.statusFilter')}</span>
+          <select class="nn-field" id="practitioner-review-status" data-practitioner-review-status>
+            <option value="">{t('practitioner.reviewer.application')}</option>
+            {reviewStatuses.map((status) => (
+              <option value={status}>{t(`practitioner.application.${status === 'CHANGES_REQUESTED' ? 'changesRequested' : status.toLowerCase()}` as UiMessageKey)}</option>
+            ))}
+          </select>
+        </label>
+        <div class="mt-6 grid gap-5" data-practitioner-review-list></div>
+      </section>
+
+      <section class="mt-12 border-t border-natal-border/70 pt-8" aria-labelledby="practitioner-review-reports-title">
+        <h2 class="nn-type-section-title" id="practitioner-review-reports-title">
+          {t('practitioner.reviewer.report')}
+        </h2>
+        <div class="mt-6 grid gap-5" data-practitioner-review-reports></div>
+      </section>
+
+      <section class="mt-12 border-t border-natal-border/70 pt-8" aria-labelledby="practitioner-founding-title">
+        <h2 class="nn-type-section-title" id="practitioner-founding-title">
+          {t('practitioner.reviewer.founding')}
+        </h2>
+        <form class="mt-5 grid max-w-xl gap-4" data-practitioner-founding-form>
+          <label class="grid gap-2" for="practitioner-founding-id">
+            <span class="nn-type-label">{t('practitioner.reviewer.practitionerId')}</span>
+            <input class="nn-field" id="practitioner-founding-id" name="practitionerId" maxlength="256" required />
+          </label>
+          <button class="nn-button nn-button--secondary justify-self-start" type="submit">
+            {t('practitioner.reviewer.founding')}
+          </button>
+          <p class="nn-status" data-practitioner-founding-status role="status" aria-live="polite" hidden></p>
+        </form>
+      </section>
+    </section>
+  </main>
+</SiteLayout>
+
+<script>
+  import { initializePractitionerReview } from '@/features/practitioner/practitioner-review';
+  import { parseSupportedLocale } from '@/lib/localization';
+
+  const root = document.querySelector<HTMLElement>('[data-practitioner-review-page]');
+  const locale = parseSupportedLocale(document.documentElement.lang) ?? 'en';
+  if (root) {
+    initializePractitionerReview({ root, locale });
+  }
+</script>
