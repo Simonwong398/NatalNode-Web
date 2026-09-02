@@ -1,0 +1,134 @@
+---
+import SiteLayout from '@/layouts/SiteLayout.astro';
+import {
+  getLocalizedPath,
+  getPresentationLocale,
+  type SupportedLocale
+} from '@/lib/localization';
+import { getUiMessage, type UiMessageKey } from '@/lib/ui-catalog';
+import type { SeoMetadata } from '@/lib/seo';
+
+interface Props {
+  readonly locale?: SupportedLocale;
+}
+
+const { locale: requestedLocale } = Astro.props as Props;
+const locale = getPresentationLocale(
+  Astro.url.pathname,
+  requestedLocale ?? Astro.locals.locale
+);
+const localize = (path: string): string => getLocalizedPath(locale, path);
+const t = (key: UiMessageKey): string => getUiMessage(locale, key);
+const seo: SeoMetadata = {
+  title: `${t('practitioner.directory')} | NatalNode`,
+  description: t('practitioner.disclosure'),
+  canonical: '/practitioners/profile',
+  robots: 'index,follow'
+};
+---
+
+<SiteLayout seo={seo} mode="editorial">
+  <main class="nn-container nn-container--reading pb-20 pt-10 sm:pb-24 sm:pt-14">
+    <a class="font-semibold text-natal-accent underline decoration-natal-accent/50 underline-offset-4" href={localize('/practitioners/')}>
+      ← {t('practitioner.back')}
+    </a>
+
+    <section
+      class="mt-8"
+      data-practitioner-profile-page
+      aria-labelledby="practitioner-profile-name"
+      aria-busy="true"
+    >
+      <p class="nn-async-state" data-practitioner-profile-loading role="status" aria-live="polite">
+        {t('practitioner.loading')}
+      </p>
+      <p
+        class="nn-async-state nn-async-state--error"
+        data-practitioner-profile-error
+        role="alert"
+        tabindex="-1"
+        hidden
+      ></p>
+
+      <article class="max-w-3xl" data-practitioner-profile-content hidden>
+        <header>
+          <p class="nn-eyebrow" data-practitioner-profile-founding hidden></p>
+          <h1 class="nn-type-page-title mt-3" data-practitioner-profile-name></h1>
+          <p class="mt-4 text-xl leading-8 text-[var(--nn-text-secondary)]" data-practitioner-profile-headline></p>
+          <p class="mt-6 whitespace-pre-wrap text-lg leading-8 text-[var(--nn-text-secondary)]" data-practitioner-profile-bio></p>
+          <p class="nn-type-metadata mt-5">
+            {t('practitioner.application.approved')} ·
+            <span data-practitioner-profile-approved></span>
+          </p>
+        </header>
+
+        <dl class="mt-10 grid gap-6 border-y border-natal-border/70 py-7 sm:grid-cols-3">
+          <div>
+            <dt class="nn-type-label">{t('practitioner.practiceAreas')}</dt>
+            <dd class="mt-2 text-sm leading-6 text-[var(--nn-text-secondary)]" data-practitioner-profile-areas></dd>
+          </div>
+          <div>
+            <dt class="nn-type-label">{t('practitioner.languages')}</dt>
+            <dd class="mt-2 text-sm leading-6 text-[var(--nn-text-secondary)]" data-practitioner-profile-languages></dd>
+          </div>
+          <div>
+            <dt class="nn-type-label">{t('practitioner.countryOrRegion')}</dt>
+            <dd class="mt-2 text-sm leading-6 text-[var(--nn-text-secondary)]" data-practitioner-profile-country></dd>
+          </div>
+        </dl>
+
+        <p class="nn-type-body-small" data-practitioner-profile-disclosure></p>
+        <p class="mt-4">
+          <a
+            class="font-semibold text-natal-accent underline decoration-natal-accent/50 underline-offset-4"
+            data-practitioner-profile-website
+            target="_blank"
+            rel="noreferrer noopener"
+            hidden
+          ></a>
+        </p>
+
+        <section class="mt-12 border-t border-natal-border/70 pt-8" aria-labelledby="practitioner-contributions-title">
+          <h2 class="nn-type-section-title" id="practitioner-contributions-title">
+            {t('practitioner.contributions')}
+          </h2>
+          <p class="nn-type-body-small mt-3" data-practitioner-profile-contributions-empty hidden>
+            {t('practitioner.noContributions')}
+          </p>
+          <ul class="mt-5 grid gap-3" data-practitioner-profile-contributions></ul>
+        </section>
+
+        <section class="mt-12 border-t border-natal-border/70 pt-8" aria-labelledby="practitioner-report-title">
+          <h2 class="nn-type-section-title" id="practitioner-report-title">{t('practitioner.reportTitle')}</h2>
+          <form class="mt-5 grid max-w-2xl gap-4" data-practitioner-report-form>
+            <label class="grid gap-2" for="practitioner-report-category">
+              <span class="nn-type-label">{t('practitioner.reportCategory')}</span>
+              <select class="nn-field" id="practitioner-report-category" data-practitioner-report-category required>
+                <option value="" disabled selected>{t('practitioner.reportCategory')}</option>
+              </select>
+            </label>
+            <label class="grid gap-2" for="practitioner-report-details">
+              <span class="nn-type-label">{t('practitioner.reportDetails')}</span>
+              <textarea class="nn-field min-h-28 resize-y" id="practitioner-report-details" data-practitioner-report-details maxlength="1000"></textarea>
+            </label>
+            <button class="nn-button nn-button--secondary justify-self-start" type="submit">
+              {t('practitioner.reportSubmit')}
+            </button>
+            <p class="nn-status" data-practitioner-report-status role="status" aria-live="polite" hidden></p>
+          </form>
+        </section>
+      </article>
+    </section>
+  </main>
+</SiteLayout>
+
+<script>
+  import { initializePractitionerProfile } from '@/features/practitioner/practitioner-public';
+  import { parseSupportedLocale } from '@/lib/localization';
+
+  const root = document.querySelector<HTMLElement>('[data-practitioner-profile-page]');
+  const locale = parseSupportedLocale(document.documentElement.lang) ?? 'en';
+  if (root) {
+    initializePractitionerProfile({ root, locale });
+  }
+</script>

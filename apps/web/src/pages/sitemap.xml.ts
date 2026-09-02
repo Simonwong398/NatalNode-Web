@@ -12,7 +12,8 @@ const publicPaths = [
   '/tools/house-lookup',
   '/tools/aspect-lookup',
   '/community/',
-  '/community/question'
+  '/community/question',
+  '/practitioners/'
 ];
 
 const escapeXml = (value: string): string =>

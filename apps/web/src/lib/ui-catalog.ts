@@ -4,6 +4,11 @@ import {
   parseSupportedLocale,
   type SupportedLocale
 } from './localization.js';
+import {
+  PRACTITIONER_CANONICAL_UI_CATALOG,
+  PRACTITIONER_UI_MESSAGE_KEYS,
+  PRACTITIONER_UI_TRANSLATIONS
+} from './practitioner-ui-catalog.js';
 
 /** Stable, language-neutral identities for the Class A product shell. */
 export const UI_MESSAGE_KEYS = [
@@ -398,7 +403,8 @@ export const UI_MESSAGE_KEYS = [
   'workspace.completeFacts',
   'workspace.calculationDetails',
   'workspace.warnings',
-  'workspace.none'
+  'workspace.none',
+  ...PRACTITIONER_UI_MESSAGE_KEYS
 ] as const;
 
 export type UiMessageKey = (typeof UI_MESSAGE_KEYS)[number];
@@ -820,7 +826,8 @@ export const CANONICAL_UI_CATALOG = {
   'workspace.completeFacts': 'Complete chart facts',
   'workspace.calculationDetails': 'Calculation Details',
   'workspace.warnings': 'Warnings',
-  'workspace.none': 'None'
+  'workspace.none': 'None',
+  ...PRACTITIONER_CANONICAL_UI_CATALOG
 } as const satisfies UiCatalog;
 
 const COMMUNITY_UI_TRANSLATIONS = {
@@ -1360,6 +1367,7 @@ export const UI_CATALOGS = {
   es: {
     ...CANONICAL_UI_CATALOG,
     ...COMMUNITY_UI_TRANSLATIONS.es,
+    ...PRACTITIONER_UI_TRANSLATIONS.es,
     'nav.learn': 'Aprender',
     'nav.tools': 'Herramientas',
     'nav.calculate': 'Calcular',
@@ -1665,6 +1673,7 @@ export const UI_CATALOGS = {
   fr: {
     ...CANONICAL_UI_CATALOG,
     ...COMMUNITY_UI_TRANSLATIONS.fr,
+    ...PRACTITIONER_UI_TRANSLATIONS.fr,
     'nav.learn': 'Apprendre',
     'nav.tools': 'Outils',
     'nav.calculate': 'Calculer',
@@ -1970,6 +1979,7 @@ export const UI_CATALOGS = {
   de: {
     ...CANONICAL_UI_CATALOG,
     ...COMMUNITY_UI_TRANSLATIONS.de,
+    ...PRACTITIONER_UI_TRANSLATIONS.de,
     'nav.learn': 'Lernen',
     'nav.tools': 'Werkzeuge',
     'nav.calculate': 'Berechnen',
@@ -2275,6 +2285,7 @@ export const UI_CATALOGS = {
   ja: {
     ...CANONICAL_UI_CATALOG,
     ...COMMUNITY_UI_TRANSLATIONS.ja,
+    ...PRACTITIONER_UI_TRANSLATIONS.ja,
     'nav.learn': '学ぶ',
     'nav.tools': 'ツール',
     'nav.calculate': '計算',
@@ -2580,6 +2591,7 @@ export const UI_CATALOGS = {
   ko: {
     ...CANONICAL_UI_CATALOG,
     ...COMMUNITY_UI_TRANSLATIONS.ko,
+    ...PRACTITIONER_UI_TRANSLATIONS.ko,
     'nav.learn': '학습',
     'nav.tools': '도구',
     'nav.calculate': '계산',
@@ -2885,6 +2897,7 @@ export const UI_CATALOGS = {
   'zh-Hant': {
     ...CANONICAL_UI_CATALOG,
     ...COMMUNITY_UI_TRANSLATIONS['zh-Hant'],
+    ...PRACTITIONER_UI_TRANSLATIONS['zh-Hant'],
     'nav.learn': '學習',
     'nav.tools': '工具',
     'nav.calculate': '計算',
