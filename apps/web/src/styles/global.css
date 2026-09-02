@@ -170,6 +170,53 @@
   --nn-focus-offset: var(--nn-bg-canvas);
 }
 
+:root[data-nn-theme='light'] {
+  color-scheme: light;
+
+  --nn-bg-canvas: #F4F7FB;
+  --nn-bg-observatory: #ECF2F9;
+
+  --nn-surface-base: #FFFFFF;
+  --nn-surface-elevated: #F8FAFD;
+  --nn-surface-interactive: #EDF3FB;
+  --nn-surface-selected: #E7E8FF;
+
+  --nn-border-subtle: #D8E1ED;
+  --nn-border-default: #B8C6D8;
+  --nn-border-strong: #7C8DA6;
+
+  --nn-text-primary: #102033;
+  --nn-text-secondary: #34465D;
+  --nn-text-muted: #52667F;
+  --nn-text-faint: #6B7C92;
+
+  --nn-accent-primary: #5D55C7;
+  --nn-accent-secondary: #2868C6;
+  --nn-accent-supporting: #007C91;
+
+  --nn-status-success: #207B59;
+  --nn-status-warning: #8A5B08;
+  --nn-status-error: #B4425C;
+  --nn-status-research: #4F58B8;
+  --nn-status-info: #216B96;
+
+  --nn-chart-aspect-harmonious: #237A5E;
+  --nn-chart-aspect-dynamic: #B24861;
+  --nn-chart-aspect-neutral: #63738B;
+  --nn-chart-aspect-minor: #59759D;
+  --nn-chart-body-primary: #14283F;
+  --nn-chart-body-secondary: #4F6F9D;
+  --nn-chart-angle: #815A0C;
+  --nn-chart-house: #63738B;
+  --nn-chart-zodiac: #5D718C;
+  --nn-chart-selection: #5D55C7;
+  --nn-chart-focus: #007C91;
+
+  --nn-brand-silver: #60738D;
+  --nn-brand-lockup-structure: #0F1722;
+  --nn-focus-offset: var(--nn-bg-canvas);
+}
+
 :root[data-nn-daypart='dawn'] {
   --nn-ambient-primary: color-mix(in srgb, var(--nn-accent-secondary) 16%, transparent);
   --nn-ambient-secondary: color-mix(in srgb, var(--nn-accent-supporting) 11%, transparent);
@@ -481,6 +528,208 @@
     border-top-style: dotted;
   }
 
+  .nn-chart-result-summary {
+    display: grid;
+    min-width: 0;
+    gap: 1.25rem;
+    padding: 1.25rem;
+    border-color: var(--nn-border-subtle);
+    background: var(--nn-surface-base);
+  }
+
+  .nn-chart-result-summary__grid {
+    display: grid;
+    min-width: 0;
+    gap: 1rem;
+  }
+
+  .nn-chart-distribution {
+    min-width: 0;
+    padding: 1rem;
+    border: 1px solid var(--nn-border-subtle);
+    border-radius: var(--nn-radius-medium);
+    background: var(--nn-surface-elevated);
+  }
+
+  .nn-chart-distribution__list {
+    display: grid;
+    gap: 0.7rem;
+    margin-top: 0.9rem;
+  }
+
+  .nn-chart-distribution__row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 0.75rem;
+    align-items: center;
+    min-width: 0;
+    color: var(--nn-text-secondary);
+    font-size: 0.8125rem;
+  }
+
+  .nn-chart-distribution__label {
+    display: grid;
+    min-width: 0;
+    gap: 0.35rem;
+  }
+
+  .nn-chart-distribution__track {
+    display: block;
+    height: 0.3rem;
+    overflow: hidden;
+    border-radius: 9999px;
+    background: var(--nn-border-subtle);
+  }
+
+  .nn-chart-distribution__bar {
+    display: block;
+    height: 100%;
+    min-width: 0;
+    border-radius: inherit;
+    background: linear-gradient(90deg, var(--nn-accent-secondary), var(--nn-accent-supporting));
+  }
+
+  .nn-chart-distribution__count {
+    color: var(--nn-text-primary);
+    font-variant-numeric: tabular-nums;
+    font-weight: 700;
+  }
+
+  .nn-chart-emphasis {
+    min-width: 0;
+    padding: 1rem;
+    border-left: 2px solid var(--nn-accent-supporting);
+    background: color-mix(in srgb, var(--nn-accent-supporting) 7%, var(--nn-surface-elevated));
+  }
+
+  .nn-chart-emphasis__list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-top: 0.85rem;
+  }
+
+  .nn-chart-emphasis__item {
+    display: inline-flex;
+    min-height: 2rem;
+    align-items: center;
+    gap: 0.45rem;
+    padding: 0.35rem 0.65rem;
+    border: 1px solid var(--nn-border-default);
+    border-radius: 9999px;
+    color: var(--nn-text-secondary);
+    background: var(--nn-surface-base);
+    font-size: 0.75rem;
+  }
+
+  .nn-chart-learning-links {
+    min-width: 0;
+    padding-top: 0.25rem;
+    border-top: 1px solid var(--nn-border-subtle);
+  }
+
+  .nn-chart-learning-links__list {
+    display: grid;
+    gap: 0.45rem;
+    margin-top: 0.8rem;
+  }
+
+  .nn-chart-learning-links__list a {
+    display: inline-flex;
+    min-height: 2.5rem;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    padding: 0.55rem 0.75rem;
+    border: 1px solid var(--nn-border-subtle);
+    border-radius: var(--nn-radius-small);
+    color: var(--nn-accent-supporting);
+    background: var(--nn-surface-elevated);
+    font-size: 0.8125rem;
+    font-weight: 650;
+    text-decoration: none;
+    transition: background-color var(--nn-motion-fast) var(--nn-motion-ease), border-color var(--nn-motion-fast) var(--nn-motion-ease), color var(--nn-motion-fast) var(--nn-motion-ease);
+  }
+
+  .nn-chart-learning-links__list a:hover {
+    border-color: var(--nn-border-strong);
+    color: var(--nn-text-primary);
+    background: var(--nn-surface-interactive);
+  }
+
+  .nn-chart-focus-dialog {
+    position: fixed;
+    z-index: 40;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    overflow-y: auto;
+    padding: clamp(1rem, 4vw, 3rem);
+    background: rgb(7 9 16 / 0.82);
+    backdrop-filter: blur(8px);
+  }
+
+  .nn-chart-focus-dialog__panel {
+    display: grid;
+    width: min(100%, 76rem);
+    max-height: calc(100vh - 2rem);
+    overflow: auto;
+    border: 1px solid var(--nn-border-strong);
+    border-radius: var(--nn-radius-large);
+    background: var(--nn-surface-elevated);
+    box-shadow: var(--nn-shadow-raised);
+  }
+
+  .nn-chart-focus-dialog__header {
+    display: flex;
+    min-width: 0;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 1.25rem 1.25rem 0;
+  }
+
+  .nn-chart-focus-dialog__close {
+    flex: none;
+    min-height: 44px;
+    padding-inline: 0.75rem;
+  }
+
+  .nn-chart-focus-dialog__body {
+    min-width: 0;
+    padding: 1.25rem;
+  }
+
+  .nn-chart-focus-dialog__body .nn-chart-renderer__svg {
+    max-width: 58rem;
+  }
+
+  .nn-chart-focus-dialog__backdrop {
+    position: absolute;
+    inset: 0;
+  }
+
+  .nn-chart-focus-dialog__panel {
+    position: relative;
+    z-index: 1;
+  }
+
+  .nn-chart-workspace,
+  .nn-chart-workspace.nn-surface--elevated {
+    background: var(--nn-surface-elevated);
+    background-image: none;
+  }
+
+  .nn-chart-workspace .nn-chart-instrument-surface {
+    background: var(--nn-surface-base);
+    background-image: none;
+    box-shadow: none;
+  }
+
+  .nn-chart-focus-lock {
+    overflow: hidden;
+  }
+
   @keyframes nn-chart-focus-pulse {
     0%,
     100% {
@@ -642,6 +891,11 @@
     transform-origin: 260px 260px;
     animation: nn-brand-instrument-core-rotation 19s linear infinite;
     animation-delay: -7s;
+  }
+
+  .nn-brand-instrument__core-sphere {
+    transform-box: fill-box;
+    transform-origin: center;
   }
 
   .nn-brand-instrument__reference {
@@ -809,6 +1063,41 @@
     align-items: center;
     gap: 4px;
     margin-left: auto;
+  }
+
+  .nn-theme-switcher {
+    display: inline-flex;
+    min-width: 0;
+    min-height: 44px;
+    align-items: center;
+  }
+
+  .nn-theme-switcher__label {
+    display: inline-flex;
+    min-width: 0;
+    align-items: center;
+  }
+
+  .nn-theme-switcher__select {
+    width: 5.5rem;
+    min-width: 0;
+    min-height: 44px;
+    padding: 8px 20px 8px 8px;
+    border: 1px solid var(--nn-border-default);
+    border-radius: var(--nn-radius-medium);
+    color: var(--nn-text-secondary);
+    background: var(--nn-surface-base);
+    font-size: 0.6875rem;
+    font-weight: 600;
+    line-height: 1.2;
+    cursor: pointer;
+    transition: background-color var(--nn-motion-fast) var(--nn-motion-ease), border-color var(--nn-motion-fast) var(--nn-motion-ease), color var(--nn-motion-fast) var(--nn-motion-ease);
+  }
+
+  .nn-theme-switcher__select:hover {
+    border-color: var(--nn-border-strong);
+    color: var(--nn-text-primary);
+    background: var(--nn-surface-interactive);
   }
 
   .nn-locale-selector {
@@ -1059,6 +1348,20 @@
       linear-gradient(180deg, var(--nn-ambient-secondary), transparent 36%),
       var(--nn-ambient-surface-lift);
     box-shadow: var(--nn-shadow-low), inset 0 1px 0 var(--nn-ambient-secondary);
+  }
+
+  /* Keep the chart result instrument flat; the chart itself supplies the
+     visual hierarchy and should not inherit a split ambient panel fill. */
+  body.nn-mode-observatory .nn-chart-workspace {
+    background: var(--nn-surface-elevated);
+    background-image: none;
+    box-shadow: var(--nn-shadow-low);
+  }
+
+  body.nn-mode-observatory .nn-chart-workspace .nn-chart-instrument-surface {
+    background: var(--nn-surface-base);
+    background-image: none;
+    box-shadow: none;
   }
 
   .nn-button {
@@ -1477,6 +1780,51 @@
 
   .nn-nav-link[aria-current="page"] {
     box-shadow: inset 0 -2px 0 var(--nn-accent-primary);
+  }
+}
+
+@media (max-width: 767px) {
+  .nn-site-header .nn-container {
+    gap: 8px;
+  }
+
+  .nn-site-header__actions {
+    gap: 2px;
+  }
+
+  .nn-brand-lockup {
+    gap: 6px;
+    font-size: 0.75rem;
+    letter-spacing: 0.1em;
+  }
+
+  .nn-brand-lockup__mark {
+    width: 24px;
+    height: 24px;
+  }
+
+  .nn-theme-switcher__select,
+  .nn-locale-selector__select {
+    width: 4rem;
+    padding: 8px 14px 8px 6px;
+    font-size: 0.625rem;
+  }
+
+  .nn-chart-focus-dialog {
+    place-items: stretch;
+    padding: 0;
+  }
+
+  .nn-chart-focus-dialog__panel {
+    width: 100%;
+    max-height: none;
+    min-height: 100%;
+    border-radius: 0;
+  }
+
+  .nn-chart-focus-dialog__header,
+  .nn-chart-focus-dialog__body {
+    padding: 1rem;
   }
 }
 

@@ -77,7 +77,7 @@ function validateDraft(
   }
 
   if (!draft.houseSystem) {
-    nextErrors.houseSystem = 'Choose a house system.';
+    nextErrors.houseSystem = chartUi(locale, 'birthInput.houseSystemRequired');
   }
 
   return nextErrors;
@@ -365,7 +365,7 @@ export default function BirthInputForm({
             </button>
             {isResolving ? (
               <p className="nn-status nn-status--info" role="status" aria-live="polite">
-                Reading the development resolver result…
+                {chartUi(locale, 'birthInput.resolverStatus')}
               </p>
             ) : null}
           </div>

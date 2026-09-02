@@ -291,16 +291,16 @@ function renderPrecisionTicks() {
 function renderDegreeLabels() {
   return (
     <g aria-hidden="true">
-      {Array.from({ length: 12 }, (_, index) => {
-        const longitude = index * 30;
-        const label = longitudeToPoint(longitude, ZODIAC_OUTER_RADIUS + 27);
+      {Array.from({ length: 4 }, (_, index) => {
+        const longitude = index * 90;
+        const label = longitudeToPoint(longitude, ZODIAC_OUTER_RADIUS + 29);
         return (
           <text
             key={`degree-label-${longitude}`}
             dominantBaseline="middle"
             fill={CHART_COLORS.textSecondary}
             fontFamily={SVG_TEXT}
-            fontSize="8"
+            fontSize="9"
             letterSpacing="0.04em"
             opacity="0.74"
             textAnchor="middle"
@@ -403,11 +403,6 @@ function renderBody({
   const { body, index, marker, label } = display;
   const bodyGlyph = getAstrologyGlyph('body', body.bodyId);
   const bodyLabel = getAstrologyGlossaryNotation('body', body.bodyId, 'rendererAbbreviation') ?? body.bodyId.slice(0, 3);
-  const signGlyph = getAstrologyGlyph('sign', body.sign);
-  const degreeLabel = formatLongitude(body.longitude);
-  const retrogradeGlyph = body.retrograde === true
-    ? getAstrologyGlyph('motion', 'RETROGRADE')
-    : undefined;
   const bodyDescription = describeBody(body, locale, showHouses);
   const isActive = activePlanetId === body.bodyId;
   const isSelected = selectedPlanetId === body.bodyId;
@@ -525,7 +520,7 @@ function renderBody({
         dominantBaseline="middle"
         fill={CHART_COLORS.bodyPrimary}
         fontFamily={SVG_TEXT}
-        fontSize="8"
+        fontSize="10"
         fontWeight="700"
         letterSpacing="0.08em"
         textAnchor="middle"
@@ -533,18 +528,6 @@ function renderBody({
         y={label.y + 3}
       >
         {bodyLabel}
-      </text>
-      <text
-        aria-hidden="true"
-        dominantBaseline="middle"
-        fill={CHART_COLORS.bodySecondary}
-        fontFamily={SVG_TEXT}
-        fontSize="8"
-        textAnchor="middle"
-        x={label.x}
-        y={label.y + 15}
-      >
-        {signGlyph ? `${signGlyph} ` : ''}{degreeLabel}{retrogradeGlyph ? ` ${retrogradeGlyph}` : ''}
       </text>
     </g>
   );
@@ -908,19 +891,6 @@ export default function ChartRenderer({ chart, locale, presentationPolicy }: Cha
                     {glyph}
                   </text>
                 ) : null}
-                <text
-                  aria-hidden="true"
-                  dominantBaseline="middle"
-                  fill={CHART_COLORS.textSecondary}
-                  fontFamily={SVG_TEXT}
-                  fontSize="8"
-                  fontWeight="600"
-                  textAnchor="middle"
-                  x={label.x}
-                  y={label.y + 11}
-                >
-                  {glossaryTerm('sign', sign, locale)}
-                </text>
               </g>
             );
           })}

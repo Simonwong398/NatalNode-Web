@@ -28,7 +28,7 @@ export default function BirthAdvancedSettings({
 }: BirthAdvancedSettingsProps) {
   // House-system option labels are stable domain values in this form; locale
   // changes the surrounding controls without changing their identifiers.
-  const requestedLocale = DEFAULT_LOCALE;
+  const requestedLocale = locale ?? DEFAULT_LOCALE;
   const houseSystemLabel = (value: HouseSystemSelection): string =>
     resolveAstrologyDomainTerm('house_system', value, requestedLocale)?.displayTerm ?? value;
 
@@ -43,7 +43,7 @@ export default function BirthAdvancedSettings({
       </summary>
       <div className="mt-4 max-w-sm">
         <label className="nn-type-label" htmlFor="house-system">
-          House system
+          {chartUi(locale, 'birthInput.houseSystem')}
         </label>
         <select
           aria-describedby={error ? 'house-system-error' : undefined}
@@ -59,7 +59,7 @@ export default function BirthAdvancedSettings({
           value={houseSystem}
         >
           <option disabled value="">
-            Choose a house system
+            {chartUi(locale, 'birthInput.houseSystemPlaceholder')}
           </option>
           <option value="Placidus">{houseSystemLabel('Placidus')}</option>
           <option value="Whole Sign">{houseSystemLabel('Whole Sign')}</option>

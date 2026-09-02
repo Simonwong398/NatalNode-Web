@@ -1,4 +1,5 @@
 import {
+  useEffect,
   useId,
   useRef,
   useState,
@@ -16,6 +17,8 @@ import {
 } from '../../lib/localization.js';
 import { resolveAstrologyTerm } from '../../lib/astrology-glossary.js';
 import type { ChartPresentationPolicy } from './chart-presentation-policy';
+import ChartFocusDialog from './ChartFocusDialog.js';
+import ChartResultSummary from './ChartResultSummary.js';
 import {
   chartCalculationStatus,
   chartUi,
@@ -59,6 +62,9 @@ export default function ChartWorkspaceView({
   const titleId = `${workspaceId}-title`;
   const wheelTitleId = `${workspaceId}-wheel-title`;
   const savePanelId = `${workspaceId}-save-panel`;
+  const focusDialogId = `${workspaceId}-focus-dialog`;
+  const focusTriggerRef = useRef<HTMLButtonElement>(null);
+  const focusCloseRef = useRef<HTMLButtonElement>(null);
   const tabRefs = useRef<Record<ResultMode, HTMLButtonElement | null>>({
     chart: null,
     interpretation: null,
@@ -66,6 +72,7 @@ export default function ChartWorkspaceView({
   });
   const [activeMode, setActiveMode] = useState<ResultMode>('chart');
   const [isSaveOpen, setIsSaveOpen] = useState(false);
+  const [isChartFocusOpen, setIsChartFocusOpen] = useState(false);
   const isResearchConfiguration = chart.calculationStatus === 'INCOMPLETE_RESEARCH';
   const natalChartResolution = resolveAstrologyTerm(
     'chart_type.natal',
@@ -74,6 +81,29 @@ export default function ChartWorkspaceView({
   const natalChartLabel = natalChartResolution.displayTerm === 'Natal chart'
     ? 'Natal Chart'
     : natalChartResolution.displayTerm;
+
+  useEffect(() => {
+    if (!isChartFocusOpen) return;
+
+    const returnFocusTarget = focusTriggerRef.current ?? (
+      document.activeElement instanceof HTMLElement ? document.activeElement : null
+    );
+    document.body.classList.add('nn-chart-focus-lock');
+    focusCloseRef.current?.focus();
+
+    const handleEscape = (event: globalThis.KeyboardEvent) => {
+      if (event.key !== 'Escape') return;
+      event.preventDefault();
+      setIsChartFocusOpen(false);
+    };
+
+    document.addEventListener('keydown', handleEscape);
+    return () => {
+      document.body.classList.remove('nn-chart-focus-lock');
+      document.removeEventListener('keydown', handleEscape);
+      returnFocusTarget?.focus();
+    };
+  }, [isChartFocusOpen]);
 
   const sectionIds = {
     chart: `${workspaceId}-chart-panel`,
@@ -115,7 +145,8 @@ export default function ChartWorkspaceView({
   };
 
   return (
-    <section
+    <>
+      <section
       aria-labelledby={titleId}
       className="nn-chart-workspace nn-surface nn-surface--elevated mt-2 min-w-0 overflow-hidden"
       ref={resultTargetRef}
@@ -231,13 +262,26 @@ export default function ChartWorkspaceView({
         >
           <section
             aria-labelledby={wheelTitleId}
-            className="nn-surface nn-surface--instrument min-w-0 p-4 sm:p-6 lg:p-7"
+            className="nn-surface nn-surface--instrument nn-chart-instrument-surface min-w-0 p-4 sm:p-6 lg:p-7"
           >
-            <div className="nn-section-header">
-              <p className="nn-eyebrow">{chartUi(locale, 'workspace.chartInstrument')}</p>
-              <h3 className="nn-type-section-title" id={wheelTitleId}>
-                {chartUi(locale, 'workspace.engineFacts')}
-              </h3>
+            <div className="flex min-w-0 flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+              <div className="nn-section-header min-w-0">
+                <p className="nn-eyebrow">{chartUi(locale, 'workspace.chartInstrument')}</p>
+                <h3 className="nn-type-section-title" id={wheelTitleId}>
+                  {chartUi(locale, 'workspace.engineFacts')}
+                </h3>
+              </div>
+              <button
+                aria-controls={focusDialogId}
+                aria-expanded={isChartFocusOpen}
+                className="nn-button nn-button--secondary self-start px-3 sm:self-auto"
+                id={`${workspaceId}-focus-trigger`}
+                onClick={() => setIsChartFocusOpen(true)}
+                ref={focusTriggerRef}
+                type="button"
+              >
+                {chartUi(locale, 'chart.expand')}
+              </button>
             </div>
             <div className="nn-chart-instrument-grid mt-5 min-w-0">
               <div className="nn-chart-instrument-visual min-w-0">
@@ -256,6 +300,7 @@ export default function ChartWorkspaceView({
               </div>
             </div>
           </section>
+          <ChartResultSummary chart={chart} locale={locale} />
         </div>
 
         <div
@@ -289,6 +334,17 @@ export default function ChartWorkspaceView({
           />
         </div>
       </div>
-    </section>
+      </section>
+      {isChartFocusOpen ? (
+        <ChartFocusDialog
+          chart={chart}
+          closeButtonRef={focusCloseRef}
+          dialogId={focusDialogId}
+          locale={locale}
+          onClose={() => setIsChartFocusOpen(false)}
+          presentationPolicy={presentationPolicy}
+        />
+      ) : null}
+    </>
   );
 }

@@ -1,9 +1,10 @@
 ---
 import { getCollection, render, type CollectionEntry } from 'astro:content';
 import SiteLayout from '@/layouts/SiteLayout.astro';
-import { LEARN_CATEGORIES } from '@/lib/content-taxonomy';
+import { LEARN_CATEGORIES, type LearnCategory } from '@/lib/content-taxonomy';
 import { getLocalizedPath, getPresentationLocale } from '@/lib/localization';
 import { resolveCanonicalUrl, type SeoMetadata } from '@/lib/seo';
+import { formatUiMessage, getUiMessage, type UiMessageKey } from '@/lib/ui-catalog';
 
 type Props = {
   entry: CollectionEntry<'learn'>;
@@ -23,6 +24,21 @@ const { Content } = await render(entry);
 const category = LEARN_CATEGORIES.find((item) => item.key === entry.data.category);
 const locale = getPresentationLocale(Astro.url.pathname, Astro.locals.locale);
 const localize = (path: string): string => getLocalizedPath(locale, path);
+const categoryLabelKey: Record<LearnCategory, UiMessageKey> = {
+  FOUNDATIONS: 'learn.landing.category.foundations',
+  PLANETS: 'learn.landing.category.planets',
+  SIGNS: 'learn.landing.category.signs',
+  HOUSES: 'learn.landing.category.houses',
+  ASPECTS: 'learn.landing.category.aspects',
+  CHART_READING: 'learn.landing.category.chartReading'
+};
+const categoryLabel = category?.key
+  ? getUiMessage(locale, categoryLabelKey[category.key])
+  : entry.data.category;
+const publishedDate = new Intl.DateTimeFormat(locale, {
+  dateStyle: 'long',
+  timeZone: 'UTC'
+}).format(entry.data.publishedAt);
 const seo: SeoMetadata = {
   title: `${entry.data.title} | NatalNode`,
   description: entry.data.description,
@@ -51,16 +67,16 @@ const articleStructuredData: Record<string, unknown> = {
   <main class="nn-container nn-container--editorial pb-20 pt-8 sm:pb-24 sm:pt-12">
     <article class="max-w-reading">
       <header class="border-b border-natal-border/70 pb-10">
-        <a class="nn-button nn-button--quiet -ml-3" href={localize('/learn/')}>← Back to Learn</a>
+        <a class="nn-button nn-button--quiet -ml-3" href={localize('/learn/')}>{getUiMessage(locale, 'learn.article.backToLearn')}</a>
         <p class="nn-badge mt-8">
-          {category?.label ?? entry.data.category}
+          {categoryLabel}
         </p>
         <h1 class="nn-type-page-title mt-4">
           {entry.data.title}
         </h1>
         <p class="nn-type-body mt-5">{entry.data.description}</p>
         <time class="nn-type-metadata mt-5 block" datetime={entry.data.publishedAt.toISOString()}>
-          Published {entry.data.publishedAt.toLocaleDateString('en-US', { dateStyle: 'long', timeZone: 'UTC' })}
+          {formatUiMessage(locale, 'learn.article.published', { date: publishedDate })}
         </time>
       </header>
 

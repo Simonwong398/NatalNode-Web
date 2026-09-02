@@ -21,7 +21,10 @@ const {
 
 const palettes: Record<BrandTone, { structure: string; signal: string }> = {
   'navy-cyan': { structure: '#0F1722', signal: '#22C7D6' },
-  'white-cyan': { structure: '#FFFFFF', signal: '#22C7D6' },
+  'white-cyan': {
+    structure: 'var(--nn-brand-lockup-structure, #FFFFFF)',
+    signal: 'var(--nn-brand-cyan, #22C7D6)'
+  },
   black: { structure: '#000000', signal: '#000000' },
   white: { structure: '#FFFFFF', signal: '#FFFFFF' }
 };

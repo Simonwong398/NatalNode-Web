@@ -135,6 +135,9 @@ describe('initial render, validation, and configuration', () => {
         birthPlace: 'Birth place',
         advancedSettings: 'Advanced chart settings',
         calculate: 'Calculate Chart',
+        houseSystem: 'House system',
+        houseSystemPlaceholder: 'Choose a house system',
+        houseSystemOptions: ['Placidus', 'Whole Sign', 'Equal House'],
         errors: [
           'Enter a birth date.',
           'Enter a birth time or choose the unknown-time option.',
@@ -153,11 +156,14 @@ describe('initial render, validation, and configuration', () => {
         birthPlace: 'Lugar de nacimiento',
         advancedSettings: 'Configuración avanzada de la carta',
         calculate: 'Calcular carta',
+        houseSystem: 'Sistema de casas',
+        houseSystemPlaceholder: 'Elige un sistema de casas',
+        houseSystemOptions: ['Placidus', 'Signos enteros', 'casas iguales'],
         errors: [
           'Introduce una fecha de nacimiento.',
           'Introduce una hora de nacimiento o elige la opción de hora desconocida.',
           'Introduce un lugar de nacimiento.',
-          'Choose a house system.'
+          'Elige un sistema de casas.'
         ]
       },
       {
@@ -171,11 +177,14 @@ describe('initial render, validation, and configuration', () => {
         birthPlace: '出生地',
         advancedSettings: '高度なチャート設定',
         calculate: 'チャートを計算',
+        houseSystem: 'ハウスシステム',
+        houseSystemPlaceholder: 'ハウスシステムを選択',
+        houseSystemOptions: ['プラシーダス', 'ホールサインハウス', 'イコールハウス'],
         errors: [
           '出生日を入力してください。',
           '出生時刻を入力するか、不明な時刻を選択してください。',
           '出生地を入力してください。',
-          'Choose a house system.'
+          'ハウスシステムを選択してください。'
         ]
       },
       {
@@ -189,11 +198,14 @@ describe('initial render, validation, and configuration', () => {
         birthPlace: '出生地',
         advancedSettings: '進階星盤設定',
         calculate: '計算星盤',
+        houseSystem: '宮位系統',
+        houseSystemPlaceholder: '選擇宮位系統',
+        houseSystemOptions: ['普拉西德制', '整宮制', '等宮制'],
         errors: [
           '請輸入出生日期。',
           '請輸入出生時間，或選擇時間未知選項。',
           '請輸入出生地。',
-          'Choose a house system.'
+          '請選擇宮位系統。'
         ]
       }
     ];
@@ -226,14 +238,14 @@ describe('initial render, validation, and configuration', () => {
           )
         );
 
-        const houseSystem = scope.control('House system');
+        const houseSystem = scope.control(expected.houseSystem);
         assert.deepEqual(
           [...houseSystem.options].map((option) => [option.value, option.textContent, option.disabled]),
           [
-            ['', 'Choose a house system', true],
-            ['Placidus', 'Placidus', false],
-            ['Whole Sign', 'Whole Sign', false],
-            ['Equal', 'Equal House', false]
+            ['', expected.houseSystemPlaceholder, true],
+            ['Placidus', expected.houseSystemOptions[0], false],
+            ['Whole Sign', expected.houseSystemOptions[1], false],
+            ['Equal', expected.houseSystemOptions[2], false]
           ]
         );
 

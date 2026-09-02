@@ -3,6 +3,7 @@ import Container from '@/components/layout/Container.astro';
 import AuthSessionControl from '@/components/AuthSessionControl.astro';
 import BrandLockup from '@/components/brand/BrandLockup.astro';
 import LanguageSelector from '@/components/LanguageSelector.astro';
+import ThemeSwitcher from '@/components/ThemeSwitcher';
 import SeoHead from '@/components/SeoHead.astro';
 import StructuredData from '@/components/StructuredData.astro';
 import {
@@ -52,7 +53,7 @@ const websiteStructuredData = robots === 'index,follow'
 ---
 
 <!doctype html>
-<html lang={locale} data-locale={locale}>
+<html lang={locale} data-locale={locale} data-nn-theme-mode="auto">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width" />
@@ -61,6 +62,35 @@ const websiteStructuredData = robots === 'index,follow'
     {structuredData && <StructuredData data={structuredData} />}
     <script is:inline>
       (() => {
+        const themeStorageKey = 'natalnode.theme-mode';
+        const isThemeMode = (value) => value === 'light' || value === 'dark' || value === 'auto';
+        const mediaQuery = window.matchMedia('(prefers-color-scheme: light)');
+        let themeMode = 'auto';
+
+        try {
+          const storedMode = window.localStorage.getItem(themeStorageKey);
+          if (isThemeMode(storedMode)) themeMode = storedMode;
+        } catch {
+          // The default dark theme remains available when storage is blocked.
+        }
+
+        const updateTheme = () => {
+          const resolvedTheme = themeMode === 'auto'
+            ? (mediaQuery.matches ? 'light' : 'dark')
+            : themeMode;
+          document.documentElement.dataset.nnThemeMode = themeMode;
+          document.documentElement.dataset.nnTheme = resolvedTheme;
+          document.documentElement.style.colorScheme = resolvedTheme;
+        };
+
+        updateTheme();
+        mediaQuery.addEventListener?.('change', () => {
+          if (document.documentElement.dataset.nnThemeMode !== 'auto') return;
+          const resolvedTheme = mediaQuery.matches ? 'light' : 'dark';
+          document.documentElement.dataset.nnTheme = resolvedTheme;
+          document.documentElement.style.colorScheme = resolvedTheme;
+        });
+
         const getDaypart = (hour) => {
           if (hour >= 5 && hour < 9) return 'dawn';
           if (hour >= 9 && hour < 17) return 'day';
@@ -100,6 +130,7 @@ const websiteStructuredData = robots === 'index,follow'
 
         <div class="nn-site-header__actions">
           <LanguageSelector locale={locale} />
+          <ThemeSwitcher locale={locale} client:load />
           <button
             class="nn-menu-toggle"
             type="button"
