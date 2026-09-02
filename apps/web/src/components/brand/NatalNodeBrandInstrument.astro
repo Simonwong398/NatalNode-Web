@@ -35,7 +35,7 @@ const { class: className } = Astro.props;
     <g
       class="nn-brand-instrument__reference"
       fill="none"
-      stroke="#E6E8EB"
+      stroke="var(--nn-brand-orbit-secondary, #E6E8EB)"
       stroke-linecap="round"
       stroke-opacity="0.2"
     >
@@ -85,7 +85,7 @@ const { class: className } = Astro.props;
     <g
       class="nn-brand-instrument__orbit nn-brand-instrument__orbit--silver"
       fill="none"
-      stroke="#E6E8EB"
+      stroke="var(--nn-brand-orbit-secondary, #E6E8EB)"
       stroke-linecap="round"
     >
       <ellipse
@@ -117,8 +117,15 @@ const { class: className } = Astro.props;
         stroke-opacity="0.4"
         stroke-dasharray="1 11"
       />
-      <circle cx="260" cy="59" r="3.5" fill="#E6E8EB" stroke="none" />
-      <circle cx="418" cy="260" r="2.25" fill="#E6E8EB" stroke="none" opacity="0.8" />
+      <circle cx="260" cy="59" r="3.5" fill="var(--nn-brand-orbit-secondary, #E6E8EB)" stroke="none" />
+      <circle
+        cx="418"
+        cy="260"
+        r="2.25"
+        fill="var(--nn-brand-orbit-secondary, #E6E8EB)"
+        stroke="none"
+        opacity="0.8"
+      />
     </g>
 
     <g
@@ -132,29 +139,10 @@ const { class: className } = Astro.props;
         cx="260"
         cy="260"
         r="108"
-        stroke="var(--nn-brand-lockup-structure, #FFFFFF)"
-        stroke-opacity="0.48"
-        stroke-width="1.5"
-      />
-      <ellipse
-        class="nn-brand-instrument__core-latitude"
-        cx="260"
-        cy="260"
-        rx="101"
-        ry="38"
-        stroke="var(--nn-brand-cyan, #22C7D6)"
-        stroke-opacity="0.38"
-        stroke-width="1.4"
-      />
-      <ellipse
-        class="nn-brand-instrument__core-meridian"
-        cx="260"
-        cy="260"
-        rx="34"
-        ry="103"
-        stroke="var(--nn-brand-silver, #E6E8EB)"
-        stroke-opacity="0.32"
-        stroke-width="1.1"
+        fill="var(--nn-brand-core-fill, #141A2B)"
+        stroke="var(--nn-brand-core-edge, #E6E8EB)"
+        stroke-opacity="0.72"
+        stroke-width="4"
       />
       <BrandMark x={165} y={165} size={190} tone="white-cyan" />
     </g>

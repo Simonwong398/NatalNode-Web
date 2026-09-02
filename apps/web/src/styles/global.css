@@ -860,6 +860,15 @@
     width: 100%;
     min-width: 0;
     aspect-ratio: 1;
+    --nn-brand-core-edge: var(--nn-brand-silver, #E6E8EB);
+    --nn-brand-core-fill: var(--nn-surface-elevated, #141A2B);
+    --nn-brand-orbit-secondary: var(--nn-brand-silver, #E6E8EB);
+  }
+
+  :root[data-nn-theme='light'] .nn-brand-instrument {
+    --nn-brand-core-edge: #102033;
+    --nn-brand-core-fill: #F8FAFD;
+    --nn-brand-orbit-secondary: #45566D;
   }
 
   .nn-brand-instrument > svg {
@@ -889,14 +898,13 @@
   .nn-brand-instrument__core {
     transform-box: view-box;
     transform-origin: 260px 260px;
-    animation: nn-brand-instrument-core-turn 19s ease-in-out infinite;
+    transform-style: preserve-3d;
+    animation: nn-brand-instrument-core-spin 22s linear infinite;
     animation-delay: -7s;
     filter: drop-shadow(0 0 5px rgb(34 199 214 / 0.08));
   }
 
-  .nn-brand-instrument__core-orb,
-  .nn-brand-instrument__core-latitude,
-  .nn-brand-instrument__core-meridian {
+  .nn-brand-instrument__core-orb {
     vector-effect: non-scaling-stroke;
   }
 
@@ -916,33 +924,13 @@
     }
   }
 
-  @keyframes nn-brand-instrument-core-turn {
-    0%,
-    8% {
-      transform: translateX(0) scaleX(1);
-      opacity: 1;
+  @keyframes nn-brand-instrument-core-spin {
+    from {
+      transform: perspective(900px) rotateY(0deg);
     }
 
-    25% {
-      transform: translateX(6px) scaleX(0.1);
-      opacity: 0.74;
-    }
-
-    42%,
-    58% {
-      transform: translateX(0) scaleX(1);
-      opacity: 1;
-    }
-
-    75% {
-      transform: translateX(-6px) scaleX(0.1);
-      opacity: 0.74;
-    }
-
-    92%,
-    100% {
-      transform: translateX(0) scaleX(1);
-      opacity: 1;
+    to {
+      transform: perspective(900px) rotateY(360deg);
     }
   }
 
