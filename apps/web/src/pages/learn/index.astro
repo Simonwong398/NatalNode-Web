@@ -4,13 +4,14 @@ import EditorialPlanetHero from '@/components/EditorialPlanetHero.astro';
 import FoundationsCourseSummary from '@/features/learn/foundations/FoundationsCourseSummary';
 import { getFoundationsUiMessages } from '@/features/learn/foundations/ui';
 import SiteLayout from '@/layouts/SiteLayout.astro';
-import { LEARN_CATEGORIES } from '@/lib/content-taxonomy';
+import { LEARN_CATEGORIES, type LearnCategory } from '@/lib/content-taxonomy';
 import {
   getLocalizedPath,
   getPresentationLocale,
   type SupportedLocale
 } from '@/lib/localization';
 import type { SeoMetadata } from '@/lib/seo';
+import { formatUiMessage, getUiMessage, type UiMessageKey } from '@/lib/ui-catalog';
 
 interface Props {
   readonly locale?: SupportedLocale;
@@ -33,9 +34,37 @@ const locale = getPresentationLocale(
 );
 const localize = (path: string): string => getLocalizedPath(locale, path);
 const foundationsUi = getFoundationsUiMessages(locale);
+const t = (key: UiMessageKey): string => getUiMessage(locale, key);
+
+const categoryCopy: Record<LearnCategory, { label: UiMessageKey; description: UiMessageKey }> = {
+  FOUNDATIONS: {
+    label: 'learn.landing.category.foundations',
+    description: 'learn.landing.category.foundationsDescription'
+  },
+  PLANETS: {
+    label: 'learn.landing.category.planets',
+    description: 'learn.landing.category.planetsDescription'
+  },
+  SIGNS: {
+    label: 'learn.landing.category.signs',
+    description: 'learn.landing.category.signsDescription'
+  },
+  HOUSES: {
+    label: 'learn.landing.category.houses',
+    description: 'learn.landing.category.housesDescription'
+  },
+  ASPECTS: {
+    label: 'learn.landing.category.aspects',
+    description: 'learn.landing.category.aspectsDescription'
+  },
+  CHART_READING: {
+    label: 'learn.landing.category.chartReading',
+    description: 'learn.landing.category.chartReadingDescription'
+  }
+};
 
 function formatDate(date: Date): string {
-  return new Intl.DateTimeFormat('en-US', {
+  return new Intl.DateTimeFormat(locale, {
     dateStyle: 'long',
     timeZone: 'UTC'
   }).format(date);
@@ -45,9 +74,9 @@ function formatDate(date: Date): string {
 <SiteLayout seo={seo}>
   <main class="nn-container nn-container--editorial pb-20 pt-12 sm:pb-24 sm:pt-16">
     <EditorialPlanetHero
-      eyebrow="Learn"
-      title="Astrology explained with clarity."
-      description="Start with the structure of a natal chart, understand the language it uses, and keep calculated facts distinct from interpretation."
+      eyebrow={t('learn.landing.eyebrow')}
+      title={t('learn.landing.title')}
+      description={t('learn.landing.description')}
       titleId="learn-hero-title"
     />
 
@@ -55,9 +84,9 @@ function formatDate(date: Date): string {
 
     <section class="mt-12 max-w-4xl border-t border-natal-border/70 pt-8 sm:mt-16 sm:pt-10" aria-labelledby="learn-articles-title">
       <div class="nn-section-header">
-        <p class="nn-eyebrow">Start here</p>
+        <p class="nn-eyebrow">{t('learn.landing.startHere')}</p>
         <h2 class="nn-type-section-title" id="learn-articles-title">
-          Begin with the foundations
+          {t('learn.landing.beginFoundations')}
         </h2>
       </div>
 
@@ -66,26 +95,36 @@ function formatDate(date: Date): string {
           {articles.map((article) => (
             <li class="nn-surface p-5 sm:p-6">
               <article>
-                <p class="nn-badge">{article.data.category.replace('_', ' ')}</p>
+                <p class="nn-badge">
+                  {article.data.slug === 'what-is-a-natal-chart'
+                    ? t('learn.landing.article.foundations')
+                    : article.data.category.replace('_', ' ')}
+                </p>
                 <h3 class="nn-type-card-title mt-4">
                   <a
                     class="font-semibold underline decoration-natal-accent/50 underline-offset-4 transition-colors hover:text-natal-accent"
                     href={localize(`/learn/${article.data.slug}`)}
                   >
-                    {article.data.title}
+                    {article.data.slug === 'what-is-a-natal-chart'
+                      ? t('learn.landing.article.foundationsTitle')
+                      : article.data.title}
                   </a>
                 </h3>
                 <p class="nn-type-body-small mt-3 max-w-3xl">
-                  {article.data.summary ?? article.data.description}
+                  {article.data.slug === 'what-is-a-natal-chart'
+                    ? t('learn.landing.article.foundationsSummary')
+                    : article.data.summary ?? article.data.description}
                 </p>
                 <a
                   class="mt-5 inline-flex font-semibold text-natal-accent underline decoration-natal-accent/50 underline-offset-4 transition-colors hover:text-white"
                   href={localize(`/learn/${article.data.slug}`)}
                 >
-                  Read the guide →
+                  {t('learn.landing.readGuide')}
                 </a>
                 <time class="nn-type-metadata mt-5 block" datetime={article.data.publishedAt.toISOString()}>
-                  Published {formatDate(article.data.publishedAt)}
+                  {formatUiMessage(locale, 'learn.landing.published', {
+                    date: formatDate(article.data.publishedAt)
+                  })}
                 </time>
               </article>
             </li>
@@ -93,39 +132,39 @@ function formatDate(date: Date): string {
         </ul>
       ) : (
         <p class="nn-async-state nn-async-state--empty mt-8 max-w-3xl">
-          Published articles will appear here once they are ready for readers.
+          {t('learn.landing.empty')}
         </p>
       )}
     </section>
 
     <section class="mt-12 max-w-4xl border-t border-natal-border/70 pt-8 sm:mt-16 sm:pt-10" aria-labelledby="learn-methodology-title">
-      <p class="nn-eyebrow">How it works</p>
+      <p class="nn-eyebrow">{t('learn.landing.howItWorks')}</p>
       <h2 class="nn-type-section-title mt-2" id="learn-methodology-title">
-        See the method behind the chart
+        {t('learn.landing.methodTitle')}
       </h2>
       <p class="nn-type-body-small mt-3 max-w-2xl">
-        How NatalNode handles calculation, uncertainty, and provenance.
+        {t('learn.landing.methodDescription')}
       </p>
       <a
         class="mt-5 inline-flex font-semibold text-natal-accent underline decoration-natal-accent/50 underline-offset-4 transition-colors hover:text-white"
         href={localize('/methodology')}
       >
-        Methodology →
+        {t('learn.landing.methodology')}
       </a>
     </section>
 
     <section class="mt-12 max-w-5xl" id="learn-categories" aria-labelledby="learn-categories-title">
       <div class="nn-section-header max-w-2xl">
-        <p class="nn-eyebrow">Explore the structure</p>
+        <p class="nn-eyebrow">{t('learn.landing.exploreStructure')}</p>
         <h2 class="nn-type-section-title" id="learn-categories-title">
-          Learn categories
+          {t('learn.landing.categoriesTitle')}
         </h2>
       </div>
       <ul class="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
         {LEARN_CATEGORIES.map((category) => (
           <li class="nn-surface flex min-w-0 flex-col p-5 sm:p-6">
-            <h3 class="nn-type-card-title">{category.label}</h3>
-            <p class="nn-type-body-small mt-3">{category.description}</p>
+            <h3 class="nn-type-card-title">{t(categoryCopy[category.key].label)}</h3>
+            <p class="nn-type-body-small mt-3">{t(categoryCopy[category.key].description)}</p>
           </li>
         ))}
       </ul>

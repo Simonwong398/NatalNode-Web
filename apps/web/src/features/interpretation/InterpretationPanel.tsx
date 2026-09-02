@@ -1,5 +1,7 @@
 import { useId, useState } from 'react';
 import type { ChartResult } from '@natalnode/contracts';
+import type { SupportedLocale } from '@/lib/localization';
+import { chartUi, chartUiFormat } from '../chart-experience/chart-ui.js';
 import {
   createDeterministicInterpretation,
   type InterpretationItem
@@ -8,10 +10,12 @@ import type { ChartPresentationPolicy } from '@/features/chart-workspace/chart-p
 
 export type InterpretationPanelProps = {
   chart: ChartResult;
+  locale?: SupportedLocale;
   presentationPolicy: ChartPresentationPolicy;
 };
 
 type InterpretationItemsProps = {
+  locale?: SupportedLocale;
   items: InterpretationItem[];
 };
 
@@ -31,7 +35,7 @@ type InterpretationAvailabilityProps = {
   titleId: string;
 };
 
-function InterpretationItems({ items }: InterpretationItemsProps) {
+function InterpretationItems({ items, locale }: InterpretationItemsProps) {
   return (
     <div className="mt-3 grid min-w-0 gap-3">
       {items.map((item) => (
@@ -42,7 +46,7 @@ function InterpretationItems({ items }: InterpretationItemsProps) {
           <h5 className="nn-type-card-title">{item.title}</h5>
           <p className="nn-type-body-small mt-2">{item.text}</p>
           <p className="nn-type-metadata mt-3 break-words">
-            <span className="font-semibold">Source fact</span>{' '}
+            <span className="font-semibold">{chartUi(locale, 'interpretation.sourceFact')}</span>{' '}
             <span className="font-mono">{item.sourceContext ?? item.sourceFacts.join(' · ')}</span>
           </p>
         </article>
@@ -53,6 +57,7 @@ function InterpretationItems({ items }: InterpretationItemsProps) {
 
 function InterpretationOrientation({
   items,
+  locale,
   title,
   titleId
 }: InterpretationOrientationProps) {
@@ -62,9 +67,11 @@ function InterpretationOrientation({
         {title}
       </h4>
       {items.length > 0 ? (
-        <InterpretationItems items={items} />
+        <InterpretationItems items={items} locale={locale} />
       ) : (
-        <p className="nn-type-body-small mt-3">No supported core placements are available for this chart.</p>
+        <p className="nn-type-body-small mt-3">
+          {chartUi(locale, 'interpretation.noCorePlacements')}
+        </p>
       )}
     </section>
   );
@@ -72,6 +79,7 @@ function InterpretationOrientation({
 
 function InterpretationDisclosure({
   countLabel,
+  locale,
   items,
   title
 }: InterpretationDisclosureProps) {
@@ -100,7 +108,7 @@ function InterpretationDisclosure({
         </button>
       </h4>
       <div aria-labelledby={controlId} hidden={!isOpen} id={contentId}>
-        <InterpretationItems items={items} />
+        <InterpretationItems items={items} locale={locale} />
       </div>
     </section>
   );
@@ -119,92 +127,110 @@ function InterpretationAvailability({
   );
 }
 
-function placementCount(count: number) {
-  return `${count} ${count === 1 ? 'placement' : 'placements'}`;
+function placementCount(locale: SupportedLocale | undefined, count: number) {
+  return chartUiFormat(
+    locale,
+    count === 1 ? 'interpretation.placementCount.one' : 'interpretation.placementCount.many',
+    { count }
+  );
 }
 
-function aspectCount(count: number) {
-  return `${count} ${count === 1 ? 'major aspect' : 'major aspects'}`;
+function aspectCount(locale: SupportedLocale | undefined, count: number) {
+  return chartUiFormat(
+    locale,
+    count === 1 ? 'interpretation.aspectCount.one' : 'interpretation.aspectCount.many',
+    { count }
+  );
 }
 
-export default function InterpretationPanel({ chart, presentationPolicy }: InterpretationPanelProps) {
+export default function InterpretationPanel({
+  chart,
+  locale,
+  presentationPolicy
+}: InterpretationPanelProps) {
   const panelId = useId();
   const titleId = `${panelId}-title`;
   const bigThreeTitleId = `${panelId}-big-three-title`;
   const planetsInHousesAvailabilityId = `${panelId}-planets-in-houses-availability-title`;
   const majorAspectsAvailabilityId = `${panelId}-major-aspects-availability-title`;
   const planetsInSignsAvailabilityId = `${panelId}-planets-in-signs-availability-title`;
-  const interpretation = createDeterministicInterpretation(chart, presentationPolicy);
+  const interpretation = createDeterministicInterpretation(chart, presentationPolicy, locale);
   const isResearchConfiguration = chart.calculationStatus === 'INCOMPLETE_RESEARCH';
-  const bigThreeTitle = presentationPolicy.showAngles ? 'Big Three' : 'Core placements';
+  const bigThreeTitle = presentationPolicy.showAngles
+    ? chartUi(locale, 'interpretation.bigThree')
+    : chartUi(locale, 'interpretation.corePlacements');
 
   return (
     <section
       aria-labelledby={titleId}
       className="nn-surface nn-surface--elevated min-w-0 p-5 sm:p-7"
     >
-      <p className="nn-eyebrow">Confirmed facts</p>
+      <p className="nn-eyebrow">{chartUi(locale, 'interpretation.confirmedFacts')}</p>
       <h3 className="nn-type-section-title mt-2" id={titleId}>
-        Interpretation
+        {chartUi(locale, 'interpretation.title')}
       </h3>
       {isResearchConfiguration ? (
         <p
           className="nn-notice nn-notice--research mt-3"
           role="note"
         >
-          Research configuration: deterministic UI-development copy based only on available Engine facts.
+          {chartUi(locale, 'interpretation.researchNotice')}
         </p>
       ) : null}
 
       <InterpretationOrientation
         items={interpretation.bigThree}
+        locale={locale}
         title={bigThreeTitle}
         titleId={bigThreeTitleId}
       />
       {interpretation.planetsInSigns.length > 0 ? (
         <InterpretationDisclosure
-          countLabel={placementCount(interpretation.planetsInSigns.length)}
+          countLabel={placementCount(locale, interpretation.planetsInSigns.length)}
           items={interpretation.planetsInSigns}
-          title="Planets in Signs"
+          locale={locale}
+          title={chartUi(locale, 'interpretation.planetsInSigns')}
         />
       ) : (
         <InterpretationAvailability
-          message="No supported planet-in-sign placements are available for this chart."
-          title="Planets in Signs"
+          message={chartUi(locale, 'interpretation.planetsInSignsUnavailable')}
+          title={chartUi(locale, 'interpretation.planetsInSigns')}
           titleId={planetsInSignsAvailabilityId}
         />
       )}
       {presentationPolicy.showHouseInterpretation ? (
         interpretation.planetsInHouses.length > 0 ? (
           <InterpretationDisclosure
-            countLabel={placementCount(interpretation.planetsInHouses.length)}
+            countLabel={placementCount(locale, interpretation.planetsInHouses.length)}
             items={interpretation.planetsInHouses}
-            title="Planets in Houses"
+            locale={locale}
+            title={chartUi(locale, 'interpretation.planetsInHouses')}
           />
         ) : (
           <InterpretationAvailability
-            message="No supported planet-in-house placements are available for this chart."
-            title="Planets in Houses"
+            message={chartUi(locale, 'interpretation.planetsInHousesUnavailable')}
+            title={chartUi(locale, 'interpretation.planetsInHouses')}
             titleId={planetsInHousesAvailabilityId}
           />
         )
       ) : (
         <InterpretationAvailability
-          message="Unavailable without an exact birth time."
-          title="Planets in Houses"
+          message={chartUi(locale, 'interpretation.unavailableWithoutExactTime')}
+          title={chartUi(locale, 'interpretation.planetsInHouses')}
           titleId={planetsInHousesAvailabilityId}
         />
       )}
       {interpretation.majorAspects.length > 0 ? (
         <InterpretationDisclosure
-          countLabel={aspectCount(interpretation.majorAspects.length)}
+          countLabel={aspectCount(locale, interpretation.majorAspects.length)}
           items={interpretation.majorAspects}
-          title="Major Aspects"
+          locale={locale}
+          title={chartUi(locale, 'interpretation.majorAspects')}
         />
       ) : (
         <InterpretationAvailability
-          message="No supported major-aspect interpretations are available for this chart."
-          title="Major Aspects"
+          message={chartUi(locale, 'interpretation.majorAspectsUnavailable')}
+          title={chartUi(locale, 'interpretation.majorAspects')}
           titleId={majorAspectsAvailabilityId}
         />
       )}

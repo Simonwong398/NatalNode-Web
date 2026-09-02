@@ -5,7 +5,10 @@ import {
   type SupportedLocale
 } from '../../lib/localization.js';
 import { resolveAstrologyDomainTerm } from '../../lib/astrology-glossary.js';
-import { chartUi } from '../chart-experience/chart-ui.js';
+import {
+  chartUi,
+  chartWarningMessage
+} from '../chart-experience/chart-ui.js';
 import type { ChartPresentationPolicy } from '@/features/chart-workspace/chart-presentation-policy';
 
 export type CalculationDetailsProps = {
@@ -76,7 +79,9 @@ export default function CalculationDetails({
           <DetailRow label="Chart Schema" value={chart.schemaVersion} />
           <DetailRow
             label="Calculation Status"
-            value={isResearchConfiguration ? 'Research configuration' : chart.calculationStatus}
+            value={isResearchConfiguration
+              ? 'Research configuration'
+              : chart.calculationStatus}
           />
           <DetailRow label="Configuration Status" value={chart.metadata.configurationStatus} />
           <DetailRow
@@ -106,7 +111,7 @@ export default function CalculationDetails({
               <DetailRow label="Reason" value="Incomplete research configuration" />
             </dl>
             <p className="mt-3">
-              Scientific and provenance identities are not available for this result.
+              {chartUi(locale, 'calculation.scientificUnavailable')}
             </p>
           </section>
         ) : null}
@@ -130,7 +135,7 @@ export default function CalculationDetails({
                       {warning.severity}
                     </span>
                   </div>
-                  <p className="nn-type-body-small mt-2 break-words">{warning.message}</p>
+                  <p className="nn-type-body-small mt-2 break-words">{chartWarningMessage(locale, warning)}</p>
                 </li>
               ))}
             </ul>

@@ -8,6 +8,10 @@ import {
   resolveAstrologyDomainTerm,
   type AstrologyGlossaryDomainKind
 } from '@/lib/astrology-glossary';
+import {
+  formatToolDetailMessage,
+  getToolDetailCopy
+} from '@/lib/tools-detail-copy';
 
 type HouseOption = {
   id: string;
@@ -85,6 +89,7 @@ export function initializeHouseLookup(): void {
   }
 
   const locale = parseSupportedLocale(form.dataset.glossaryLocale) ?? DEFAULT_LOCALE;
+  const copy = getToolDetailCopy(locale);
 
   const render = (): void => {
     const interpretation = composeHouseLookupInterpretation(select.value);
@@ -100,19 +105,34 @@ export function initializeHouseLookup(): void {
     const heading = document.createElement('h2');
     heading.className = 'nn-type-section-title';
     heading.id = 'house-result-title';
-    heading.textContent = `${houseTerm}: an interpretive snapshot`;
+    heading.textContent = formatToolDetailMessage(copy.house.resultTitle, { house: houseTerm });
 
     const summary = document.createElement('p');
     summary.className = 'nn-type-body mt-4 max-w-3xl';
-    summary.textContent = `In astrological interpretation, the ${houseTerm} is commonly associated with ${interpretation.coreDomain}.`;
+    summary.textContent = formatToolDetailMessage(copy.house.resultSummary, { house: houseTerm });
 
     const details = document.createElement('dl');
     details.className = 'mt-8 grid gap-6 lg:grid-cols-3';
 
     const fields: Array<[string, string]> = [
-      ['Core domain', interpretation.coreDomain],
-      ['Key themes', interpretation.keyThemes.join(' · ')],
-      ['Constructive expression', interpretation.constructiveExpression]
+      [
+        copy.house.coreDomainLabel,
+        locale === DEFAULT_LOCALE
+          ? interpretation.coreDomain
+          : formatToolDetailMessage(copy.house.resultCoreDomain, { house: houseTerm })
+      ],
+      [
+        copy.house.keyThemesLabel,
+        locale === DEFAULT_LOCALE
+          ? interpretation.keyThemes.join(' · ')
+          : formatToolDetailMessage(copy.house.resultKeyThemes, { house: houseTerm })
+      ],
+      [
+        copy.house.constructiveLabel,
+        locale === DEFAULT_LOCALE
+          ? interpretation.constructiveExpression
+          : formatToolDetailMessage(copy.house.resultConstructive, { house: houseTerm })
+      ]
     ];
 
     for (const [label, value] of fields) {
@@ -133,7 +153,9 @@ export function initializeHouseLookup(): void {
 
     const tension = document.createElement('p');
     tension.className = 'nn-type-body mt-8 max-w-3xl';
-    tension.textContent = `Potential tension / balancing consideration: ${interpretation.potentialTension}`;
+    tension.textContent = locale === DEFAULT_LOCALE
+      ? `Potential tension / balancing consideration: ${interpretation.potentialTension}`
+      : formatToolDetailMessage(copy.house.resultTension, { house: houseTerm });
 
     resultContent.replaceChildren(heading, summary, details, tension);
     result.hidden = false;

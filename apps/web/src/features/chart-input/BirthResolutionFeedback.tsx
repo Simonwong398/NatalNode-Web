@@ -14,9 +14,6 @@ type AmbiguousResolution = Extract<BirthInputResolution, { ambiguityStatus: 'AMB
 
 type ResolutionFeedbackPlacement = 'blocking' | 'non-blocking';
 
-const DEVELOPMENT_FIXTURE_EXPLANATION =
-  'This development resolver preserves your entered place label but uses fixed New York coordinate/timezone fixture data for UI testing; the fixture data is not derived from that place, is not historical timezone evidence, and is not production resolution.';
-
 // Presentation-only formatting of the offset supplied by the resolver.
 function formatUtcOffset(utcOffsetSeconds: number): string {
   const sign = utcOffsetSeconds < 0 ? '-' : '+';
@@ -38,10 +35,12 @@ interface ResolutionTelemetryData {
 function ResolvedLocationTelemetry({
   heading,
   isDevelopmentFixture = false,
+  locale,
   resolution
 }: {
   heading: string;
   isDevelopmentFixture?: boolean;
+  locale?: SupportedLocale;
   resolution: ResolutionTelemetryData;
 }) {
   const latitude = formatCoordinate(resolution.latitude, 'latitude');
@@ -58,13 +57,17 @@ function ResolvedLocationTelemetry({
     <div className="mt-4 min-w-0">
       <p className="nn-eyebrow">{heading}</p>
       {isDevelopmentFixture ? (
-        <p className="nn-type-body-small mt-2">{DEVELOPMENT_FIXTURE_EXPLANATION}</p>
+        <p className="nn-type-body-small mt-2">
+          {chartUi(locale, 'birthInput.resolution.fixtureExplanation')}
+        </p>
       ) : null}
       <dl className="mt-3 grid min-w-0 gap-3 sm:grid-cols-3">
         {resolution.locationLabel ? (
           <div className="min-w-0">
             <dt className="nn-type-metadata">
-              {isDevelopmentFixture ? 'Location input' : 'Location'}
+              {isDevelopmentFixture
+                ? chartUi(locale, 'birthInput.resolution.locationInput')
+                : chartUi(locale, 'birthInput.resolution.location')}
             </dt>
             <dd className="nn-type-body-small mt-1 break-words">{resolution.locationLabel}</dd>
           </div>
@@ -72,7 +75,9 @@ function ResolvedLocationTelemetry({
         {isDevelopmentFixture ? (
           fixtureCoordinates ? (
             <div className="min-w-0">
-              <dt className="nn-type-metadata">Fixture coordinates</dt>
+              <dt className="nn-type-metadata">
+                {chartUi(locale, 'birthInput.resolution.fixtureCoordinates')}
+              </dt>
               <dd className="nn-type-numeric mt-1">{fixtureCoordinates}</dd>
             </div>
           ) : null
@@ -80,13 +85,17 @@ function ResolvedLocationTelemetry({
           <>
             {latitude ? (
               <div className="min-w-0">
-                <dt className="nn-type-metadata">Latitude</dt>
+                <dt className="nn-type-metadata">
+                  {chartUi(locale, 'birthInput.resolution.latitude')}
+                </dt>
                 <dd className="nn-type-numeric mt-1">{latitude}</dd>
               </div>
             ) : null}
             {longitude ? (
               <div className="min-w-0">
-                <dt className="nn-type-metadata">Longitude</dt>
+                <dt className="nn-type-metadata">
+                  {chartUi(locale, 'birthInput.resolution.longitude')}
+                </dt>
                 <dd className="nn-type-numeric mt-1">{longitude}</dd>
               </div>
             ) : null}
@@ -95,7 +104,9 @@ function ResolvedLocationTelemetry({
         {resolution.ianaTimeZone ? (
           <div className="min-w-0">
             <dt className="nn-type-metadata">
-              {isDevelopmentFixture ? 'Fixture timezone' : 'IANA timezone'}
+              {isDevelopmentFixture
+                ? chartUi(locale, 'birthInput.resolution.fixtureTimezone')
+                : chartUi(locale, 'birthInput.resolution.ianaTimezone')}
             </dt>
             <dd className="nn-type-numeric mt-1 break-words">{resolution.ianaTimeZone}</dd>
           </div>
@@ -103,7 +114,9 @@ function ResolvedLocationTelemetry({
         {resolution.utcOffsetSeconds !== null ? (
           <div className="min-w-0">
             <dt className="nn-type-metadata">
-              {isDevelopmentFixture ? 'Fixture UTC offset' : 'UTC offset'}
+              {isDevelopmentFixture
+                ? chartUi(locale, 'birthInput.resolution.fixtureUtcOffset')
+                : chartUi(locale, 'birthInput.resolution.utcOffset')}
             </dt>
             <dd className="nn-type-numeric mt-1">{formatUtcOffset(resolution.utcOffsetSeconds)}</dd>
           </div>
@@ -115,9 +128,11 @@ function ResolvedLocationTelemetry({
 
 function ExactResolutionPanel({
   isDevelopmentFixture,
+  locale,
   resolution
 }: {
   isDevelopmentFixture: boolean;
+  locale?: SupportedLocale;
   resolution: ExactResolution;
 }) {
   return (
@@ -136,14 +151,21 @@ function ExactResolutionPanel({
           isDevelopmentFixture ? 'nn-status--research' : 'nn-status--success'
         )}
       >
-        {isDevelopmentFixture ? 'Development fixture' : 'Resolution confirmed'}
+        {isDevelopmentFixture
+          ? chartUi(locale, 'birthInput.resolution.developmentFixture')
+          : chartUi(locale, 'birthInput.resolution.confirmed')}
       </p>
       <h3 className="nn-type-card-title" id="timezone-resolved-title">
-        {isDevelopmentFixture ? 'Development fixture data' : 'Timezone resolved'}
+        {isDevelopmentFixture
+          ? chartUi(locale, 'birthInput.resolution.developmentFixtureData')
+          : chartUi(locale, 'birthInput.resolution.timezoneResolved')}
       </h3>
       <ResolvedLocationTelemetry
-        heading={isDevelopmentFixture ? 'Fixture details' : 'Location resolved'}
+        heading={isDevelopmentFixture
+          ? chartUi(locale, 'birthInput.resolution.fixtureDetails')
+          : chartUi(locale, 'birthInput.resolution.locationResolved')}
         isDevelopmentFixture={isDevelopmentFixture}
+        locale={locale}
         resolution={resolution}
       />
     </section>
@@ -153,11 +175,13 @@ function ExactResolutionPanel({
 function AmbiguousResolutionPanel({
   isDisabled,
   isDevelopmentFixture,
+  locale,
   resolution,
   onSelectCandidate
 }: {
   isDisabled: boolean;
   isDevelopmentFixture: boolean;
+  locale?: SupportedLocale;
   resolution: AmbiguousResolution;
   onSelectCandidate: (candidate: AmbiguousTimeCandidate) => void;
 }) {
@@ -173,24 +197,33 @@ function AmbiguousResolutionPanel({
           isDevelopmentFixture ? 'nn-status--research' : 'nn-status--warning'
         )}
       >
-        {isDevelopmentFixture ? 'Development fixture' : 'Resolution needed'}
+        {isDevelopmentFixture
+          ? chartUi(locale, 'birthInput.resolution.developmentFixture')
+          : chartUi(locale, 'birthInput.resolution.needed')}
       </p>
       <h3 className="nn-type-card-title" id="ambiguous-time-title">
-        {isDevelopmentFixture ? 'Ambiguous fixture state' : 'This local time occurred twice'}
+        {isDevelopmentFixture
+          ? chartUi(locale, 'birthInput.resolution.ambiguousFixtureState')
+          : chartUi(locale, 'birthInput.resolution.localTimeTwice')}
       </h3>
       <p className="nn-type-body-small mt-2">
         {isDevelopmentFixture
-          ? 'This development fixture simulates two candidate occurrences for UI testing. Choose one; NatalNode will not silently choose one.'
-          : 'Choose which occurrence matches the birth record. NatalNode will not silently choose one.'}
+          ? chartUi(locale, 'birthInput.resolution.ambiguousFixtureDescription')
+          : chartUi(locale, 'birthInput.resolution.ambiguousDescription')}
       </p>
       <ResolvedLocationTelemetry
-        heading={isDevelopmentFixture ? 'Fixture context' : 'Location context'}
+        heading={isDevelopmentFixture
+          ? chartUi(locale, 'birthInput.resolution.fixtureContext')
+          : chartUi(locale, 'birthInput.resolution.locationContext')}
         isDevelopmentFixture={isDevelopmentFixture}
+        locale={locale}
         resolution={resolution}
       />
       <fieldset className="mt-4 grid gap-3">
         <legend className="nn-type-label">
-          {isDevelopmentFixture ? 'Select a fixture candidate' : 'Select an occurrence'}
+          {isDevelopmentFixture
+            ? chartUi(locale, 'birthInput.resolution.selectFixtureCandidate')
+            : chartUi(locale, 'birthInput.resolution.selectOccurrence')}
         </legend>
         {resolution.candidates.map((candidate) => {
           const isEarlier = candidate.occurrence === 'EARLIER';
@@ -211,12 +244,14 @@ function AmbiguousResolutionPanel({
               />
               <span>
                 <span className="nn-type-label block">
-                  {isEarlier ? 'Earlier occurrence' : 'Later occurrence'}
+                  {isEarlier
+                    ? chartUi(locale, 'birthInput.resolution.earlierOccurrence')
+                    : chartUi(locale, 'birthInput.resolution.laterOccurrence')}
                 </span>
                 <span className="nn-type-metadata mt-1 block">
                   {isEarlier
-                    ? 'The first occurrence of this local clock time.'
-                    : 'The second occurrence of this local clock time.'}
+                    ? chartUi(locale, 'birthInput.resolution.firstOccurrence')
+                    : chartUi(locale, 'birthInput.resolution.secondOccurrence')}
                 </span>
               </span>
             </label>
@@ -247,19 +282,26 @@ function NonexistentResolutionPanel({
       role="alert"
     >
       <p className="nn-eyebrow nn-status--error">
-        {isDevelopmentFixture ? 'Development fixture' : 'Birth time needs editing'}
+        {isDevelopmentFixture
+          ? chartUi(locale, 'birthInput.resolution.developmentFixture')
+          : chartUi(locale, 'birthInput.resolution.birthTimeNeedsEditing')}
       </p>
       <h3 className="nn-type-card-title" id="nonexistent-time-title">
-        {isDevelopmentFixture ? 'Nonexistent fixture state' : 'This local time did not exist'}
+        {isDevelopmentFixture
+          ? chartUi(locale, 'birthInput.resolution.nonexistentFixtureState')
+          : chartUi(locale, 'birthInput.resolution.localTimeDidNotExist')}
       </h3>
       <p className="nn-type-body-small mt-2">
         {isDevelopmentFixture
-          ? 'This development fixture simulates a nonexistent local time for UI testing. It does not establish a real historical DST gap for the entered place and date. The fixture was not shifted or replaced.'
-          : 'The entered local time did not exist at this location and date. It was not shifted or replaced.'}
+          ? chartUi(locale, 'birthInput.resolution.nonexistentFixtureDescription')
+          : chartUi(locale, 'birthInput.resolution.nonexistentDescription')}
       </p>
       <ResolvedLocationTelemetry
-        heading={isDevelopmentFixture ? 'Fixture context' : 'Location context'}
+        heading={isDevelopmentFixture
+          ? chartUi(locale, 'birthInput.resolution.fixtureContext')
+          : chartUi(locale, 'birthInput.resolution.locationContext')}
         isDevelopmentFixture={isDevelopmentFixture}
+        locale={locale}
         resolution={resolution}
       />
       <button
@@ -276,9 +318,11 @@ function NonexistentResolutionPanel({
 
 function UnknownTimeResolutionPanel({
   isDevelopmentFixture,
+  locale,
   resolution
 }: {
   isDevelopmentFixture: boolean;
+  locale?: SupportedLocale;
   resolution: UnknownTimeBirthInputResolution;
 }) {
   return (
@@ -288,16 +332,21 @@ function UnknownTimeResolutionPanel({
       className="nn-notice nn-notice--trust mt-5 min-w-0 flex-col"
       role="status"
     >
-      <p className="nn-eyebrow nn-status--trust">Trust limitation</p>
+      <p className="nn-eyebrow nn-status--trust">
+        {chartUi(locale, 'birthInput.resolution.trustLimitation')}
+      </p>
       <h3 className="nn-type-card-title" id="unknown-time-title">
-        Exact birth time unknown
+        {chartUi(locale, 'birthInput.resolution.exactTimeUnknown')}
       </h3>
       <p className="nn-type-body-small mt-2">
-        We'll calculate what can be determined reliably. Time-dependent factors such as the Ascendant, Midheaven, and houses will remain unavailable.
+        {chartUi(locale, 'birthInput.resolution.unknownTimeDescription')}
       </p>
       <ResolvedLocationTelemetry
-        heading={isDevelopmentFixture ? 'Fixture context' : 'Location resolved'}
+        heading={isDevelopmentFixture
+          ? chartUi(locale, 'birthInput.resolution.fixtureContext')
+          : chartUi(locale, 'birthInput.resolution.locationResolved')}
         isDevelopmentFixture={isDevelopmentFixture}
+        locale={locale}
         resolution={resolution}
       />
     </section>
@@ -332,6 +381,7 @@ export default function BirthResolutionFeedback({
       resolutionPanel = (
         <ExactResolutionPanel
           isDevelopmentFixture={isDevelopmentFixture}
+          locale={locale}
           resolution={resolution}
         />
       );
@@ -341,6 +391,7 @@ export default function BirthResolutionFeedback({
         <AmbiguousResolutionPanel
           isDisabled={isInteractionDisabled}
           isDevelopmentFixture={isDevelopmentFixture}
+          locale={locale}
           onSelectCandidate={onSelectCandidate}
           resolution={resolution}
         />
@@ -361,6 +412,7 @@ export default function BirthResolutionFeedback({
       resolutionPanel = (
         <UnknownTimeResolutionPanel
           isDevelopmentFixture={isDevelopmentFixture}
+          locale={locale}
           resolution={resolution}
         />
       );

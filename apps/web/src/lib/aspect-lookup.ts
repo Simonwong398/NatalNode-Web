@@ -14,6 +14,10 @@ import {
   resolveAstrologyDomainTerm,
   type AstrologyGlossaryDomainKind
 } from '@/lib/astrology-glossary';
+import {
+  formatToolDetailMessage,
+  getToolDetailCopy
+} from '@/lib/tools-detail-copy';
 
 export { SUPPORTED_PLANETS } from '@/features/interpretation/interpretation-content';
 export type {
@@ -113,6 +117,7 @@ export function initializeAspectLookup(): void {
   }
 
   const locale = parseSupportedLocale(form.dataset.glossaryLocale) ?? DEFAULT_LOCALE;
+  const copy = getToolDetailCopy(locale);
 
   const updateResult = () => {
     if (!isSupportedPlanet(planetA.value) || !isSupportedAspect(aspect.value) || !isSupportedPlanet(planetB.value)) {
@@ -128,14 +133,31 @@ export function initializeAspectLookup(): void {
       planetB.value,
       locale
     );
+    const firstPlanetTerm = glossaryTerm('body', planetA.value, locale);
+    const secondPlanetTerm = glossaryTerm('body', planetB.value, locale);
+    const aspectTerm = glossaryTerm('aspect', aspect.value, locale);
     const heading = document.createElement('h2');
     heading.className = 'nn-type-section-title';
     heading.id = 'aspect-result-title';
-    heading.textContent = interpretation.title;
+    heading.textContent = locale === DEFAULT_LOCALE
+      ? interpretation.title
+      : `${firstPlanetTerm} ${aspectTerm} ${secondPlanetTerm}`;
+
+    const paragraphs = locale === DEFAULT_LOCALE
+      ? interpretation.paragraphs
+      : [
+          formatToolDetailMessage(copy.aspect.resultParagraphOne, {
+            first: firstPlanetTerm,
+            second: secondPlanetTerm,
+            aspect: aspectTerm
+          }),
+          formatToolDetailMessage(copy.aspect.resultParagraphTwo, { aspect: aspectTerm }),
+          formatToolDetailMessage(copy.aspect.resultParagraphThree, {})
+        ];
 
     resultContent.replaceChildren(
       heading,
-      ...interpretation.paragraphs.map((paragraph) => createParagraph(paragraph))
+      ...paragraphs.map((paragraph) => createParagraph(paragraph))
     );
     emptyState.hidden = true;
     result.hidden = false;

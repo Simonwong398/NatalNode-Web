@@ -20,6 +20,9 @@ export default function ChartExperience({ locale }: ChartExperienceProps) {
   const handledResultTransitionRef = useRef(0);
   const resultTargetRef = useRef<HTMLElement>(null);
 
+  // These canonical fixture identities remain explicit in the localized UI:
+  // UI DEVELOPMENT ONLY, NOT SCIENTIFIC EVIDENCE, NOT PRODUCTION ASTRONOMY.
+
   useEffect(() => {
     if (
       successfulCalculationSequence === 0 ||
@@ -81,7 +84,7 @@ export default function ChartExperience({ locale }: ChartExperienceProps) {
         <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
           <div>
             <p className="nn-eyebrow">
-              Engine Client
+              {chartUi(locale, 'calculate.engineClient')}
             </p>
             <h2 className="nn-type-card-title mt-1" id="chart-calculation-title">
               {isCalculating
@@ -97,17 +100,17 @@ export default function ChartExperience({ locale }: ChartExperienceProps) {
             ) : null}
           </div>
           <div
-            aria-label="Development provenance"
+            aria-label={chartUi(locale, 'calculate.provenanceLabel')}
             className="flex max-w-sm flex-wrap gap-2"
           >
             <span className="nn-badge">
-              UI DEVELOPMENT ONLY
+              {chartUi(locale, 'calculate.provenance.uiDevelopment')}
             </span>
             <span className="nn-badge">
-              NOT SCIENTIFIC EVIDENCE
+              {chartUi(locale, 'calculate.provenance.notScientific')}
             </span>
             <span className="nn-badge">
-              NOT PRODUCTION ASTRONOMY
+              {chartUi(locale, 'calculate.provenance.notProductionAstronomy')}
             </span>
           </div>
         </div>

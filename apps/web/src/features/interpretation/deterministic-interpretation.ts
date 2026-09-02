@@ -1,4 +1,5 @@
 import type { AngleFact, AspectFact, BodyFact, ChartResult } from '@natalnode/contracts';
+import type { SupportedLocale } from '@/lib/localization';
 import {
   ASPECT_DYNAMICS,
   HOUSE_DOMAINS,
@@ -8,6 +9,10 @@ import {
   type SupportedAspectType,
   type SupportedPlanet
 } from './interpretation-content';
+import {
+  getInterpretationUiCopy,
+  type InterpretationUiCopy
+} from './interpretation-ui-content.js';
 import type { ChartPresentationPolicy } from '@/features/chart-workspace/chart-presentation-policy';
 
 export type InterpretationItem = {
@@ -42,49 +47,32 @@ function findSupportedBody(chart: ChartResult, bodyId: string) {
   return body && planet ? { body, planet } : null;
 }
 
-function composePlanetInSignText(planet: SupportedPlanet, sign: string): string | null {
-  const meaning = PLANET_MEANINGS[planet];
-  const style = SIGN_STYLES[sign];
-
-  if (!style) {
-    return null;
-  }
-
-  return `${meaning.focus} can take on a ${style.style} quality in ${sign}. This placement may show up as ${meaning.expression} while ${style.expression}.`;
-}
-
-function composeAscendantText(sign: string): string | null {
-  const style = SIGN_STYLES[sign];
-
-  if (!style) {
-    return null;
-  }
-
-  return `The Ascendant can describe an outward approach rather than a fixed identity. In ${sign}, it may emphasize a ${style.style} way of entering situations, often ${style.expression}.`;
-}
-
 function createPlanetItem(
   body: BodyFact,
   planet: SupportedPlanet,
-  idPrefix: string
+  idPrefix: string,
+  copy: InterpretationUiCopy
 ): InterpretationItem | null {
-  const text = composePlanetInSignText(planet, body.sign);
+  const meaning = PLANET_MEANINGS[planet];
+  const style = SIGN_STYLES[body.sign];
 
-  if (!text) {
+  if (!style) {
     return null;
   }
 
+  const content = copy.planetInSign(planet, body.sign, meaning, style);
+
   return {
     id: `${idPrefix}-${planet.toLowerCase()}`,
-    title: `${planet} in ${body.sign}`,
-    text,
+    ...content,
     sourceFacts: [body.bodyId]
   };
 }
 
 function createPlanetInHouseItem(
   body: BodyFact,
-  planet: SupportedPlanet
+  planet: SupportedPlanet,
+  copy: InterpretationUiCopy
 ): InterpretationItem | null {
   const house = body.house;
 
@@ -99,25 +87,13 @@ function createPlanetInHouseItem(
     return null;
   }
 
+  const content = copy.planetInHouse(planet, house, meaning, domain);
+
   return {
     id: `planet-in-house-${planet.toLowerCase()}`,
-    title: `${planet} in House ${house}`,
-    text: `House ${house} brings attention to ${domain.focus}. In this area, ${planet}'s ${meaning.focus.toLowerCase()} may show up as ${meaning.expression}, especially while ${domain.expression}.`,
+    ...content,
     sourceFacts: [body.bodyId],
-    sourceContext: `${body.bodyId} — House ${house}`
   };
-}
-
-function composeAspectText(
-  firstPlanet: SupportedPlanet,
-  secondPlanet: SupportedPlanet,
-  aspectType: SupportedAspectType
-): string {
-  const firstMeaning = PLANET_MEANINGS[firstPlanet];
-  const secondMeaning = PLANET_MEANINGS[secondPlanet];
-  const dynamic = ASPECT_DYNAMICS[aspectType];
-
-  return `${firstPlanet}'s ${firstMeaning.focus.toLowerCase()} and ${secondPlanet}'s ${secondMeaning.focus.toLowerCase()} can meet through a ${dynamic.quality} ${aspectType} dynamic. This aspect may show up as ${dynamic.expression}, giving both themes a place in the same pattern of response.`;
 }
 
 function isSupportedAspectType(type: string): type is SupportedAspectType {
@@ -133,7 +109,11 @@ function isSupportedPhaseState(phaseState: AspectFact['phaseState']): boolean {
   );
 }
 
-function createAspectItem(chart: ChartResult, aspect: AspectFact): InterpretationItem | null {
+function createAspectItem(
+  chart: ChartResult,
+  aspect: AspectFact,
+  copy: InterpretationUiCopy
+): InterpretationItem | null {
   if (!isSupportedAspectType(aspect.type) || !Number.isFinite(aspect.orb) || aspect.orb < 0) {
     return null;
   }
@@ -149,45 +129,55 @@ function createAspectItem(chart: ChartResult, aspect: AspectFact): Interpretatio
     return null;
   }
 
-  const phaseContext = aspect.phaseState ? ` — ${aspect.phaseState}` : '';
+  const content = copy.aspect(
+    firstBody.planet,
+    secondBody.planet,
+    aspect.type,
+    aspect.orb,
+    aspect.phaseState,
+    PLANET_MEANINGS[firstBody.planet],
+    PLANET_MEANINGS[secondBody.planet],
+    ASPECT_DYNAMICS[aspect.type]
+  );
 
   return {
     id: `aspect-${aspect.firstBodyId.toLowerCase()}-${aspect.type}-${aspect.secondBodyId.toLowerCase()}`,
-    title: `${aspect.firstBodyId} ${aspect.type} ${aspect.secondBodyId}`,
-    text: composeAspectText(firstBody.planet, secondBody.planet, aspect.type),
+    ...content,
     sourceFacts: [aspect.firstBodyId, aspect.secondBodyId],
-    sourceContext: `${aspect.firstBodyId} ${aspect.type} ${aspect.secondBodyId} — orb ${aspect.orb}°${phaseContext}`
   };
 }
 
-function createAscendantItem(angle: AngleFact): InterpretationItem | null {
-  const text = composeAscendantText(angle.sign);
+function createAscendantItem(angle: AngleFact, copy: InterpretationUiCopy): InterpretationItem | null {
+  const style = SIGN_STYLES[angle.sign];
 
-  if (!text) {
+  if (!style) {
     return null;
   }
 
+  const content = copy.ascendant(angle.sign, style, angle.angleId);
+
   return {
     id: 'big-three-ascendant',
-    title: `Ascendant in ${angle.sign}`,
-    text,
+    ...content,
     sourceFacts: [angle.angleId]
   };
 }
 
 export function createDeterministicInterpretation(
   chart: ChartResult,
-  presentationPolicy: ChartPresentationPolicy
+  presentationPolicy: ChartPresentationPolicy,
+  locale?: SupportedLocale
 ): InterpretationResult {
+  const copy = getInterpretationUiCopy(locale);
   const bigThree = BIG_THREE_PLANETS.flatMap((planet) => {
     const body = findBody(chart, planet);
-    const item = body ? createPlanetItem(body, planet, 'big-three') : null;
+    const item = body ? createPlanetItem(body, planet, 'big-three', copy) : null;
 
     return item ? [item] : [];
   });
 
   const ascendant = presentationPolicy.showAngles ? findAngle(chart, 'ASC') : undefined;
-  const ascendantItem = ascendant ? createAscendantItem(ascendant) : null;
+  const ascendantItem = ascendant ? createAscendantItem(ascendant, copy) : null;
 
   if (ascendantItem) {
     bigThree.push(ascendantItem);
@@ -195,7 +185,7 @@ export function createDeterministicInterpretation(
 
   const planetsInSigns = SUPPORTED_PLANETS.flatMap((planet) => {
     const body = findBody(chart, planet);
-    const item = body ? createPlanetItem(body, planet, 'planet-in-sign') : null;
+    const item = body ? createPlanetItem(body, planet, 'planet-in-sign', copy) : null;
 
     return item ? [item] : [];
   });
@@ -203,14 +193,14 @@ export function createDeterministicInterpretation(
   const planetsInHouses = presentationPolicy.showHouseInterpretation
     ? SUPPORTED_PLANETS.flatMap((planet) => {
         const body = findBody(chart, planet);
-        const item = body ? createPlanetInHouseItem(body, planet) : null;
+        const item = body ? createPlanetInHouseItem(body, planet, copy) : null;
 
         return item ? [item] : [];
       })
     : [];
 
   const majorAspects = chart.aspects.flatMap((aspect) => {
-    const item = createAspectItem(chart, aspect);
+    const item = createAspectItem(chart, aspect, copy);
 
     return item ? [item] : [];
   });

@@ -47,10 +47,10 @@ const t = (key: UiMessageKey) => getUiMessage(locale, key);
       </header>
       <div class:list={isCurrentSkyPreviewAvailable ? ['grid', 'gap-8', 'md:grid-cols-[minmax(0,1fr)_minmax(18rem,0.72fr)]'] : []}>
         {isCurrentSkyPreviewAvailable ? (
-          <aside class="order-1 min-w-0 md:order-2" aria-label="Current Sky preview">
+          <aside class="order-1 min-w-0 md:order-2" aria-label={t('sky.currentTitle')}>
             <section class="nn-surface nn-surface--instrument mt-8 p-3 sm:p-5" aria-labelledby="homepage-current-sky-title">
-              <p class="nn-eyebrow">Current Sky</p>
-              <h2 class="nn-type-section-title mt-1" id="homepage-current-sky-title">The sky now</h2>
+              <p class="nn-eyebrow">{t('sky.currentTitle')}</p>
+              <h2 class="nn-type-section-title mt-1" id="homepage-current-sky-title">{t('sky.currentEyebrow')}</h2>
               <CurrentSkyInstrument
                 atUtc={CURRENT_SKY_AT_UTC}
                 locale={locale}

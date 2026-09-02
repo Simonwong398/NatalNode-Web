@@ -24,6 +24,7 @@ import {
   radialLine
 } from './geometry';
 import type { ChartPresentationPolicy } from '@/features/chart-workspace/chart-presentation-policy';
+import { chartUi, chartUiFormat } from '../chart-experience/chart-ui.js';
 
 export type ChartRendererProps = {
   chart: ChartResult;
@@ -195,7 +196,10 @@ function renderHouseCusp(cusp: HouseCusp, locale: SupportedLocale | undefined) {
 
   return (
     <g
-      aria-label={`${houseTerm} cusp at ${formatLongitude(cusp.longitude)}`}
+      aria-label={chartUiFormat(locale, 'chart.houseCusp', {
+        house: houseTerm,
+        degree: formatLongitude(cusp.longitude)
+      })}
       key={`house-${cusp.house}`}
       role="group"
     >
@@ -236,7 +240,13 @@ function renderBody(body: BodyFact, index: number, locale: SupportedLocale | und
     'rendererAbbreviation'
   ) ?? body.bodyId.slice(0, 3);
   const degreeLabel = formatLongitude(body.longitude);
-  const bodyDescription = `${glossaryTerm('body', body.bodyId, locale)} at ${degreeLabel}${body.retrograde === true ? `, ${glossaryTerm('motion', 'RETROGRADE', locale).toLowerCase()}` : ''}`;
+  const bodyDescription = chartUiFormat(locale, 'chart.bodyAt', {
+    body: glossaryTerm('body', body.bodyId, locale),
+    degree: degreeLabel,
+    motion: body.retrograde === true
+      ? `, ${glossaryTerm('motion', 'RETROGRADE', locale).toLowerCase()}`
+      : ''
+  });
 
   return (
     <g
@@ -352,7 +362,10 @@ function renderAngle(
     locale ?? DEFAULT_LOCALE
   );
   const angleLabel = angleResolution?.shortForm ?? angle.angleId.toUpperCase();
-  const angleDescription = `${angleResolution?.displayTerm ?? angle.angleId} at ${formatLongitude(angle.longitude)}`;
+  const angleDescription = chartUiFormat(locale, 'chart.angleAt', {
+    angle: angleResolution?.displayTerm ?? angle.angleId,
+    degree: formatLongitude(angle.longitude)
+  });
 
   return (
     <g aria-label={angleDescription} key={angle.angleId} role="group">
@@ -409,10 +422,13 @@ export default function ChartRenderer({ chart, locale, presentationPolicy }: Cha
   const renderableAspects = getRenderableAspects(chart);
   const atmosphereId = `${rendererId.replace(/:/g, '')}-atmosphere`;
   const natalChartLabel = glossaryTerm('chart_type', 'natal', locale);
-  const description =
-    presentationPolicy.showHouses && presentationPolicy.showAngles
-      ? `SVG ${natalChartLabel.toLowerCase()} wheel showing twelve zodiac sectors, provided house cusps, chart bodies, and ASC and MC angles.`
-      : `SVG ${natalChartLabel.toLowerCase()} wheel showing twelve zodiac sectors, chart bodies, and major aspects. Exact-time-dependent angle and house geometry is not shown.`;
+  const description = presentationPolicy.showHouses && presentationPolicy.showAngles
+    ? chartUiFormat(locale, 'chart.wheelDescriptionWithHouses', {
+        chart: natalChartLabel.toLowerCase()
+      })
+    : chartUiFormat(locale, 'chart.wheelDescriptionWithoutHouses', {
+        chart: natalChartLabel.toLowerCase()
+      });
 
   return (
     <svg
@@ -422,7 +438,9 @@ export default function ChartRenderer({ chart, locale, presentationPolicy }: Cha
       role="img"
       viewBox={`0 0 ${CHART_VIEWBOX_SIZE} ${CHART_VIEWBOX_SIZE}`}
     >
-      <title id={titleId}>{natalChartLabel} wheel</title>
+      <title id={titleId}>
+        {chartUiFormat(locale, 'chart.wheelTitle', { chart: natalChartLabel })}
+      </title>
       <desc id={descriptionId}>{description}</desc>
 
       <defs aria-hidden="true">
@@ -474,7 +492,7 @@ export default function ChartRenderer({ chart, locale, presentationPolicy }: Cha
       </g>
 
       {/* Zodiac: the canonical twelve sectors remain the primary structural ring. */}
-      <g aria-label="Zodiac sectors" role="group">
+      <g aria-label={chartUi(locale, 'chart.zodiacSectors')} role="group">
         {ZODIAC_SIGNS.map((sign, index) => {
           const startLongitude = index * 30;
           const label = longitudeToPoint(startLongitude + 15, (ZODIAC_OUTER_RADIUS + ZODIAC_INNER_RADIUS) / 2);
@@ -534,25 +552,25 @@ export default function ChartRenderer({ chart, locale, presentationPolicy }: Cha
             strokeWidth="1.1"
           />
 
-          <g aria-label="House cusps" role="group">
+          <g aria-label={chartUi(locale, 'chart.houseCusps')} role="group">
             {houseCusps.map((cusp) => renderHouseCusp(cusp, locale))}
           </g>
         </>
       ) : null}
 
       {/* Aspects: valid Engine facts remain complete but subordinate to bodies. */}
-      <g aria-label="Major aspects" role="group">
+      <g aria-label={chartUi(locale, 'chart.majorAspects')} role="group">
         {renderableAspects.map((aspect, index) => renderAspect(aspect, index, locale))}
       </g>
 
       {/* Bodies: the existing canonical marker and label positions are unchanged. */}
-      <g aria-label="Chart bodies" role="group">
+      <g aria-label={chartUi(locale, 'chart.chartBodies')} role="group">
         {chart.bodies.map((body, index) => renderBody(body, index, locale))}
       </g>
 
       {/* Angles: ASC and MC remain policy-gated and distinct from ordinary bodies. */}
       {presentationPolicy.showAngles ? (
-        <g aria-label="Chart angles" role="group">
+        <g aria-label={chartUi(locale, 'chart.chartAngles')} role="group">
           {ascendant ? renderAngle(ascendant, locale) : null}
           {midheaven ? renderAngle(midheaven, locale) : null}
         </g>

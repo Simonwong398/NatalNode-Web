@@ -1,15 +1,13 @@
 ---
 import SiteLayout from '@/layouts/SiteLayout.astro';
-import {
-  ELEMENT_MEANINGS,
-  MODALITY_MEANINGS,
-  SIGN_OPTIONS
-} from '@/lib/sign-lookup';
+import { SIGN_OPTIONS } from '@/lib/sign-lookup';
 import {
   resolveAstrologyDomainTerm,
   type AstrologyGlossaryDomainKind
 } from '@/lib/astrology-glossary';
 import { getLocalizedPath, getPresentationLocale } from '@/lib/localization';
+import { getToolDetailCopy } from '@/lib/tools-detail-copy';
+import { getUiMessage, type UiMessageKey } from '@/lib/ui-catalog';
 import type { SeoMetadata } from '@/lib/seo';
 
 const seo: SeoMetadata = {
@@ -19,6 +17,8 @@ const seo: SeoMetadata = {
 };
 const locale = getPresentationLocale(Astro.url.pathname, Astro.locals.locale);
 const localize = (path: string): string => getLocalizedPath(locale, path);
+const copy = getToolDetailCopy(locale);
+const ui = (key: UiMessageKey): string => getUiMessage(locale, key);
 const glossaryTerm = (kind: AstrologyGlossaryDomainKind, value: unknown): string =>
   resolveAstrologyDomainTerm(kind, value, locale)?.displayTerm ??
   (typeof value === 'string' ? value : String(value));
@@ -27,25 +27,25 @@ const glossaryTerm = (kind: AstrologyGlossaryDomainKind, value: unknown): string
 <SiteLayout seo={seo}>
   <main class="nn-container nn-container--editorial nn-tools-page nn-tools-detail pb-20 pt-12 sm:pb-24 sm:pt-16">
     <header class="max-w-3xl nn-tools-detail__header">
-      <p class="nn-eyebrow">Tools / Sign Lookup</p>
+      <p class="nn-eyebrow">{ui('tools.eyebrow')} / {ui('tools.signLookup')}</p>
       <h1 class="nn-type-page-title mt-3">
-        Explore a zodiac sign
+        {copy.sign.title}
       </h1>
       <p class="nn-type-body mt-4 max-w-2xl">
-        Select one sign to explore the symbolic element, modality, and interpretive themes associated with it.
+        {copy.sign.description}
       </p>
     </header>
 
     <section class="nn-surface nn-surface--elevated nn-tools-task-surface mt-12 max-w-4xl p-5 sm:p-8" aria-labelledby="sign-selection-title">
       <div class="nn-section-header">
-        <p class="nn-eyebrow">Make a selection</p>
+        <p class="nn-eyebrow">{copy.common.makeSelection}</p>
         <h2 class="nn-type-section-title" id="sign-selection-title">
-          Choose a zodiac sign
+          {copy.sign.selectionTitle}
         </h2>
       </div>
 
       <form class="mt-8" data-glossary-locale={locale} data-sign-lookup-form aria-describedby="sign-lookup-boundary">
-        <label class="nn-type-label" for="zodiac-sign">Zodiac sign</label>
+        <label class="nn-type-label" for="zodiac-sign">{copy.sign.fieldLabel}</label>
         <select
           class="nn-field mt-2 max-w-md"
           id="zodiac-sign"
@@ -53,19 +53,19 @@ const glossaryTerm = (kind: AstrologyGlossaryDomainKind, value: unknown): string
           data-sign-select
           required
         >
-          <option value="">Choose a sign</option>
+          <option value="">{copy.sign.optionPlaceholder}</option>
           {SIGN_OPTIONS.map((sign) => <option value={sign.id}>{glossaryTerm('sign', sign.label)}</option>)}
         </select>
 
         <p class="nn-notice nn-notice--trust mt-6 max-w-3xl" id="sign-lookup-boundary">
-          This tool explains a zodiac sign you select. It does not calculate a sign from your birth date or planetary position.
+          {copy.sign.boundary}
         </p>
 
         <button
           class="nn-button nn-button--quiet mt-5"
           type="reset"
         >
-          Clear selection
+          {copy.common.clearSelection}
         </button>
       </form>
     </section>
@@ -80,66 +80,69 @@ const glossaryTerm = (kind: AstrologyGlossaryDomainKind, value: unknown): string
       <div data-sign-result-content></div>
     </section>
     <p class="nn-async-state nn-async-state--empty mt-6 max-w-3xl" data-sign-empty role="status">
-      Choose a zodiac sign to see a focused interpretation. No sign is preselected.
+      {copy.sign.empty}
     </p>
     <noscript>
       <p class="nn-notice nn-notice--info mt-4 max-w-3xl">
-        JavaScript is required to generate the selected interpretation in this browser.
+        {copy.common.noscript}
       </p>
     </noscript>
 
     <div class="nn-tools-explanation mt-16 grid gap-12 border-t border-natal-border/70 pt-12 lg:grid-cols-2 lg:gap-x-10 lg:gap-y-14 lg:pt-16">
       <section aria-labelledby="what-signs-represent-title">
-        <p class="nn-eyebrow">What signs represent</p>
+        <p class="nn-eyebrow">{copy.sign.representEyebrow}</p>
         <h2 class="nn-type-section-title mt-2" id="what-signs-represent-title">
-          A vocabulary for style
+          {copy.sign.representTitle}
         </h2>
         <p class="nn-type-body mt-4">
-          In astrology, zodiac signs are interpretive categories used to describe ways a theme may be expressed. A sign can offer language for qualities such as directness, patience, curiosity, or sensitivity; it does not define a person or determine what they will do.
+          {copy.sign.representDescription}
         </p>
       </section>
 
       <section aria-labelledby="elements-title">
-        <p class="nn-eyebrow">Elements</p>
+        <p class="nn-eyebrow">{copy.sign.elementsEyebrow}</p>
         <h2 class="nn-type-section-title mt-2" id="elements-title">
-          Four symbolic lenses
+          {copy.sign.elementsTitle}
         </h2>
         <ul class="mt-4 space-y-3 nn-type-body">
-          {Object.entries(ELEMENT_MEANINGS).map(([element, description]) => (
+          {Object.entries(copy.sign.elementMeanings).map(([element, description]) => (
             <li><strong class="font-semibold text-natal-primary">{glossaryTerm('sign_element', element)}:</strong> {description}</li>
           ))}
         </ul>
       </section>
 
       <section aria-labelledby="modalities-title">
-        <p class="nn-eyebrow">Modalities</p>
+        <p class="nn-eyebrow">{copy.sign.modalitiesEyebrow}</p>
         <h2 class="nn-type-section-title mt-2" id="modalities-title">
-          Three ways energy is described
+          {copy.sign.modalitiesTitle}
         </h2>
         <ul class="mt-4 space-y-3 nn-type-body">
-          {Object.entries(MODALITY_MEANINGS).map(([modality, description]) => (
+          {Object.entries(copy.sign.modalityMeanings).map(([modality, description]) => (
             <li><strong class="font-semibold text-natal-primary">{glossaryTerm('sign_modality', modality)}:</strong> {description}</li>
           ))}
         </ul>
       </section>
 
       <section aria-labelledby="how-to-use-title">
-        <p class="nn-eyebrow">How to use the lookup</p>
+        <p class="nn-eyebrow">{copy.sign.howEyebrow}</p>
         <h2 class="nn-type-section-title mt-2" id="how-to-use-title">
-          Read the result as a starting point
+          {copy.sign.howTitle}
         </h2>
         <p class="nn-type-body mt-4">
-          Begin with the element and modality, then notice how the core style and constructive expression fit together. The potential tension is an invitation to reflect on balance, not a prediction or a fixed label. You can compare this tool with the <a class="text-natal-accent underline decoration-natal-accent/50 underline-offset-4 transition-colors hover:text-white" href={localize('/tools/aspect-lookup')}>Aspect Lookup</a> when you want to explore another piece of astrology vocabulary.
+          {copy.sign.howDescription}
+          <a class="ml-1 text-natal-accent underline decoration-natal-accent/50 underline-offset-4 transition-colors hover:text-white" href={localize('/tools/aspect-lookup')}>{ui('tools.aspectLookup')}</a>
         </p>
       </section>
 
       <section class="lg:col-span-2" aria-labelledby="calculation-disclosure-title">
-        <p class="nn-eyebrow">Calculation vs interpretation</p>
+        <p class="nn-eyebrow">{copy.sign.calculationEyebrow}</p>
         <h2 class="nn-type-section-title mt-2" id="calculation-disclosure-title">
-          An explanation, not a sign calculator
+          {copy.sign.calculationTitle}
         </h2>
         <p class="nn-type-body mt-4 max-w-3xl">
-          This tool explains a zodiac sign you select. It does not calculate a sign from your birth date or planetary position, and it does not claim scientific validation for astrological interpretation. For an introduction to chart inputs and calculation boundaries, read <a class="text-natal-accent underline decoration-natal-accent/50 underline-offset-4 transition-colors hover:text-white" href={localize('/learn/what-is-a-natal-chart')}>What Is a Natal Chart?</a> or return to the <a class="text-natal-accent underline decoration-natal-accent/50 underline-offset-4 transition-colors hover:text-white" href={localize('/tools/')}>Tools hub</a>.
+          {copy.sign.calculationDescription}
+          <a class="ml-1 text-natal-accent underline decoration-natal-accent/50 underline-offset-4 transition-colors hover:text-white" href={localize('/learn/what-is-a-natal-chart')}>{ui('learn.landing.article.foundationsTitle')}</a>
+          <a class="ml-1 text-natal-accent underline decoration-natal-accent/50 underline-offset-4 transition-colors hover:text-white" href={localize('/tools/')}>{ui('tools.referenceTools')}</a>
         </p>
       </section>
     </div>

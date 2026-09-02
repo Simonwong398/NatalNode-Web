@@ -8,6 +8,10 @@ import {
   resolveAstrologyDomainTerm,
   type AstrologyGlossaryDomainKind
 } from '@/lib/astrology-glossary';
+import {
+  formatToolDetailMessage,
+  getToolDetailCopy
+} from '@/lib/tools-detail-copy';
 
 export const ELEMENT_MEANINGS = {
   Fire: 'A symbolic lens for initiative, warmth, visibility, and active expression.',
@@ -118,6 +122,7 @@ export function initializeSignLookup(): void {
   }
 
   const locale = parseSupportedLocale(form.dataset.glossaryLocale) ?? DEFAULT_LOCALE;
+  const copy = getToolDetailCopy(locale);
 
   const render = (): void => {
     const interpretation = composeSignLookupInterpretation(select.value);
@@ -135,19 +140,37 @@ export function initializeSignLookup(): void {
     const heading = document.createElement('h2');
     heading.className = 'nn-type-section-title';
     heading.id = 'sign-result-title';
-    heading.textContent = `${signTerm}: an interpretive snapshot`;
+    heading.textContent = formatToolDetailMessage(copy.sign.resultTitle, { sign: signTerm });
 
     const summary = document.createElement('p');
     summary.className = 'nn-type-body mt-4 max-w-3xl';
-    summary.textContent = `${signTerm} is described here as ${interpretation.coreStyle}.`;
+    summary.textContent = locale === DEFAULT_LOCALE
+      ? formatToolDetailMessage(copy.sign.resultSummary, {
+          sign: signTerm,
+          style: interpretation.coreStyle
+        })
+      : formatToolDetailMessage(copy.sign.resultSummary, { sign: signTerm });
 
     const details = document.createElement('dl');
     details.className = 'mt-8 grid gap-6 sm:grid-cols-3';
 
     const fields: Array<[string, string]> = [
-      ['Element', `${elementTerm} — ${interpretation.elementLens}`],
-      ['Modality', `${modalityTerm} — ${interpretation.modalityLens}`],
-      ['Core style', interpretation.coreStyle]
+      [
+        copy.sign.elementLabel,
+        `${elementTerm} — ${locale === DEFAULT_LOCALE
+          ? interpretation.elementLens
+          : copy.sign.elementMeanings[interpretation.element]}`
+      ],
+      [
+        copy.sign.modalityLabel,
+        `${modalityTerm} — ${locale === DEFAULT_LOCALE
+          ? interpretation.modalityLens
+          : copy.sign.modalityMeanings[interpretation.modality]}`
+      ],
+      [
+        copy.sign.coreStyleLabel,
+        locale === DEFAULT_LOCALE ? interpretation.coreStyle : signTerm
+      ]
     ];
 
     for (const [label, value] of fields) {
@@ -168,11 +191,18 @@ export function initializeSignLookup(): void {
 
     const constructive = document.createElement('p');
     constructive.className = 'nn-type-body mt-8 max-w-3xl';
-    constructive.textContent = `Constructive expression: ${interpretation.constructiveExpression}.`;
+    constructive.textContent = locale === DEFAULT_LOCALE
+      ? formatToolDetailMessage(copy.sign.constructive, {
+          expression: interpretation.constructiveExpression,
+          sign: signTerm
+        })
+      : formatToolDetailMessage(copy.sign.constructive, { sign: signTerm });
 
     const tension = document.createElement('p');
     tension.className = 'nn-type-body mt-4 max-w-3xl';
-    tension.textContent = `Potential tension: ${interpretation.potentialTension}`;
+    tension.textContent = locale === DEFAULT_LOCALE
+      ? formatToolDetailMessage(copy.sign.tension, { tension: interpretation.potentialTension })
+      : copy.sign.tension;
 
     resultContent.replaceChildren(heading, summary, details, constructive, tension);
     result.hidden = false;

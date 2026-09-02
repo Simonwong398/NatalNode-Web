@@ -5,7 +5,6 @@ import BirthDateTimeFields from './BirthDateTimeFields';
 import BirthLocationFields from './BirthLocationFields';
 import BirthResolutionFeedback from './BirthResolutionFeedback';
 import {
-  DEVELOPMENT_RESOLVER_NOTICE,
   DevelopmentBirthInputResolver
 } from './development-resolver';
 import type { BirthInputResolver } from './resolver';
@@ -104,30 +103,30 @@ function applyResolutionToDraft(
   };
 }
 
-function BirthDataTrustSection() {
+function BirthDataTrustSection({ locale }: { locale?: SupportedLocale }) {
   return (
     <section
       aria-labelledby="birth-data-trust-title"
       className="nn-calculate-trust mt-8 border-t border-[color:var(--nn-border-subtle)] pt-7"
     >
-      <p className="nn-eyebrow">Trust and methodology</p>
+      <p className="nn-eyebrow">{chartUi(locale, 'birthInput.trustEyebrow')}</p>
       <h2 className="nn-type-card-title mt-1" id="birth-data-trust-title">
-        How NatalNode handles your birth data
+        {chartUi(locale, 'birthInput.trustTitle')}
       </h2>
       <ul className="mt-4 grid gap-4 sm:grid-cols-3">
         <li className="border-t border-[color:var(--nn-border-subtle)] pt-3">
           <p className="nn-type-body-small">
-            Birth date, local time, birth place, timezone context, and a resolved UTC instant remain explicit chart inputs when available.
+            {chartUi(locale, 'birthInput.trustInputs')}
           </p>
         </li>
         <li className="border-t border-[color:var(--nn-border-subtle)] pt-3">
           <p className="nn-type-body-small">
-            NatalNode does not silently substitute noon when the exact birth time is unknown.
+            {chartUi(locale, 'birthInput.trustNoNoon')}
           </p>
         </li>
         <li className="border-t border-[color:var(--nn-border-subtle)] pt-3">
           <p className="nn-type-body-small">
-            Time-dependent chart facts remain unavailable when the required birth-time information is missing.
+            {chartUi(locale, 'birthInput.trustUnavailable')}
           </p>
         </li>
       </ul>
@@ -384,15 +383,12 @@ export default function BirthInputForm({
         </form>
       </section>
 
-      <BirthDataTrustSection />
+      <BirthDataTrustSection locale={locale} />
 
       <div className="nn-notice nn-notice--research mt-6 max-w-3xl flex-col">
-        <p className="nn-eyebrow nn-status--research">Development information</p>
-        <p className="nn-type-metadata">{DEVELOPMENT_RESOLVER_NOTICE}</p>
-        <p className="nn-type-metadata">
-          Fixture states: enter <code>UI FIXTURE: AMBIGUOUS</code> or{' '}
-          <code>UI FIXTURE: NONEXISTENT</code> in Birth place.
-        </p>
+        <p className="nn-eyebrow nn-status--research">{chartUi(locale, 'birthInput.developmentInformation')}</p>
+        <p className="nn-type-metadata">{chartUi(locale, 'birthInput.developmentNotice')}</p>
+        <p className="nn-type-metadata">{chartUi(locale, 'birthInput.fixtureInstruction')}</p>
       </div>
     </>
   );

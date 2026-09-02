@@ -9,7 +9,7 @@ import {
   resolveAstrologyDomainTerm,
   type AstrologyGlossaryDomainKind
 } from '../../lib/astrology-glossary.js';
-import { chartUi } from '../chart-experience/chart-ui.js';
+import { chartUi, chartUiFormat } from '../chart-experience/chart-ui.js';
 import type { ChartPresentationPolicy } from './chart-presentation-policy';
 
 function formatNumericValue(value: number): string {
@@ -107,7 +107,9 @@ function BodyNotation({
   const signTerm = glossaryTerm('sign', body.sign, locale);
   const retrogradeTerm = glossaryTerm('motion', 'RETROGRADE', locale);
   const houseNotation = showHouses && typeof house === 'number' && Number.isInteger(house) && house >= 1 && house <= 12
-    ? `House ${glossaryNotation('house', house, 'romanNumeral') ?? formatHouse(house)}`
+    ? chartUiFormat(locale, 'chart.houseLabel', {
+        house: glossaryNotation('house', house, 'romanNumeral') ?? formatHouse(house)
+      })
     : null;
 
   return (
@@ -159,12 +161,16 @@ export type AstrologicalNotationProps = {
   presentationPolicy: ChartPresentationPolicy;
 };
 
-function bodyCount(count: number) {
-  return `${count} ${count === 1 ? 'body placement' : 'body placements'}`;
+function bodyCount(locale: SupportedLocale | undefined, count: number) {
+  return chartUiFormat(locale, count === 1 ? 'chart.bodyCount.one' : 'chart.bodyCount.many', {
+    count
+  });
 }
 
-function aspectCount(count: number) {
-  return `${count} ${count === 1 ? 'major aspect' : 'major aspects'}`;
+function aspectCount(locale: SupportedLocale | undefined, count: number) {
+  return chartUiFormat(locale, count === 1 ? 'chart.aspectCount.one' : 'chart.aspectCount.many', {
+    count
+  });
 }
 
 export default function AstrologicalNotation({ chart, locale, presentationPolicy }: AstrologicalNotationProps) {
@@ -182,7 +188,7 @@ export default function AstrologicalNotation({ chart, locale, presentationPolicy
     ? chart.angles.find((angle) => angle.angleId === 'ASC')
     : undefined;
   const hasCompleteFacts = chart.bodies.length > 0 || chart.aspects.length > 0;
-  const countSummary = `${bodyCount(chart.bodies.length)} · ${aspectCount(chart.aspects.length)}`;
+  const countSummary = `${bodyCount(locale, chart.bodies.length)} · ${aspectCount(locale, chart.aspects.length)}`;
 
   if (orientationBodies.length === 0 && !ascendant && !hasCompleteFacts) {
     return null;
@@ -191,9 +197,9 @@ export default function AstrologicalNotation({ chart, locale, presentationPolicy
   return (
     <section aria-labelledby={titleId} className="mt-6 border-t border-natal-border/70 pt-5">
       <div className="nn-section-header">
-        <p className="nn-eyebrow">Chart orientation</p>
+        <p className="nn-eyebrow">{chartUi(locale, 'chart.orientation')}</p>
         <h4 className="nn-type-section-title" id={titleId}>
-          Chart facts at a glance
+          {chartUi(locale, 'chart.factsAtGlance')}
         </h4>
       </div>
 
@@ -210,7 +216,7 @@ export default function AstrologicalNotation({ chart, locale, presentationPolicy
 
       {!presentationPolicy.showAngles || !presentationPolicy.showHouses ? (
         <p className="nn-type-body-small mt-3">
-          Time-dependent angles and houses unavailable.
+          {chartUi(locale, 'chart.timeDependentUnavailable')}
         </p>
       ) : null}
 
@@ -259,7 +265,9 @@ export default function AstrologicalNotation({ chart, locale, presentationPolicy
 
             {chart.aspects.length > 0 ? (
               <div className={chart.bodies.length > 0 ? 'mt-5' : 'mt-3'}>
-                <h6 className="text-sm font-semibold text-nn-text-primary">Major aspects</h6>
+                <h6 className="text-sm font-semibold text-nn-text-primary">
+                  {chartUi(locale, 'chart.majorAspects')}
+                </h6>
                 <ul className="mt-1">
                   {chart.aspects.map((aspect, index) => (
                     <AspectNotation

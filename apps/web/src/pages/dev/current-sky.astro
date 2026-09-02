@@ -3,6 +3,7 @@ import SiteLayout from '@/layouts/SiteLayout.astro';
 import { CurrentSkyInstrument } from '@/features/public-sky';
 import { getPresentationLocale, type SupportedLocale } from '@/lib/localization';
 import type { SeoMetadata } from '@/lib/seo';
+import { getUiMessage, type UiMessageKey } from '@/lib/ui-catalog';
 
 interface Props {
   locale?: SupportedLocale;
@@ -10,6 +11,7 @@ interface Props {
 
 const { locale: localizedLocale } = Astro.props;
 const locale = localizedLocale ?? getPresentationLocale(Astro.url.pathname, Astro.locals.locale);
+const t = (key: UiMessageKey): string => getUiMessage(locale, key);
 
 const CURRENT_SKY_AT_UTC = '2026-09-01T12:00:00.000Z';
 const isCurrentSkyPreviewAvailable =
@@ -26,16 +28,16 @@ const seo: SeoMetadata = {
 <SiteLayout seo={seo} mode="observatory">
   <main class="nn-container nn-container--workspace pb-20 pt-12 sm:pb-24 sm:pt-16">
     <header class="max-w-3xl">
-      <p class="nn-eyebrow">PUBLIC SKY · DEVELOPMENT FIXTURE</p>
-      <h1 class="nn-type-page-title mt-3">Current Sky instrument</h1>
-      <p class="nn-type-body mt-4 max-w-2xl">A focused readout of the supplied shared-sky snapshot at one UTC instant.</p>
+      <p class="nn-eyebrow">{t('sky.publicEyebrow')}</p>
+      <h1 class="nn-type-page-title mt-3">{t('sky.publicTitle')}</h1>
+      <p class="nn-type-body mt-4 max-w-2xl">{t('sky.publicDescription')}</p>
     </header>
     {isCurrentSkyPreviewAvailable ? (
-      <section class="nn-surface nn-surface--instrument mt-10 p-4 sm:p-8" aria-label="Current Sky instrument">
+      <section class="nn-surface nn-surface--instrument mt-10 p-4 sm:p-8" aria-label={t('sky.publicTitle')}>
         <CurrentSkyInstrument atUtc={CURRENT_SKY_AT_UTC} locale={locale} client:load />
       </section>
     ) : (
-      <p class="nn-notice nn-notice--info mt-10 max-w-2xl">This development preview is unavailable in production builds.</p>
+      <p class="nn-notice nn-notice--info mt-10 max-w-2xl">{t('sky.publicUnavailable')}</p>
     )}
   </main>
 </SiteLayout>

@@ -3,6 +3,7 @@ import SiteLayout from '@/layouts/SiteLayout.astro';
 import { SEO_TOOL_TAXONOMY } from '@/lib/content-taxonomy';
 import { getLocalizedPath, getPresentationLocale } from '@/lib/localization';
 import type { SeoMetadata } from '@/lib/seo';
+import { formatUiMessage, getUiMessage, type UiMessageKey } from '@/lib/ui-catalog';
 
 const seo: SeoMetadata = {
   title: 'Astrology Reference Tools | NatalNode',
@@ -13,25 +14,41 @@ const seo: SeoMetadata = {
 const availableTools = SEO_TOOL_TAXONOMY.filter((tool) => tool.status === 'AVAILABLE');
 const locale = getPresentationLocale(Astro.url.pathname, Astro.locals.locale);
 const localize = (path: string): string => getLocalizedPath(locale, path);
+const t = (key: UiMessageKey): string => getUiMessage(locale, key);
+
+const toolCopy = {
+  '/tools/sign-lookup': {
+    label: 'tools.signLookup',
+    purpose: 'tools.signLookupPurpose'
+  },
+  '/tools/house-lookup': {
+    label: 'tools.houseLookup',
+    purpose: 'tools.houseLookupPurpose'
+  },
+  '/tools/aspect-lookup': {
+    label: 'tools.aspectLookup',
+    purpose: 'tools.aspectLookupPurpose'
+  }
+} as const satisfies Record<string, { label: UiMessageKey; purpose: UiMessageKey }>;
 ---
 
 <SiteLayout seo={seo}>
   <main class="nn-container nn-container--editorial nn-tools-page nn-tools-hub pb-20 pt-12 sm:pb-24 sm:pt-16">
     <header class="max-w-3xl nn-tools-hub__header">
-      <p class="nn-eyebrow">Tools</p>
+      <p class="nn-eyebrow">{t('tools.eyebrow')}</p>
       <h1 class="nn-type-page-title mt-3">
-        Reference tools for the building blocks of a chart.
+        {t('tools.title')}
       </h1>
       <p class="nn-type-body mt-4 max-w-2xl">
-        Use these focused educational lookups to understand signs, houses, and aspects without performing a full natal-chart calculation.
+        {t('tools.description')}
       </p>
     </header>
 
     <section class="mt-12 max-w-5xl nn-tools-hub__directory" aria-labelledby="available-tools-title">
       <div class="nn-section-header max-w-2xl">
-        <p class="nn-eyebrow">Reference tools</p>
+        <p class="nn-eyebrow">{t('tools.referenceTools')}</p>
         <h2 class="nn-type-section-title" id="available-tools-title">
-          Start with a focused question
+          {t('tools.startQuestion')}
         </h2>
       </div>
       <ul class="mt-8 grid gap-5 md:grid-cols-3 nn-tools-card-grid">
@@ -42,10 +59,16 @@ const localize = (path: string): string => getLocalizedPath(locale, path);
                 class="nn-tools-card__link font-semibold underline decoration-natal-accent/50 underline-offset-4 transition-colors hover:text-natal-accent"
                 href={localize(tool.intendedPath)}
               >
-                {tool.label}
+                {toolCopy[tool.intendedPath]?.label
+                  ? t(toolCopy[tool.intendedPath].label)
+                  : tool.label}
               </a>
             </h3>
-            <p class="nn-type-body-small mt-3">{tool.purpose}</p>
+            <p class="nn-type-body-small mt-3">
+              {toolCopy[tool.intendedPath]?.purpose
+                ? t(toolCopy[tool.intendedPath].purpose)
+                : tool.purpose}
+            </p>
           </li>
         ))}
       </ul>
@@ -53,22 +76,22 @@ const localize = (path: string): string => getLocalizedPath(locale, path);
 
     <section class="mt-16 max-w-3xl border-t border-natal-border/70 pt-12 nn-tools-hub__support" aria-labelledby="tools-principles-title">
       <div class="nn-section-header">
-        <p class="nn-eyebrow">Foundation</p>
+        <p class="nn-eyebrow">{t('tools.foundation')}</p>
         <h2 class="nn-type-section-title" id="tools-principles-title">
-        Keep the directory useful
+          {t('tools.keepDirectoryUseful')}
         </h2>
       </div>
       <div class="mt-5 space-y-4 nn-type-body">
         <p>
-          {availableTools.length} reference tools are currently available for educational lookup and interpretation of chart building blocks. They do not calculate a natal chart.
+          {formatUiMessage(locale, 'tools.availableSummary', { count: availableTools.length })}
         </p>
         <p>
-          Additional utility concepts will be linked only when their functionality exists, keeping the directory useful instead of filling it with placeholder inventory.
+          {t('tools.additionalUtility')}
         </p>
       </div>
-      <p class="nn-type-body-small mt-6">Looking to calculate a natal chart?</p>
+      <p class="nn-type-body-small mt-6">{t('tools.calculatePrompt')}</p>
       <a class="nn-button nn-button--quiet mt-2" href={localize('/')}>
-        Calculate a chart →
+        {t('tools.calculateAction')}
       </a>
     </section>
   </main>

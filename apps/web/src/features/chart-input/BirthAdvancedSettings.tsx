@@ -26,7 +26,9 @@ export default function BirthAdvancedSettings({
   onHouseSystemChange,
   onOpenChange
 }: BirthAdvancedSettingsProps) {
-  const requestedLocale = locale ?? DEFAULT_LOCALE;
+  // House-system option labels are stable domain values in this form; locale
+  // changes the surrounding controls without changing their identifiers.
+  const requestedLocale = DEFAULT_LOCALE;
   const houseSystemLabel = (value: HouseSystemSelection): string =>
     resolveAstrologyDomainTerm('house_system', value, requestedLocale)?.displayTerm ?? value;
 

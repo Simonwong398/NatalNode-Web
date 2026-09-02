@@ -9,6 +9,8 @@ import {
   type AstrologyGlossaryDomainKind
 } from '@/lib/astrology-glossary';
 import { getLocalizedPath, getPresentationLocale } from '@/lib/localization';
+import { getToolDetailCopy } from '@/lib/tools-detail-copy';
+import { getUiMessage, type UiMessageKey } from '@/lib/ui-catalog';
 import type { SeoMetadata } from '@/lib/seo';
 
 const seo: SeoMetadata = {
@@ -18,6 +20,8 @@ const seo: SeoMetadata = {
 };
 const locale = getPresentationLocale(Astro.url.pathname, Astro.locals.locale);
 const localize = (path: string): string => getLocalizedPath(locale, path);
+const copy = getToolDetailCopy(locale);
+const ui = (key: UiMessageKey): string => getUiMessage(locale, key);
 const glossaryTerm = (kind: AstrologyGlossaryDomainKind, value: unknown): string =>
   resolveAstrologyDomainTerm(kind, value, locale)?.displayTerm ??
   (typeof value === 'string' ? value : String(value));
@@ -26,27 +30,27 @@ const glossaryTerm = (kind: AstrologyGlossaryDomainKind, value: unknown): string
 <SiteLayout seo={seo}>
   <main class="nn-container nn-container--editorial nn-tools-page nn-tools-detail pb-20 pt-12 sm:pb-24 sm:pt-16">
     <header class="max-w-3xl nn-tools-detail__header">
-      <p class="nn-eyebrow">Tools / Aspect Lookup</p>
+      <p class="nn-eyebrow">{ui('tools.eyebrow')} / {ui('tools.aspectLookup')}</p>
       <h1 class="nn-type-page-title mt-3">
-        Explore a planetary aspect
+        {copy.aspect.title}
       </h1>
       <p class="nn-type-body mt-4 max-w-2xl">
-        Choose two planets and one major aspect to explore how astrology describes the relationship between those themes.
+        {copy.aspect.description}
       </p>
     </header>
 
     <section class="nn-surface nn-surface--elevated nn-tools-task-surface mt-12 max-w-4xl p-5 sm:p-8" aria-labelledby="aspect-selection-title">
       <div class="nn-section-header">
-        <p class="nn-eyebrow">Make a selection</p>
+        <p class="nn-eyebrow">{copy.common.makeSelection}</p>
         <h2 class="nn-type-section-title" id="aspect-selection-title">
-          Planet A + aspect + Planet B
+          {copy.aspect.selectionTitle}
         </h2>
       </div>
 
       <form class="mt-8" data-glossary-locale={locale} data-aspect-lookup-form aria-describedby="aspect-lookup-boundary">
         <div class="grid gap-5 lg:grid-cols-[1fr_auto_1fr] lg:items-end">
           <div>
-            <label class="nn-type-label" for="planet-a">Planet A</label>
+            <label class="nn-type-label" for="planet-a">{copy.aspect.planetALabel}</label>
             <select
               class="nn-field mt-2"
               id="planet-a"
@@ -54,13 +58,13 @@ const glossaryTerm = (kind: AstrologyGlossaryDomainKind, value: unknown): string
               data-planet-a
               required
             >
-              <option value="">Choose a planet</option>
+              <option value="">{copy.aspect.planetPlaceholder}</option>
               {SUPPORTED_PLANETS.map((planet) => <option value={planet}>{glossaryTerm('body', planet)}</option>)}
             </select>
           </div>
 
           <div>
-            <label class="nn-type-label" for="aspect-type">Major aspect</label>
+            <label class="nn-type-label" for="aspect-type">{copy.aspect.aspectLabel}</label>
             <select
               class="nn-field mt-2 lg:min-w-48"
               id="aspect-type"
@@ -68,13 +72,13 @@ const glossaryTerm = (kind: AstrologyGlossaryDomainKind, value: unknown): string
               data-aspect
               required
             >
-              <option value="">Choose an aspect</option>
+              <option value="">{copy.aspect.aspectPlaceholder}</option>
               {ASPECT_OPTIONS.map((aspect) => <option value={aspect.value}>{glossaryTerm('aspect', aspect.value)}</option>)}
             </select>
           </div>
 
           <div>
-            <label class="nn-type-label" for="planet-b">Planet B</label>
+            <label class="nn-type-label" for="planet-b">{copy.aspect.planetBLabel}</label>
             <select
               class="nn-field mt-2"
               id="planet-b"
@@ -82,21 +86,21 @@ const glossaryTerm = (kind: AstrologyGlossaryDomainKind, value: unknown): string
               data-planet-b
               required
             >
-              <option value="">Choose a planet</option>
+              <option value="">{copy.aspect.planetPlaceholder}</option>
               {SUPPORTED_PLANETS.map((planet) => <option value={planet}>{glossaryTerm('body', planet)}</option>)}
             </select>
           </div>
         </div>
 
         <p class="nn-notice nn-notice--trust mt-6 max-w-3xl" id="aspect-lookup-boundary">
-          Select an aspect you already want to understand. The same two planets represent one symmetric combination whichever order you choose.
+          {copy.aspect.boundary}
         </p>
 
         <button
           class="nn-button nn-button--quiet mt-5"
           type="reset"
         >
-          Clear selections
+          {copy.common.clearSelections}
         </button>
       </form>
     </section>
@@ -111,42 +115,44 @@ const glossaryTerm = (kind: AstrologyGlossaryDomainKind, value: unknown): string
       <div data-aspect-result-content></div>
     </section>
     <p class="nn-async-state nn-async-state--empty mt-6 max-w-3xl" data-aspect-empty role="status">
-      Choose Planet A, a major aspect, and Planet B to see a focused interpretation. No combination is preselected.
+      {copy.aspect.empty}
     </p>
     <noscript>
       <p class="nn-notice nn-notice--info mt-4 max-w-3xl">
-        JavaScript is required to generate the selected interpretation in this browser.
+        {copy.common.noscript}
       </p>
     </noscript>
 
     <div class="nn-tools-explanation mt-16 grid gap-12 border-t border-natal-border/70 pt-12 lg:grid-cols-2 lg:gap-x-10 lg:gap-y-14 lg:pt-16">
       <section aria-labelledby="what-this-tool-does-title">
-        <p class="nn-eyebrow">What this tool does</p>
+        <p class="nn-eyebrow">{copy.aspect.whatEyebrow}</p>
         <h2 class="nn-type-section-title mt-2" id="what-this-tool-does-title">
-          Start with a known combination
+          {copy.aspect.whatTitle}
         </h2>
         <p class="nn-type-body mt-4">
-          A planetary aspect is an interpretive way of describing a relationship between two chart bodies. This tool lets you name the two bodies and the major aspect first, then gives you a compact explanation of the themes and dynamic involved.
+          {copy.aspect.whatDescription}
         </p>
       </section>
 
       <section aria-labelledby="how-to-use-title">
-        <p class="nn-eyebrow">How to use the result</p>
+        <p class="nn-eyebrow">{copy.aspect.howEyebrow}</p>
         <h2 class="nn-type-section-title mt-2" id="how-to-use-title">
-          Read it as a starting point
+          {copy.aspect.howTitle}
         </h2>
         <p class="nn-type-body mt-4">
-          Notice the two planetary themes, then consider how the aspect dynamic might bring them into conversation. The wording is educational and symbolic; it does not make a prediction about a person or a chart.
+          {copy.aspect.howDescription}
         </p>
       </section>
 
       <section class="lg:col-span-2" aria-labelledby="calculation-disclosure-title">
-        <p class="nn-eyebrow">Calculation vs interpretation</p>
+        <p class="nn-eyebrow">{copy.aspect.calculationEyebrow}</p>
         <h2 class="nn-type-section-title mt-2" id="calculation-disclosure-title">
-          An explanation, not an aspect detector
+          {copy.aspect.calculationTitle}
         </h2>
         <p class="nn-type-body mt-4 max-w-3xl">
-          This tool explains an aspect you select. It does not calculate planetary positions, measure angles or orbs, or determine whether the aspect exists in a birth chart. For an introduction to chart inputs and calculation transparency, read <a class="text-natal-accent underline decoration-natal-accent/50 underline-offset-4 transition-colors hover:text-white" href={localize('/learn/what-is-a-natal-chart')}>What Is a Natal Chart?</a> or return to the <a class="text-natal-accent underline decoration-natal-accent/50 underline-offset-4 transition-colors hover:text-white" href={localize('/tools/')}>Tools hub</a>.
+          {copy.aspect.calculationDescription}
+          <a class="ml-1 text-natal-accent underline decoration-natal-accent/50 underline-offset-4 transition-colors hover:text-white" href={localize('/learn/what-is-a-natal-chart')}>{ui('learn.landing.article.foundationsTitle')}</a>
+          <a class="ml-1 text-natal-accent underline decoration-natal-accent/50 underline-offset-4 transition-colors hover:text-white" href={localize('/tools/')}>{ui('tools.referenceTools')}</a>
         </p>
       </section>
     </div>

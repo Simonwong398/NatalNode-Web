@@ -319,6 +319,7 @@
   .nn-calculate-page {
     position: relative;
     isolation: isolate;
+    overflow-x: clip;
     background: transparent;
   }
 
@@ -456,17 +457,22 @@
   }
 
   .nn-brand-instrument__orbit--cyan {
-    animation: nn-brand-orbit-cyan 34s linear infinite;
+    animation: nn-brand-orbit-cyan 31s linear infinite;
+    animation-delay: -4s;
+    filter: drop-shadow(0 0 4px rgb(34 199 214 / 0.42));
   }
 
   .nn-brand-instrument__orbit--silver {
-    animation: nn-brand-orbit-silver 27s linear infinite;
+    animation: nn-brand-orbit-silver 43s linear infinite;
+    animation-delay: -13s;
+    filter: drop-shadow(0 0 3px rgb(230 232 235 / 0.24));
   }
 
   .nn-brand-instrument__core {
-    transform-box: fill-box;
-    transform-origin: center;
-    animation: nn-brand-instrument-core-rotation 24s linear infinite;
+    transform-box: view-box;
+    transform-origin: 260px 260px;
+    animation: nn-brand-instrument-core-rotation 19s linear infinite;
+    animation-delay: -7s;
   }
 
   .nn-brand-instrument__reference {
@@ -541,11 +547,7 @@
     }
 
     .nn-brand-instrument__reference {
-      opacity: 0;
-    }
-
-    .nn-brand-instrument__orbit--silver {
-      display: none;
+      opacity: 0.72;
     }
   }
 

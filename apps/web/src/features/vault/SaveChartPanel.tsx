@@ -15,10 +15,9 @@ import {
   getLocalizedPath,
   type SupportedLocale
 } from '@/lib/localization';
+import { formatVaultUi, vaultCategoryLabel, vaultUi } from './vault-ui.js';
 
 const DISPLAY_NAME_MAX_LENGTH = 120;
-const SAVE_FAILURE_MESSAGE = "We couldn't save this chart. Please try again.";
-const INVALID_METADATA_MESSAGE = 'Check the chart name and category, then try again.';
 
 type SaveState = 'idle' | 'saving' | 'saved' | 'invalid-request' | 'failed';
 
@@ -75,13 +74,17 @@ export default function SaveChartPanel({ chartRequest, locale }: SaveChartPanelP
     const trimmedDisplayName = displayName.trim();
 
     if (!trimmedDisplayName) {
-      setNameError('Enter a chart name.');
+      setNameError(vaultUi(locale, 'vault.chartNameRequired'));
       setSaveState('idle');
       return;
     }
 
     if (trimmedDisplayName.length > DISPLAY_NAME_MAX_LENGTH) {
-      setNameError(`Use ${DISPLAY_NAME_MAX_LENGTH} characters or fewer.`);
+      setNameError(
+        formatVaultUi(locale, 'vault.chartNameTooLong', {
+          count: DISPLAY_NAME_MAX_LENGTH
+        })
+      );
       setSaveState('idle');
       return;
     }
@@ -121,14 +124,13 @@ export default function SaveChartPanel({ chartRequest, locale }: SaveChartPanelP
     >
       <div className="max-w-3xl">
         <p className="nn-eyebrow">
-          Chart Vault
+          {vaultUi(locale, 'workspace.chartVault')}
         </p>
         <h3 className="nn-type-section-title mt-2" id={titleId}>
-          Save this chart
+          {vaultUi(locale, 'workspace.saveChartTitle')}
         </h3>
         <p className="nn-type-body-small mt-2">
-          Add a name and category. The server will verify and recalculate this chart before
-          saving it.
+          {vaultUi(locale, 'workspace.saveChartDescription')}
         </p>
 
         <form
@@ -138,7 +140,7 @@ export default function SaveChartPanel({ chartRequest, locale }: SaveChartPanelP
         >
           <div>
             <label className="nn-type-label" htmlFor={displayNameId}>
-              Chart name
+              {vaultUi(locale, 'vault.chartName')}
             </label>
             <input
               aria-describedby={nameError ? displayNameErrorId : undefined}
@@ -165,7 +167,7 @@ export default function SaveChartPanel({ chartRequest, locale }: SaveChartPanelP
 
           <div>
             <label className="nn-type-label" htmlFor={categoryId}>
-              Category
+              {vaultUi(locale, 'vault.category')}
             </label>
             <select
               className="nn-field mt-2 appearance-auto"
@@ -182,7 +184,7 @@ export default function SaveChartPanel({ chartRequest, locale }: SaveChartPanelP
             >
               {VAULT_CHART_CATEGORIES.map((option) => (
                 <option key={option} value={option}>
-                  {option.charAt(0) + option.slice(1).toLowerCase()}
+                  {vaultCategoryLabel(locale, option)}
                 </option>
               ))}
             </select>
@@ -193,27 +195,29 @@ export default function SaveChartPanel({ chartRequest, locale }: SaveChartPanelP
             disabled={saveState === 'saving'}
             type="submit"
           >
-            {saveState === 'saving' ? 'Saving…' : 'Save to Vault'}
+            {saveState === 'saving'
+              ? vaultUi(locale, 'vault.saving')
+              : vaultUi(locale, 'workspace.saveChartAction')}
           </button>
         </form>
 
         <div className="mt-3 min-h-6">
           {saveState === 'saved' ? (
             <p className="nn-status nn-status--success" role="status">
-              Saved to Vault.{' '}
+              {vaultUi(locale, 'workspace.chartSaved')}{' '}
               <a className="font-medium underline underline-offset-4 hover:text-white" href={vaultPath}>
-                View Vault
+                {vaultUi(locale, 'workspace.viewVault')}
               </a>
             </p>
           ) : null}
           {saveState === 'invalid-request' ? (
             <p className="nn-status nn-status--error" role="alert">
-              {INVALID_METADATA_MESSAGE}
+              {vaultUi(locale, 'vault.invalidMetadata')}
             </p>
           ) : null}
           {saveState === 'failed' ? (
             <p className="nn-status nn-status--error" role="alert">
-              {SAVE_FAILURE_MESSAGE}
+              {vaultUi(locale, 'workspace.saveChartError')}
             </p>
           ) : null}
         </div>

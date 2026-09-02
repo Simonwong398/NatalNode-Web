@@ -16,7 +16,11 @@ import {
 } from '../../lib/localization.js';
 import { resolveAstrologyTerm } from '../../lib/astrology-glossary.js';
 import type { ChartPresentationPolicy } from './chart-presentation-policy';
-import { chartUi } from '../chart-experience/chart-ui.js';
+import {
+  chartCalculationStatus,
+  chartUi,
+  chartUiFormat
+} from '../chart-experience/chart-ui.js';
 import AstrologicalNotation from './AstrologicalNotation';
 
 type ResultMode = 'chart' | 'interpretation' | 'details';
@@ -130,14 +134,16 @@ export default function ChartWorkspaceView({
             aria-label={chartUi(locale, 'workspace.chartStatusLabel')}
           >
             <span className="nn-badge">
-              Schema {chart.schemaVersion}
+              {chartUiFormat(locale, 'workspace.schema', {
+                version: chart.schemaVersion
+              })}
             </span>
             <span className="nn-badge">
-              {chart.calculationStatus}
+              {chartCalculationStatus(locale, chart.calculationStatus)}
             </span>
             {isResearchConfiguration ? (
               <span className="nn-badge nn-status--research">
-                Research configuration
+                {chartUi(locale, 'workspace.researchConfiguration')}
               </span>
             ) : null}
           </div>
@@ -161,8 +167,11 @@ export default function ChartWorkspaceView({
           role="note"
         >
           <span>
-            <strong className="nn-status nn-status--trust">Trust limitation</strong>{' '}
-            Birth time is unknown. Ascendant, Midheaven, houses, and house-based interpretation are unavailable.
+            <strong className="nn-status nn-status--trust">
+              {chartUi(locale, 'workspace.trustLimitation')}
+            </strong>{' '}
+            {chartUi(locale, 'workspace.birthTimeUnknown')}{' '}
+            {chartUi(locale, 'workspace.birthTimeUnknownDescription')}
           </span>
         </p>
       ) : null}
@@ -225,9 +234,9 @@ export default function ChartWorkspaceView({
             className="nn-surface nn-surface--instrument min-w-0 p-4 sm:p-6 lg:p-7"
           >
             <div className="nn-section-header">
-              <p className="nn-eyebrow">Chart instrument</p>
+              <p className="nn-eyebrow">{chartUi(locale, 'workspace.chartInstrument')}</p>
               <h3 className="nn-type-section-title" id={wheelTitleId}>
-                Engine-provided chart facts
+                {chartUi(locale, 'workspace.engineFacts')}
               </h3>
             </div>
             <div className="mt-5 min-w-0">
@@ -253,7 +262,11 @@ export default function ChartWorkspaceView({
           role="tabpanel"
           tabIndex={activeMode === 'interpretation' ? 0 : undefined}
         >
-          <InterpretationPanel chart={chart} presentationPolicy={presentationPolicy} />
+          <InterpretationPanel
+            chart={chart}
+            locale={locale}
+            presentationPolicy={presentationPolicy}
+          />
         </div>
 
         <div

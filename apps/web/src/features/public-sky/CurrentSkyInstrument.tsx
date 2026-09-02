@@ -15,6 +15,12 @@ import {
   resolveAstrologyDomainTerm,
   type AstrologyGlossaryDomainKind
 } from '@/lib/astrology-glossary';
+import {
+  chartCalculationStatus,
+  chartUi,
+  chartUiFormat,
+  chartWarningMessage
+} from '../chart-experience/chart-ui.js';
 
 const ZODIAC_SIGNS = [
   'Aries', 'Taurus', 'Gemini', 'Cancer', 'Leo', 'Virgo',
@@ -75,9 +81,21 @@ function formatAspect(aspect: SkyCurrentAspect, locale: SupportedLocale | undefi
   return `${glossaryTerm('body', aspect.firstBodyId, locale)} ${glossaryTerm('aspect', aspect.aspectType, locale)} ${glossaryTerm('body', aspect.secondBodyId, locale)}${orb}${phase}`;
 }
 
-function formatSnapshotTimestamp(atUtc: string): string {
+function formatSnapshotTimestamp(atUtc: string, locale: SupportedLocale | undefined): string {
   const timestamp = new Date(atUtc).toISOString();
-  return `Sky at ${timestamp.slice(0, 10)} · ${timestamp.slice(11, 16)} UTC`;
+  const date = locale && locale !== 'en'
+    ? new Intl.DateTimeFormat(locale, {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        timeZone: 'UTC'
+      }).format(new Date(atUtc))
+    : timestamp.slice(0, 10);
+
+  return chartUiFormat(locale, 'sky.snapshotAt', {
+    date,
+    time: timestamp.slice(11, 16)
+  });
 }
 
 function SkyWheel({ snapshot, locale }: { snapshot: SkySnapshotResult; locale?: SupportedLocale }) {
@@ -87,10 +105,10 @@ function SkyWheel({ snapshot, locale }: { snapshot: SkySnapshotResult; locale?: 
 
   return (
     <svg className="h-auto w-full" viewBox="0 0 640 640" role="img" aria-labelledby={`${titleId} ${descriptionId}`}>
-      <title id={titleId}>Current Sky zodiac wheel</title>
-      <desc id={descriptionId}>Twelve zodiac sectors with supplied body positions and supplied current aspects.</desc>
+      <title id={titleId}>{chartUi(locale, 'sky.wheelTitle')}</title>
+      <desc id={descriptionId}>{chartUi(locale, 'sky.wheelDescription')}</desc>
       <circle cx="320" cy="320" r="292" fill="var(--nn-surface-base)" stroke="var(--nn-border-strong)" strokeWidth="2" />
-      <g aria-label="Zodiac sectors" role="group">
+      <g aria-label={chartUi(locale, 'sky.zodiacSectors')} role="group">
         {ZODIAC_SIGNS.map((sign, index) => {
           const label = point(index * 30 + 15, 262);
           const glyph = `${getAstrologyGlossaryNotation('sign', sign, 'glyph') ?? UNKNOWN_GLYPH}\uFE0E`;
@@ -104,7 +122,7 @@ function SkyWheel({ snapshot, locale }: { snapshot: SkySnapshotResult; locale?: 
         })}
       </g>
       <circle cx="320" cy="320" r="232" fill="var(--nn-surface-elevated)" fillOpacity="0.88" stroke="var(--nn-border-strong)" />
-      <g aria-label="Supplied current aspects" role="group">
+      <g aria-label={chartUi(locale, 'sky.suppliedAspects')} role="group">
         {snapshot.currentAspects.map((aspect, index) => {
           const first = positions.get(aspect.firstBodyId), second = positions.get(aspect.secondBodyId);
           if (!first || !second) return null;
@@ -122,7 +140,7 @@ function SkyWheel({ snapshot, locale }: { snapshot: SkySnapshotResult; locale?: 
           );
         })}
       </g>
-      <g aria-label="Supplied body positions" role="group">
+      <g aria-label={chartUi(locale, 'sky.suppliedBodies')} role="group">
         {snapshot.bodyPositions.map((body, index) => {
           const marker = point(body.longitude, 174 + (index % 2) * 13);
           const label = point(body.longitude, 204 + (index % 3) * 10);
@@ -146,7 +164,17 @@ function SkyWheel({ snapshot, locale }: { snapshot: SkySnapshotResult; locale?: 
 
 function PositionFact({ body, locale }: { body: SkyBodyPosition; locale?: SupportedLocale }) {
   const motion = body.motionState ? ` · ${glossaryTerm('motion', body.motionState, locale).toLowerCase()}` : '';
-  return <li><strong><span aria-hidden="true">{getBodyGlyph(body.bodyId)}</span>{' '}{glossaryTerm('body', body.bodyId, locale)}</strong><span> {formatDegrees(body.longitude)} in {glossaryTerm('sign', body.sign, locale)}{motion}</span></li>;
+  return (
+    <li>
+      <span aria-hidden="true">{getBodyGlyph(body.bodyId)}</span>{' '}
+      {chartUiFormat(locale, 'sky.positionFact', {
+        body: glossaryTerm('body', body.bodyId, locale),
+        degree: formatDegrees(body.longitude),
+        sign: glossaryTerm('sign', body.sign, locale),
+        motion
+      })}
+    </li>
+  );
 }
 
 function AspectFact({ aspect, locale }: { aspect: SkyCurrentAspect; locale?: SupportedLocale }) {
@@ -168,8 +196,10 @@ function SkyHighlights({ snapshot, compact = false, locale }: { snapshot: SkySna
   return (
     <section aria-labelledby="current-sky-highlights" className={`rounded-[var(--nn-radius-large)] border border-natal-border/70 bg-natal-night/25 ${compact ? 'p-2 sm:p-3' : 'p-4'}`}>
       <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
-        <h3 className="nn-type-card-title" id="current-sky-highlights">Sky highlights</h3>
-        <span className="nn-type-metadata">Supplied facts</span>
+        <h3 className="nn-type-card-title" id="current-sky-highlights">
+          {chartUi(locale, 'sky.highlights')}
+        </h3>
+        <span className="nn-type-metadata">{chartUi(locale, 'sky.suppliedFacts')}</span>
       </div>
       <ul className={`${compact ? 'mt-1.5 space-y-1 sm:mt-2 sm:space-y-1.5' : 'mt-3 space-y-2'} nn-type-body-small`}>
         {highlightedAspects.map((aspect, index) => (
@@ -181,20 +211,38 @@ function SkyHighlights({ snapshot, compact = false, locale }: { snapshot: SkySna
         {retrogradeBodies.length > 0 ? (
           <li className={`${compact && highlightedAspects.length > 0 ? 'hidden sm:flex' : 'flex'} items-start gap-2`}>
             <span aria-hidden="true" className="shrink-0 text-natal-accent">R</span>
-            <span>{retrogradeBodies.length} {retrogradeBodies.length === 1 ? 'body' : 'bodies'} marked {retrogradeTerm}</span>
+            <span>
+              {chartUiFormat(
+                locale,
+                retrogradeBodies.length === 1
+                  ? 'sky.retrogradeCount.one'
+                  : 'sky.retrogradeCount.many',
+                { count: retrogradeBodies.length, motion: retrogradeTerm }
+              )}
+            </span>
           </li>
         ) : null}
-        {highlightedAspects.length === 0 && retrogradeBodies.length === 0 ? <li>No supplied highlight facts.</li> : null}
+        {highlightedAspects.length === 0 && retrogradeBodies.length === 0
+          ? <li>{chartUi(locale, 'sky.noHighlights')}</li>
+          : null}
       </ul>
     </section>
   );
 }
 
-function DevelopmentDisclosure({ snapshot, compact = false }: { snapshot: SkySnapshotResult; compact?: boolean }) {
+function DevelopmentDisclosure({
+  locale,
+  snapshot,
+  compact = false
+}: {
+  locale?: SupportedLocale;
+  snapshot: SkySnapshotResult;
+  compact?: boolean;
+}) {
   if (compact) {
     return (
       <p className="nn-type-metadata text-[0.6875rem] leading-4 sm:text-xs sm:leading-5" data-development-fixture="true">
-        DEVELOPMENT FIXTURE · NOT PRODUCTION ASTRONOMY
+        {chartUi(locale, 'sky.developmentFixtureCompact')}
       </p>
     );
   }
@@ -202,13 +250,17 @@ function DevelopmentDisclosure({ snapshot, compact = false }: { snapshot: SkySna
   return (
     <section aria-labelledby="current-sky-disclosure" className="nn-notice nn-notice--research flex-col">
       <div>
-        <p className="nn-eyebrow nn-status--research" id="current-sky-disclosure">Development / research status</p>
-        <p className="nn-type-metadata mt-2">{snapshot.calculationStatus}</p>
+        <p className="nn-eyebrow nn-status--research" id="current-sky-disclosure">
+          {chartUi(locale, 'sky.developmentStatus')}
+        </p>
+        <p className="nn-type-metadata mt-2">
+          {chartCalculationStatus(locale, snapshot.calculationStatus)}
+        </p>
       </div>
       {snapshot.warnings.length > 0 ? (
         <ul className="grid gap-1 nn-type-metadata">
           {snapshot.warnings.map((warning, index) => (
-            <li key={`${warning.code}-${index}`}>{warning.message}</li>
+            <li key={`${warning.code}-${index}`}>{chartWarningMessage(locale, warning)}</li>
           ))}
         </ul>
       ) : null}
@@ -219,9 +271,9 @@ function DevelopmentDisclosure({ snapshot, compact = false }: { snapshot: SkySna
 function SnapshotReadout({ snapshot, compact = false, locale }: { snapshot: SkySnapshotResult; compact?: boolean; locale?: SupportedLocale }) {
   return (
     <div>
-      {!compact ? <p className="nn-eyebrow">Instrument readout</p> : null}
+      {!compact ? <p className="nn-eyebrow">{chartUi(locale, 'sky.instrumentReadout')}</p> : null}
       <time className={`nn-type-metadata block ${compact ? 'mt-1' : 'mt-2'}`} dateTime={snapshot.atUtc}>
-        {formatSnapshotTimestamp(snapshot.atUtc)}
+        {formatSnapshotTimestamp(snapshot.atUtc, locale)}
       </time>
       <p className={`nn-type-metadata ${compact ? 'mt-0.5' : 'mt-1'}`}>{snapshot.referenceFrame} · {glossaryTerm('zodiac_model', snapshot.zodiacModel, locale)} · UTC</p>
     </div>
@@ -237,7 +289,7 @@ function CompactSkyInstrument({ snapshot, locale }: { snapshot: SkySnapshotResul
       <div className="space-y-2 sm:space-y-4">
         <SnapshotReadout compact locale={locale} snapshot={snapshot} />
         <SkyHighlights compact locale={locale} snapshot={snapshot} />
-        <DevelopmentDisclosure compact snapshot={snapshot} />
+        <DevelopmentDisclosure compact locale={locale} snapshot={snapshot} />
       </div>
     </div>
   );
@@ -272,8 +324,8 @@ export default function CurrentSkyInstrument({
     return () => { active = false; };
   }, [atUtc, client]);
 
-  if (error) return <p className="nn-notice nn-notice--error" role="alert">The development Sky fixture is unavailable right now.</p>;
-  if (!snapshot) return <p className="nn-async-state nn-async-state--loading" role="status" aria-live="polite">Loading the development Sky fixture…</p>;
+  if (error) return <p className="nn-notice nn-notice--error" role="alert">{chartUi(locale, 'sky.unavailable')}</p>;
+  if (!snapshot) return <p className="nn-async-state nn-async-state--loading" role="status" aria-live="polite">{chartUi(locale, 'sky.loading')}</p>;
 
   if (variant === 'compact') {
     return <CompactSkyInstrument locale={locale} snapshot={snapshot} />;
@@ -285,10 +337,10 @@ export default function CurrentSkyInstrument({
       <div className="space-y-6">
         <SnapshotReadout locale={locale} snapshot={snapshot} />
         <SkyHighlights locale={locale} snapshot={snapshot} />
-        <section aria-labelledby="current-sky-positions"><h3 className="nn-type-card-title" id="current-sky-positions">Body positions</h3><ul className="mt-3 space-y-2 nn-type-body-small">{snapshot.bodyPositions.map((body) => <PositionFact key={body.bodyId} body={body} locale={locale} />)}</ul></section>
-        <section aria-labelledby="current-sky-aspects"><h3 className="nn-type-card-title" id="current-sky-aspects">Current aspects</h3>{snapshot.currentAspects.length ? <ul className="mt-3 space-y-2 nn-type-body-small">{snapshot.currentAspects.map((aspect, index) => <AspectFact aspect={aspect} key={`${aspect.firstBodyId}-${aspect.secondBodyId}-${index}`} locale={locale} />)}</ul> : <p className="nn-type-body-small mt-3">No supplied current aspects.</p>}</section>
-        <p className="nn-notice nn-notice--trust">Development-only instrument. Supplied Engine facts are shown without interpretation.</p>
-        <DevelopmentDisclosure snapshot={snapshot} />
+        <section aria-labelledby="current-sky-positions"><h3 className="nn-type-card-title" id="current-sky-positions">{chartUi(locale, 'sky.bodyPositions')}</h3><ul className="mt-3 space-y-2 nn-type-body-small">{snapshot.bodyPositions.map((body) => <PositionFact key={body.bodyId} body={body} locale={locale} />)}</ul></section>
+        <section aria-labelledby="current-sky-aspects"><h3 className="nn-type-card-title" id="current-sky-aspects">{chartUi(locale, 'sky.currentAspects')}</h3>{snapshot.currentAspects.length ? <ul className="mt-3 space-y-2 nn-type-body-small">{snapshot.currentAspects.map((aspect, index) => <AspectFact aspect={aspect} key={`${aspect.firstBodyId}-${aspect.secondBodyId}-${index}`} locale={locale} />)}</ul> : <p className="nn-type-body-small mt-3">{chartUi(locale, 'sky.noCurrentAspects')}</p>}</section>
+        <p className="nn-notice nn-notice--trust">{chartUi(locale, 'sky.trustNotice')}</p>
+        <DevelopmentDisclosure locale={locale} snapshot={snapshot} />
       </div>
     </div>
   );
