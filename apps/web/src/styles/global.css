@@ -886,18 +886,6 @@
     filter: drop-shadow(0 0 3px rgb(230 232 235 / 0.24));
   }
 
-  .nn-brand-instrument__core {
-    transform-box: view-box;
-    transform-origin: 260px 260px;
-    animation: nn-brand-instrument-core-rotation 19s linear infinite;
-    animation-delay: -7s;
-  }
-
-  .nn-brand-instrument__core-sphere {
-    transform-box: fill-box;
-    transform-origin: center;
-  }
-
   .nn-brand-instrument__reference {
     pointer-events: none;
   }
@@ -911,12 +899,6 @@
   @keyframes nn-brand-orbit-silver {
     to {
       transform: rotate(-360deg);
-    }
-  }
-
-  @keyframes nn-brand-instrument-core-rotation {
-    to {
-      transform: rotate(360deg);
     }
   }
 
@@ -976,9 +958,7 @@
 
   @media (prefers-reduced-motion: reduce) {
     .nn-brand-instrument__orbit--cyan,
-    .nn-brand-instrument__orbit--silver,
-    .nn-brand-instrument__core,
-    .nn-brand-mark--animated .nn-brand-mark__signal {
+    .nn-brand-instrument__orbit--silver {
       animation: none;
     }
   }
