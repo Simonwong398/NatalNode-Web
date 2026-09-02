@@ -304,7 +304,9 @@ export const ASTROLOGY_GLOSSARY_REGISTRY = Object.freeze({
   'aspect_phase.applying': createEntry('aspect_phase.applying', 'aspect-phase', 'Applying', 'P0'),
   'aspect_phase.exact': createEntry('aspect_phase.exact', 'aspect-phase', 'Exact', 'P0'),
   'aspect_phase.separating': createEntry('aspect_phase.separating', 'aspect-phase', 'Separating', 'P0'),
-  'motion.retrograde': createEntry('motion.retrograde', 'motion-state', 'Retrograde', 'P0'),
+  'motion.retrograde': createEntry('motion.retrograde', 'motion-state', 'Retrograde', 'P0', {
+    notation: { glyph: '℞' }
+  }),
   'chart_type.natal': createEntry('chart_type.natal', 'chart-type', 'Natal chart', 'P0', {
     aliases: ['Birth chart']
   }),

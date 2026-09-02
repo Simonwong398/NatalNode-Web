@@ -24,6 +24,12 @@ export function longitudeToRadians(longitude: number): number {
   return (normalizedLongitude * Math.PI) / 180 - Math.PI / 2;
 }
 
+/** Presentation-only angular distance used to separate crowded labels. */
+export function angularDistance(firstLongitude: number, secondLongitude: number): number {
+  const difference = Math.abs(firstLongitude - secondLongitude) % 360;
+  return difference > 180 ? 360 - difference : difference;
+}
+
 export function longitudeToPoint(
   longitude: number,
   radius: number,

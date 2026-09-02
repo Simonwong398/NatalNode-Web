@@ -239,18 +239,22 @@ export default function ChartWorkspaceView({
                 {chartUi(locale, 'workspace.engineFacts')}
               </h3>
             </div>
-            <div className="mt-5 min-w-0">
-              <ChartRenderer
-                chart={chart}
-                locale={locale}
-                presentationPolicy={presentationPolicy}
-              />
+            <div className="nn-chart-instrument-grid mt-5 min-w-0">
+              <div className="nn-chart-instrument-visual min-w-0">
+                <ChartRenderer
+                  chart={chart}
+                  locale={locale}
+                  presentationPolicy={presentationPolicy}
+                />
+              </div>
+              <div className="nn-chart-instrument-facts min-w-0">
+                <AstrologicalNotation
+                  chart={chart}
+                  locale={locale}
+                  presentationPolicy={presentationPolicy}
+                />
+              </div>
             </div>
-            <AstrologicalNotation
-              chart={chart}
-              locale={locale}
-              presentationPolicy={presentationPolicy}
-            />
           </section>
         </div>
 

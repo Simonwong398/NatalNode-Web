@@ -1,5 +1,6 @@
 ---
 import SiteLayout from '@/layouts/SiteLayout.astro';
+import { getAstrologyGlyph, getAstrologyNotation } from '@/components/astrology/AstrologyGlyph';
 import { SEO_TOOL_TAXONOMY } from '@/lib/content-taxonomy';
 import { getLocalizedPath, getPresentationLocale } from '@/lib/localization';
 import type { SeoMetadata } from '@/lib/seo';
@@ -30,6 +31,19 @@ const toolCopy = {
     purpose: 'tools.aspectLookupPurpose'
   }
 } as const satisfies Record<string, { label: UiMessageKey; purpose: UiMessageKey }>;
+
+function toolNotation(path: string): string | undefined {
+  switch (path) {
+    case '/tools/sign-lookup':
+      return getAstrologyGlyph('sign', 'Aries');
+    case '/tools/house-lookup':
+      return getAstrologyNotation('house', 1, 'romanNumeral');
+    case '/tools/aspect-lookup':
+      return getAstrologyGlyph('aspect', 'conjunction');
+    default:
+      return undefined;
+  }
+}
 ---
 
 <SiteLayout seo={seo}>
@@ -55,6 +69,11 @@ const toolCopy = {
         {availableTools.map((tool) => (
           <li class="nn-surface nn-tools-card flex min-w-0 flex-col p-5 sm:p-6">
             <h3 class="nn-type-card-title nn-tools-card__title">
+              {toolNotation(tool.intendedPath) ? (
+                <span aria-hidden="true" class="nn-astrology-glyph mr-2 text-natal-accent">
+                  {toolNotation(tool.intendedPath)}
+                </span>
+              ) : null}
               <a
                 class="nn-tools-card__link font-semibold underline decoration-natal-accent/50 underline-offset-4 transition-colors hover:text-natal-accent"
                 href={localize(tool.intendedPath)}

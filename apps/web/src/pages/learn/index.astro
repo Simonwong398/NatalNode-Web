@@ -3,6 +3,7 @@ import { getCollection } from 'astro:content';
 import EditorialPlanetHero from '@/components/EditorialPlanetHero.astro';
 import FoundationsCourseSummary from '@/features/learn/foundations/FoundationsCourseSummary';
 import { getFoundationsUiMessages } from '@/features/learn/foundations/ui';
+import { getAstrologyGlyph, getAstrologyNotation } from '@/components/astrology/AstrologyGlyph';
 import SiteLayout from '@/layouts/SiteLayout.astro';
 import { LEARN_CATEGORIES, type LearnCategory } from '@/lib/content-taxonomy';
 import {
@@ -62,6 +63,21 @@ const categoryCopy: Record<LearnCategory, { label: UiMessageKey; description: Ui
     description: 'learn.landing.category.chartReadingDescription'
   }
 };
+
+function categoryNotation(category: LearnCategory): string | undefined {
+  switch (category) {
+    case 'PLANETS':
+      return getAstrologyGlyph('body', 'Saturn');
+    case 'SIGNS':
+      return getAstrologyGlyph('sign', 'Aries');
+    case 'HOUSES':
+      return getAstrologyNotation('house', 1, 'romanNumeral');
+    case 'ASPECTS':
+      return getAstrologyGlyph('aspect', 'trine');
+    default:
+      return undefined;
+  }
+}
 
 function formatDate(date: Date): string {
   return new Intl.DateTimeFormat(locale, {
@@ -163,7 +179,14 @@ function formatDate(date: Date): string {
       <ul class="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
         {LEARN_CATEGORIES.map((category) => (
           <li class="nn-surface flex min-w-0 flex-col p-5 sm:p-6">
-            <h3 class="nn-type-card-title">{t(categoryCopy[category.key].label)}</h3>
+            <h3 class="nn-type-card-title">
+              {categoryNotation(category.key) ? (
+                <span aria-hidden="true" class="nn-astrology-glyph mr-2 text-natal-accent">
+                  {categoryNotation(category.key)}
+                </span>
+              ) : null}
+              {t(categoryCopy[category.key].label)}
+            </h3>
             <p class="nn-type-body-small mt-3">{t(categoryCopy[category.key].description)}</p>
           </li>
         ))}

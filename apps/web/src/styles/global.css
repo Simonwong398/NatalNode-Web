@@ -353,6 +353,175 @@
     box-shadow: var(--nn-shadow-low), inset 0 1px 0 var(--nn-calculate-surface-highlight);
   }
 
+  .nn-astrology-glyph {
+    display: inline-block;
+    font-family: "Segoe UI Symbol", "Noto Sans Symbols 2", var(--nn-font-sans);
+    font-variant-emoji: text;
+    line-height: 1;
+  }
+
+  .nn-chart-instrument-grid {
+    display: grid;
+    gap: var(--nn-space-panel-gap);
+  }
+
+  .nn-chart-renderer {
+    min-width: 0;
+  }
+
+  .nn-chart-renderer__svg {
+    display: block;
+    width: 100%;
+    max-width: 40rem;
+    margin-inline: auto;
+    overflow: visible;
+  }
+
+  .nn-chart-focus-hint {
+    margin-top: 0.75rem;
+    color: var(--nn-text-muted);
+    font-size: 0.75rem;
+    line-height: 1.45;
+  }
+
+  .nn-chart-planet {
+    cursor: pointer;
+    outline: none;
+    transition: opacity var(--nn-motion-fast) var(--nn-motion-ease);
+  }
+
+  .nn-chart-planet:focus-visible .nn-chart-planet__marker,
+  .nn-chart-planet--selected .nn-chart-planet__marker {
+    stroke: var(--nn-chart-selection);
+    stroke-width: 2.5;
+  }
+
+  .nn-chart-planet--active .nn-chart-planet__marker {
+    stroke: var(--nn-chart-focus);
+    stroke-width: 2.5;
+  }
+
+  .nn-chart-focus-ring,
+  .nn-chart-target-ring {
+    fill: none;
+    transform-box: fill-box;
+    transform-origin: center;
+  }
+
+  .nn-chart-focus-ring {
+    stroke: var(--nn-chart-focus);
+    stroke-dasharray: 2 4;
+    stroke-width: 1.25;
+    animation: nn-chart-focus-pulse 2.4s ease-in-out infinite;
+  }
+
+  .nn-chart-target-ring {
+    stroke: var(--nn-chart-selection);
+    stroke-dasharray: 5 4;
+    stroke-width: 1;
+  }
+
+  .nn-chart-aspect {
+    transition: opacity var(--nn-motion-fast) var(--nn-motion-ease);
+  }
+
+  .nn-chart-aspect--active {
+    filter: drop-shadow(0 0 3px rgb(118 215 232 / 0.34));
+  }
+
+  .nn-chart-aspect--active.nn-chart-aspect--tension {
+    filter: drop-shadow(0 0 3px rgb(225 138 155 / 0.3));
+  }
+
+  .nn-chart-focus-card {
+    max-width: 25rem;
+    margin-top: 1rem;
+    padding: 1rem;
+    border: 1px solid color-mix(in srgb, var(--nn-chart-focus) 38%, var(--nn-border-default));
+    border-radius: var(--nn-radius-medium);
+    background:
+      linear-gradient(180deg, color-mix(in srgb, var(--nn-chart-focus) 7%, transparent), transparent 42%),
+      color-mix(in srgb, var(--nn-surface-interactive) 88%, transparent);
+    box-shadow: var(--nn-shadow-low);
+  }
+
+  .nn-chart-legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem 0.9rem;
+    margin-top: 1rem;
+    color: var(--nn-text-secondary);
+    font-size: 0.6875rem;
+    line-height: 1.35;
+  }
+
+  .nn-chart-legend__item {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    min-width: 0;
+  }
+
+  .nn-chart-legend__sample {
+    width: 1.5rem;
+    border-top: 1.5px solid currentColor;
+  }
+
+  .nn-chart-legend__sample--tension {
+    color: var(--nn-chart-aspect-dynamic);
+    border-top-style: dashed;
+  }
+
+  .nn-chart-legend__sample--harmony {
+    color: var(--nn-chart-aspect-harmonious);
+  }
+
+  .nn-chart-legend__sample--neutral {
+    color: var(--nn-chart-aspect-neutral);
+    border-top-style: dotted;
+  }
+
+  @keyframes nn-chart-focus-pulse {
+    0%,
+    100% {
+      opacity: 0.55;
+      transform: scale(0.94);
+    }
+
+    50% {
+      opacity: 1;
+      transform: scale(1.08);
+    }
+  }
+
+  @media (min-width: 1024px) {
+    .nn-chart-instrument-grid {
+      gap: 1.25rem;
+      grid-template-columns: minmax(0, 2.4fr) minmax(13.5rem, 1fr);
+      align-items: start;
+    }
+
+    .nn-chart-instrument-facts .nn-chart-notation {
+      margin-top: 0;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .nn-chart-planet,
+    .nn-chart-aspect {
+      transition: none;
+    }
+
+    .nn-chart-focus-ring {
+      animation: none;
+    }
+
+    .nn-chart-aspect--active,
+    .nn-chart-aspect--active.nn-chart-aspect--tension {
+      filter: none;
+    }
+  }
+
   .nn-editorial-hero {
     position: relative;
     display: flex;

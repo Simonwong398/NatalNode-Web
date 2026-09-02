@@ -5,6 +5,7 @@ import type {
   SkyCurrentAspect,
   SkySnapshotResult
 } from '@natalnode/contracts';
+import { getAstrologyGlyph } from '@/components/astrology/AstrologyGlyph';
 import { engineClient } from '@/lib/engine-client';
 import {
   DEFAULT_LOCALE,
@@ -37,7 +38,7 @@ const ASPECT_STYLES: Record<string, { stroke: string; strokeDasharray?: string; 
 const UNKNOWN_GLYPH = '·';
 
 function getBodyGlyph(bodyId: string): string {
-  return getAstrologyGlossaryNotation('body', bodyId, 'glyph') ?? UNKNOWN_GLYPH;
+  return getAstrologyGlyph('body', bodyId) ?? UNKNOWN_GLYPH;
 }
 
 function getBodyAbbreviation(bodyId: string): string {
@@ -45,8 +46,10 @@ function getBodyAbbreviation(bodyId: string): string {
 }
 
 function getAspectGlyph(aspectType: string): string {
-  return getAstrologyGlossaryNotation('aspect', aspectType, 'glyph') ?? UNKNOWN_GLYPH;
+  return getAstrologyGlyph('aspect', aspectType) ?? UNKNOWN_GLYPH;
 }
+
+const RETROGRADE_GLYPH = getAstrologyGlyph('motion', 'RETROGRADE') ?? '℞';
 
 function glossaryTerm(
   kind: AstrologyGlossaryDomainKind,
@@ -111,7 +114,7 @@ function SkyWheel({ snapshot, locale }: { snapshot: SkySnapshotResult; locale?: 
       <g aria-label={chartUi(locale, 'sky.zodiacSectors')} role="group">
         {ZODIAC_SIGNS.map((sign, index) => {
           const label = point(index * 30 + 15, 262);
-          const glyph = `${getAstrologyGlossaryNotation('sign', sign, 'glyph') ?? UNKNOWN_GLYPH}\uFE0E`;
+          const glyph = getAstrologyGlyph('sign', sign) ?? UNKNOWN_GLYPH;
           return (
             <g key={sign} aria-label={`${glossaryTerm('sign', sign, locale)} sector`} role="group">
               <path d={sectorPath(index * 30, index * 30 + 30, 292, 232)} fill="var(--nn-chart-zodiac)" fillOpacity={index % 2 ? '0.14' : '0.08'} stroke="var(--nn-chart-zodiac)" strokeOpacity="0.55" />
@@ -210,7 +213,7 @@ function SkyHighlights({ snapshot, compact = false, locale }: { snapshot: SkySna
         ))}
         {retrogradeBodies.length > 0 ? (
           <li className={`${compact && highlightedAspects.length > 0 ? 'hidden sm:flex' : 'flex'} items-start gap-2`}>
-            <span aria-hidden="true" className="shrink-0 text-natal-accent">R</span>
+            <span aria-hidden="true" className="nn-astrology-glyph shrink-0 text-natal-accent">{RETROGRADE_GLYPH}</span>
             <span>
               {chartUiFormat(
                 locale,

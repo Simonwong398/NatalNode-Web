@@ -1,5 +1,6 @@
 import { useId, useState } from 'react';
 import type { AngleFact, AspectFact, BodyFact, ChartResult } from '@natalnode/contracts';
+import { AstrologyGlyph } from '../../components/astrology/AstrologyGlyph.js';
 import {
   DEFAULT_LOCALE,
   type SupportedLocale
@@ -49,8 +50,14 @@ function glossaryPhaseTerm(
   return glossaryTerm('aspect_phase', phaseState, locale).toUpperCase();
 }
 
-function Glyph({ value }: { value: string | undefined }) {
-  return value ? <span aria-hidden="true">{value}</span> : null;
+function Glyph({
+  kind,
+  value
+}: {
+  kind: AstrologyGlossaryDomainKind;
+  value: unknown;
+}) {
+  return <AstrologyGlyph kind={kind} value={value} />;
 }
 
 function BodyOrientation({ body, locale }: { body: BodyFact; locale?: SupportedLocale }) {
@@ -61,12 +68,12 @@ function BodyOrientation({ body, locale }: { body: BodyFact; locale?: SupportedL
   return (
     <div className="min-w-0 border-l border-natal-border/50 pl-3">
       <dt className="nn-type-label break-words">
-        <Glyph value={glossaryNotation('body', body.bodyId, 'glyph')} />{' '}
+        <Glyph kind="body" value={body.bodyId} />{' '}
         {bodyTerm}
         {body.retrograde === true ? ` (${retrogradeTerm.toLowerCase()})` : null}
       </dt>
       <dd className="nn-type-body-small mt-1 break-words">
-        <Glyph value={glossaryNotation('sign', body.sign, 'glyph')} />{' '}
+        <Glyph kind="sign" value={body.sign} />{' '}
         {signTerm} · {formatLongitude(body.longitude)}
       </dd>
     </div>
@@ -86,7 +93,7 @@ function AngleOrientation({ angle, locale }: { angle: AngleFact; locale?: Suppor
         {angleShortForm}
       </dt>
       <dd className="nn-type-body-small mt-1 break-words">
-        <Glyph value={glossaryNotation('sign', angle.sign, 'glyph')} />{' '}
+        <Glyph kind="sign" value={angle.sign} />{' '}
         {glossaryTerm('sign', angle.sign, locale)} · {formatLongitude(angle.longitude)}
       </dd>
     </div>
@@ -115,12 +122,12 @@ function BodyNotation({
   return (
     <div className="grid gap-1 border-b border-natal-border/40 py-3 last:border-b-0 sm:grid-cols-[minmax(8rem,1fr)_minmax(0,2fr)] sm:items-baseline sm:gap-4">
       <dt className="break-words font-medium text-nn-text-primary">
-        <Glyph value={glossaryNotation('body', body.bodyId, 'glyph')} />{' '}
+        <Glyph kind="body" value={body.bodyId} />{' '}
         {bodyTerm}
         {body.retrograde === true ? ` (${retrogradeTerm.toLowerCase()})` : null}
       </dt>
       <dd className="break-words text-sm text-nn-text-secondary">
-        <Glyph value={glossaryNotation('sign', body.sign, 'glyph')} />{' '}
+        <Glyph kind="sign" value={body.sign} />{' '}
         {signTerm} · {formatLongitude(body.longitude)}
         {houseNotation ? ` · ${houseNotation}` : null}
       </dd>
@@ -140,11 +147,11 @@ function AspectNotation({ aspect, locale }: { aspect: AspectFact; locale?: Suppo
   return (
     <li className="break-words border-b border-natal-border/40 py-3 last:border-b-0">
       <span className="font-medium text-nn-text-primary">
-        <Glyph value={glossaryNotation('body', aspect.firstBodyId, 'glyph')} />{' '}
+        <Glyph kind="body" value={aspect.firstBodyId} />{' '}
         {firstBodyTerm} {''}
-        <Glyph value={glossaryNotation('aspect', aspect.type, 'glyph')} />{' '}
+        <Glyph kind="aspect" value={aspect.type} />{' '}
         {aspectTerm} {''}
-        <Glyph value={glossaryNotation('body', aspect.secondBodyId, 'glyph')} />{' '}
+        <Glyph kind="body" value={aspect.secondBodyId} />{' '}
         {secondBodyTerm}
       </span>
       <span className="ml-2 text-sm text-nn-text-secondary">
@@ -195,7 +202,7 @@ export default function AstrologicalNotation({ chart, locale, presentationPolicy
   }
 
   return (
-    <section aria-labelledby={titleId} className="mt-6 border-t border-natal-border/70 pt-5">
+    <section aria-labelledby={titleId} className="nn-chart-notation mt-6 border-t border-natal-border/70 pt-5">
       <div className="nn-section-header">
         <p className="nn-eyebrow">{chartUi(locale, 'chart.orientation')}</p>
         <h4 className="nn-type-section-title" id={titleId}>
