@@ -886,6 +886,20 @@
     filter: drop-shadow(0 0 3px rgb(230 232 235 / 0.24));
   }
 
+  .nn-brand-instrument__core {
+    transform-box: view-box;
+    transform-origin: 260px 260px;
+    animation: nn-brand-instrument-core-turn 19s ease-in-out infinite;
+    animation-delay: -7s;
+    filter: drop-shadow(0 0 5px rgb(34 199 214 / 0.08));
+  }
+
+  .nn-brand-instrument__core-orb,
+  .nn-brand-instrument__core-latitude,
+  .nn-brand-instrument__core-meridian {
+    vector-effect: non-scaling-stroke;
+  }
+
   .nn-brand-instrument__reference {
     pointer-events: none;
   }
@@ -899,6 +913,36 @@
   @keyframes nn-brand-orbit-silver {
     to {
       transform: rotate(-360deg);
+    }
+  }
+
+  @keyframes nn-brand-instrument-core-turn {
+    0%,
+    8% {
+      transform: translateX(0) scaleX(1);
+      opacity: 1;
+    }
+
+    25% {
+      transform: translateX(6px) scaleX(0.1);
+      opacity: 0.74;
+    }
+
+    42%,
+    58% {
+      transform: translateX(0) scaleX(1);
+      opacity: 1;
+    }
+
+    75% {
+      transform: translateX(-6px) scaleX(0.1);
+      opacity: 0.74;
+    }
+
+    92%,
+    100% {
+      transform: translateX(0) scaleX(1);
+      opacity: 1;
     }
   }
 
@@ -958,7 +1002,8 @@
 
   @media (prefers-reduced-motion: reduce) {
     .nn-brand-instrument__orbit--cyan,
-    .nn-brand-instrument__orbit--silver {
+    .nn-brand-instrument__orbit--silver,
+    .nn-brand-instrument__core {
       animation: none;
     }
   }
