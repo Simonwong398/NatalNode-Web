@@ -354,13 +354,24 @@ this checkpoint:
 - Public legal pages until approved policy and counsel-reviewed copy exist.
 - Railway/Caddy staging implementation while deployment is paused.
 - Production astronomy, production resolver, and production Public Sky.
-- Current Transits, `/sky` expansion, AI, Pro, Ads/CMP, PDF, subscriptions,
-  Community, Practitioner, and other P1/P2/P3 work.
+- Current Transits, `/sky` expansion, AI, Pro, Ads/CMP, PDF, subscriptions, and
+  future expansion beyond the bounded Community/Questions V1,
+  Practitioner/Contributor V1, and Private Feedback MVP remain deferred.
 - Guest refresh/navigation persistence, Feedback history/delete, profile and
   identity-management expansion, and generic visual polish.
 - Standalone large-file cleanup. LOC thresholds remain heuristic guardrails,
   not lint rules, automatic refactor triggers, or reasons to alter working
   code.
+
+## 9.1 Later Web Product closure reconciliation
+
+This P0 checkpoint remains authoritative for P0 release readiness. Since this
+checkpoint's 2026-08-29 snapshot, the bounded Foundations, Private Feedback,
+Community/Questions, and Practitioner/Contributor tracks have been verified
+locally complete. Their remaining legal, privacy, reviewer, retention, and
+operational requirements are launch gates, not missing local MVP
+implementation. The reconciled roadmap records their current product-state
+classification; no completed track is reopened by this note.
 
 ## 10. Do not do next
 

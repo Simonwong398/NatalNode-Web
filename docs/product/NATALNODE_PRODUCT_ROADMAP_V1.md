@@ -1,9 +1,9 @@
 # NatalNode Product Roadmap V1
 
-- Status: ACCEPTED STRATEGIC ROADMAP
-- Task: `WEB-ROADMAP-001`
-- Date: 2026-08-25
-- Scope: Post-V1 product-development blueprint
+- Status: ACCEPTED STRATEGIC ROADMAP / RECONCILED PRODUCT-STATE CHECKPOINT
+- Task: `WEB-ROADMAP-002`
+- Date: 2026-09-01
+- Scope: Post-V1 product-development blueprint and current product-state checkpoint
 - Mode: Documentation only
 
 This document records the accepted post-V1 direction for NatalNode. It does
@@ -20,8 +20,36 @@ deployment decisions remain in `docs/adr/`.
 | `CURRENT / ACTIVE` | The current product or strategic track being actively advanced. |
 | `APPROVED FUTURE` | Accepted product direction that may be designed later. |
 | `DEFERRED` | Intentionally sequenced later or waiting for a later policy, design, or readiness decision. |
-| `NEXT WEB PRODUCT TASK` | The next separately scoped Web Product task; it must remain within the Web/Engine boundary and does not authorize unrelated implementation. |
+| `COMPLETED` | The bounded local product implementation or contract is complete. |
+| `COMPLETED_WITH_EXTERNAL_GATE` | The bounded local implementation is complete; launch, legal, operational, or equivalent external gates remain. |
+| `NEXT WEB PRODUCT MILESTONE` | The next separately scoped Web Product milestone; it must remain within the Web/Engine boundary and does not authorize unrelated implementation. |
 | `BLOCKED-BY-EXTERNAL-GATE` | Cannot proceed until an external rights, provider, or equivalent gate is resolved. |
+
+## Reconciled product state (WEB-ROADMAP-002)
+
+This checkpoint reconciles the roadmap with the repository state at
+`4ad6ebc071a338c524e31489129920a809f8ea27`. It records bounded work that is
+already complete locally without converting launch, legal, operations, or
+provider requirements into unfinished product implementation. A completed
+bounded track must not be reopened by this roadmap.
+
+| Product track | Current repository state | Roadmap classification | Remaining boundary |
+| --- | --- | --- | --- |
+| Foundations Core | `12 × 7 = 84/84` lessons are approved/current/available. | `COMPLETED` | No open implementation gap in the bounded Foundations Core track. |
+| Foundations multilingual curriculum | The seven approved/current locales are available across the closed Foundations curriculum. | `COMPLETED` | Locale expansion or new course content remains separately scoped. |
+| Foundations final assessment | Final assessment is `7/7 AVAILABLE` across the closed locales. | `COMPLETED` | No new assessment behavior is authorized by this checkpoint. |
+| Foundations Reward V1 | Reward V1 is integrated with the existing FREE/PRO entitlement boundary. | `COMPLETED` | Paid billing/subscription launch remains separately deferred. |
+| Private Feedback MVP | The bounded private, authenticated, non-indexed MVP is implemented locally. | `COMPLETED_WITH_EXTERNAL_GATE` | Retention, reviewer/access, privacy, legal, and operational launch decisions remain open. |
+| Community / Questions V1 | The bounded public structured Questions and Answers MVP is implemented locally. | `COMPLETED_WITH_EXTERNAL_GATE` | Final jurisdiction-specific UGC Terms wording and production multi-replica rate limiting/operations remain open. |
+| Practitioner / Contributor V1 | The bounded profile, application/review, and privacy lifecycle implementation is complete locally. | `COMPLETED_WITH_EXTERNAL_GATE` | Professional-identity/disclosure wording, reviewer operations/grants, retention scheduling, and production distributed rate limiting remain open. |
+
+Notification Platform foundations are locally present, but live web push,
+user-facing notification-center behavior, and product-level trigger/delivery
+semantics remain deferred. Existing commercial persistence and entitlement
+primitives, including Foundations Reward integration, do not constitute a
+launched billing/subscription track. Public Sky runtime and Current Transits
+remain provider/scientific-dependent and deferred; `PROVIDER DECISION
+DEFERRED` remains authoritative.
 
 ## 1. Current and active priorities
 
@@ -132,8 +160,7 @@ provider dependency work.
 
 ## 3. Community and Questions
 
-`APPROVED FUTURE`  
-`DEFERRED`
+`COMPLETED_WITH_EXTERNAL_GATE`
 
 ### Working concept
 
@@ -141,6 +168,11 @@ provider dependency work.
 Community
 └── Questions
 ```
+
+The bounded Community / Questions V1 implementation is locally complete. Its
+remaining launch gates are final jurisdiction-specific UGC Terms wording and
+production multi-replica rate limiting/operations. The deferred items listed
+below are future expansion, not missing V1 implementation.
 
 The intended surface is a structured knowledge and support experience with:
 
@@ -158,11 +190,10 @@ This must not become a traditional open forum. Avoid general chat boards,
 off-topic boards, anonymous posting, private messaging, and gamified forum
 ranks.
 
-Community and Questions work remains gated by its own account, profile,
-moderation, and privacy prerequisites. Scientific Core completion is not a
-blanket prerequisite for non-scientific Community architecture, but production
-scientific integration and production scientific claims remain externally
-blocked.
+Community and Questions V1 remains separate from the Scientific Core.
+Production scientific integration and production scientific claims remain
+externally blocked, but Scientific Core completion is not a prerequisite for
+the locally completed non-scientific V1 implementation.
 
 ### Community positioning
 
@@ -190,10 +221,9 @@ product support and community knowledge
 
 ## 4. Practitioner and Contributor network
 
-`APPROVED FUTURE`  
-`DEFERRED`
+`COMPLETED_WITH_EXTERNAL_GATE`
 
-The preferred future identity architecture is:
+The bounded V1 identity architecture is:
 
 ```text
 Member
@@ -216,8 +246,15 @@ answers, and articles. No scoring system is approved for implementation yet.
 
 ### Public Practitioner profile
 
-The approved future concept is a public Practitioner profile. Potential fields
-include:
+The bounded Practitioner / Contributor V1 implementation is locally complete,
+including the approved-profile directory, private application/review boundary,
+and privacy lifecycle. The implementation does not make the Practitioner
+network production-launch ready: jurisdiction-specific identity/disclosure
+wording, reviewer operations, retention scheduling, and distributed production
+limits remain external or operational gates.
+
+The bounded V1 public Practitioner profile uses the approved presentation
+fields in `NATALNODE_PRACTITIONER_CONTRIBUTOR_V1.md`:
 
 - display or professional name;
 - bio;
@@ -229,47 +266,46 @@ include:
 - questions answered; and
 - accepted answers.
 
-All fields require later privacy and product design. No schema is authorized by
-this roadmap.
+Any additional fields require later privacy and product design. No additional
+schema is authorized by this roadmap.
 
 ### Practitioner application
 
-An approved future flow may be titled:
+The bounded V1 application flow is implemented under the approved policy. A
+future broader flow may be titled:
 
 `Become a NatalNode Practitioner`
 
-Potential application information includes professional name, bio, languages,
+The bounded application information includes professional name, bio, languages,
 practice areas, website or social presence, optional professional credentials,
-and reason for joining.
+and reason for joining. Any broader application or verification flow remains
+future and separately gated.
 
-Actual verification criteria remain:
+The bounded V1 admission and review criteria are frozen by
+`NATALNODE_PRACTITIONER_CONTRIBUTOR_V1.md` and are implemented locally. Broader
+verification, marketplace, and commercial policy remains outside V1.
 
-`PRODUCT POLICY TO BE DESIGNED`
-
-No application flow or verification implementation is authorized now.
-
-Practitioner and Contributor work remains gated by Questions, profile,
-moderation, and verification prerequisites. Scientific Core completion is not
-a blanket prerequisite for non-scientific product architecture, but production
-scientific integration and production scientific claims remain externally
-blocked.
+The bounded Practitioner / Contributor V1 remains separate from the Scientific
+Core. Production scientific integration and production scientific claims remain
+externally blocked; broader network, verification, and commercial work remains
+future and separately gated.
 
 ### Founding Practitioner
 
-`APPROVED FUTURE`  
-`DEFERRED`
+`COMPLETED_WITH_EXTERNAL_GATE`
 
 NatalNode may invite a small, manually selected first cohort of professional
 contributors before a broad Community launch.
 
 `Founding Practitioner` represents early participation in NatalNode. It is not
 scientific certification, professional competency certification, or a paid
-rank. The badge or status must not be implemented yet.
+rank. The bounded V1 `foundingPractitioner` label is server-controlled and
+non-certifying; any broader cohort or badge program remains future and
+deferred.
 
 ## 5. Private Feedback
 
-`APPROVED FUTURE`  
-`NEXT WEB PRODUCT TASK`
+`COMPLETED_WITH_EXTERNAL_GATE`
 
 Feedback must remain separate from public Community and should be private,
 non-indexed, and product-support oriented.
@@ -281,9 +317,12 @@ Potential categories are:
 - Incorrect result / calculation concern; and
 - Other.
 
-Personal birth-data support posts must not be mixed into public Questions. No
-feedback system is part of this roadmap patch. The next task is to freeze the
-Private Feedback MVP architecture before implementation.
+Personal birth-data support posts must not be mixed into public Questions. The
+bounded Private Feedback MVP is locally complete under
+`docs/adr/WEB-FEEDBACK-001A-private-feedback-mvp-architecture.md`. Retention,
+reviewer/access, broader privacy, legal, and operational launch decisions
+remain external or policy-gated. Feedback history/delete and other broader
+review tooling remain deferred.
 
 ## 6. NatalNode Knowledge Network
 
@@ -442,13 +481,17 @@ deferred.
 
 The accepted post-V1 sequence is:
 
+The cross-cutting P0 launch-readiness milestone in section 12 is the next
+decision boundary before any new future Web Product feature phase. Phase B
+remains a separate Scientific Core / Engine track.
+
 | Phase | Direction | Status |
 | --- | --- | --- |
-| Phase A | Product UX Calibration V1.1 | `CURRENT / ACTIVE` |
+| Phase A | Product UX Calibration V1.1 | `COMPLETED` |
 | Phase B | Scientific Core Completion / Engine gates | `CURRENT / ACTIVE` in the separate Engine track |
-| Phase C | Community & Practitioner Product Architecture | `APPROVED FUTURE` / `DEFERRED` |
-| Phase D | Questions + Private Feedback MVP | `APPROVED FUTURE` / `NEXT WEB PRODUCT TASK` |
-| Phase E | Practitioner Profiles / Application / Founding cohort | `APPROVED FUTURE` / `DEFERRED` |
+| Phase C | Community & Practitioner Product Architecture | `COMPLETED_WITH_EXTERNAL_GATE` |
+| Phase D | Questions + Private Feedback MVP | `COMPLETED_WITH_EXTERNAL_GATE` |
+| Phase E | Practitioner Profiles / Application / Founding cohort | `COMPLETED_WITH_EXTERNAL_GATE` |
 | Phase F | Knowledge-network growth: Learn + Questions + Practitioners | `APPROVED FUTURE` / `DEFERRED` |
 | Phase G | Staging / deployment when scientifically meaningful | `DEFERRED` |
 | Phase H | SEO/GEO / practitioner outreach / monetization readiness | `APPROVED FUTURE` / `DEFERRED` |
@@ -462,26 +505,31 @@ all NatalNode-Web work. Scientific Core gates apply to scientific-dependent
 work; non-scientific Web Product work may proceed in parallel when its own
 prerequisites are satisfied.
 
-## 12. Immediate next Web product task
+## 12. Immediate next Web product milestone
 
 ```text
-NEXT WEB PRODUCT TASK: Private Feedback MVP
+NEXT WEB PRODUCT MILESTONE: P0 LAUNCH-READINESS CLOSURE
+RECOMMENDED NEXT ACTION: P0_LAUNCH_READINESS
 ```
 
 The Web Product track is authorized to continue independently on non-scientific
-work. The immediate next Web Product task is `Private Feedback MVP`: an
-authenticated, private-by-default, non-indexed, product-support surface that
-remains separate from public Community. Its categories remain exactly:
+work, but the next milestone is not another feature implementation campaign.
+The first authoritative, still-uncompleted Web Product milestone is a
+P0 launch-readiness closure / policy and operations decision checkpoint. The
+current P0 checkpoint records that there is no safe unblocked local P0
+implementation gap, while policy, legal, operations, deployment, and provider
+gates still prevent a production release claim.
 
-- Bug;
-- Suggestion;
-- Incorrect result / calculation concern; and
-- Other.
+The checkpoint must obtain explicit owner-approved decisions for the retention
+registry and scheduler ownership, Privacy Access Audit authorization and
+deletion interaction, legal/public-copy inputs, backup/restore reconciliation,
+observability sink and retention ownership, processor boundaries, and the
+remaining deployment/credential responsibilities. Its scope is decision-only
+until those inputs are available.
 
-The Private Feedback MVP does not require production astronomy, provider
-selection, or Railway deployment. A live persistence implementation will
-still require operational PostgreSQL; this roadmap clarification does not
-change deployment status or authorize implementation by itself.
+The historical `WEB-P0-POLICY-001A` task remains not executed/deferred and must
+not be recreated automatically. A new owner-assigned campaign identifier is
+required before any P0 decision checkpoint begins.
 
 The visual V1.1 functional baseline is frozen. No additional decorative
 visual reconstruction is the immediate next roadmap task. Scientific Core /
@@ -495,11 +543,11 @@ The completed calibration scope was:
 - visual luminosity and scientific-technology calibration; and
 - preservation of all scientific and trust semantics.
 
-Community/Questions may proceed only after its own account, profile,
-moderation, and privacy prerequisites are satisfied. Practitioner/Contributor
-work may proceed only after Questions, profile, moderation, and verification
-prerequisites are satisfied. Neither sequence is a blanket freeze caused by
-the Scientific Core track.
+The bounded Community/Questions, Private Feedback, and
+Practitioner/Contributor V1 tracks are locally complete and must not be
+reopened as the next task. Their remaining legal, privacy, reviewer,
+retention, and operational gates are launch-readiness concerns, not reasons to
+reclassify the completed local MVPs as unfinished.
 
 ## 13. Roadmap guardrails
 
@@ -510,7 +558,9 @@ This document does not authorize unscoped:
 - astronomy calculations or provider-specific dependencies;
 - production provider selection or production scientific claims;
 - current navigation changes;
-- public Community, Practitioner, Feedback, or monetization surfaces;
+- unscoped expansion or reopening of the bounded Community/Questions,
+  Practitioner/Contributor, or Private Feedback V1 surfaces;
+- unscoped monetization surfaces;
 - email harvesting, scraping, or bulk outreach; or
 - speculative schemas, scoring, verification, or privacy architecture.
 
@@ -543,19 +593,18 @@ production scientific claims.
 
 `AUTHORIZED TO PROCEED INDEPENDENTLY ON NON-SCIENTIFIC WORK`
 
-Track B may continue through separately scoped Web Product tasks, including:
+Track B's bounded local completions are recorded in the reconciliation table
+above. Any work on their remaining launch gates requires its own authorization.
+Remaining non-scientific directions include:
 
-- Auth completion;
+- Auth completion and live external enablement;
 - Vault management;
-- Private Feedback;
 - technical SEO infrastructure;
 - Learn and content architecture;
 - legal and trust work after policy content is available;
-- account and profile work;
-- Community/Questions after its account, profile, moderation, and privacy
-  prerequisites are satisfied; and
-- Practitioner/Contributor work after Questions, profile, moderation, and
-  verification prerequisites are satisfied.
+- account and profile expansion; and
+- future Community/Questions or Practitioner/Contributor expansion after its
+  own product, privacy, moderation, and operational prerequisites are satisfied.
 
 Other non-scientific website functionality may proceed when its own
 prerequisites are met. The preserved boundary is:

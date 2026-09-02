@@ -1,10 +1,10 @@
 # ADR: Private Feedback MVP Architecture
 
-- Status: ACCEPTED — architecture frozen; implementation not started
+- Status: ACCEPTED — architecture frozen; bounded implementation complete locally; launch gates remain
 - Task: `WEB-FEEDBACK-001A`
 - Date: 2026-08-26
 - Mode: Architecture / contract / documentation only
-- Next task: `WEB-FEEDBACK-001B — Implement Private Feedback MVP Vertical Slice`
+- Follow-up: retention, reviewer/access, broader privacy, legal, and operational launch gates remain separately governed
 
 ## Context and source-of-truth boundaries
 
@@ -742,7 +742,7 @@ ADR intentionally does not design their schemas, routes, permissions, or UI.
 
 ## Bounded implementation sequence
 
-The next task is:
+The historical implementation task was:
 
 ```text
 WEB-FEEDBACK-001B — Implement Private Feedback MVP Vertical Slice
@@ -763,7 +763,9 @@ Its bounded sequence is:
 8. Add only the focused tests and manual accessibility verification defined in
    this ADR.
 
-`WEB-FEEDBACK-001B` is not implemented by this architecture task.
+The bounded MVP implementation is now complete locally. This ADR does not
+authorize reopening it or adding the broader Feedback capabilities listed
+above; their policy and operational gates remain separate.
 
 ## Frozen external boundaries
 
