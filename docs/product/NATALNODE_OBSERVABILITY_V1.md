@@ -20,6 +20,17 @@ whether calculation/cache behavior is working, and whether approved runtime
 and scientific generations are compatible. It must not become a second copy
 of a birth chart, a user account, a Vault record, or an Engine response.
 
+## Current WEB-P0-002B implementation amendment
+
+The provider-neutral request observability boundary is locally implemented.
+Production still requires an explicitly configured durable sink, access control,
+alerts, region, and retention evidence. The approved operational target is 30
+days for general request/application logs and 180 days for security,
+authentication, and audit operations; Privacy Access Audit records have a
+separate 365-day target. No vendor or durable sink is selected by this
+amendment. Current closure and external-gate classification are recorded in
+[`NATALNODE_P0_NON_SCIENTIFIC_CLOSURE_V1.md`](./NATALNODE_P0_NON_SCIENTIFIC_CLOSURE_V1.md).
+
 ## Current launch-readiness implementation amendment
 
 The header above is the historical implementation handoff status. The bounded

@@ -64,6 +64,18 @@ and outside this contract.
 This is a technical contract, not legal advice and not a public retention
 representation. No GDPR, CCPA, SOC 2, or other legal conclusion is made here.
 
+## Current WEB-P0-002B implementation amendment
+
+The Product Owner-approved operational defaults now authorize the bounded raw
+Feedback retention boundary at a maximum of 180 days. The repository provides
+a separate one-shot, bounded retention executable; existing Auth, Community,
+and Practitioner lifecycle predicates remain the owners of their already-frozen
+semantics. Operational logs, security/auth/audit operations, Privacy Access
+Audit, backups, and processor-held records still require their external sink,
+access, scheduler, or legal evidence. See
+[`NATALNODE_P0_NON_SCIENTIFIC_CLOSURE_V1.md`](./NATALNODE_P0_NON_SCIENTIFIC_CLOSURE_V1.md)
+for the current local/external separation.
+
 ## 2. Definitions
 
 ### 2.1 Technical expiration

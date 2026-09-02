@@ -446,6 +446,19 @@ CHECKPOINT**. The current implementation/readiness campaign is recorded in
 is `NATALNODE_P0_EXTERNAL_GATE_DECISION_PACK_V1.md`. No `WEB-P0-002B`
 implementation is started automatically by this historical checkpoint.
 
+## 13. WEB-P0-002B successor amendment
+
+The later Product Owner-authorized `WEB-P0-002B` campaign completed the safe
+non-scientific repository work that was previously represented as an open
+implementation follow-up. Its current closure record is
+[`NATALNODE_P0_NON_SCIENTIFIC_CLOSURE_V1.md`](./NATALNODE_P0_NON_SCIENTIFIC_CLOSURE_V1.md).
+
+This historical checkpoint remains unchanged as a record of its original
+decision state. The successor result is `LOCAL NON-SCIENTIFIC PRODUCTION
+CLOSURE COMPLETE`; live deployment, credentials, legal copy, backup/restore,
+durable operations evidence, and scientific/provider authority remain open.
+Overall P0 production is still `NOT READY` and `PROVIDER DECISION DEFERRED`.
+
 ## 12. Post-checkpoint new scope: Notification Platform / Subscription Foundation
 
 After `WEB-P0-READY-003`, the product owner introduced the new

@@ -64,6 +64,13 @@ this the single place where runtime dependencies are wired.
 
 Runtime configuration has one environment boundary. Supported variables are:
 
+- `NATALNODE_RUNTIME_MODE` — explicit `local`, `staging`, or `production`
+  mode; production must be declared rather than inferred from `NODE_ENV`.
+- `NATALNODE_RATE_LIMIT_AUTHORITY` — `process-local` for local or explicitly
+  single-replica staging, or `distributed` for a future production/edge
+  authority.
+- `NATALNODE_SINGLE_REPLICA_CONFIRMED` — explicit staging/local confirmation
+  when the process-local limiter is used.
 - `HOST`
 - `PORT`
 - `DATABASE_URL`
@@ -75,15 +82,29 @@ Runtime configuration has one environment boundary. Supported variables are:
 - `AUTH_SESSION_TTL_SECONDS`
 - `AUTH_SESSION_COOKIE_NAME`
 - `AUTH_SESSION_COOKIE_SECURE`
+- `AUTH_EMAIL_ENABLED`
+- `AUTH_GOOGLE_ENABLED`
+- `GOOGLE_OIDC_ISSUER`, `GOOGLE_OIDC_CLIENT_ID`, and
+  `GOOGLE_OIDC_CLIENT_SECRET` when Google Sign-In is enabled.
+- `GOOGLE_OIDC_REDIRECT_URI` — optional exact-match assertion for the derived
+  `/api/auth/google/callback` URI.
+- `COMMUNITY_ENABLED` and `COMMUNITY_OPERATOR_CONFIGURED`
+- `PRACTITIONER_ENABLED` and `PRACTITIONER_OPERATOR_CONFIGURED`
+- `NATALNODE_OBSERVABILITY_DURABLE_SINK_CONFIGURED`
+- `NATALNODE_PRIVACY_ACCESS_AUDIT_REQUIRED`
 - `PUBLIC_WEB_ORIGIN` — the explicit public origin used for browser magic-link
   URLs; production uses HTTPS and local HTTP is limited to loopback origins.
 
 `parseServerEnvironment(...)` is deterministic and constructs no infrastructure;
-only `loadServerEnvironment()` reads `process.env`. Booleans are strict, no
-defaults are invented, and secrets are never logged. `PUBLIC_WEB_ORIGIN` is
-provider-neutral and is never inferred from `HOST` or `PORT`. Resend credentials
-and sender identity are supplied explicitly by the executable deployment
-composition rather than added to this environment boundary.
+only `loadServerEnvironment()` reads `process.env`. Boolean values are strict.
+Local mode defaults to the existing development-safe behavior; staging and
+production require explicit operational evidence where a default could make a
+deployment claim unsafe. Production rejects incomplete Auth, database/SSL,
+origin, rate-limit, observability, audit, and mock-Engine boundaries. Secrets
+are never logged. `PUBLIC_WEB_ORIGIN` is provider-neutral and is never inferred
+from `HOST` or `PORT`. Resend credentials and sender identity are supplied
+explicitly by the executable deployment composition rather than added to this
+environment boundary.
 
 ## P0 Resend email delivery
 

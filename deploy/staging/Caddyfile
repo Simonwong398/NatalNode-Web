@@ -1,0 +1,30 @@
+# Repository-local P0 staging edge contract.
+# The Railway environment must provide PORT and API_UPSTREAM. There are no
+# defaults so an incomplete edge composition fails at startup.
+:{$PORT} {
+	header X-Robots-Tag "noindex, nofollow"
+	header X-NatalNode-Environment "staging"
+
+	@api path /api /api/*
+	handle @api {
+		reverse_proxy {$API_UPSTREAM} {
+			# Replace any browser-supplied value with the edge-observed address.
+			header_up -X-NatalNode-Client-IP
+			header_up X-NatalNode-Client-IP {http.request.remote.host}
+			header_down -X-NatalNode-Client-IP
+		}
+	}
+
+	handle {
+		header {
+			Content-Security-Policy "default-src 'self'; base-uri 'none'; connect-src 'self'; img-src 'self' data:; object-src 'none'; frame-ancestors 'none'; form-action 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'"
+			X-Content-Type-Options "nosniff"
+			Referrer-Policy "no-referrer"
+			X-Frame-Options "DENY"
+			Permissions-Policy "camera=(), geolocation=(), microphone=()"
+		}
+		root * /srv/apps/web/dist
+		try_files {path} {path}/ /404.html
+		file_server
+	}
+}

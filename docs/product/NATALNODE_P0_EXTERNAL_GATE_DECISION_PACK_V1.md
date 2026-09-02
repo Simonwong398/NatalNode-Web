@@ -18,6 +18,23 @@ the genuine Product Owner decisions, and defines the smallest safe follow-up
 sequence. It does not implement a production gate, select an astronomy
 provider, authorize deployment, or begin `WEB-P0-002B`.
 
+## Current successor amendment — WEB-P0-002B
+
+The Product Owner subsequently authorized `WEB-P0-002B` for the bounded
+non-scientific implementation work described in its campaign brief. That
+campaign is recorded in
+[`NATALNODE_P0_NON_SCIENTIFIC_CLOSURE_V1.md`](./NATALNODE_P0_NON_SCIENTIFIC_CLOSURE_V1.md)
+with status `LOCAL NON-SCIENTIFIC PRODUCTION CLOSURE COMPLETE`.
+
+This amendment does not rewrite the historical `WEB-P0-002A` audit below. It
+updates the successor state only: policy decisions DP-01 through DP-11 and
+A-01 through A-09 are approved; the corresponding safe local configuration,
+rate-limit boundary, Vault pagination, Privacy Access Audit hooks, operations
+contracts, and legal-route technical boundary are implemented where authorized;
+live legal, credential, infrastructure, operations, and scientific evidence
+remain open. Overall P0 production remains `NOT READY`, and
+`PROVIDER DECISION DEFERRED` remains unchanged.
+
 ## 1. Fixed boundary and audit rules
 
 The system boundary is unchanged:
@@ -484,3 +501,21 @@ WEB-P0-002B = NOT STARTED
 
 This package makes no production-ready claim, makes no provider selection, and
 does not access or modify `C:\NatalNode`.
+
+## 14. WEB-P0-002B closure status
+
+The current non-scientific closure is complete at the repository boundary.
+Local implementation must not be confused with external evidence:
+
+| Gate state | Current result |
+| --- | --- |
+| Policy | Product Owner decisions DP-01 through DP-11 and A-01 through A-09 recorded as approved. |
+| Local implementation | `LOCAL NON-SCIENTIFIC PRODUCTION CLOSURE COMPLETE`; see the successor closure document. |
+| External evidence | Open for legal copy, credentials, staging/production infrastructure, durable observability, backups/restore, scheduler, region, and live Auth/operations verification. |
+| Scientific authority | Open; no production Engine/provider integration authorized. |
+
+The repository remains suitable for local development and an explicitly
+fixture-labeled, isolated staging composition. It is not a production public
+astrology release. The next task is not started by this amendment:
+`WEB-P0-002C` remains separately authorized only after its own scientific and
+external gates are resolved.

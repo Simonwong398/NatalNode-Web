@@ -33,6 +33,18 @@ If provider selection becomes relevant, the decision remains exactly:
 
 `PROVIDER DECISION DEFERRED`
 
+## Current successor amendment — WEB-P0-002B
+
+The historical `WEB-P0-001` consolidation is superseded for current status by
+the external-gate decision pack and the
+[`NATALNODE_P0_NON_SCIENTIFIC_CLOSURE_V1.md`](./NATALNODE_P0_NON_SCIENTIFIC_CLOSURE_V1.md)
+successor record. `WEB-P0-002B` is complete for the authorized local,
+provider-independent, non-scientific closure boundary. It does not claim live
+staging, production credentials, legal approval, managed backup/restore,
+durable observability, distributed rate-limit provisioning, or scientific
+authority. Overall P0 production remains `NOT READY`; `WEB-P0-002C` has not
+started.
+
 ## 1. Campaign outcome
 
 The repository is locally ready for the bounded P0 implementation and

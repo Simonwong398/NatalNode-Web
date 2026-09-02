@@ -27,6 +27,18 @@ P0 Operational Observability
     -> bounded service availability, outcome, latency, and compatibility facts
 ```
 
+## Current WEB-P0-002B implementation amendment
+
+The append-only PostgreSQL core is wired into the runtime composition and the
+approved Community Moderator and Practitioner Reviewer queue/action surfaces
+now append the minimum attributable `AUDIT` / `REVIEW` event. No Feedback
+staff surface, generic explorer, or administrator dashboard was added. The
+approved Privacy Access Audit retention target is 365 days, but sink access,
+retention enforcement, erasure reconciliation, and live operator evidence
+remain external. See
+[`NATALNODE_P0_NON_SCIENTIFIC_CLOSURE_V1.md`](./NATALNODE_P0_NON_SCIENTIFIC_CLOSURE_V1.md)
+for the current closure classification.
+
 ## Current launch-readiness implementation amendment
 
 The header above records the original design-contract status. The typed,
