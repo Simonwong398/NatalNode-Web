@@ -1,12 +1,16 @@
-import type { ChartResult } from '@natalnode/contracts';
 import { useId, type Ref } from 'react';
 import { chartUi } from '../chart-experience/chart-ui.js';
 import type { SupportedLocale } from '../../lib/localization.js';
-import { ChartRenderer } from '@/features/chart-renderer';
+import {
+  ChartRenderer,
+  type ChartInstrumentData,
+  type ChartInstrumentKind
+} from '@/features/chart-renderer';
 import type { ChartPresentationPolicy } from './chart-presentation-policy';
 
 export type ChartFocusDialogProps = {
-  chart: ChartResult;
+  chart: ChartInstrumentData;
+  chartKind?: ChartInstrumentKind;
   closeButtonRef: Ref<HTMLButtonElement>;
   dialogId: string;
   locale?: SupportedLocale;
@@ -17,6 +21,7 @@ export type ChartFocusDialogProps = {
 /** Provides a larger, dismissible chart view without changing chart facts. */
 export default function ChartFocusDialog({
   chart,
+  chartKind = 'natal',
   closeButtonRef,
   dialogId,
   locale,
@@ -68,6 +73,7 @@ export default function ChartFocusDialog({
         <div className="nn-chart-focus-dialog__body">
           <ChartRenderer
             chart={chart}
+            chartKind={chartKind}
             locale={locale}
             presentationPolicy={presentationPolicy}
           />

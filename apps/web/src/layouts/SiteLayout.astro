@@ -64,32 +64,37 @@ const websiteStructuredData = robots === 'index,follow'
       (() => {
         const themeStorageKey = 'natalnode.theme-mode';
         const isThemeMode = (value) => value === 'light' || value === 'dark' || value === 'auto';
-        const mediaQuery = window.matchMedia('(prefers-color-scheme: light)');
+        const autoLightStartHour = 7;
+        const autoDarkStartHour = 19;
         let themeMode = 'auto';
+        let hasInitializedTheme = false;
 
         try {
           const storedMode = window.localStorage.getItem(themeStorageKey);
           if (isThemeMode(storedMode)) themeMode = storedMode;
         } catch {
-          // The default dark theme remains available when storage is blocked.
+          // The default automatic theme remains available when storage is blocked.
         }
 
+        const resolveAutoTheme = () => {
+          const hour = new Date().getHours();
+          return hour >= autoLightStartHour && hour < autoDarkStartHour ? 'light' : 'dark';
+        };
+
         const updateTheme = () => {
-          const resolvedTheme = themeMode === 'auto'
-            ? (mediaQuery.matches ? 'light' : 'dark')
-            : themeMode;
-          document.documentElement.dataset.nnThemeMode = themeMode;
+          const datasetMode = document.documentElement.dataset.nnThemeMode;
+          const activeMode = !hasInitializedTheme
+            ? themeMode
+            : (isThemeMode(datasetMode) ? datasetMode : themeMode);
+          themeMode = activeMode;
+          hasInitializedTheme = true;
+          const resolvedTheme = activeMode === 'auto' ? resolveAutoTheme() : activeMode;
+          document.documentElement.dataset.nnThemeMode = activeMode;
           document.documentElement.dataset.nnTheme = resolvedTheme;
           document.documentElement.style.colorScheme = resolvedTheme;
         };
 
         updateTheme();
-        mediaQuery.addEventListener?.('change', () => {
-          if (document.documentElement.dataset.nnThemeMode !== 'auto') return;
-          const resolvedTheme = mediaQuery.matches ? 'light' : 'dark';
-          document.documentElement.dataset.nnTheme = resolvedTheme;
-          document.documentElement.style.colorScheme = resolvedTheme;
-        });
 
         const getDaypart = (hour) => {
           if (hour >= 5 && hour < 9) return 'dawn';
@@ -107,7 +112,11 @@ const websiteStructuredData = robots === 'index,follow'
 
         updateTemporalAmbient();
         document.addEventListener('DOMContentLoaded', updateTemporalAmbient, { once: true });
-        window.setInterval(updateTemporalAmbient, 60000);
+        document.addEventListener('visibilitychange', updateTheme);
+        window.setInterval(() => {
+          updateTheme();
+          updateTemporalAmbient();
+        }, 60000);
       })();
     </script>
     <SeoHead

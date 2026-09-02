@@ -5,9 +5,18 @@ import { chartUi } from '@/features/chart-experience/chart-ui';
 export type ThemeMode = 'light' | 'dark' | 'auto';
 
 const THEME_STORAGE_KEY = 'natalnode.theme-mode';
+const AUTO_LIGHT_START_HOUR = 7;
+const AUTO_DARK_START_HOUR = 19;
 
 function isThemeMode(value: string | undefined): value is ThemeMode {
   return value === 'light' || value === 'dark' || value === 'auto';
+}
+
+function resolveAutoTheme(): Exclude<ThemeMode, 'auto'> {
+  const hour = new Date().getHours();
+  return hour >= AUTO_LIGHT_START_HOUR && hour < AUTO_DARK_START_HOUR
+    ? 'light'
+    : 'dark';
 }
 
 function applyThemeMode(mode: ThemeMode): void {
@@ -15,7 +24,7 @@ function applyThemeMode(mode: ThemeMode): void {
 
   const root = document.documentElement;
   const resolvedTheme = mode === 'auto'
-    ? (window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark')
+    ? resolveAutoTheme()
     : mode;
 
   root.dataset.nnThemeMode = mode;
@@ -47,15 +56,18 @@ export default function ThemeSwitcher({ locale }: { locale: SupportedLocale }) {
     setMode(initialMode);
     applyThemeMode(initialMode);
 
-    const mediaQuery = window.matchMedia('(prefers-color-scheme: light)');
-    const handleSystemThemeChange = () => {
+    const refreshAutoTheme = () => {
       if (document.documentElement.dataset.nnThemeMode === 'auto') {
         applyThemeMode('auto');
       }
     };
 
-    mediaQuery.addEventListener?.('change', handleSystemThemeChange);
-    return () => mediaQuery.removeEventListener?.('change', handleSystemThemeChange);
+    document.addEventListener('visibilitychange', refreshAutoTheme);
+    const autoThemeInterval = window.setInterval(refreshAutoTheme, 60000);
+    return () => {
+      document.removeEventListener('visibilitychange', refreshAutoTheme);
+      window.clearInterval(autoThemeInterval);
+    };
   }, []);
 
   const handleChange = (event: ChangeEvent<HTMLSelectElement>) => {

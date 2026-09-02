@@ -1,10 +1,16 @@
-import { useEffect, useId, useState } from 'react';
+import { useEffect, useId, useRef, useState, type Ref } from 'react';
 import type { EngineClient } from '@natalnode/engine-client';
 import type {
   SkyBodyPosition,
   SkyCurrentAspect,
   SkySnapshotResult
 } from '@natalnode/contracts';
+import { ChartRenderer } from '@/features/chart-renderer';
+import ChartFocusDialog from '@/features/chart-workspace/ChartFocusDialog';
+import {
+  createSkyPresentationPolicy,
+  withChartPresentationMode
+} from '@/features/chart-workspace/chart-presentation-policy';
 import { getAstrologyGlyph } from '@/components/astrology/AstrologyGlyph';
 import { engineClient } from '@/lib/engine-client';
 import {
@@ -12,7 +18,6 @@ import {
   type SupportedLocale
 } from '@/lib/localization';
 import {
-  getAstrologyGlossaryNotation,
   resolveAstrologyDomainTerm,
   type AstrologyGlossaryDomainKind
 } from '@/lib/astrology-glossary';
@@ -23,26 +28,10 @@ import {
   chartWarningMessage
 } from '../chart-experience/chart-ui.js';
 
-const ZODIAC_SIGNS = [
-  'Aries', 'Taurus', 'Gemini', 'Cancer', 'Leo', 'Virgo',
-  'Libra', 'Scorpio', 'Sagittarius', 'Capricorn', 'Aquarius', 'Pisces'
-] as const;
-const ASPECT_STYLES: Record<string, { stroke: string; strokeDasharray?: string; opacity: number; strokeWidth: number }> = {
-  conjunction: { stroke: 'var(--nn-chart-aspect-neutral)', opacity: 0.88, strokeWidth: 1.8 },
-  opposition: { stroke: 'var(--nn-chart-aspect-dynamic)', strokeDasharray: '8 4', opacity: 0.9, strokeWidth: 1.8 },
-  trine: { stroke: 'var(--nn-chart-aspect-harmonious)', opacity: 0.84, strokeWidth: 1.7 },
-  square: { stroke: 'var(--nn-chart-aspect-dynamic)', strokeDasharray: '6 3 1 3', opacity: 0.9, strokeWidth: 1.8 },
-  sextile: { stroke: 'var(--nn-chart-aspect-harmonious)', strokeDasharray: '2 4', opacity: 0.76, strokeWidth: 1.5 }
-};
-
 const UNKNOWN_GLYPH = '·';
 
 function getBodyGlyph(bodyId: string): string {
   return getAstrologyGlyph('body', bodyId) ?? UNKNOWN_GLYPH;
-}
-
-function getBodyAbbreviation(bodyId: string): string {
-  return getAstrologyGlossaryNotation('body', bodyId, 'rendererAbbreviation') ?? bodyId.slice(0, 2);
 }
 
 function getAspectGlyph(aspectType: string): string {
@@ -58,16 +47,6 @@ function glossaryTerm(
 ): string {
   return resolveAstrologyDomainTerm(kind, value, locale ?? DEFAULT_LOCALE)?.displayTerm ??
     (typeof value === 'string' ? value : String(value));
-}
-
-function point(longitude: number, radius: number) {
-  const angle = (longitude * Math.PI) / 180 - Math.PI / 2;
-  return { x: 320 + Math.cos(angle) * radius, y: 320 + Math.sin(angle) * radius };
-}
-
-function sectorPath(start: number, end: number, outer: number, inner: number) {
-  const a = point(start, outer), b = point(end, outer), c = point(end, inner), d = point(start, inner);
-  return `M ${a.x} ${a.y} A ${outer} ${outer} 0 0 1 ${b.x} ${b.y} L ${c.x} ${c.y} A ${inner} ${inner} 0 0 0 ${d.x} ${d.y} Z`;
 }
 
 function formatDegrees(value: number) {
@@ -99,70 +78,6 @@ function formatSnapshotTimestamp(atUtc: string, locale: SupportedLocale | undefi
     date,
     time: timestamp.slice(11, 16)
   });
-}
-
-function SkyWheel({ snapshot, locale }: { snapshot: SkySnapshotResult; locale?: SupportedLocale }) {
-  const titleId = `${useId()}-title`;
-  const descriptionId = `${useId()}-description`;
-  const positions = new Map(snapshot.bodyPositions.map((body) => [body.bodyId, body]));
-
-  return (
-    <svg className="h-auto w-full" viewBox="0 0 640 640" role="img" aria-labelledby={`${titleId} ${descriptionId}`}>
-      <title id={titleId}>{chartUi(locale, 'sky.wheelTitle')}</title>
-      <desc id={descriptionId}>{chartUi(locale, 'sky.wheelDescription')}</desc>
-      <circle cx="320" cy="320" r="292" fill="var(--nn-surface-base)" stroke="var(--nn-border-strong)" strokeWidth="2" />
-      <g aria-label={chartUi(locale, 'sky.zodiacSectors')} role="group">
-        {ZODIAC_SIGNS.map((sign, index) => {
-          const label = point(index * 30 + 15, 262);
-          const glyph = getAstrologyGlyph('sign', sign) ?? UNKNOWN_GLYPH;
-          return (
-            <g key={sign} aria-label={`${glossaryTerm('sign', sign, locale)} sector`} role="group">
-              <path d={sectorPath(index * 30, index * 30 + 30, 292, 232)} fill="var(--nn-chart-zodiac)" fillOpacity={index % 2 ? '0.14' : '0.08'} stroke="var(--nn-chart-zodiac)" strokeOpacity="0.55" />
-              <text aria-hidden="true" x={label.x} y={label.y - 5} textAnchor="middle" fill="var(--nn-text-primary)" fontFamily="var(--nn-font-sans)" fontSize="22">{glyph}</text>
-              <text aria-hidden="true" x={label.x} y={label.y + 15} textAnchor="middle" fill="var(--nn-text-secondary)" fontFamily="var(--nn-font-sans)" fontSize="10">{glossaryTerm('sign', sign, locale)}</text>
-            </g>
-          );
-        })}
-      </g>
-      <circle cx="320" cy="320" r="232" fill="var(--nn-surface-elevated)" fillOpacity="0.88" stroke="var(--nn-border-strong)" />
-      <g aria-label={chartUi(locale, 'sky.suppliedAspects')} role="group">
-        {snapshot.currentAspects.map((aspect, index) => {
-          const first = positions.get(aspect.firstBodyId), second = positions.get(aspect.secondBodyId);
-          if (!first || !second) return null;
-          const a = point(first.longitude, 138), b = point(second.longitude, 138);
-          const style = ASPECT_STYLES[aspect.aspectType] ?? {
-            stroke: 'var(--nn-chart-aspect-neutral)', opacity: 0.82, strokeWidth: 1.5
-          };
-
-          return (
-            <g key={`${aspect.firstBodyId}-${aspect.secondBodyId}-${index}`} aria-label={formatAspect(aspect, locale)} role="group">
-              <title>{formatAspect(aspect, locale)}</title>
-              <line aria-hidden="true" x1={a.x} y1={a.y} x2={b.x} y2={b.y} stroke="var(--nn-bg-observatory)" strokeOpacity="0.82" strokeWidth={style.strokeWidth + 2.4} strokeDasharray={style.strokeDasharray} strokeLinecap="round" vectorEffect="non-scaling-stroke" />
-              <line aria-hidden="true" x1={a.x} y1={a.y} x2={b.x} y2={b.y} stroke={style.stroke} strokeOpacity={style.opacity} strokeWidth={style.strokeWidth} strokeDasharray={style.strokeDasharray} strokeLinecap="round" vectorEffect="non-scaling-stroke" />
-            </g>
-          );
-        })}
-      </g>
-      <g aria-label={chartUi(locale, 'sky.suppliedBodies')} role="group">
-        {snapshot.bodyPositions.map((body, index) => {
-          const marker = point(body.longitude, 174 + (index % 2) * 13);
-          const label = point(body.longitude, 204 + (index % 3) * 10);
-          const motion = body.motionState
-            ? `, ${glossaryTerm('motion', body.motionState, locale).toLowerCase()}`
-            : '';
-          return (
-            <g key={body.bodyId} role="group" aria-label={`${glossaryTerm('body', body.bodyId, locale)} at ${formatDegrees(body.longitude)}, ${glossaryTerm('sign', body.sign, locale)}${motion}`}>
-              <line aria-hidden="true" x1={marker.x} y1={marker.y} x2={label.x} y2={label.y} stroke="var(--nn-chart-body-secondary)" strokeOpacity="0.45" strokeDasharray="2 3" />
-              <circle aria-hidden="true" cx={marker.x} cy={marker.y} r="10" fill="var(--nn-chart-body-secondary)" fillOpacity="0.12" stroke="var(--nn-chart-body-secondary)" strokeOpacity="0.36" strokeWidth="1" />
-              <circle aria-hidden="true" cx={marker.x} cy={marker.y} r="5.5" fill="var(--nn-chart-body-primary)" stroke="var(--nn-surface-elevated)" strokeWidth="2" />
-              <text aria-hidden="true" x={label.x} y={label.y - 6} textAnchor="middle" dominantBaseline="middle" fill="var(--nn-chart-body-primary)" fontFamily="ui-sans-serif, system-ui, sans-serif" fontSize="18" fontWeight="700">{getBodyGlyph(body.bodyId)}</text>
-              <text aria-hidden="true" x={label.x} y={label.y + 10} textAnchor="middle" dominantBaseline="middle" fill="var(--nn-chart-body-secondary)" fontFamily="ui-sans-serif, system-ui, sans-serif" fontSize="8" fontWeight="700" letterSpacing="0.08em">{getBodyAbbreviation(body.bodyId)}</text>
-            </g>
-          );
-        })}
-      </g>
-    </svg>
-  );
 }
 
 function PositionFact({ body, locale }: { body: SkyBodyPosition; locale?: SupportedLocale }) {
@@ -283,16 +198,73 @@ function SnapshotReadout({ snapshot, compact = false, locale }: { snapshot: SkyS
   );
 }
 
-function CompactSkyInstrument({ snapshot, locale }: { snapshot: SkySnapshotResult; locale?: SupportedLocale }) {
+function SkyChartPanel({
+  compact,
+  expandButtonRef,
+  locale,
+  onExpand,
+  snapshot
+}: {
+  compact: boolean;
+  expandButtonRef: Ref<HTMLButtonElement>;
+  locale?: SupportedLocale;
+  onExpand: () => void;
+  snapshot: SkySnapshotResult;
+}) {
+  const presentationPolicy = compact
+    ? createSkyPresentationPolicy()
+    : withChartPresentationMode(createSkyPresentationPolicy(), 'expanded');
+
+  return (
+    <div
+      className={`nn-sky-chart-panel min-w-0 rounded-[var(--nn-radius-large)] border border-natal-border/70 bg-natal-night/30 shadow-[var(--nn-shadow-low)] ${compact ? 'p-2 sm:p-3 lg:p-4' : 'p-3 sm:p-6 lg:p-8'}`}
+      data-sky-interactive="true"
+    >
+      <ChartRenderer
+        chart={snapshot}
+        chartKind="sky"
+        locale={locale}
+        presentationPolicy={presentationPolicy}
+      />
+      <button
+        aria-label={chartUi(locale, 'chart.expand')}
+        className="nn-button nn-button--quiet mt-3 w-full sm:w-auto"
+        onClick={onExpand}
+        ref={expandButtonRef}
+        type="button"
+      >
+        {chartUi(locale, 'chart.expand')}
+      </button>
+    </div>
+  );
+}
+
+function SkyFocusSurface({
+  compact,
+  expandButtonRef,
+  locale,
+  onExpand,
+  snapshot
+}: {
+  compact: boolean;
+  expandButtonRef: Ref<HTMLButtonElement>;
+  locale?: SupportedLocale;
+  onExpand: () => void;
+  snapshot: SkySnapshotResult;
+}) {
   return (
     <div className="grid gap-3 sm:gap-4">
-      <div className="min-w-0 rounded-[var(--nn-radius-large)] border border-natal-border/70 bg-natal-night/30 p-2 shadow-[var(--nn-shadow-low)] sm:p-3 lg:p-4">
-        <SkyWheel locale={locale} snapshot={snapshot} />
-      </div>
+      <SkyChartPanel
+        compact={compact}
+        expandButtonRef={expandButtonRef}
+        locale={locale}
+        onExpand={onExpand}
+        snapshot={snapshot}
+      />
       <div className="space-y-2 sm:space-y-4">
-        <SnapshotReadout compact locale={locale} snapshot={snapshot} />
-        <SkyHighlights compact locale={locale} snapshot={snapshot} />
-        <DevelopmentDisclosure compact locale={locale} snapshot={snapshot} />
+        <SnapshotReadout compact={compact} locale={locale} snapshot={snapshot} />
+        <SkyHighlights compact={compact} locale={locale} snapshot={snapshot} />
+        {compact ? <DevelopmentDisclosure compact locale={locale} snapshot={snapshot} /> : null}
       </div>
     </div>
   );
@@ -311,8 +283,13 @@ export default function CurrentSkyInstrument({
   locale,
   variant = 'full'
 }: CurrentSkyInstrumentProps) {
+  const instrumentId = useId().replace(/:/g, '');
+  const focusDialogId = `${instrumentId}-focus-dialog`;
+  const focusTriggerRef = useRef<HTMLButtonElement>(null);
+  const focusCloseRef = useRef<HTMLButtonElement>(null);
   const [snapshot, setSnapshot] = useState<SkySnapshotResult | null>(null);
   const [error, setError] = useState(false);
+  const [isFocusOpen, setIsFocusOpen] = useState(false);
 
   useEffect(() => {
     let active = true;
@@ -327,16 +304,66 @@ export default function CurrentSkyInstrument({
     return () => { active = false; };
   }, [atUtc, client]);
 
+  useEffect(() => {
+    if (!isFocusOpen) return;
+
+    const returnFocusTarget = focusTriggerRef.current ?? (
+      document.activeElement instanceof HTMLElement ? document.activeElement : null
+    );
+    document.body.classList.add('nn-chart-focus-lock');
+    focusCloseRef.current?.focus();
+
+    const handleEscape = (event: globalThis.KeyboardEvent) => {
+      if (event.key !== 'Escape') return;
+      event.preventDefault();
+      setIsFocusOpen(false);
+    };
+
+    document.addEventListener('keydown', handleEscape);
+    return () => {
+      document.body.classList.remove('nn-chart-focus-lock');
+      document.removeEventListener('keydown', handleEscape);
+      returnFocusTarget?.focus();
+    };
+  }, [isFocusOpen]);
+
   if (error) return <p className="nn-notice nn-notice--error" role="alert">{chartUi(locale, 'sky.unavailable')}</p>;
   if (!snapshot) return <p className="nn-async-state nn-async-state--loading" role="status" aria-live="polite">{chartUi(locale, 'sky.loading')}</p>;
 
   if (variant === 'compact') {
-    return <CompactSkyInstrument locale={locale} snapshot={snapshot} />;
+    return (
+      <>
+        <SkyFocusSurface
+          compact
+          expandButtonRef={focusTriggerRef}
+          locale={locale}
+          onExpand={() => setIsFocusOpen(true)}
+          snapshot={snapshot}
+        />
+        {isFocusOpen ? (
+          <ChartFocusDialog
+            chart={snapshot}
+            chartKind="sky"
+            closeButtonRef={focusCloseRef}
+            dialogId={focusDialogId}
+            locale={locale}
+            onClose={() => setIsFocusOpen(false)}
+            presentationPolicy={withChartPresentationMode(createSkyPresentationPolicy(), 'expanded')}
+          />
+        ) : null}
+      </>
+    );
   }
 
   return (
     <div className="grid gap-8 lg:grid-cols-[minmax(0,1.3fr)_minmax(19rem,0.7fr)]">
-      <div className="min-w-0 rounded-[var(--nn-radius-large)] border border-natal-border/70 bg-natal-night/30 p-3 shadow-[var(--nn-shadow-low)] sm:p-6 lg:p-8"><SkyWheel locale={locale} snapshot={snapshot} /></div>
+      <SkyChartPanel
+        compact={false}
+        expandButtonRef={focusTriggerRef}
+        locale={locale}
+        onExpand={() => setIsFocusOpen(true)}
+        snapshot={snapshot}
+      />
       <div className="space-y-6">
         <SnapshotReadout locale={locale} snapshot={snapshot} />
         <SkyHighlights locale={locale} snapshot={snapshot} />
@@ -345,6 +372,17 @@ export default function CurrentSkyInstrument({
         <p className="nn-notice nn-notice--trust">{chartUi(locale, 'sky.trustNotice')}</p>
         <DevelopmentDisclosure locale={locale} snapshot={snapshot} />
       </div>
+      {isFocusOpen ? (
+        <ChartFocusDialog
+          chart={snapshot}
+          chartKind="sky"
+          closeButtonRef={focusCloseRef}
+          dialogId={focusDialogId}
+          locale={locale}
+          onClose={() => setIsFocusOpen(false)}
+          presentationPolicy={withChartPresentationMode(createSkyPresentationPolicy(), 'expanded')}
+        />
+      ) : null}
     </div>
   );
 }

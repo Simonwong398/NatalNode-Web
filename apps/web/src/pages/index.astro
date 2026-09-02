@@ -14,8 +14,6 @@ const { locale: localizedLocale } = Astro.props;
 const isLocalizedPage = localizedLocale !== undefined;
 
 const CURRENT_SKY_AT_UTC = '2026-09-01T12:00:00.000Z';
-const isCurrentSkyPreviewAvailable =
-  import.meta.env.DEV === true || process.env.NATALNODE_LOCAL_DEV_PREVIEW === 'true';
 
 const seo = {
   title: 'NatalNode — Natal Chart Calculator',
@@ -38,29 +36,27 @@ const t = (key: UiMessageKey) => getUiMessage(locale, key);
       'pb-12',
       'pt-10',
       'sm:pt-14',
-      isCurrentSkyPreviewAvailable ? 'max-w-[78rem]' : null
+      'max-w-[78rem]'
     ]}>
       <header class="nn-section-header">
         <p class="nn-eyebrow">{t('calculate.eyebrow')}</p>
         <h1 class="nn-type-page-title max-w-2xl">{t('calculate.title')}</h1>
         <p class="nn-type-body max-w-xl">{t('calculate.description')}</p>
       </header>
-      <div class:list={isCurrentSkyPreviewAvailable ? ['grid', 'gap-8', 'md:grid-cols-[minmax(0,1fr)_minmax(18rem,0.72fr)]'] : []}>
-        {isCurrentSkyPreviewAvailable ? (
-          <aside class="order-1 min-w-0 md:order-2" aria-label={t('sky.currentTitle')}>
-            <section class="nn-surface nn-surface--instrument mt-8 p-3 sm:p-5" aria-labelledby="homepage-current-sky-title">
-              <p class="nn-eyebrow">{t('sky.currentTitle')}</p>
-              <h2 class="nn-type-section-title mt-1" id="homepage-current-sky-title">{t('sky.currentEyebrow')}</h2>
-              <CurrentSkyInstrument
-                atUtc={CURRENT_SKY_AT_UTC}
-                locale={locale}
-                variant="compact"
-                client:load
-              />
-            </section>
-          </aside>
-        ) : null}
-        <div class:list={['min-w-0', isCurrentSkyPreviewAvailable ? ['order-2', 'md:order-1'] : []]}>
+      <div class="grid gap-8 md:grid-cols-[minmax(0,1fr)_minmax(18rem,0.72fr)]">
+        <aside class="order-1 min-w-0 md:order-2" aria-label={t('sky.currentTitle')}>
+          <section class="nn-surface nn-surface--instrument mt-8 p-3 sm:p-5" aria-labelledby="homepage-current-sky-title">
+            <p class="nn-eyebrow">{t('sky.currentTitle')}</p>
+            <h2 class="nn-type-section-title mt-1" id="homepage-current-sky-title">{t('sky.currentEyebrow')}</h2>
+            <CurrentSkyInstrument
+              atUtc={CURRENT_SKY_AT_UTC}
+              locale={locale}
+              variant="compact"
+              client:load
+            />
+          </section>
+        </aside>
+        <div class="order-2 min-w-0 md:order-1">
           <ChartExperience locale={locale} client:load />
         </div>
       </div>

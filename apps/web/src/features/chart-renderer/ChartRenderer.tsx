@@ -11,7 +11,10 @@ import type {
   AspectFact,
   BodyFact,
   ChartResult,
-  HouseCusp
+  HouseCusp,
+  SkyBodyPosition,
+  SkyCurrentAspect,
+  SkySnapshotResult
 } from '@natalnode/contracts';
 import {
   getAstrologyGlyph,
@@ -45,10 +48,25 @@ import type { ChartPresentationPolicy } from '@/features/chart-workspace/chart-p
 import { chartUi, chartUiFormat } from '../chart-experience/chart-ui.js';
 
 export type ChartRendererProps = {
-  chart: ChartResult;
+  chart: ChartInstrumentData;
   locale?: SupportedLocale;
   presentationPolicy: ChartPresentationPolicy;
+  chartKind?: ChartInstrumentKind;
 };
+
+export type ChartInstrumentData = ChartResult | SkySnapshotResult;
+export type ChartInstrumentKind = 'natal' | 'sky';
+
+type ChartInstrumentBody = BodyFact | SkyBodyPosition;
+type ChartInstrumentAspect = AspectFact | SkyCurrentAspect;
+
+function getInstrumentBodies(chart: ChartInstrumentData): readonly ChartInstrumentBody[] {
+  return 'bodyPositions' in chart ? chart.bodyPositions : chart.bodies;
+}
+
+function getInstrumentAspects(chart: ChartInstrumentData): readonly ChartInstrumentAspect[] {
+  return 'currentAspects' in chart ? chart.currentAspects : chart.aspects;
+}
 
 type AspectCategory = 'tension' | 'harmony' | 'neutral';
 
@@ -61,14 +79,14 @@ type AspectStyle = {
 };
 
 type ResolvedAspect = {
-  aspect: AspectFact;
-  firstBody: BodyFact;
-  secondBody: BodyFact;
+  aspect: ChartInstrumentAspect;
+  firstBody: ChartInstrumentBody;
+  secondBody: ChartInstrumentBody;
   style: AspectStyle;
 };
 
 type BodyDisplay = {
-  body: BodyFact;
+  body: ChartInstrumentBody;
   index: number;
   marker: { x: number; y: number };
   label: { x: number; y: number };
@@ -166,6 +184,33 @@ function formatHouse(house: number): string {
   return ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X', 'XI', 'XII'][house - 1] ?? String(house);
 }
 
+function isSkyBody(body: ChartInstrumentBody): body is SkyBodyPosition {
+  return 'motionState' in body;
+}
+
+function isSkyAspect(aspect: ChartInstrumentAspect): aspect is SkyCurrentAspect {
+  return 'aspectType' in aspect;
+}
+
+function getBodyMotionState(body: ChartInstrumentBody): string | null {
+  if (isSkyBody(body)) return body.motionState;
+  if (body.retrograde === true) return 'RETROGRADE';
+  if (body.retrograde === false) return 'DIRECT';
+  return null;
+}
+
+function getBodyHouse(body: ChartInstrumentBody): number | null {
+  return isSkyBody(body) ? null : body.house;
+}
+
+function getAspectType(aspect: ChartInstrumentAspect): string {
+  return isSkyAspect(aspect) ? aspect.aspectType : aspect.type;
+}
+
+function getAspectOrb(aspect: ChartInstrumentAspect): number | null {
+  return isSkyAspect(aspect) ? aspect.orb : aspect.orb;
+}
+
 function glossaryTerm(
   kind: Parameters<typeof resolveAstrologyDomainTerm>[0],
   value: unknown,
@@ -179,14 +224,19 @@ function houseNotation(house: number): string {
   return getAstrologyNotation('house', house, 'romanNumeral') ?? formatHouse(house);
 }
 
-function describeAspect(aspect: AspectFact, locale: SupportedLocale | undefined): string {
+function describeAspect(aspect: ChartInstrumentAspect, locale: SupportedLocale | undefined): string {
   const phaseState = aspect.phaseState === null
     ? ''
     : `, ${glossaryTerm('aspect_phase', aspect.phaseState, locale)}`;
-  return `${glossaryTerm('body', aspect.firstBodyId, locale)} ${glossaryTerm('aspect', aspect.type, locale)} ${glossaryTerm('body', aspect.secondBodyId, locale)}, ${glossaryTerm('aspect', 'orb', locale).toLowerCase()} ${formatNumericValue(aspect.orb)}°${phaseState}`;
+  const aspectType = getAspectType(aspect);
+  const orb = getAspectOrb(aspect);
+  const orbDescription = orb === null
+    ? ''
+    : `, ${glossaryTerm('aspect', 'orb', locale).toLowerCase()} ${formatNumericValue(orb)}°`;
+  return `${glossaryTerm('body', aspect.firstBodyId, locale)} ${glossaryTerm('aspect', aspectType, locale)} ${glossaryTerm('body', aspect.secondBodyId, locale)}${orbDescription}${phaseState}`;
 }
 
-function resolveUniqueBody(bodyId: string, bodies: readonly BodyFact[]): BodyFact | null {
+function resolveUniqueBody(bodyId: string, bodies: readonly ChartInstrumentBody[]): ChartInstrumentBody | null {
   const matches = bodies.filter((body) => body.bodyId === bodyId);
   return matches.length === 1 ? matches[0] : null;
 }
@@ -195,12 +245,15 @@ function getAspectStyle(type: string): AspectStyle {
   return ASPECT_STYLES[type] ?? UNKNOWN_ASPECT_STYLE;
 }
 
-function getRenderableAspects(chart: ChartResult): ResolvedAspect[] {
+function getRenderableAspects(
+  bodies: readonly ChartInstrumentBody[],
+  aspects: readonly ChartInstrumentAspect[]
+): ResolvedAspect[] {
   const renderableAspects: ResolvedAspect[] = [];
 
-  for (const aspect of chart.aspects) {
-    const firstBody = resolveUniqueBody(aspect.firstBodyId, chart.bodies);
-    const secondBody = resolveUniqueBody(aspect.secondBodyId, chart.bodies);
+  for (const aspect of aspects) {
+    const firstBody = resolveUniqueBody(aspect.firstBodyId, bodies);
+    const secondBody = resolveUniqueBody(aspect.secondBodyId, bodies);
 
     // An unknown aspect type remains a supplied neutral fact. A relation with
     // an ambiguous body identity cannot be placed safely, so it is omitted.
@@ -210,7 +263,7 @@ function getRenderableAspects(chart: ChartResult): ResolvedAspect[] {
       aspect,
       firstBody,
       secondBody,
-      style: getAspectStyle(aspect.type)
+      style: getAspectStyle(getAspectType(aspect))
     });
   }
 
@@ -222,7 +275,7 @@ function getRenderableAspects(chart: ChartResult): ResolvedAspect[] {
  * label radius move when nearby labels would collide; this is presentation
  * geometry, never a replacement for a source fact.
  */
-function resolveBodyDisplayPositions(bodies: readonly BodyFact[]): BodyDisplay[] {
+function resolveBodyDisplayPositions(bodies: readonly ChartInstrumentBody[]): BodyDisplay[] {
   const sortedBodies = bodies
     .map((body, index) => ({ body, index }))
     .sort((first, second) => {
@@ -361,6 +414,7 @@ type BodyRenderProps = {
   display: BodyDisplay;
   locale: SupportedLocale | undefined;
   showHouses: boolean;
+  showBodyAbbreviations: boolean;
   activePlanetId: string | null;
   selectedPlanetId: string | null;
   connectedBodyIds: ReadonlySet<string>;
@@ -371,15 +425,16 @@ type BodyRenderProps = {
 };
 
 function describeBody(
-  body: BodyFact,
+  body: ChartInstrumentBody,
   locale: SupportedLocale | undefined,
   showHouses: boolean
 ): string {
-  const motion = body.retrograde === true
+  const motion = getBodyMotionState(body) === 'RETROGRADE'
     ? `, ${glossaryTerm('motion', 'RETROGRADE', locale).toLowerCase()}`
     : '';
-  const house = showHouses && typeof body.house === 'number' && Number.isInteger(body.house) && body.house >= 1 && body.house <= 12
-    ? `, ${glossaryTerm('house', body.house, locale)}`
+  const houseValue = getBodyHouse(body);
+  const house = showHouses && typeof houseValue === 'number' && Number.isInteger(houseValue) && houseValue >= 1 && houseValue <= 12
+    ? `, ${glossaryTerm('house', houseValue, locale)}`
     : '';
   return `${chartUiFormat(locale, 'chart.bodyAt', {
     body: glossaryTerm('body', body.bodyId, locale),
@@ -392,6 +447,7 @@ function renderBody({
   display,
   locale,
   showHouses,
+  showBodyAbbreviations,
   activePlanetId,
   selectedPlanetId,
   connectedBodyIds,
@@ -515,20 +571,22 @@ function renderBody({
       >
         {bodyGlyph ?? bodyLabel}
       </text>
-      <text
-        aria-hidden="true"
-        dominantBaseline="middle"
-        fill={CHART_COLORS.bodyPrimary}
-        fontFamily={SVG_TEXT}
-        fontSize="10"
-        fontWeight="700"
-        letterSpacing="0.08em"
-        textAnchor="middle"
-        x={label.x}
-        y={label.y + 3}
-      >
-        {bodyLabel}
-      </text>
+      {showBodyAbbreviations ? (
+        <text
+          aria-hidden="true"
+          dominantBaseline="middle"
+          fill={CHART_COLORS.bodyPrimary}
+          fontFamily={SVG_TEXT}
+          fontSize="10"
+          fontWeight="700"
+          letterSpacing="0.08em"
+          textAnchor="middle"
+          x={label.x}
+          y={label.y + 3}
+        >
+          {bodyLabel}
+        </text>
+      ) : null}
     </g>
   );
 }
@@ -541,6 +599,7 @@ function renderAspect(
 ) {
   const firstPoint = longitudeToPoint(resolvedAspect.firstBody.longitude, ASPECT_ENDPOINT_RADIUS);
   const secondPoint = longitudeToPoint(resolvedAspect.secondBody.longitude, ASPECT_ENDPOINT_RADIUS);
+  const aspectType = getAspectType(resolvedAspect.aspect);
   const description = describeAspect(resolvedAspect.aspect, locale);
   const isFocused = activePlanetId !== null && (
     resolvedAspect.aspect.firstBodyId === activePlanetId ||
@@ -552,7 +611,7 @@ function renderAspect(
     <g
       aria-label={description}
       className={`nn-chart-aspect nn-chart-aspect--${resolvedAspect.style.category}${isFocused ? ' nn-chart-aspect--active' : ''}`}
-      key={`${resolvedAspect.aspect.firstBodyId}-${resolvedAspect.aspect.type}-${resolvedAspect.aspect.secondBodyId}-${index}`}
+      key={`${resolvedAspect.aspect.firstBodyId}-${aspectType}-${resolvedAspect.aspect.secondBodyId}-${index}`}
       role="group"
     >
       <title>{description}</title>
@@ -635,24 +694,28 @@ function AspectLegend({
   locale: SupportedLocale | undefined;
 }) {
   const uniqueEntries = Array.from(
-    new Map(entries.map((entry) => [entry.aspect.type, entry])).values()
+    new Map(entries.map((entry) => [getAspectType(entry.aspect), entry])).values()
   );
   if (uniqueEntries.length === 0) return null;
 
   return (
     <div aria-label={chartUi(locale, 'chart.majorAspects')} className="nn-chart-legend">
-      {uniqueEntries.map(({ aspect, style }) => (
-        <span className="nn-chart-legend__item" key={aspect.type}>
+      {uniqueEntries.map(({ aspect, style }) => {
+        const aspectType = getAspectType(aspect);
+
+        return (
+        <span className="nn-chart-legend__item" key={aspectType}>
           <span
             aria-hidden="true"
             className={`nn-chart-legend__sample nn-chart-legend__sample--${style.category}`}
           />
           <span aria-hidden="true" className="nn-astrology-glyph">
-            {getAstrologyGlyph('aspect', aspect.type) ?? '·'}
+            {getAstrologyGlyph('aspect', aspectType) ?? '·'}
           </span>
-          <span>{glossaryTerm('aspect', aspect.type, locale)}</span>
+          <span>{glossaryTerm('aspect', aspectType, locale)}</span>
         </span>
-      ))}
+        );
+      })}
     </div>
   );
 }
@@ -665,7 +728,7 @@ function FocusedBodyCard({
   selected,
   focusCardId
 }: {
-  body: BodyFact;
+  body: ChartInstrumentBody;
   aspects: readonly ResolvedAspect[];
   locale: SupportedLocale | undefined;
   showHouses: boolean;
@@ -675,11 +738,12 @@ function FocusedBodyCard({
   const titleId = `chart-focus-${body.bodyId.toLowerCase()}-title`;
   const bodyGlyph = getAstrologyGlyph('body', body.bodyId);
   const signGlyph = getAstrologyGlyph('sign', body.sign);
-  const retrogradeGlyph = body.retrograde === true
+  const retrogradeGlyph = getBodyMotionState(body) === 'RETROGRADE'
     ? getAstrologyGlyph('motion', 'RETROGRADE')
     : undefined;
-  const house = showHouses && typeof body.house === 'number' && Number.isInteger(body.house) && body.house >= 1 && body.house <= 12
-    ? chartUiFormat(locale, 'chart.houseLabel', { house: houseNotation(body.house) })
+  const houseValue = getBodyHouse(body);
+  const house = showHouses && typeof houseValue === 'number' && Number.isInteger(houseValue) && houseValue >= 1 && houseValue <= 12
+    ? chartUiFormat(locale, 'chart.houseLabel', { house: houseNotation(houseValue) })
     : null;
 
   return (
@@ -704,14 +768,18 @@ function FocusedBodyCard({
         <div className="mt-4">
           <h5 className="nn-type-label">{chartUi(locale, 'chart.connectedAspects')}</h5>
           <ul className="mt-2 space-y-2 nn-type-body-small">
-            {aspects.map(({ aspect }) => (
-              <li className="flex items-start gap-2" key={`${aspect.firstBodyId}-${aspect.type}-${aspect.secondBodyId}`}>
+            {aspects.map(({ aspect }) => {
+              const aspectType = getAspectType(aspect);
+
+              return (
+              <li className="flex items-start gap-2" key={`${aspect.firstBodyId}-${aspectType}-${aspect.secondBodyId}`}>
                 <span aria-hidden="true" className="nn-astrology-glyph shrink-0">
-                  {getAstrologyGlyph('aspect', aspect.type) ?? '·'}
+                  {getAstrologyGlyph('aspect', aspectType) ?? '·'}
                 </span>
                 <span>{describeAspect(aspect, locale)}</span>
               </li>
-            ))}
+              );
+            })}
           </ul>
         </div>
       ) : (
@@ -721,23 +789,36 @@ function FocusedBodyCard({
   );
 }
 
-export default function ChartRenderer({ chart, locale, presentationPolicy }: ChartRendererProps) {
+export default function ChartRenderer({
+  chart,
+  locale,
+  presentationPolicy,
+  chartKind = 'natal'
+}: ChartRendererProps) {
   const rendererId = useId().replace(/:/g, '');
   const titleId = `${rendererId}-title`;
   const descriptionId = `${rendererId}-description`;
   const focusCardId = `${rendererId}-focus-card`;
+  const isSkyChart = chartKind === 'sky';
+  const isShowcase = presentationPolicy.mode === 'showcase';
+  const natalChart = !isSkyChart && 'houses' in chart ? chart : null;
+  const bodies = getInstrumentBodies(chart);
+  const aspects = getInstrumentAspects(chart);
   const [hoveredPlanetId, setHoveredPlanetId] = useState<string | null>(null);
   const [selectedPlanetId, setSelectedPlanetId] = useState<string | null>(null);
   const activePlanetId = selectedPlanetId ?? hoveredPlanetId;
-  const bodyDisplays = useMemo(() => resolveBodyDisplayPositions(chart.bodies), [chart.bodies]);
-  const renderableAspects = useMemo(() => getRenderableAspects(chart), [chart]);
-  const houseCusps = presentationPolicy.showHouses
-    ? [...(chart.houses?.cusps ?? [])].sort((first, second) => first.house - second.house)
+  const bodyDisplays = useMemo(() => resolveBodyDisplayPositions(bodies), [bodies]);
+  const renderableAspects = useMemo(
+    () => getRenderableAspects(bodies, aspects),
+    [aspects, bodies]
+  );
+  const houseCusps = presentationPolicy.showHouses && !isSkyChart
+    ? [...(natalChart?.houses?.cusps ?? [])].sort((first, second) => first.house - second.house)
     : [];
-  const angles = presentationPolicy.showAngles ? chart.angles : [];
+  const angles = presentationPolicy.showAngles && natalChart ? natalChart.angles : [];
   const activeBody = activePlanetId === null
     ? undefined
-    : chart.bodies.find((body) => body.bodyId === activePlanetId);
+    : bodies.find((body) => body.bodyId === activePlanetId);
   const connectedAspects = activePlanetId === null
     ? []
     : renderableAspects.filter(({ aspect }) => (
@@ -755,13 +836,22 @@ export default function ChartRenderer({ chart, locale, presentationPolicy }: Cha
   }, [activePlanetId, connectedAspects]);
   const atmosphereId = `${rendererId}-atmosphere`;
   const natalChartLabel = glossaryTerm('chart_type', 'natal', locale);
-  const description = presentationPolicy.showHouses && presentationPolicy.showAngles
-    ? chartUiFormat(locale, 'chart.wheelDescriptionWithHouses', {
-        chart: natalChartLabel.toLowerCase()
-      })
-    : chartUiFormat(locale, 'chart.wheelDescriptionWithoutHouses', {
-        chart: natalChartLabel.toLowerCase()
-      });
+  const instrumentTitle = isSkyChart
+    ? chartUi(locale, 'sky.wheelTitle')
+    : chartUiFormat(locale, 'chart.wheelTitle', { chart: natalChartLabel });
+  const description = isSkyChart
+    ? chartUi(locale, 'sky.wheelDescription')
+    : presentationPolicy.showHouses && presentationPolicy.showAngles
+      ? chartUiFormat(locale, 'chart.wheelDescriptionWithHouses', {
+          chart: natalChartLabel.toLowerCase()
+        })
+      : chartUiFormat(locale, 'chart.wheelDescriptionWithoutHouses', {
+          chart: natalChartLabel.toLowerCase()
+        });
+  const zodiacSectorsLabel = chartUi(locale, isSkyChart ? 'sky.zodiacSectors' : 'chart.zodiacSectors');
+  const suppliedAspectsLabel = chartUi(locale, isSkyChart ? 'sky.suppliedAspects' : 'chart.majorAspects');
+  const suppliedBodiesLabel = chartUi(locale, isSkyChart ? 'sky.suppliedBodies' : 'chart.chartBodies');
+  const anglesLabel = chartUi(locale, 'chart.chartAngles');
 
   useEffect(() => {
     const handleEscape = (event: globalThis.KeyboardEvent) => {
@@ -774,13 +864,13 @@ export default function ChartRenderer({ chart, locale, presentationPolicy }: Cha
   }, []);
 
   useEffect(() => {
-    if (selectedPlanetId && !chart.bodies.some((body) => body.bodyId === selectedPlanetId)) {
+    if (selectedPlanetId && !bodies.some((body) => body.bodyId === selectedPlanetId)) {
       setSelectedPlanetId(null);
     }
-    if (hoveredPlanetId && !chart.bodies.some((body) => body.bodyId === hoveredPlanetId)) {
+    if (hoveredPlanetId && !bodies.some((body) => body.bodyId === hoveredPlanetId)) {
       setHoveredPlanetId(null);
     }
-  }, [chart.bodies, hoveredPlanetId, selectedPlanetId]);
+  }, [bodies, hoveredPlanetId, selectedPlanetId]);
 
   const clearFocus = () => {
     setSelectedPlanetId(null);
@@ -791,7 +881,12 @@ export default function ChartRenderer({ chart, locale, presentationPolicy }: Cha
   };
 
   return (
-    <div className="nn-chart-renderer" data-chart-instrument="true">
+    <div
+      className={`nn-chart-renderer nn-chart-renderer--${presentationPolicy.mode}`}
+      data-chart-instrument="true"
+      data-chart-kind={chartKind}
+      data-presentation-mode={presentationPolicy.mode}
+    >
       <svg
         aria-describedby={descriptionId}
         aria-labelledby={titleId}
@@ -801,7 +896,7 @@ export default function ChartRenderer({ chart, locale, presentationPolicy }: Cha
         viewBox={`0 0 ${CHART_VIEWBOX_SIZE} ${CHART_VIEWBOX_SIZE}`}
       >
         <title id={titleId}>
-          {chartUiFormat(locale, 'chart.wheelTitle', { chart: natalChartLabel })}
+          {instrumentTitle}
         </title>
         <desc id={descriptionId}>{description}</desc>
 
@@ -850,12 +945,12 @@ export default function ChartRenderer({ chart, locale, presentationPolicy }: Cha
             strokeOpacity="0.62"
             strokeWidth="1"
           />
-          {renderPrecisionTicks()}
-          {renderDegreeLabels()}
+          {!isShowcase ? renderPrecisionTicks() : null}
+          {!isShowcase ? renderDegreeLabels() : null}
         </g>
 
         {/* Zodiac: the canonical twelve sectors remain the primary ring. */}
-        <g aria-label={chartUi(locale, 'chart.zodiacSectors')} role="group">
+        <g aria-label={zodiacSectorsLabel} role="group">
           {ZODIAC_SIGNS.map((sign, index) => {
             const startLongitude = index * 30;
             const label = longitudeToPoint(startLongitude + 15, (ZODIAC_OUTER_RADIUS + ZODIAC_INNER_RADIUS) / 2);
@@ -908,7 +1003,7 @@ export default function ChartRenderer({ chart, locale, presentationPolicy }: Cha
         />
 
         {/* Houses and angles are rendered only from supplied facts and policy. */}
-        {presentationPolicy.showHouses ? (
+        {presentationPolicy.showHouses && !isSkyChart ? (
           <>
             <circle
               cx={CHART_CENTER}
@@ -926,18 +1021,18 @@ export default function ChartRenderer({ chart, locale, presentationPolicy }: Cha
         ) : null}
 
         {angles.length > 0 ? (
-          <g aria-label={chartUi(locale, 'chart.chartAngles')} role="group">
+          <g aria-label={anglesLabel} role="group">
             {angles.map((angle) => renderAngle(angle, locale))}
           </g>
         ) : null}
 
         {/* Aspects are subordinate, and focus state is presentation-only. */}
-        <g aria-label={chartUi(locale, 'chart.majorAspects')} role="group">
+        <g aria-label={suppliedAspectsLabel} role="group">
           {renderableAspects.map((aspect, index) => renderAspect(aspect, index, locale, activePlanetId))}
         </g>
 
         {/* Bodies stay at their supplied longitudes; only labels are separated. */}
-        <g aria-label={chartUi(locale, 'chart.chartBodies')} role="group">
+        <g aria-label={suppliedBodiesLabel} role="group">
           {bodyDisplays.map((display) => renderBody({
             connectedBodyIds,
             display,
@@ -948,6 +1043,7 @@ export default function ChartRenderer({ chart, locale, presentationPolicy }: Cha
             onSelect: setSelectedPlanetId,
             selectedPlanetId,
             showHouses: presentationPolicy.showHouses,
+            showBodyAbbreviations: !isShowcase,
             activePlanetId
           }))}
         </g>

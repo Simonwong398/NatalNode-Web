@@ -16,7 +16,10 @@ import {
   type SupportedLocale
 } from '../../lib/localization.js';
 import { resolveAstrologyTerm } from '../../lib/astrology-glossary.js';
-import type { ChartPresentationPolicy } from './chart-presentation-policy';
+import {
+  withChartPresentationMode,
+  type ChartPresentationPolicy
+} from './chart-presentation-policy';
 import ChartFocusDialog from './ChartFocusDialog.js';
 import ChartResultSummary from './ChartResultSummary.js';
 import {
@@ -342,7 +345,7 @@ export default function ChartWorkspaceView({
           dialogId={focusDialogId}
           locale={locale}
           onClose={() => setIsChartFocusOpen(false)}
-          presentationPolicy={presentationPolicy}
+          presentationPolicy={withChartPresentationMode(presentationPolicy, 'expanded')}
         />
       ) : null}
     </>
