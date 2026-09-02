@@ -4,6 +4,18 @@ import type { ServerBootstrap } from '../bootstrap/index.js';
 import type { NodeHttpListenerConfig } from './node-http-listener-config.js';
 import type { NodeHttpListenerRuntime } from './node-http-listener-runtime.js';
 
+// Keep the request deadline slightly above the account-export lifecycle deadline
+// while bounding slow clients and idle keep-alive connections.
+const NODE_HTTP_REQUEST_TIMEOUT_MS = 130_000;
+const NODE_HTTP_HEADERS_TIMEOUT_MS = 15_000;
+const NODE_HTTP_KEEP_ALIVE_TIMEOUT_MS = 5_000;
+
+function configureHttpServer(server: Server): void {
+  server.requestTimeout = NODE_HTTP_REQUEST_TIMEOUT_MS;
+  server.headersTimeout = NODE_HTTP_HEADERS_TIMEOUT_MS;
+  server.keepAliveTimeout = NODE_HTTP_KEEP_ALIVE_TIMEOUT_MS;
+}
+
 function waitForListening(
   server: Server,
   config: NodeHttpListenerConfig
@@ -56,6 +68,7 @@ export async function startNodeHttpListener(
     fetch: app.fetch,
     hostname: config.hostname
   }) as Server;
+  configureHttpServer(server);
 
   await waitForListening(server, config);
 

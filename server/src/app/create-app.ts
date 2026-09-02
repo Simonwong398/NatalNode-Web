@@ -76,12 +76,12 @@ export function createApp(
   registerAccountRoutes(app, dependencies);
   registerAccountExportRoutes(app, dependencies, rateLimiter);
   registerNotificationRoutes(app, dependencies, rateLimiter);
-  registerFoundationsLearningRoutes(app, dependencies);
+  registerFoundationsLearningRoutes(app, dependencies, rateLimiter);
   registerCommunityRoutes(app, dependencies, rateLimiter);
   registerPractitionerRoutes(app, dependencies, rateLimiter);
   registerFeedbackRoutes(app, dependencies, rateLimiter);
-  registerVaultChartRoutes(app, dependencies);
-  registerVaultNoteRoutes(app, dependencies);
+  registerVaultChartRoutes(app, dependencies, rateLimiter);
+  registerVaultNoteRoutes(app, dependencies, rateLimiter);
 
   app.notFound((context) =>
     isApiPath(context.req.path)

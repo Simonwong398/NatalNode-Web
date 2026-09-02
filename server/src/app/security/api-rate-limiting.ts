@@ -27,6 +27,21 @@ export const P0_STAGING_RATE_LIMIT_POLICIES = {
     limit: 20,
     windowMs: 10 * 60 * 1_000
   },
+  skyQuery: {
+    identifier: 'SKY_QUERY',
+    limit: 60,
+    windowMs: 10 * 60 * 1_000
+  },
+  foundationsMutationEdge: {
+    identifier: 'FOUNDATIONS_MUTATION_EDGE',
+    limit: 60,
+    windowMs: 10 * 60 * 1_000
+  },
+  foundationsMutationAccount: {
+    identifier: 'FOUNDATIONS_MUTATION_ACCOUNT',
+    limit: 60,
+    windowMs: 10 * 60 * 1_000
+  },
   feedbackSubmissionEdge: {
     identifier: 'FEEDBACK_SUBMISSION_EDGE',
     limit: 20,
@@ -139,6 +154,11 @@ export const P0_STAGING_RATE_LIMIT_POLICIES = {
   },
   vaultMutation: {
     identifier: 'VAULT_MUTATION',
+    limit: 60,
+    windowMs: 10 * 60 * 1_000
+  },
+  vaultMutationAccount: {
+    identifier: 'VAULT_MUTATION_ACCOUNT',
     limit: 60,
     windowMs: 10 * 60 * 1_000
   }
@@ -336,6 +356,18 @@ function isNotificationMutation(method: string, pathname: string): boolean {
   );
 }
 
+function isFoundationsMutation(method: string, pathname: string): boolean {
+  if (method !== 'POST') {
+    return false;
+  }
+
+  return (
+    pathname === '/api/learn/foundations/progress/complete' ||
+    pathname === '/api/learn/foundations/progress/merge' ||
+    pathname === '/api/learn/foundations/assessment/attempts'
+  );
+}
+
 function isCommunityMutation(method: string, pathname: string): boolean {
   if (method === 'POST' && pathname === '/api/community/questions') {
     return true;
@@ -392,6 +424,14 @@ export function selectP0StagingRateLimitPolicy(
 
   if (method === 'POST' && pathname === '/api/chart') {
     return P0_STAGING_RATE_LIMIT_POLICIES.chartCalculation;
+  }
+
+  if (method === 'POST' && (pathname === '/api/sky/snapshot' || pathname === '/api/sky/events')) {
+    return P0_STAGING_RATE_LIMIT_POLICIES.skyQuery;
+  }
+
+  if (isFoundationsMutation(method, pathname)) {
+    return P0_STAGING_RATE_LIMIT_POLICIES.foundationsMutationEdge;
   }
 
   if (method === 'POST' && pathname === '/api/feedback') {
@@ -540,6 +580,44 @@ export function enforceNotificationMutationRateLimit(
 
     await next();
   };
+}
+
+function enforceAccountScopedRateLimit(
+  limiter: InMemoryP0StagingRateLimiter,
+  policy: RateLimitPolicy
+): MiddlewareHandler<AuthenticatedRequestEnv> {
+  return async (context, next) => {
+    const principal = context.get('authenticatedPrincipal');
+    const decision = limiter.attempt(policy, principal.userId);
+
+    if (!decision.allowed) {
+      context.header('Retry-After', decision.retryAfterSeconds.toString());
+      return createProblemDetailsContextResponse(context, {
+        code: 'RATE_LIMITED',
+        detailKey: 'RATE_LIMITED'
+      });
+    }
+
+    await next();
+  };
+}
+
+export function enforceFoundationsAccountRateLimit(
+  limiter: InMemoryP0StagingRateLimiter
+): MiddlewareHandler<AuthenticatedRequestEnv> {
+  return enforceAccountScopedRateLimit(
+    limiter,
+    P0_STAGING_RATE_LIMIT_POLICIES.foundationsMutationAccount
+  );
+}
+
+export function enforceVaultMutationAccountRateLimit(
+  limiter: InMemoryP0StagingRateLimiter
+): MiddlewareHandler<AuthenticatedRequestEnv> {
+  return enforceAccountScopedRateLimit(
+    limiter,
+    P0_STAGING_RATE_LIMIT_POLICIES.vaultMutationAccount
+  );
 }
 
 export type CommunityAccountRateLimitBucket =

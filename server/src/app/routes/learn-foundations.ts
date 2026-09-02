@@ -12,6 +12,10 @@ import { requireAuthentication } from '../auth/index.js';
 import type { ServerDependencies } from '../dependencies.js';
 import { createProblemDetailsContextResponse } from '../problem-details/context-response.js';
 import {
+  enforceFoundationsAccountRateLimit,
+  type InMemoryP0StagingRateLimiter
+} from '../security/api-rate-limiting.js';
+import {
   isFoundationsAssessmentAttemptApiRequest,
   isFoundationsCompleteLessonApiRequest,
   isFoundationsMergeProgressApiRequest,
@@ -82,7 +86,8 @@ function noStoreJson(context: Context, value: unknown): Response {
 
 export function registerFoundationsLearningRoutes(
   app: Hono,
-  dependencies: ServerDependencies
+  dependencies: ServerDependencies,
+  rateLimiter: InMemoryP0StagingRateLimiter
 ): void {
   app.get(
     FOUNDATIONS_PROGRESS_ROUTE,
@@ -109,6 +114,7 @@ export function registerFoundationsLearningRoutes(
   app.post(
     FOUNDATIONS_COMPLETE_LESSON_ROUTE,
     requireAuthentication(dependencies.authenticator),
+    enforceFoundationsAccountRateLimit(rateLimiter),
     async (context) => {
       const request = await parseRequest<FoundationsCompleteLessonApiRequest>(
         context,
@@ -142,6 +148,7 @@ export function registerFoundationsLearningRoutes(
   app.post(
     FOUNDATIONS_MERGE_PROGRESS_ROUTE,
     requireAuthentication(dependencies.authenticator),
+    enforceFoundationsAccountRateLimit(rateLimiter),
     async (context) => {
       const request = await parseRequest<FoundationsMergeProgressApiRequest>(
         context,
@@ -175,6 +182,7 @@ export function registerFoundationsLearningRoutes(
   app.post(
     FOUNDATIONS_ASSESSMENT_ATTEMPT_ROUTE,
     requireAuthentication(dependencies.authenticator),
+    enforceFoundationsAccountRateLimit(rateLimiter),
     async (context) => {
       const request = await parseRequest<FoundationsAssessmentAttemptApiRequest>(
         context,
