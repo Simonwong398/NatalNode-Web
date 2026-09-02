@@ -51,6 +51,10 @@ export type {
   FeedbackSubmissionRepository
 } from './feedback-submission-repository.js';
 export type {
+  FeedbackRetentionPurgeResult,
+  FeedbackRetentionRepository
+} from './feedback-retention-repository.js';
+export type {
   PrivacyAccessAuditAccountResourceCategory,
   PrivacyAccessAuditAction,
   PrivacyAccessAuditActorType,

@@ -28,7 +28,8 @@ export type ProblemCode =
   | 'RATE_LIMITED'
   | 'INTERNAL_ERROR'
   | 'CALCULATION_UNAVAILABLE'
-  | 'NOTIFICATION_UNAVAILABLE';
+  | 'NOTIFICATION_UNAVAILABLE'
+  | 'OPERATIONAL_SURFACE_UNAVAILABLE';
 
 export type ProblemDetailKey =
   | 'INVALID_REQUEST'
@@ -44,7 +45,8 @@ export type ProblemDetailKey =
   | 'NOTIFICATION_UNAVAILABLE'
   | 'RATE_LIMITED'
   | 'INTERNAL_ERROR'
-  | 'CALCULATION_UNAVAILABLE';
+  | 'CALCULATION_UNAVAILABLE'
+  | 'OPERATIONAL_SURFACE_UNAVAILABLE';
 
 const PROBLEM_STATUS_BY_CODE_INTERNAL = {
   INVALID_REQUEST: 400,
@@ -59,7 +61,8 @@ const PROBLEM_STATUS_BY_CODE_INTERNAL = {
   RATE_LIMITED: 429,
   INTERNAL_ERROR: 500,
   CALCULATION_UNAVAILABLE: 503,
-  NOTIFICATION_UNAVAILABLE: 503
+  NOTIFICATION_UNAVAILABLE: 503,
+  OPERATIONAL_SURFACE_UNAVAILABLE: 503
 } as const satisfies Readonly<Record<ProblemCode, ProblemStatus>>;
 
 export const PROBLEM_STATUS_BY_CODE = Object.freeze(
@@ -101,7 +104,9 @@ const PROBLEM_DETAIL_REGISTRY = {
   RATE_LIMITED: 'Too many requests. Please try again later.',
   INTERNAL_ERROR: 'An unexpected server error occurred.',
   CALCULATION_UNAVAILABLE: 'Calculation is currently unavailable.',
-  NOTIFICATION_UNAVAILABLE: 'Notification settings are currently unavailable.'
+  NOTIFICATION_UNAVAILABLE: 'Notification settings are currently unavailable.',
+  OPERATIONAL_SURFACE_UNAVAILABLE:
+    'This operational surface is currently unavailable.'
 } as const satisfies Readonly<Record<ProblemDetailKey, string>>;
 
 export const PROBLEM_DETAIL_BY_KEY = Object.freeze(PROBLEM_DETAIL_REGISTRY);
@@ -119,7 +124,8 @@ const DETAIL_KEYS_BY_CODE = {
   RATE_LIMITED: ['RATE_LIMITED'],
   INTERNAL_ERROR: ['INTERNAL_ERROR'],
   CALCULATION_UNAVAILABLE: ['CALCULATION_UNAVAILABLE'],
-  NOTIFICATION_UNAVAILABLE: ['NOTIFICATION_UNAVAILABLE']
+  NOTIFICATION_UNAVAILABLE: ['NOTIFICATION_UNAVAILABLE'],
+  OPERATIONAL_SURFACE_UNAVAILABLE: ['OPERATIONAL_SURFACE_UNAVAILABLE']
 } as const satisfies Readonly<Record<ProblemCode, readonly ProblemDetailKey[]>>;
 
 type ProblemDetailKeyForCode<Code extends ProblemCode> =

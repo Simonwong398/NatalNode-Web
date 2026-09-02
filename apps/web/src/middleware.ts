@@ -20,6 +20,8 @@ const PRESENTATION_PAGE_ROUTE_PATTERNS = new Set([
   '/learn',
   '/learn/[slug]',
   '/methodology',
+  '/privacy',
+  '/terms',
   '/practitioners',
   '/practitioners/profile',
   '/practitioners/apply',

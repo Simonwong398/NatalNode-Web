@@ -156,6 +156,7 @@ function createUnavailableVaultChartRepository(): VaultChartRepository {
     create: unavailableAsync,
     findById: unavailableAsync,
     listForUser: unavailableAsync,
+    listPageForUser: unavailableAsync,
     updateMetadata: unavailableAsync,
     deleteById: unavailableAsync
   };

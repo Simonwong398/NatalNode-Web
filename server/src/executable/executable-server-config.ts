@@ -1,8 +1,13 @@
 import type { EnvironmentSource } from '../runtime/index.js';
+import {
+  parseServerOperationalConfig,
+  type ServerRuntimeMode
+} from '../runtime/index.js';
 
 export const DEVELOPMENT_MOCK_ENGINE_CLIENT_MODE = 'development-mock';
 
 export interface ExecutableServerConfig {
+  readonly runtimeMode: ServerRuntimeMode;
   readonly resendApiKey: string;
   readonly authEmailFrom: string;
   readonly engineClientMode: typeof DEVELOPMENT_MOCK_ENGINE_CLIENT_MODE;
@@ -34,6 +39,7 @@ function readRequired(
 export function parseExecutableServerConfig(
   environment: EnvironmentSource
 ): ExecutableServerConfig {
+  const operationalConfig = parseServerOperationalConfig(environment);
   const resendApiKey = readRequired(environment, 'RESEND_API_KEY');
   const authEmailFrom = readRequired(environment, 'AUTH_EMAIL_FROM');
   const engineClientMode = readRequired(environment, 'ENGINE_CLIENT_MODE');
@@ -42,7 +48,12 @@ export function parseExecutableServerConfig(
     return configurationError('ENGINE_CLIENT_MODE');
   }
 
+  if (operationalConfig.runtimeMode === 'production') {
+    return configurationError('ENGINE_CLIENT_MODE');
+  }
+
   return {
+    runtimeMode: operationalConfig.runtimeMode,
     resendApiKey,
     authEmailFrom,
     engineClientMode

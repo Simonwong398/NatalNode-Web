@@ -21,9 +21,11 @@ import type { ChartCalculationService } from './cache/cached-chart-calculator.js
 import type { Clock, IdGenerator } from './creation-boundaries.js';
 import type { NotificationAccountService } from '../notification-platform/notification-account-service.js';
 import type { FoundationsLearningService } from '../learning/foundations/postgres-foundations-learning-service.js';
+import type { ServerOperationalConfig } from '../runtime/server-runtime-config.js';
 
 export interface ServerDependencies {
   readonly publicWebOrigin: string;
+  readonly operationalConfig?: ServerOperationalConfig;
   readonly authenticator: RequestAuthenticator;
   readonly accountErasure: AccountErasureRepository;
   readonly accountDataExport: AccountDataExportRepository;

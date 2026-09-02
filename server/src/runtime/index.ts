@@ -10,7 +10,8 @@ export {
   loadPostgresPoolRuntimeEnvironment,
   loadServerEnvironment,
   parsePostgresPoolRuntimeEnvironment,
-  parseServerEnvironment
+  parseServerEnvironment,
+  parseServerOperationalConfig
 } from './environment/index.js';
 export {
   createServerProcessRuntime,
@@ -31,6 +32,11 @@ export type {
   ServerEnvironmentConfig
 } from './environment/index.js';
 export type {
+  RateLimitAuthorityKind,
+  ServerOperationalConfig,
+  ServerRuntimeMode
+} from './server-runtime-config.js';
+export type {
   ServerBootstrap,
   ServerBootstrapBindings
 } from './bootstrap/index.js';
@@ -44,7 +50,8 @@ export type { TransactionRunner } from '../db/index.js';
 export type { ServerRuntimeConfig } from './server-runtime-config.js';
 export { SystemClock } from './system-clock.js';
 export {
-  createResendEmailMagicLinkDelivery
+  createResendEmailMagicLinkDelivery,
+  RESEND_EXTERNAL_DEADLINE_MS
 } from './email/index.js';
 export type {
   ResendEmailMagicLinkDeliveryConfig

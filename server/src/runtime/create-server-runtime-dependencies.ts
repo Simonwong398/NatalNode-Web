@@ -102,6 +102,7 @@ export function createServerRuntimeDependencies(
 
   return {
     publicWebOrigin: config.publicWebOrigin,
+    operationalConfig: config.operational,
     authenticator,
     accountErasure: bindings.accountErasure,
     accountDataExport: bindings.accountDataExport,

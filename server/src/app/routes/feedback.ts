@@ -9,7 +9,7 @@ import type { ServerDependencies } from '../dependencies.js';
 import { createProblemDetailsContextResponse } from '../problem-details/context-response.js';
 import {
   enforceFeedbackAccountRateLimit,
-  type InMemoryP0StagingRateLimiter
+  type RateLimitAuthority
 } from '../security/api-rate-limiting.js';
 import { normalizeCreateFeedbackApiRequest } from '../validation/index.js';
 
@@ -137,7 +137,7 @@ async function parseFeedbackRequest(
 export function registerFeedbackRoutes(
   app: Hono,
   dependencies: ServerDependencies,
-  rateLimiter: InMemoryP0StagingRateLimiter
+  rateLimiter: RateLimitAuthority
 ): void {
   app.post(
     '/api/feedback',

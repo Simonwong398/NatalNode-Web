@@ -128,7 +128,12 @@ export {
 } from './auth-runtime/index.js';
 
 export { createApp } from './app/index.js';
-export type { Clock, IdGenerator, ServerDependencies } from './app/index.js';
+export type {
+  Clock,
+  IdGenerator,
+  RateLimitAuthority,
+  ServerDependencies
+} from './app/index.js';
 
 export {
   createServerBootstrap,
@@ -150,7 +155,8 @@ export {
   runServerProcess,
   ServerEnvironmentConfigurationError,
   SystemClock,
-  createResendEmailMagicLinkDelivery
+  createResendEmailMagicLinkDelivery,
+  RESEND_EXTERNAL_DEADLINE_MS
 } from './runtime/index.js';
 export type {
   EnvironmentSource,
@@ -165,6 +171,9 @@ export type {
   ServerProcessRuntime,
   ServerRuntimeBindings,
   ServerRuntimeConfig,
+  RateLimitAuthorityKind,
+  ServerOperationalConfig,
+  ServerRuntimeMode,
   ResendEmailMagicLinkDeliveryConfig
 } from './runtime/index.js';
 
@@ -195,6 +204,8 @@ export type {
   EmailMagicLinkAuthLifecycle,
   FeedbackSubmissionRecord,
   FeedbackSubmissionRepository,
+  FeedbackRetentionPurgeResult,
+  FeedbackRetentionRepository,
   GoogleOAuthTransactionClaim,
   GoogleOAuthTransactionClaimInput,
   GoogleOAuthTransactionRepository,
@@ -248,6 +259,7 @@ export {
   PostgresEmailMagicLinkChallengeRepository,
   PostgresEmailMagicLinkAuthLifecycle,
   PostgresFeedbackSubmissionRepository,
+  PostgresFeedbackRetentionRepository,
   PostgresPrivacyAccessAuditRepository,
   PostgresUserRepository,
   PostgresVaultChartRepository

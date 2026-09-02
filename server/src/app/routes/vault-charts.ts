@@ -16,7 +16,7 @@ import type { ServerDependencies } from '../dependencies.js';
 import { createProblemDetailsContextResponse } from '../problem-details/context-response.js';
 import {
   enforceVaultMutationAccountRateLimit,
-  type InMemoryP0StagingRateLimiter
+  type RateLimitAuthority
 } from '../security/api-rate-limiting.js';
 import { readVaultRouteIdentifier } from './vault-route-helpers.js';
 import {
@@ -24,6 +24,8 @@ import {
   isSaveVaultChartApiRequest,
   normalizeVaultChartDisplayName,
   normalizeVaultChartTags,
+  encodeVaultChartListCursor,
+  parseVaultChartListQuery,
   readBoundedJson
 } from '../validation/index.js';
 
@@ -98,7 +100,7 @@ async function parseSaveVaultChartRequest(
 export function registerVaultChartRoutes(
   app: Hono,
   dependencies: ServerDependencies,
-  rateLimiter: InMemoryP0StagingRateLimiter
+  rateLimiter: RateLimitAuthority
 ): void {
   app.post(
     '/api/vault/charts',
@@ -159,8 +161,32 @@ export function registerVaultChartRoutes(
     async (context) => {
       const principal = context.get('authenticatedPrincipal');
       const userId = principal.userId;
-      const charts = await dependencies.persistence.vaultCharts.listForUser(userId);
-      const response: ListVaultChartsApiResponse = { charts };
+      const query = parseVaultChartListQuery(
+        context.req.query('limit'),
+        context.req.query('cursor'),
+        userId
+      );
+
+      if (query === null) {
+        return createProblemDetailsContextResponse(context, {
+          code: 'INVALID_REQUEST'
+        });
+      }
+
+      const repository = dependencies.persistence.vaultCharts;
+      const page = repository.listPageForUser === undefined
+        ? {
+            charts: (await repository.listForUser(userId)).slice(0, query.limit),
+            nextCursor: null
+          }
+        : await repository.listPageForUser(userId, query);
+      const lastCursor = page.nextCursor;
+      const response: ListVaultChartsApiResponse = {
+        charts: page.charts,
+        nextCursor: lastCursor === null
+          ? null
+          : encodeVaultChartListCursor(userId, lastCursor)
+      };
 
       return context.json(response);
     }

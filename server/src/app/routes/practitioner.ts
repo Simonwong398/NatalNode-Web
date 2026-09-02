@@ -25,8 +25,9 @@ import { requireAuthentication } from '../auth/index.js';
 import type { ServerDependencies } from '../dependencies.js';
 import {
   enforcePractitionerAccountRateLimit,
-  type InMemoryP0StagingRateLimiter
+  type RateLimitAuthority
 } from '../security/api-rate-limiting.js';
+import { appendPrivilegedSurfaceAuditReview } from '../security/privileged-surface-audit.js';
 import {
   normalizeCreatePractitionerReportRequest,
   normalizePractitionerApplicationRequest,
@@ -81,7 +82,7 @@ function authMiddleware(dependencies: ServerDependencies) {
 export function registerPractitionerRoutes(
   app: Hono,
   dependencies: ServerDependencies,
-  rateLimiter: InMemoryP0StagingRateLimiter
+  rateLimiter: RateLimitAuthority
 ): void {
   const repository = practitionerRepository(dependencies);
 
@@ -373,6 +374,11 @@ export function registerPractitionerRoutes(
         )
       );
       const revisions = await repository.listPendingProfileRevisions();
+      await appendPrivilegedSurfaceAuditReview(
+        context,
+        dependencies,
+        principal.userId
+      );
       return context.json({
         applications: applicationViews,
         revisions: revisions.map(presentPractitionerReviewProfileRevision)
@@ -422,6 +428,11 @@ export function registerPractitionerRoutes(
         if (result.outcome === 'stale' || result.outcome === 'invalid-transition') {
           return practitionerConflict(context);
         }
+        await appendPrivilegedSurfaceAuditReview(
+          context,
+          dependencies,
+          principal.userId
+        );
         return context.json({ status: result.application.status });
       } catch (_error) {
         return practitionerInternalError(context);
@@ -469,6 +480,11 @@ export function registerPractitionerRoutes(
         if (result.outcome === 'stale') {
           return practitionerConflict(context);
         }
+        await appendPrivilegedSurfaceAuditReview(
+          context,
+          dependencies,
+          principal.userId
+        );
         return context.json({ revision: presentPractitionerProfileRevision(result.revision) });
       } catch (_error) {
         return practitionerInternalError(context);
@@ -482,8 +498,14 @@ export function registerPractitionerRoutes(
       if (!(await repository.isReviewer(principal.userId))) {
         return practitionerForbidden(context);
       }
+      const reports = await repository.listOpenProfileReports();
+      await appendPrivilegedSurfaceAuditReview(
+        context,
+        dependencies,
+        principal.userId
+      );
       return context.json({
-        reports: (await repository.listOpenProfileReports()).map(presentPractitionerReport)
+        reports: reports.map(presentPractitionerReport)
       });
     } catch (_error) {
       return practitionerInternalError(context);
@@ -523,6 +545,11 @@ export function registerPractitionerRoutes(
         if (result.outcome === 'conflict') {
           return practitionerConflict(context);
         }
+        await appendPrivilegedSurfaceAuditReview(
+          context,
+          dependencies,
+          context.get('authenticatedPrincipal').userId
+        );
         return context.json({ report: presentPractitionerReport(result.report) });
       } catch (_error) {
         return practitionerInternalError(context);
@@ -549,6 +576,11 @@ export function registerPractitionerRoutes(
         if (result.outcome === 'not-found') {
           return practitionerNotFound(context);
         }
+        await appendPrivilegedSurfaceAuditReview(
+          context,
+          dependencies,
+          context.get('authenticatedPrincipal').userId
+        );
         return context.json({ foundingPractitioner: true as const });
       } catch (_error) {
         return practitionerInternalError(context);

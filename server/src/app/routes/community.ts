@@ -26,10 +26,11 @@ import { requireAuthentication } from '../auth/index.js';
 import type { AuthenticatedPrincipal } from '../auth/request-authenticator.js';
 import type { ServerDependencies } from '../dependencies.js';
 import { createProblemDetailsContextResponse } from '../problem-details/context-response.js';
+import { appendPrivilegedSurfaceAuditReview } from '../security/privileged-surface-audit.js';
 import {
   enforceCommunityAccountRateLimit,
   type CommunityAccountRateLimitBucket,
-  type InMemoryP0StagingRateLimiter
+  type RateLimitAuthority
 } from '../security/api-rate-limiting.js';
 import {
   normalizeCommunityProfileRequest,
@@ -266,6 +267,12 @@ async function moderateContent(
     return conflict(context);
   }
 
+  await appendPrivilegedSurfaceAuditReview(
+    context,
+    dependencies,
+    principal.userId
+  );
+
   return context.json({
     action: input.request.action,
     targetType: result.targetType,
@@ -277,7 +284,7 @@ async function moderateContent(
 export function registerCommunityRoutes(
   app: Hono,
   dependencies: ServerDependencies,
-  rateLimiter: InMemoryP0StagingRateLimiter
+  rateLimiter: RateLimitAuthority
 ): void {
   const repository = communityRepository(dependencies);
 
@@ -718,6 +725,11 @@ export function registerCommunityRoutes(
           return forbidden(context);
         }
         const reports = await repository.listOpenReports();
+        await appendPrivilegedSurfaceAuditReview(
+          context,
+          dependencies,
+          principal.userId
+        );
         return context.json({
           reports: reports.map(presentCommunityModerationReport)
         });
@@ -811,6 +823,12 @@ export function registerCommunityRoutes(
         if (result.outcome === 'invalid-target') {
           return conflict(context);
         }
+
+        await appendPrivilegedSurfaceAuditReview(
+          context,
+          dependencies,
+          principal.userId
+        );
 
         return context.json({
           action: request.action,

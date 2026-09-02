@@ -14,7 +14,7 @@ import type { ServerDependencies } from '../dependencies.js';
 import { createProblemDetailsContextResponse } from '../problem-details/context-response.js';
 import {
   enforceNotificationMutationRateLimit,
-  type InMemoryP0StagingRateLimiter
+  type RateLimitAuthority
 } from '../security/api-rate-limiting.js';
 import {
   isNotificationCategoryPreferenceApiRequest,
@@ -87,7 +87,7 @@ function isNotificationDomainInputError(error: unknown): boolean {
 export function registerNotificationRoutes(
   app: Hono,
   dependencies: ServerDependencies,
-  rateLimiter: InMemoryP0StagingRateLimiter
+  rateLimiter: RateLimitAuthority
 ): void {
   app.get(
     '/api/account/notifications',

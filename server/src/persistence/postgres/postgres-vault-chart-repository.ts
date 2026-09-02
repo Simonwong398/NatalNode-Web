@@ -5,7 +5,11 @@ import type {
   VaultChartRecord
 } from '@natalnode/contracts';
 import type { SqlExecutor } from '../../db/index.js';
-import type { VaultChartRepository } from '../vault-chart-repository.js';
+import type {
+  VaultChartListOptions,
+  VaultChartListPage,
+  VaultChartRepository
+} from '../vault-chart-repository.js';
 import type { VaultChartMetadataUpdate } from '../types.js';
 
 interface VaultChartRow {
@@ -71,6 +75,18 @@ const LIST_CHARTS_SQL = `
   FROM charts
   WHERE user_id = $1
   ORDER BY created_at DESC, chart_id ASC`;
+
+const LIST_CHARTS_PAGE_SQL = `
+  SELECT${CHART_COLUMNS}
+  FROM charts
+  WHERE user_id = $1
+    AND (
+      $2::timestamptz IS NULL
+      OR created_at < $2::timestamptz
+      OR (created_at = $2::timestamptz AND chart_id > $3)
+    )
+  ORDER BY created_at DESC, chart_id ASC
+  LIMIT $4`;
 
 const DELETE_CHART_SQL = `
   DELETE FROM charts
@@ -185,6 +201,40 @@ export class PostgresVaultChartRepository implements VaultChartRepository {
     const result = await this.executor.query<VaultChartRow>(LIST_CHARTS_SQL, [userId]);
 
     return result.rows.map(mapVaultChartRow);
+  }
+
+  public async listPageForUser(
+    userId: string,
+    options: VaultChartListOptions
+  ): Promise<VaultChartListPage> {
+    if (
+      !Number.isSafeInteger(options.limit) ||
+      options.limit <= 0 ||
+      options.limit > 100
+    ) {
+      throw new Error('Vault chart list limit is invalid.');
+    }
+
+    const result = await this.executor.query<VaultChartRow>(
+      LIST_CHARTS_PAGE_SQL,
+      [
+        userId,
+        options.cursor?.createdAt ?? null,
+        options.cursor?.chartId ?? null,
+        options.limit + 1
+      ]
+    );
+    const rows = result.rows.slice(0, options.limit);
+    const charts = rows.map(mapVaultChartRow);
+    const last = charts[charts.length - 1];
+
+    return {
+      charts,
+      nextCursor:
+        result.rows.length > options.limit && last !== undefined
+          ? { createdAt: last.createdAt, chartId: last.chartId }
+          : null
+    };
   }
 
   public async updateMetadata(

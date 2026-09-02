@@ -13,7 +13,7 @@ import type { ServerDependencies } from '../dependencies.js';
 import { createProblemDetailsContextResponse } from '../problem-details/context-response.js';
 import {
   enforceVaultMutationAccountRateLimit,
-  type InMemoryP0StagingRateLimiter
+  type RateLimitAuthority
 } from '../security/api-rate-limiting.js';
 import { readVaultRouteIdentifier } from './vault-route-helpers.js';
 import {
@@ -72,7 +72,7 @@ async function parseNoteContent(
 export function registerVaultNoteRoutes(
   app: Hono,
   dependencies: ServerDependencies,
-  rateLimiter: InMemoryP0StagingRateLimiter
+  rateLimiter: RateLimitAuthority
 ): void {
   app.get(
     '/api/vault/charts/:chartId/notes',

@@ -19,6 +19,7 @@ export interface DuplicateVaultChartApiResponse {
 
 export interface ListVaultChartsApiResponse {
   readonly charts: readonly VaultChartRecord[];
+  readonly nextCursor: string | null;
 }
 
 export interface GetVaultChartApiResponse {

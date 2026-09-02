@@ -1,7 +1,36 @@
 import type { WebPushVapidReadiness } from '../notification-platform/web-push-vapid.js';
 
+export type ServerRuntimeMode = 'local' | 'staging' | 'production';
+
+export type RateLimitAuthorityKind = 'process-local' | 'distributed';
+
+export interface ServerOperationalConfig {
+  readonly runtimeMode: ServerRuntimeMode;
+  readonly authentication: {
+    readonly emailEnabled: boolean;
+    readonly googleEnabled: boolean;
+  };
+  readonly community: {
+    readonly enabled: boolean;
+    readonly operatorConfigured: boolean;
+  };
+  readonly practitioner: {
+    readonly enabled: boolean;
+    readonly operatorConfigured: boolean;
+  };
+  readonly rateLimiting: {
+    readonly authority: RateLimitAuthorityKind;
+    readonly singleReplicaConfirmed: boolean;
+  };
+  readonly observability: {
+    readonly durableSinkConfigured: boolean;
+  };
+  readonly privacyAccessAuditRequired: boolean;
+}
+
 export interface ServerRuntimeConfig {
   readonly publicWebOrigin: string;
+  readonly operational: ServerOperationalConfig;
   readonly webPush: {
     readonly applicationServerKey: string | null;
     /** Server-only readiness; never projected into browser-facing responses. */

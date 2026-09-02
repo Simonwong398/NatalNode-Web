@@ -48,7 +48,10 @@ function isSafeAuthorizationUrl(value: unknown): value is string {
 export function isGoogleAuthenticationAvailable(
   dependencies: ServerDependencies
 ): boolean {
+  const configured = dependencies.operationalConfig?.authentication.googleEnabled;
+
   return (
+    configured !== false &&
     dependencies.googleOidcProvider !== undefined &&
     dependencies.googleOAuthTransactionService !== undefined &&
     dependencies.googleAuthAccountSessionLifecycle !== undefined

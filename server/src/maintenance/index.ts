@@ -31,3 +31,13 @@ export type {
   CommunityRetentionMaintenanceRuntime,
   CommunityRetentionMaintenanceSuccess
 } from './community-retention-maintenance.js';
+export {
+  runFeedbackRetentionMaintenance,
+  runFeedbackRetentionMaintenanceWithRuntime
+} from './feedback-retention-maintenance.js';
+export type {
+  FeedbackRetentionMaintenanceFailure,
+  FeedbackRetentionMaintenanceResult,
+  FeedbackRetentionMaintenanceRuntime,
+  FeedbackRetentionMaintenanceSuccess
+} from './feedback-retention-maintenance.js';

@@ -17,6 +17,7 @@
     "maintenance:auth-cleanup": "node dist/executable/auth-lifecycle-maintenance-main.js",
     "maintenance:community-retention": "node dist/executable/community-retention-maintenance-main.js",
     "maintenance:practitioner-retention": "node dist/executable/practitioner-retention-maintenance-main.js",
+    "maintenance:feedback-retention": "node dist/executable/feedback-retention-maintenance-main.js",
     "test:practitioner": "npm run build --workspace=@natalnode/contracts && npm run build && node --test test/practitioner.test.mjs",
     "local": "node dist/executable/local-main.js",
     "public": "node dist/executable/public-development-main.js",

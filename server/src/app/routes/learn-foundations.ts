@@ -13,7 +13,7 @@ import type { ServerDependencies } from '../dependencies.js';
 import { createProblemDetailsContextResponse } from '../problem-details/context-response.js';
 import {
   enforceFoundationsAccountRateLimit,
-  type InMemoryP0StagingRateLimiter
+  type RateLimitAuthority
 } from '../security/api-rate-limiting.js';
 import {
   isFoundationsAssessmentAttemptApiRequest,
@@ -87,7 +87,7 @@ function noStoreJson(context: Context, value: unknown): Response {
 export function registerFoundationsLearningRoutes(
   app: Hono,
   dependencies: ServerDependencies,
-  rateLimiter: InMemoryP0StagingRateLimiter
+  rateLimiter: RateLimitAuthority
 ): void {
   app.get(
     FOUNDATIONS_PROGRESS_ROUTE,

@@ -7,9 +7,14 @@ import {
 import { applyApiSecurityHeaders } from './security/api-security-headers.js';
 import {
   enforceP0StagingRateLimits,
-  InMemoryP0StagingRateLimiter
+  InMemoryP0StagingRateLimiter,
+  type RateLimitAuthority
 } from './security/api-rate-limiting.js';
 import { enforceSameOriginUnsafeApiRequests } from './security/enforce-same-origin-unsafe-api-requests.js';
+import {
+  assertRuntimeOperationalBoundary,
+  enforceOperationalSurface
+} from './security/runtime-operational-boundary.js';
 import { createChartRoute } from './routes/chart.js';
 import { createProblemDetailsContextResponse } from './problem-details/context-response.js';
 import { registerEmailAuthenticationRoutes } from './routes/auth-email.js';
@@ -51,6 +56,9 @@ function isApiPath(pathname: string): boolean {
 
 export interface CreateAppOptions {
   readonly observabilitySink?: ObservabilitySink;
+  /** Explicitly identifies an externally durable sink at composition time. */
+  readonly observabilitySinkDurable?: boolean;
+  readonly rateLimiter?: RateLimitAuthority;
 }
 
 export function createApp(
@@ -58,7 +66,14 @@ export function createApp(
   options: CreateAppOptions = {}
 ): Hono {
   const app = new Hono();
-  const rateLimiter = new InMemoryP0StagingRateLimiter();
+  const rateLimiter = options.rateLimiter ?? new InMemoryP0StagingRateLimiter();
+
+  assertRuntimeOperationalBoundary(
+    dependencies,
+    rateLimiter,
+    options.observabilitySink !== undefined &&
+      options.observabilitySinkDurable === true
+  );
 
   app.use('/api/*', observeApiRequests({ sink: options.observabilitySink }));
   app.use('/api/*', applyApiSecurityHeaders());
@@ -67,6 +82,34 @@ export function createApp(
     enforceSameOriginUnsafeApiRequests(dependencies.publicWebOrigin)
   );
   app.use('/api/*', enforceP0StagingRateLimits(rateLimiter));
+  app.use(
+    '/api/community',
+    enforceOperationalSurface(dependencies, 'community')
+  );
+  app.use(
+    '/api/community/*',
+    enforceOperationalSurface(dependencies, 'community')
+  );
+  app.use(
+    '/api/account/community-profile',
+    enforceOperationalSurface(dependencies, 'community')
+  );
+  app.use(
+    '/api/practitioners',
+    enforceOperationalSurface(dependencies, 'practitioner')
+  );
+  app.use(
+    '/api/practitioners/*',
+    enforceOperationalSurface(dependencies, 'practitioner')
+  );
+  app.use(
+    '/api/practitioner',
+    enforceOperationalSurface(dependencies, 'practitioner')
+  );
+  app.use(
+    '/api/practitioner/*',
+    enforceOperationalSurface(dependencies, 'practitioner')
+  );
   app.get('/api/health', (context) => context.json(HEALTH_RESPONSE));
   app.post('/api/chart', createChartRoute(dependencies));
   registerSkyRoutes(app, dependencies);

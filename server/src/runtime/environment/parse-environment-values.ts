@@ -49,6 +49,28 @@ export function parseRequiredBoolean(
   return invalidVariable(variableName, 'strict boolean');
 }
 
+export function parseOptionalBoolean(
+  env: EnvironmentSource,
+  variableName: string,
+  defaultValue: boolean
+): boolean {
+  const value = env[variableName];
+
+  if (value === undefined) {
+    return defaultValue;
+  }
+
+  if (value === 'true') {
+    return true;
+  }
+
+  if (value === 'false') {
+    return false;
+  }
+
+  return invalidVariable(variableName, 'strict boolean');
+}
+
 export function parseCanonicalInteger(
   value: string,
   variableName: string,

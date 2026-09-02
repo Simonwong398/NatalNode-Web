@@ -18,7 +18,7 @@ import {
 import {
   enforceAccountExportAccountRateLimit,
   enforceAccountExportPrepareRateLimit,
-  type InMemoryP0StagingRateLimiter
+  type RateLimitAuthority
 } from '../security/api-rate-limiting.js';
 import {
   InMemoryAccountExportCapacity,
@@ -84,7 +84,7 @@ async function safelyRollback(
 export function registerAccountExportRoutes(
   app: Hono,
   dependencies: ServerDependencies,
-  rateLimiter: InMemoryP0StagingRateLimiter,
+  rateLimiter: RateLimitAuthority,
   options: AccountExportRouteOptions = {}
 ): void {
   const capacity = options.capacity ?? new InMemoryAccountExportCapacity();

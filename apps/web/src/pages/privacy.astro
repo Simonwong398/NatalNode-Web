@@ -1,0 +1,48 @@
+---
+import SiteLayout from '@/layouts/SiteLayout.astro';
+import {
+  getPresentationLocale,
+  type SupportedLocale
+} from '@/lib/localization';
+import { getApprovedLegalContent } from '@/lib/legal-content';
+
+interface Props {
+  locale?: SupportedLocale;
+}
+
+const { locale: localizedLocale } = Astro.props;
+const locale = localizedLocale ?? getPresentationLocale(Astro.url.pathname, Astro.locals.locale);
+const content = getApprovedLegalContent('privacy', locale);
+
+if (content === null) {
+  return Astro.redirect('/404');
+}
+
+const seo = {
+  title: content.title,
+  description: content.description,
+  canonical: '/privacy',
+  robots: 'index,follow'
+} as const;
+---
+
+<SiteLayout seo={seo} mode="editorial">
+  <main class="nn-container nn-container--editorial pb-20 pt-12 sm:pb-24 sm:pt-16">
+    <header class="max-w-3xl">
+      <p class="nn-eyebrow">{content.page.toUpperCase()}</p>
+      <h1 class="nn-type-page-title mt-3">{content.title}</h1>
+      <p class="nn-type-body mt-4 max-w-2xl">{content.description}</p>
+    </header>
+
+    <div class="mt-12 max-w-4xl space-y-12 sm:mt-16 sm:space-y-16">
+      {content.sections.map((section) => (
+        <section class="border-t border-natal-border/70 pt-8 sm:pt-10">
+          <h2 class="nn-type-section-title">{section.heading}</h2>
+          <div class="mt-5 space-y-4 nn-type-body">
+            {section.paragraphs.map((paragraph) => <p>{paragraph}</p>)}
+          </div>
+        </section>
+      ))}
+    </div>
+  </main>
+</SiteLayout>

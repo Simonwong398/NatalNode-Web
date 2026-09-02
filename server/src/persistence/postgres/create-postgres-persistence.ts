@@ -12,6 +12,7 @@ import { PostgresNotificationPreferenceRepository } from '../../notification-pla
 import { PostgresPushSubscriptionRepository } from '../../notification-platform/postgres/postgres-push-subscription-repository.js';
 import { PostgresCommunityRepository } from '../../community/postgres-community-repository.js';
 import { PostgresPractitionerRepository } from '../../practitioner/postgres-practitioner-repository.js';
+import { PostgresPrivacyAccessAuditRepository } from './postgres-privacy-access-audit-repository.js';
 
 export function createPostgresPersistence(
   executor: SqlExecutor,
@@ -31,6 +32,7 @@ export function createPostgresPersistence(
     ),
     pushSubscriptions: new PostgresPushSubscriptionRepository(executor),
     community: new PostgresCommunityRepository(executor, transactionRunner),
-    practitioner: new PostgresPractitionerRepository(executor, transactionRunner)
+    practitioner: new PostgresPractitionerRepository(executor, transactionRunner),
+    privacyAccessAudit: new PostgresPrivacyAccessAuditRepository(executor)
   };
 }

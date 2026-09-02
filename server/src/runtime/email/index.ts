@@ -1,5 +1,6 @@
 export {
-  createResendEmailMagicLinkDelivery
+  createResendEmailMagicLinkDelivery,
+  RESEND_EXTERNAL_DEADLINE_MS
 } from './resend/index.js';
 export type {
   ResendEmailMagicLinkDeliveryConfig

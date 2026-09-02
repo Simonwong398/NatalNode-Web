@@ -10,6 +10,15 @@ export interface RateLimitPolicy {
   readonly windowMs: number;
 }
 
+export interface RateLimitAuthority {
+  readonly kind: 'process-local' | 'distributed';
+  attempt(
+    policy: RateLimitPolicy,
+    clientIdentity: string,
+    nowMs?: number
+  ): RateLimitDecision;
+}
+
 /** Centralized P0 staging defaults, not production traffic/SLA policy. */
 export const P0_STAGING_RATE_LIMIT_POLICIES = {
   authEmailRequest: {
@@ -207,7 +216,8 @@ function secondsUntil(resetAtMs: number, nowMs: number): number {
  * Process-local fixed-window limiter for P0 staging. The map contains only
  * policy identifiers and per-process HMAC keys, never raw client addresses.
  */
-export class InMemoryP0StagingRateLimiter {
+export class InMemoryP0StagingRateLimiter implements RateLimitAuthority {
+  public readonly kind = 'process-local' as const;
   private readonly entries = new Map<string, RateLimitEntry>();
   private readonly keySalt = randomBytes(32);
   private nextPruneAtMs = 0;
@@ -464,7 +474,7 @@ export function selectP0StagingRateLimitPolicy(
 }
 
 export function enforceP0StagingRateLimits(
-  limiter: InMemoryP0StagingRateLimiter
+  limiter: RateLimitAuthority
 ): MiddlewareHandler {
   return async (context, next) => {
     const policy = selectP0StagingRateLimitPolicy(
@@ -494,7 +504,7 @@ export function enforceP0StagingRateLimits(
 }
 
 export function enforceFeedbackAccountRateLimit(
-  limiter: InMemoryP0StagingRateLimiter
+  limiter: RateLimitAuthority
 ): MiddlewareHandler<AuthenticatedRequestEnv> {
   return async (context, next) => {
     const principal = context.get('authenticatedPrincipal');
@@ -515,7 +525,7 @@ export function enforceFeedbackAccountRateLimit(
 }
 
 export function enforceAccountExportAccountRateLimit(
-  limiter: InMemoryP0StagingRateLimiter
+  limiter: RateLimitAuthority
 ): MiddlewareHandler<AuthenticatedRequestEnv> {
   return async (context, next) => {
     const principal = context.get('authenticatedPrincipal');
@@ -537,7 +547,7 @@ export function enforceAccountExportAccountRateLimit(
 }
 
 export function enforceAccountExportPrepareRateLimit(
-  limiter: InMemoryP0StagingRateLimiter
+  limiter: RateLimitAuthority
 ): MiddlewareHandler {
   return async (context, next) => {
     const clientIdentity = resolveRateLimitClientIdentity(
@@ -561,7 +571,7 @@ export function enforceAccountExportPrepareRateLimit(
 }
 
 export function enforceNotificationMutationRateLimit(
-  limiter: InMemoryP0StagingRateLimiter
+  limiter: RateLimitAuthority
 ): MiddlewareHandler<AuthenticatedRequestEnv> {
   return async (context, next) => {
     const principal = context.get('authenticatedPrincipal');
@@ -583,7 +593,7 @@ export function enforceNotificationMutationRateLimit(
 }
 
 function enforceAccountScopedRateLimit(
-  limiter: InMemoryP0StagingRateLimiter,
+  limiter: RateLimitAuthority,
   policy: RateLimitPolicy
 ): MiddlewareHandler<AuthenticatedRequestEnv> {
   return async (context, next) => {
@@ -603,7 +613,7 @@ function enforceAccountScopedRateLimit(
 }
 
 export function enforceFoundationsAccountRateLimit(
-  limiter: InMemoryP0StagingRateLimiter
+  limiter: RateLimitAuthority
 ): MiddlewareHandler<AuthenticatedRequestEnv> {
   return enforceAccountScopedRateLimit(
     limiter,
@@ -612,7 +622,7 @@ export function enforceFoundationsAccountRateLimit(
 }
 
 export function enforceVaultMutationAccountRateLimit(
-  limiter: InMemoryP0StagingRateLimiter
+  limiter: RateLimitAuthority
 ): MiddlewareHandler<AuthenticatedRequestEnv> {
   return enforceAccountScopedRateLimit(
     limiter,
@@ -627,7 +637,7 @@ export type CommunityAccountRateLimitBucket =
   | 'mutation';
 
 export function enforceCommunityAccountRateLimit(
-  limiter: InMemoryP0StagingRateLimiter,
+  limiter: RateLimitAuthority,
   bucket: CommunityAccountRateLimitBucket
 ): MiddlewareHandler<AuthenticatedRequestEnv> {
   return async (context, next) => {
@@ -673,7 +683,7 @@ export type PractitionerAccountRateLimitBucket =
   | 'profile-report';
 
 export function enforcePractitionerAccountRateLimit(
-  limiter: InMemoryP0StagingRateLimiter,
+  limiter: RateLimitAuthority,
   bucket: PractitionerAccountRateLimitBucket
 ): MiddlewareHandler<AuthenticatedRequestEnv> {
   return async (context, next) => {

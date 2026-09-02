@@ -27,6 +27,7 @@ type VaultChartListItem = Pick<
 
 interface VaultChartCollectionResponse {
   readonly charts: readonly VaultChartListItem[];
+  readonly nextCursor: string | null;
 }
 
 type VaultPageState = 'loading' | 'loaded' | 'empty' | 'error';
@@ -73,7 +74,8 @@ function isVaultChartCollectionResponse(
   return (
     isRecord(value) &&
     Array.isArray(value.charts) &&
-    value.charts.every((chart) => isVaultChartListItem(chart))
+    value.charts.every((chart) => isVaultChartListItem(chart)) &&
+    (typeof value.nextCursor === 'string' || value.nextCursor === null)
   );
 }
 

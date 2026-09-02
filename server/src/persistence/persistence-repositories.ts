@@ -12,6 +12,7 @@ import type {
 } from '../notification-platform/repositories.js';
 import type { CommunityRepository } from '../community/community-repository.js';
 import type { PractitionerRepository } from '../practitioner/practitioner-repository.js';
+import type { PrivacyAccessAuditRepository } from './privacy-access-audit-repository.js';
 
 export interface PersistenceRepositories {
   readonly users: UserRepository;
@@ -26,4 +27,6 @@ export interface PersistenceRepositories {
   readonly pushSubscriptions: PushSubscriptionRepository;
   readonly community: CommunityRepository;
   readonly practitioner: PractitionerRepository;
+  /** Optional in local/public-development; required by configured production. */
+  readonly privacyAccessAudit?: PrivacyAccessAuditRepository;
 }
