@@ -21,6 +21,17 @@ records. It is based on repository truth at the reviewed baseline. No source,
 migration, manifest, dependency, deployment setting, or test is changed by
 this document.
 
+## Current launch-readiness implementation amendment
+
+The original status above is the historical contract status and does not mean
+that every frozen technical predicate is still unimplemented. At the current
+`WEB-P0-001` baseline, Auth lifecycle cleanup, Practitioner retention cleanup,
+and the Community frozen-retention purge path are represented by bounded server
+maintenance boundaries. Their scheduler, policy-value, backup, processor, and
+downstream-log gates remain external or policy-gated. The current consolidated
+registry and scheduler contract are maintained in
+[`NATALNODE_P0_LAUNCH_READINESS_V1.md`](./NATALNODE_P0_LAUNCH_READINESS_V1.md).
+
 ## 1. Scope
 
 This contract covers the P0 categories that are present in, or explicitly

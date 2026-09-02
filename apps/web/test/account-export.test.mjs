@@ -141,7 +141,7 @@ describe('Account export page boundary', { concurrency: false }, () => {
   test('uses Stage 1 fetch and a native Stage 2 POST without account selectors or buffering', () => {
     const page = readFileSync(new URL('../src/pages/account.astro', import.meta.url), 'utf8');
     const feature = readFileSync(new URL('../src/features/account/account-export.ts', import.meta.url), 'utf8');
-    const formMarkup = page.match(/<form[\s\S]*?data-account-export-form[\s\S]*?<\/form>/u)?.[0];
+    const formMarkup = page.match(/<form\b(?=[^>]*\bdata-account-export-form\b)[^>]*>[\s\S]*?<\/form>/u)?.[0];
 
     assert.ok(formMarkup);
     assert.match(formMarkup, /method="post"/u);

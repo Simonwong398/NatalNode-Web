@@ -3,6 +3,7 @@
 - Status: ACCEPTED STRATEGIC ROADMAP / RECONCILED PRODUCT-STATE CHECKPOINT
 - Task: `WEB-ROADMAP-002`
 - Date: 2026-09-01
+- Current launch-readiness follow-up: `WEB-P0-001`
 - Scope: Post-V1 product-development blueprint and current product-state checkpoint
 - Mode: Documentation only
 
@@ -516,9 +517,11 @@ The Web Product track is authorized to continue independently on non-scientific
 work, but the next milestone is not another feature implementation campaign.
 The first authoritative, still-uncompleted Web Product milestone is a
 P0 launch-readiness closure / policy and operations decision checkpoint. The
-current P0 checkpoint records that there is no safe unblocked local P0
-implementation gap, while policy, legal, operations, deployment, and provider
-gates still prevent a production release claim.
+current P0 launch-readiness consolidation records the safe local gaps closed
+by this campaign. Policy, legal, operations, deployment, processor, and
+provider gates still prevent a production release claim. The current
+consolidated readiness matrix is in
+[`NATALNODE_P0_LAUNCH_READINESS_V1.md`](./NATALNODE_P0_LAUNCH_READINESS_V1.md).
 
 The checkpoint must obtain explicit owner-approved decisions for the retention
 registry and scheduler ownership, Privacy Access Audit authorization and

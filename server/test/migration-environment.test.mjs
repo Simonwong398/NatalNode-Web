@@ -113,6 +113,18 @@ test('full server environment parsing remains complete and unchanged', () => {
   );
 });
 
+test('HTTPS public origins require Secure session cookies', () => {
+  assert.throws(
+    () => parseServerEnvironment(serverEnvironment({
+      AUTH_SESSION_COOKIE_SECURE: 'false'
+    })),
+    {
+      name: 'ServerEnvironmentConfigurationError',
+      message: 'Invalid secure cookie policy environment variable: AUTH_SESSION_COOKIE_SECURE'
+    }
+  );
+});
+
 test('migration executable uses the dedicated PostgreSQL environment boundary', async () => {
   const source = await readFile(MIGRATION_EXECUTABLE_SOURCE, 'utf8');
 

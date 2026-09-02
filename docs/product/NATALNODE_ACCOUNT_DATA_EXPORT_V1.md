@@ -44,6 +44,18 @@ Browser / NatalNode.com
 
 `PROVIDER DECISION DEFERRED.`
 
+## Current launch-readiness implementation amendment
+
+The original header records the contract's pre-runtime handoff state. The
+current repository contains the reviewed account export schema `1.2`,
+repeatable-read snapshot/stream implementation, safe notification metadata,
+Feedback, and Practitioner presentation. It does not persist an export archive
+and does not silently add Community, Foundations progress, assessment attempts,
+Reward/commercial state, delivery history, or privacy-audit events. The current
+launch-readiness scope decision and the historical Account Export matcher
+correction are recorded in
+[`NATALNODE_P0_LAUNCH_READINESS_V1.md`](./NATALNODE_P0_LAUNCH_READINESS_V1.md).
+
 ## 1. Purpose
 
 A successful account export gives the authenticated user a machine-readable snapshot of NatalNode application data associated with their account and appropriate for user disclosure.

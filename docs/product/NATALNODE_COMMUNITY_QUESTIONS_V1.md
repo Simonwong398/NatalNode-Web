@@ -22,6 +22,15 @@ relationship, title, body, fixed topic ID, status, and server timestamps. An
 Answer contains a server-generated ID, parent Question ID, authenticated author
 relationship, body, status, and server timestamps.
 
+## Current launch-readiness implementation amendment
+
+Community / Questions V1 remains a completed local product track. Its frozen
+90-day deleted-content and 365-day resolved-evidence retention predicates are
+now callable through the bounded Community maintenance executable; legal UGC
+wording, reviewer operations, scheduler binding, and production distributed
+rate limiting remain external gates. No Community feature expansion was added.
+See [`NATALNODE_P0_LAUNCH_READINESS_V1.md`](./NATALNODE_P0_LAUNCH_READINESS_V1.md).
+
 ## Public identity
 
 Community adds one account-scoped display name. It is not a username, handle,

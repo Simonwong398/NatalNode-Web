@@ -23,6 +23,16 @@ professional status, NatalNode employment, official astrologer status, guarantee
 competence, or endorsement of specific advice. Practitioner status is independent of
 FREE / PRO entitlement.
 
+## Current launch-readiness implementation amendment
+
+Practitioner / Contributor V1 remains a completed local product track. Its
+existing hold-aware retention maintenance, account-erasure behavior, and
+reviewer capability are launch-readiness evidence, not a production operations
+claim. Reviewer grants, professional-identity/disclosure wording, scheduler
+binding, and production distributed rate limiting remain gated. No Practitioner
+feature expansion was added. See
+[`NATALNODE_P0_LAUNCH_READINESS_V1.md`](./NATALNODE_P0_LAUNCH_READINESS_V1.md).
+
 ## V1 boundary
 
 V1 does not include a marketplace, booking, payments, commissions, revenue share,
@@ -197,4 +207,3 @@ The bounded staging limits are: application submit 3 per 24 hours; application
 update/resubmit 10 per 24 hours; profile revision 10 per 24 hours; profile report 10
 per hour and 30 per day. These are abuse guardrails, not product availability or SLA
 claims.
-

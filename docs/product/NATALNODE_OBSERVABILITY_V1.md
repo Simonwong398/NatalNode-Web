@@ -20,6 +20,17 @@ whether calculation/cache behavior is working, and whether approved runtime
 and scientific generations are compatible. It must not become a second copy
 of a birth chart, a user account, a Vault record, or an Engine response.
 
+## Current launch-readiness implementation amendment
+
+The header above is the historical implementation handoff status. The bounded
+runtime now emits one canonical API completion record at the Website API/BFF
+boundary, including only approved request/outcome/latency and compatibility
+metadata. It does not emit birth data, chart payloads, Feedback, Community or
+Practitioner content, tokens, or raw IP addresses. Sink selection, retention,
+region, access, and alerting remain operations/policy gates. The consolidated
+current status is in
+[`NATALNODE_P0_LAUNCH_READINESS_V1.md`](./NATALNODE_P0_LAUNCH_READINESS_V1.md).
+
 ## 1. Scope and non-goals
 
 ### In scope

@@ -26,6 +26,17 @@ Status labels used below are precise:
 
 The legal operating entity, legal controller identity, address, jurisdiction, minimum age, legal retention periods, arbitration, liability, indemnity, warranties, refunds, billing terms, copyright licenses, and processor contracts are not established by this repository and are not invented here.
 
+## Current launch-readiness implementation amendment
+
+The implementation and gap tables below are historical policy-baseline
+language. Since that baseline, local Account Erasure, Account Export, Auth
+cleanup, Google local boundaries, Privacy Access Audit durable core,
+Foundations/Reward, Community, Practitioner, and notification persistence have
+landed in bounded tracks. They do not establish legal approval, live provider
+configuration, production operations, or final public copy. Remaining legal,
+owner-policy, processor, backup/log, and scientific gates are consolidated in
+[`NATALNODE_P0_LAUNCH_READINESS_V1.md`](./NATALNODE_P0_LAUNCH_READINESS_V1.md).
+
 ## A. Confirmed Current Product Behavior
 
 ### A.1 Current trust and data-flow boundary

@@ -135,6 +135,14 @@ export function parseServerEnvironment(
     'AUTH_SESSION_COOKIE_SECURE'
   );
   const publicWebOrigin = parsePublicWebOrigin(env);
+
+  if (publicWebOrigin.startsWith('https://') && !sessionCookieSecure) {
+    return invalidVariable(
+      'AUTH_SESSION_COOKIE_SECURE',
+      'secure cookie policy'
+    );
+  }
+
   const webPushCapability = createWebPushCapability(
     env[WEB_PUSH_APPLICATION_SERVER_KEY_ENVIRONMENT_VARIABLE]
   );

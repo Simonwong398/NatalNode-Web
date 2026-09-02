@@ -14,6 +14,15 @@ implement a Learn runtime, create a course database, or authorize any
 commercial entitlement write. It is a product/content decision record for a
 later separately scoped implementation.
 
+## Current launch-readiness implementation amendment
+
+The implementation-deferred statements above are historical scope boundaries.
+The approved Foundations Core is now available locally as `12 x 7 = 84/84`,
+with authenticated progress and assessment runtime covered by later approved
+tracks. This document still does not authorize new course content or feature
+expansion. Account-erasure and launch-gate treatment are consolidated in
+[`NATALNODE_P0_LAUNCH_READINESS_V1.md`](./NATALNODE_P0_LAUNCH_READINESS_V1.md).
+
 Normative words in this document have their usual meanings: **MUST**,
 **MUST NOT**, **SHOULD**, **SHOULD NOT**, **MAY**, **DEFERRED**, and
 **FROZEN**.

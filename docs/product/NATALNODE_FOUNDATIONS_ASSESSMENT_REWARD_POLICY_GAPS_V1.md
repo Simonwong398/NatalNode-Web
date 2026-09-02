@@ -10,6 +10,14 @@ the Product Owner for Foundations Reward V1 and are the source of truth for
 the implementation. They do not authorize any other learning course,
 entitlement tier, or product feature.
 
+## Current launch-readiness implementation amendment
+
+Reward V1 is now locally complete within the frozen FREE/PRO entitlement
+boundary. The current implementation does not introduce billing, purchasable
+PRO, new tiers, or new assessment behavior. Account erasure and the unresolved
+commercial launch mode are recorded in
+[`NATALNODE_P0_LAUNCH_READINESS_V1.md`](./NATALNODE_P0_LAUNCH_READINESS_V1.md).
+
 ## 1. Frozen course and assessment identity
 
 - The course identity is `foundations.v1` and contains exactly the twelve

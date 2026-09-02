@@ -8,6 +8,17 @@
 | Scope | P0 account deletion and active application-data erasure |
 | Decision date | 2026-08-27 |
 
+## Current launch-readiness implementation amendment
+
+The header and implementation-deferred language above preserve the original
+technical decision record. The current repository has the authenticated,
+recent-authentication-gated account erasure route and PostgreSQL transaction.
+Its current graph includes later Foundations, Reward/commercial, notification,
+Community, and Practitioner relationships according to migrations `0017`–`0019`.
+Backups, infrastructure logs, processors, privacy-audit rows, and browser-held
+exports remain external residual boundaries. See the current reconciliation in
+[`NATALNODE_P0_LAUNCH_READINESS_V1.md`](./NATALNODE_P0_LAUNCH_READINESS_V1.md).
+
 ## 1. Purpose
 
 This document freezes the executable technical contract for self-service account deletion before runtime implementation begins. It defines the account-linked data graph, the authoritative deletion root, authorization and confirmation requirements, transaction and rollback semantics, magic-link and session treatment, truthful limits for logs and backups, and bounded implementation phases.

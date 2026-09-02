@@ -27,6 +27,17 @@ P0 Operational Observability
     -> bounded service availability, outcome, latency, and compatibility facts
 ```
 
+## Current launch-readiness implementation amendment
+
+The header above records the original design-contract status. The typed,
+privacy-minimized append-only PostgreSQL core is now implemented in the Web
+repository, with no privileged data-access route or reviewer authority added.
+`COMMUNITY_MODERATOR` and `PRACTITIONER_REVIEWER` remain the existing bounded
+capabilities; Private Feedback has no frozen internal reviewer capability.
+Privileged-surface event integration, retention, and access workflow remain
+policy-gated. See the current consolidated decision in
+[`NATALNODE_P0_LAUNCH_READINESS_V1.md`](./NATALNODE_P0_LAUNCH_READINESS_V1.md).
+
 ## 1. Purpose and authority
 
 The PRD requires least privilege, deletion/export capability, retention

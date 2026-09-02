@@ -1,11 +1,11 @@
 # NatalNode.com P0 Readiness Checkpoint V1
 
-- Status: **CURRENT PRODUCT READINESS CHECKPOINT**
-- Task: `WEB-P0-READY-003`
-- Baseline: `f203bb6fb5693c06a1a4527f8b3842354a749951`
-- Baseline message: `feat: add google sign-in ui`
-- Date: 2026-08-29
-- Mode: Product / architecture readiness reconciliation; narrowly updated after closure of the P0 Google Sign-In local implementation track and final local adversarial review
+- Status: **HISTORICAL CHECKPOINT / SUPERSEDED FOR CURRENT LAUNCH STATUS**
+- Task: `WEB-P0-READY-003` (historical); current consolidation: `WEB-P0-001`
+- Baseline: `8aa89a72cd9082ee4c532cb264a95dff094bcd40`
+- Baseline message: `docs: reconcile Web product roadmap after Practitioner V1`
+- Date: 2026-09-01
+- Mode: Historical product / architecture reconciliation; current launch status is maintained in [`NATALNODE_P0_LAUNCH_READINESS_V1.md`](./NATALNODE_P0_LAUNCH_READINESS_V1.md)
 - Checkpoint strategy: **V1 updated in place**; V1 is the living checkpoint
 - Production astronomy: `PROVIDER DECISION DEFERRED`
 - Deployment: `PAUSED`
@@ -32,6 +32,19 @@ deliberate:
 
 This checkpoint records the first claim when supported and keeps the second
 claim separate. It performs no product implementation.
+
+## Current launch-readiness supersession
+
+`WEB-P0-001 — P0 Launch-Readiness Closure + Production Gate Consolidation`
+is now the current launch-readiness authority. Its consolidated matrix and
+packages are in [`NATALNODE_P0_LAUNCH_READINESS_V1.md`](./NATALNODE_P0_LAUNCH_READINESS_V1.md).
+The historical rows below remain useful as decision history, but any statement
+that says Community or Practitioner retention maintenance is absent, that the
+Account Export matcher is unresolved, or that no local configuration gap can
+be corrected is superseded by the current document. The current campaign did
+not reopen closed product tracks; it added only the missing Community
+maintenance wrapper, HTTPS/Secure-cookie validation, and the stale test
+correction.
 
 ## 2. Sources and audit boundary
 
@@ -101,8 +114,10 @@ technical contract is frozen and its B1/B2/B3 bounded local implementation
 plus the final `001C` review are closed, while live OAuth configuration,
 privacy disclosure, and live verification remain separately gated. Public
 legal pages, staging infrastructure, and production scientific truth remain
-blocked or deferred. No astronomy provider is selected here, and no safe
-unblocked local P0 implementation gap is identified by this checkpoint.
+blocked or deferred. No astronomy provider is selected here. The historical
+checkpoint is superseded for current launch status by
+`NATALNODE_P0_LAUNCH_READINESS_V1.md`, which records the safe local gaps closed
+by `WEB-P0-001` and the remaining external gates.
 
 ## 4. P0 readiness matrix
 
@@ -117,7 +132,7 @@ unblocked local P0 implementation gap is identified by this checkpoint.
 | G. Public local development runtime | The accepted local public-development composition is implemented: `npm run dev:public`, public `http://localhost:4321`, loopback Hono `127.0.0.1:4322`, static Astro edge, fixture Chart/Sky paths, signed-out session/Vault behavior, and production-marker isolation | `package.json`; `server/src/executable/run-public-development-composition.ts`; `server/src/executable/public-development-dependencies.ts`; `server/src/executable/public-development-config.ts`; commits `41319da055e59b03cc3380d7b48d66cbbf406a2d`, `6d617dce075db3d75e0192edda33aa2c8babe771` | This is local development, not external staging or production; accepted browser behavior is not rerun in this checkpoint | **LOCAL IMPLEMENTATION CLOSED; ACCEPTED BEHAVIOR NOT RERUN** |
 | H. Privacy-access auditing | `NATALNODE_PRIVACY_ACCESS_AUDIT_V1.md` freezes a provider-neutral, privacy-minimized event/repository/storage direction; the typed append-only PostgreSQL core is implemented, while no privileged data-access surface exists | `docs/PRD.md`; `docs/product/NATALNODE_PRIVACY_ACCESS_AUDIT_V1.md`; `server/src/persistence/privacy-access-audit-repository.ts`; `server/src/persistence/postgres/postgres-privacy-access-audit-repository.ts`; `server/db/migrations/0006_privacy_access_audit.sql`; `server/test/privacy-access-audit.test.mjs`; current Auth/principal and route boundaries | Privileged-surface integration, reviewer access, retention, and operational workflow remain policy-gated | **B1 DURABLE CORE IMPLEMENTED; B2 POLICY-GATED / NOT STARTED** |
 | I1. Retention technical contract | `NATALNODE_DATA_RETENTION_V1.md` freezes the P0 category inventory, lifecycle distinctions, enforcement classes, scheduler boundary, failure/privacy rules, readiness matrix, and policy-parameter registry without inventing durations | `docs/product/NATALNODE_DATA_RETENTION_V1.md`; `docs/product/NATALNODE_ACCOUNT_DELETION_ERASURE_V1.md`; `docs/product/NATALNODE_ACCOUNT_DATA_EXPORT_V1.md`; `docs/product/NATALNODE_AUTH_LIFECYCLE_CLEANUP_V1.md`; `docs/product/NATALNODE_OBSERVABILITY_V1.md` | Policy values/owners, audit deletion interaction, backup/restore reconciliation, processor terms, and external log controls remain open | **CONTRACT FROZEN; POLICY / EXTERNAL GATES OPEN** |
-| I2. Retention enforcement | Auth cleanup code and a maintenance command exist; no repository-wide Vault/Feedback/time-retention enforcement or verified scheduled invocation exists | `server/src/maintenance/`; `server/src/persistence/postgres/postgres-auth-lifecycle-cleanup-repository.ts`; `docs/product/NATALNODE_DATA_RETENTION_V1.md`; no configured scheduler or downstream log-retention control in repository source | Implement only after approved category semantics and owners; technical expiry is not deletion or a legal-retention policy | **INCOMPLETE / NOT OPERATIONALLY ENFORCED** |
+| I2. Retention enforcement | Auth, Community, and Practitioner frozen-predicate maintenance commands exist; Vault/Feedback/time-retention policy and any verified scheduled invocation remain open | `server/src/maintenance/`; `server/src/executable/`; `server/src/persistence/postgres/postgres-auth-lifecycle-cleanup-repository.ts`; `server/src/community/postgres-community-repository.ts`; `server/src/practitioner/postgres-practitioner-repository.ts`; current launch-readiness contract | Bind commands to operations only after approved policy values and owners; technical expiry is not deletion or a legal-retention policy | **LOCAL IMPLEMENTATION CLOSED; OPERATIONS/POLICY UNVERIFIED** |
 | I3. Retention policy / external dependency | The contract records unresolved policy and external boundaries for Auth consumed challenges, Vault, Feedback, audit, observability, infrastructure logs, backups, Resend, and future OAuth | `docs/product/NATALNODE_DATA_RETENTION_V1.md`; `docs/product/NATALNODE_PRIVACY_TERMS_POLICY_V1.md`; erasure/export/observability contracts | Privacy/Product/Security/Operations owners must approve values, scope, exceptions, restore behavior, processor treatment, and scheduler ownership | **POLICY / EXTERNAL BLOCKED** |
 | J1. Google Sign-In technical contract and implementation | `NATALNODE_GOOGLE_SIGN_IN_V1.md` freezes the subject-first identity model, server-controlled Authorization Code/OIDC flow, state/PKCE/nonce, collision-safe account resolution, existing-session integration, and live-gate boundary; B1 provides the provider boundary and pending transaction core, B2 provides the local start/callback, collision-safe account/session integration, and reviewed Google export representation, B3 provides the server-owned availability response plus minimal sign-in UI, and `001C` closed the final local adversarial review without source fixes | `docs/product/NATALNODE_GOOGLE_SIGN_IN_V1.md`; `server/src/auth-runtime/google-oidc-provider.ts`; `server/src/auth-runtime/google-oauth-transaction.ts`; `server/src/app/routes/google-auth.ts`; `server/src/app/routes/auth-session.ts`; `apps/web/src/features/auth/google-sign-in.ts`; `server/src/persistence/postgres/postgres-google-auth-account-session-lifecycle.ts`; `server/src/account/account-data-export.ts`; `server/db/migrations/0007_google_oauth_transactions.sql`; commits `30bed04`, `b1d2a53`, `f203bb6` | Real Google project/credentials, redirect and origin/domain configuration, live OIDC/JWKS behavior, HTTPS/Secure-cookie validation, privacy/security approval, deployment, configured-state visual review, and live browser verification remain open; `001D` must remain external-gated/not started | **CONTRACT FROZEN; B1 IMPLEMENTED / SECURITY REVIEW CLOSED; B2 IMPLEMENTED LOCALLY / SECURITY REVIEW CLOSED; B3 IMPLEMENTED LOCALLY / VISUAL ACCEPTANCE COMPLETED FOR LEGITIMATE LOCAL STATES; 001C PASS / CLOSED; LIVE OAUTH EXTERNAL-GATED** |
 | J2. Google OAuth credentials/configuration | No Google OAuth client credentials or deployment configuration is present or approved | `docs/product/NATALNODE_PRIVACY_TERMS_POLICY_V1.md` decision P-13; current runtime configuration | OAuth credentials, redirect configuration, processor disclosure, and live verification are external gates | **EXTERNAL / CREDENTIAL AND POLICY BLOCKED** |
@@ -176,7 +191,7 @@ or that all retention is enforced. These claims remain separate:
 | Question | Current answer |
 | --- | --- |
 | Is there a retention technical contract? | **TECHNICAL CONTRACT FROZEN / POLICY VALUES REQUIRED / IMPLEMENTATION / OPERATIONS DEFERRED.** `NATALNODE_DATA_RETENTION_V1.md` freezes the category inventory, lifecycle distinctions, enforcement model, and policy registry without selecting policy durations. |
-| Is retention enforcement complete? | **No.** The Auth maintenance command is code-complete, but scheduled/target-environment invocation is not verified; Vault, Feedback, and downstream application/infrastructure log enforcement are not established. |
+| Is retention enforcement complete? | **Not operationally.** Auth, Community, and Practitioner frozen-predicate maintenance commands are locally present, but scheduled/target-environment invocation is not verified; Vault, Feedback, and downstream application/infrastructure log enforcement remain policy/external gates. |
 | Is the retention policy approved? | **No.** Duration, scope, exceptions, backup/restore handling, processor retention, and access roles remain policy/operations dependencies. |
 | Is privacy-access auditing implemented? | **Partially.** B1 now provides the typed, bounded, append-only PostgreSQL storage core. No privileged data-access surface, reviewer access, retention enforcement, or operational workflow exists; operational request observability remains separate and is not access-audit evidence. |
 | Is a privacy-access audit the same as an account deletion/export record? | **No.** Deletion/export records are bounded product operations; a privacy-access audit needs its own authorized-access model and retention decision. |
@@ -382,8 +397,11 @@ classification; no completed track is reopened by this note.
   authorized new boundary.
 - Do not treat Auth cleanup code as proof of an approved retention duration or
   complete retention enforcement.
-- Do not begin retention enforcement or `WEB-PRIVACY-AUDIT-001B2` before the
-  required policy/operations decisions and real privileged surface exist.
+- Do not bind the retention commands to a production scheduler or activate
+  policy-gated cleanup before the required policy/operations decisions exist.
+  The Auth, Community, and Practitioner executable boundaries are now present;
+  do not treat them as proof of scheduled enforcement. Do not begin
+  `WEB-PRIVACY-AUDIT-001B2` without an approved privileged surface.
 - Do not use operational request logs as a privacy-access audit.
 - Do not add provider network wiring, legal copy, production astronomy, staging
   infrastructure, deployment configuration, or Google `001D` live acceptance
@@ -400,11 +418,11 @@ previous checkpoint, and those closed tracks are now protected from stale-list
 reopening. The remaining release picture is:
 
 ~~~
-P0 local engineering readiness       = SUBSTANTIALLY COMPLETE; no safe unblocked local P0 implementation gap identified
+P0 local engineering readiness       = COMPLETE FOR THE WEB-P0-001 BOUNDARY; external launch gates remain
 P0 implementation foundation        = STRONG
 Closed implementation tracks        = PRESERVED, including Google local track through 001C
 Retention technical contract        = FROZEN; POLICY VALUES REQUIRED; IMPLEMENTATION / OPERATIONS DEFERRED
-Retention enforcement               = NOT COMPLETE; POLICY / EXTERNAL / OPERATIONS-GATED
+Retention enforcement               = FROZEN LOCAL PREDICATES PRESENT; POLICY / EXTERNAL / OPERATIONS-GATED
 Privacy Access Audit B1              = IMPLEMENTED; B2 POLICY-GATED / NOT STARTED
 P0 observability local              = IMPLEMENTATION TRACK CLOSED
 Google Sign-In 001A                 = CONTRACT FROZEN
@@ -421,13 +439,11 @@ Production astronomy/provider      = PROVIDER DECISION DEFERRED
 P0 production release readiness    = NOT READY; policy, legal, external, operations, deployment, and provider gates remain open
 ~~~
 
-The single recommended next action is **P0 POLICY / OPERATIONS DECISION
-CHECKPOINT**. Its purpose is to obtain explicit owner-approved decisions for
-the retention registry, Privacy Access Audit authorization and deletion
-interaction, legal/public-copy inputs, backup/restore reconciliation,
-observability sink/retention ownership, processor boundaries, and Auth
-maintenance scheduler ownership. It is a decision-only recommendation; this
-checkpoint does not execute it, start another task, or make those decisions.
+The historical recommended next action was **P0 POLICY / OPERATIONS DECISION
+CHECKPOINT**. The current implementation/readiness campaign is recorded in
+`NATALNODE_P0_LAUNCH_READINESS_V1.md`; its final classification is
+`P0_MULTIPLE_EXTERNAL_GATES`. No new campaign is started automatically by this
+historical checkpoint.
 
 ## 12. Post-checkpoint new scope: Notification Platform / Subscription Foundation
 
@@ -436,6 +452,8 @@ After `WEB-P0-READY-003`, the product owner introduced the new
 proactive notification features. This is new scope, not a retroactive P0
 implementation gap, and it does not reopen the checkpoint conclusion that no
 safe unblocked local P0 gap was identified for the previously frozen scope.
+Current launch status is instead maintained by
+`NATALNODE_P0_LAUNCH_READINESS_V1.md`.
 
 `WEB-NOTIFY-001A` freezes the provider-neutral technical contract at
 `docs/product/NATALNODE_NOTIFICATION_PLATFORM_V1.md`. The bounded
