@@ -10,6 +10,7 @@ import type {
   AccountDataExportRepository,
   AccountErasureRepository,
   AuthLifecycleCleanupRepository,
+  CommunityRepository,
   EmailMagicLinkAuthLifecycle,
   GoogleAuthAccountSessionLifecycle,
   PractitionerRepository
@@ -19,6 +20,7 @@ import { PostgresAccountErasureRepository } from '../../persistence/postgres/pos
 import { PostgresAuthLifecycleCleanupRepository } from '../../persistence/postgres/postgres-auth-lifecycle-cleanup-repository.js';
 import { PostgresEmailMagicLinkAuthLifecycle } from '../../persistence/postgres/postgres-email-magic-link-auth-lifecycle.js';
 import { PostgresGoogleAuthAccountSessionLifecycle } from '../../persistence/postgres/postgres-google-auth-account-session-lifecycle.js';
+import { PostgresCommunityRepository } from '../../community/postgres-community-repository.js';
 import { PostgresPractitionerRepository } from '../../practitioner/postgres-practitioner-repository.js';
 
 export type { PostgresPoolRuntimeConfig } from './postgres-pool-config.js';
@@ -47,6 +49,7 @@ export interface PostgresPoolRuntime {
   readonly authLifecycleCleanupRepository: AuthLifecycleCleanupRepository;
   readonly emailMagicLinkAuthLifecycle: EmailMagicLinkAuthLifecycle;
   readonly googleAuthAccountSessionLifecycle: GoogleAuthAccountSessionLifecycle;
+  readonly communityRepository: CommunityRepository;
   readonly practitionerRepository: PractitionerRepository;
   close(): Promise<void>;
 }
@@ -70,6 +73,10 @@ export function createPostgresPoolRuntime(
     emailMagicLinkAuthLifecycle: new PostgresEmailMagicLinkAuthLifecycle(pool),
     googleAuthAccountSessionLifecycle:
       new PostgresGoogleAuthAccountSessionLifecycle(pool),
+    communityRepository: new PostgresCommunityRepository(
+      sqlExecutor,
+      transactionRunner
+    ),
     practitionerRepository: new PostgresPractitionerRepository(
       sqlExecutor,
       transactionRunner

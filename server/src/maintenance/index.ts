@@ -21,3 +21,13 @@ export type {
   PractitionerRetentionMaintenanceRuntime,
   PractitionerRetentionMaintenanceSuccess
 } from './practitioner-retention-maintenance.js';
+export {
+  runCommunityRetentionMaintenance,
+  runCommunityRetentionMaintenanceWithRuntime
+} from './community-retention-maintenance.js';
+export type {
+  CommunityRetentionMaintenanceFailure,
+  CommunityRetentionMaintenanceResult,
+  CommunityRetentionMaintenanceRuntime,
+  CommunityRetentionMaintenanceSuccess
+} from './community-retention-maintenance.js';
