@@ -11,6 +11,7 @@ import { PostgresVaultChartRepository } from './postgres-vault-chart-repository.
 import { PostgresNotificationPreferenceRepository } from '../../notification-platform/postgres/postgres-notification-preference-repository.js';
 import { PostgresPushSubscriptionRepository } from '../../notification-platform/postgres/postgres-push-subscription-repository.js';
 import { PostgresCommunityRepository } from '../../community/postgres-community-repository.js';
+import { PostgresPractitionerRepository } from '../../practitioner/postgres-practitioner-repository.js';
 
 export function createPostgresPersistence(
   executor: SqlExecutor,
@@ -29,6 +30,7 @@ export function createPostgresPersistence(
       executor
     ),
     pushSubscriptions: new PostgresPushSubscriptionRepository(executor),
-    community: new PostgresCommunityRepository(executor, transactionRunner)
+    community: new PostgresCommunityRepository(executor, transactionRunner),
+    practitioner: new PostgresPractitionerRepository(executor, transactionRunner)
   };
 }

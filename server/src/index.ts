@@ -18,6 +18,7 @@ export {
   presentAccountDataExportIdentity,
   presentAccountDataExportNote,
   presentAccountDataExportNotifications,
+  presentAccountDataExportPractitioner,
   UnsupportedAccountDataExportIdentityError,
   UnsafeAccountDataExportValueError
 } from './account/account-data-export.js';
@@ -54,7 +55,8 @@ export type {
   NotificationCategoryPreferenceExportV1,
   NotificationChannelPreferenceExportV1,
   NotificationPushSubscriptionExportV1,
-  NotificationsExportV1
+  NotificationsExportV1,
+  PractitionerExportV1
 } from './account/account-data-export.js';
 
 export type {
@@ -251,6 +253,7 @@ export {
   PostgresVaultChartRepository
 } from './persistence/postgres/index.js';
 export { PostgresCommunityRepository } from './persistence/postgres/index.js';
+export { PostgresPractitionerRepository } from './persistence/postgres/index.js';
 export type {
   CommunityAnswerRecord,
   CommunityModerationEventRecord,
@@ -265,3 +268,22 @@ export type {
   CommunityRepository,
   CommunityRetentionPurgeResult
 } from './community/community-repository.js';
+export type {
+  PractitionerApplicationCreateOutcome,
+  PractitionerApplicationMutationOutcome,
+  PractitionerApplicationRecord,
+  PractitionerFoundingOutcome,
+  PractitionerProfilePage,
+  PractitionerProfileRecord,
+  PractitionerProfileRevisionOutcome,
+  PractitionerProfileRevisionRecord,
+  PractitionerProfileRevisionReviewOutcome,
+  PractitionerReportCreateOutcome,
+  PractitionerReportRecord,
+  PractitionerReportResolutionOutcome,
+  PractitionerRepository,
+  PractitionerRetentionPurgeResult,
+  PractitionerReviewEventRecord,
+  PractitionerReviewProfileRevisionRecord,
+  PractitionerReviewOutcome
+} from './practitioner/practitioner-repository.js';

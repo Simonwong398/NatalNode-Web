@@ -11,6 +11,7 @@ import type {
   PushSubscriptionRepository
 } from '../notification-platform/repositories.js';
 import type { CommunityRepository } from '../community/community-repository.js';
+import type { PractitionerRepository } from '../practitioner/practitioner-repository.js';
 
 export interface PersistenceRepositories {
   readonly users: UserRepository;
@@ -24,4 +25,5 @@ export interface PersistenceRepositories {
   readonly notificationPreferences: NotificationPreferenceRepository;
   readonly pushSubscriptions: PushSubscriptionRepository;
   readonly community: CommunityRepository;
+  readonly practitioner: PractitionerRepository;
 }

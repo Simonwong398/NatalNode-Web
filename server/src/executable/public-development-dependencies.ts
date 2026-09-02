@@ -14,6 +14,7 @@ import type {
   VaultChartRepository
 } from '../persistence/index.js';
 import type { CommunityRepository } from '../community/community-repository.js';
+import type { PractitionerRepository } from '../practitioner/practitioner-repository.js';
 import type {
   AccountDataExportSnapshotOpenOptions,
   AccountDataExportSnapshotOpenResult
@@ -210,6 +211,32 @@ function createUnavailableCommunityRepository(): CommunityRepository {
   };
 }
 
+function createUnavailablePractitionerRepository(): PractitionerRepository {
+  return {
+    getApplicationForUser: unavailableAsync,
+    createApplication: unavailableAsync,
+    resubmitApplication: unavailableAsync,
+    withdrawApplication: unavailableAsync,
+    isReviewer: unavailableAsync,
+    listReviewApplications: unavailableAsync,
+    listReviewEvents: unavailableAsync,
+    listPendingProfileRevisions: unavailableAsync,
+    reviewApplication: unavailableAsync,
+    getProfileForUser: unavailableAsync,
+    getPublicProfile: unavailableAsync,
+    listPublicProfiles: unavailableAsync,
+    listVisibleContributions: unavailableAsync,
+    getPendingProfileRevision: unavailableAsync,
+    createProfileRevision: unavailableAsync,
+    reviewProfileRevision: unavailableAsync,
+    setFoundingPractitioner: unavailableAsync,
+    createProfileReport: unavailableAsync,
+    listOpenProfileReports: unavailableAsync,
+    resolveProfileReport: unavailableAsync,
+    purgeExpiredRetention: unavailableAsync
+  };
+}
+
 /**
  * Provides no persistence substitute: public routes never need these methods,
  * and every protected or unsupported operation fails closed if it is reached.
@@ -228,7 +255,8 @@ function createPublicDevelopmentPersistenceRepositories(): PersistenceRepositori
     chartNotes: createUnavailableChartNoteRepository(),
     notificationPreferences: createUnavailableNotificationPreferenceRepository(),
     pushSubscriptions: createUnavailablePushSubscriptionRepository(),
-    community: createUnavailableCommunityRepository()
+    community: createUnavailableCommunityRepository(),
+    practitioner: createUnavailablePractitionerRepository()
   };
 }
 

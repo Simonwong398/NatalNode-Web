@@ -107,6 +107,36 @@ export const P0_STAGING_RATE_LIMIT_POLICIES = {
     limit: 60,
     windowMs: 60 * 60 * 1_000
   },
+  practitionerMutationEdge: {
+    identifier: 'PRACTITIONER_MUTATION_EDGE',
+    limit: 60,
+    windowMs: 10 * 60 * 1_000
+  },
+  practitionerApplicationSubmitDay: {
+    identifier: 'PRACTITIONER_APPLICATION_SUBMIT_DAY',
+    limit: 3,
+    windowMs: 24 * 60 * 60 * 1_000
+  },
+  practitionerApplicationUpdateDay: {
+    identifier: 'PRACTITIONER_APPLICATION_UPDATE_DAY',
+    limit: 10,
+    windowMs: 24 * 60 * 60 * 1_000
+  },
+  practitionerProfileRevisionDay: {
+    identifier: 'PRACTITIONER_PROFILE_REVISION_DAY',
+    limit: 10,
+    windowMs: 24 * 60 * 60 * 1_000
+  },
+  practitionerProfileReportHour: {
+    identifier: 'PRACTITIONER_PROFILE_REPORT_HOUR',
+    limit: 10,
+    windowMs: 60 * 60 * 1_000
+  },
+  practitionerProfileReportDay: {
+    identifier: 'PRACTITIONER_PROFILE_REPORT_DAY',
+    limit: 30,
+    windowMs: 24 * 60 * 60 * 1_000
+  },
   vaultMutation: {
     identifier: 'VAULT_MUTATION',
     limit: 60,
@@ -120,6 +150,17 @@ const EXPIRED_ENTRY_PRUNE_INTERVAL_MS = 60_000;
 interface RateLimitEntry {
   count: number;
   readonly resetAtMs: number;
+}
+
+function isPractitionerMutation(method: string, pathname: string): boolean {
+  if (
+    (method === 'POST' || method === 'PATCH') &&
+    (pathname.startsWith('/api/practitioner/') || pathname.startsWith('/api/practitioners/'))
+  ) {
+    return true;
+  }
+
+  return method === 'POST' && pathname === '/api/practitioner/reports';
 }
 
 export type RateLimitDecision =
@@ -373,6 +414,10 @@ export function selectP0StagingRateLimitPolicy(
     return P0_STAGING_RATE_LIMIT_POLICIES.communityMutationEdge;
   }
 
+  if (isPractitionerMutation(method, pathname)) {
+    return P0_STAGING_RATE_LIMIT_POLICIES.practitionerMutationEdge;
+  }
+
   return isVaultMutation(method, pathname)
     ? P0_STAGING_RATE_LIMIT_POLICIES.vaultMutation
     : null;
@@ -530,6 +575,45 @@ export function enforceCommunityAccountRateLimit(
     for (const policy of policies) {
       const decision = limiter.attempt(policy, principal.userId);
 
+      if (!decision.allowed) {
+        context.header('Retry-After', decision.retryAfterSeconds.toString());
+        return createProblemDetailsContextResponse(context, {
+          code: 'RATE_LIMITED',
+          detailKey: 'RATE_LIMITED'
+        });
+      }
+    }
+
+    await next();
+  };
+}
+
+export type PractitionerAccountRateLimitBucket =
+  | 'application-submit'
+  | 'application-update'
+  | 'profile-revision'
+  | 'profile-report';
+
+export function enforcePractitionerAccountRateLimit(
+  limiter: InMemoryP0StagingRateLimiter,
+  bucket: PractitionerAccountRateLimitBucket
+): MiddlewareHandler<AuthenticatedRequestEnv> {
+  return async (context, next) => {
+    const principal = context.get('authenticatedPrincipal');
+    const policies =
+      bucket === 'application-submit'
+        ? [P0_STAGING_RATE_LIMIT_POLICIES.practitionerApplicationSubmitDay]
+        : bucket === 'application-update'
+          ? [P0_STAGING_RATE_LIMIT_POLICIES.practitionerApplicationUpdateDay]
+          : bucket === 'profile-revision'
+            ? [P0_STAGING_RATE_LIMIT_POLICIES.practitionerProfileRevisionDay]
+            : [
+                P0_STAGING_RATE_LIMIT_POLICIES.practitionerProfileReportHour,
+                P0_STAGING_RATE_LIMIT_POLICIES.practitionerProfileReportDay
+              ];
+
+    for (const policy of policies) {
+      const decision = limiter.attempt(policy, principal.userId);
       if (!decision.allowed) {
         context.header('Retry-After', decision.retryAfterSeconds.toString());
         return createProblemDetailsContextResponse(context, {

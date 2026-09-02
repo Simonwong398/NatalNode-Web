@@ -6,3 +6,4 @@ export * from './feedback.js';
 export * from './vault.js';
 export * from './learn-foundations.js';
 export * from './community.js';
+export * from './practitioner.js';

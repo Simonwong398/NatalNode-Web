@@ -1,5 +1,6 @@
 export { createPostgresPersistence } from './create-postgres-persistence.js';
 export { PostgresCommunityRepository } from '../../community/postgres-community-repository.js';
+export { PostgresPractitionerRepository } from '../../practitioner/postgres-practitioner-repository.js';
 export { PostgresAccountDataExportRepository } from './postgres-account-data-export-repository.js';
 export { PostgresAccountErasureRepository } from './postgres-account-erasure-repository.js';
 export { PostgresAuthSessionRepository } from './postgres-auth-session-repository.js';

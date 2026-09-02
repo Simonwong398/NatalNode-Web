@@ -24,6 +24,7 @@ import { registerAccountExportRoutes } from './routes/account-export.js';
 import { registerNotificationRoutes } from './routes/notifications.js';
 import { registerFoundationsLearningRoutes } from './routes/learn-foundations.js';
 import { registerCommunityRoutes } from './routes/community.js';
+import { registerPractitionerRoutes } from './routes/practitioner.js';
 
 const HEALTH_RESPONSE = {
   service: 'natalnode-web-bff',
@@ -77,6 +78,7 @@ export function createApp(
   registerNotificationRoutes(app, dependencies, rateLimiter);
   registerFoundationsLearningRoutes(app, dependencies);
   registerCommunityRoutes(app, dependencies, rateLimiter);
+  registerPractitionerRoutes(app, dependencies, rateLimiter);
   registerFeedbackRoutes(app, dependencies, rateLimiter);
   registerVaultChartRoutes(app, dependencies);
   registerVaultNoteRoutes(app, dependencies);

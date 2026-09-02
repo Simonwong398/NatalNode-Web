@@ -82,3 +82,22 @@ export type {
   CommunityRepository,
   CommunityRetentionPurgeResult
 } from '../community/community-repository.js';
+export type {
+  PractitionerApplicationCreateOutcome,
+  PractitionerApplicationMutationOutcome,
+  PractitionerApplicationRecord,
+  PractitionerFoundingOutcome,
+  PractitionerProfilePage,
+  PractitionerProfileRecord,
+  PractitionerProfileRevisionOutcome,
+  PractitionerProfileRevisionRecord,
+  PractitionerProfileRevisionReviewOutcome,
+  PractitionerReportCreateOutcome,
+  PractitionerReportRecord,
+  PractitionerReportResolutionOutcome,
+  PractitionerRepository,
+  PractitionerRetentionPurgeResult,
+  PractitionerReviewEventRecord,
+  PractitionerReviewProfileRevisionRecord,
+  PractitionerReviewOutcome
+} from '../practitioner/practitioner-repository.js';
