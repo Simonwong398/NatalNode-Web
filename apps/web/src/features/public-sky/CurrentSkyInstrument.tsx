@@ -80,17 +80,21 @@ function formatSnapshotTimestamp(atUtc: string, locale: SupportedLocale | undefi
   });
 }
 
-function PositionFact({ body, locale }: { body: SkyBodyPosition; locale?: SupportedLocale }) {
+function formatPositionFact(body: SkyBodyPosition, locale: SupportedLocale | undefined): string {
   const motion = body.motionState ? ` · ${glossaryTerm('motion', body.motionState, locale).toLowerCase()}` : '';
+  return chartUiFormat(locale, 'sky.positionFact', {
+    body: glossaryTerm('body', body.bodyId, locale),
+    degree: formatDegrees(body.longitude),
+    sign: glossaryTerm('sign', body.sign, locale),
+    motion
+  });
+}
+
+function PositionFact({ body, locale }: { body: SkyBodyPosition; locale?: SupportedLocale }) {
   return (
     <li>
       <span aria-hidden="true">{getBodyGlyph(body.bodyId)}</span>{' '}
-      {chartUiFormat(locale, 'sky.positionFact', {
-        body: glossaryTerm('body', body.bodyId, locale),
-        degree: formatDegrees(body.longitude),
-        sign: glossaryTerm('sign', body.sign, locale),
-        motion
-      })}
+      {formatPositionFact(body, locale)}
     </li>
   );
 }
@@ -112,24 +116,56 @@ function SkyHighlights({ snapshot, compact = false, locale }: { snapshot: SkySna
   const retrogradeTerm = glossaryTerm('motion', 'RETROGRADE', locale).toLowerCase();
 
   return (
-    <section aria-labelledby="current-sky-highlights" className={`rounded-[var(--nn-radius-large)] border border-natal-border/70 bg-natal-night/25 ${compact ? 'p-2 sm:p-3' : 'p-4'}`}>
+    <section aria-labelledby="current-sky-highlights" className={`nn-sky-highlights rounded-[var(--nn-radius-large)] border border-natal-border/70 bg-natal-night/25 ${compact ? 'p-2 sm:p-3' : 'p-4'}`} data-sky-highlights={compact ? 'compact' : 'full'}>
       <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
         <h3 className="nn-type-card-title" id="current-sky-highlights">
           {chartUi(locale, 'sky.highlights')}
         </h3>
         <span className="nn-type-metadata">{chartUi(locale, 'sky.suppliedFacts')}</span>
       </div>
-      <ul className={`${compact ? 'mt-1.5 space-y-1 sm:mt-2 sm:space-y-1.5' : 'mt-3 space-y-2'} nn-type-body-small`}>
-        {highlightedAspects.map((aspect, index) => (
-          <li className={`${compact && index > 0 ? 'hidden sm:flex' : 'flex'} items-start gap-2`} key={`${aspect.firstBodyId}-${aspect.secondBodyId}-${index}`}>
-            <span aria-hidden="true" className="shrink-0 text-natal-accent">{getBodyGlyph(aspect.firstBodyId)} {getAspectGlyph(aspect.aspectType)} {getBodyGlyph(aspect.secondBodyId)}</span>
-            <span>{formatAspect(aspect, locale)}</span>
-          </li>
-        ))}
-        {retrogradeBodies.length > 0 ? (
-          <li className={`${compact && highlightedAspects.length > 0 ? 'hidden sm:flex' : 'flex'} items-start gap-2`}>
-            <span aria-hidden="true" className="nn-astrology-glyph shrink-0 text-natal-accent">{RETROGRADE_GLYPH}</span>
-            <span>
+      {compact ? (
+        <div className="nn-sky-symbolic-groups mt-3">
+          <div className="nn-sky-symbolic-group">
+            <p className="nn-type-label">{chartUi(locale, 'sky.bodyPositions')}</p>
+            <ul aria-label={chartUi(locale, 'sky.bodyPositions')} className="nn-sky-symbolic-row nn-sky-symbolic-row--bodies">
+              {snapshot.bodyPositions.map((body) => {
+                const description = formatPositionFact(body, locale);
+
+                return (
+                  <li key={body.bodyId}>
+                    <span aria-label={description} className="nn-sky-symbolic-glyph nn-sky-symbolic-glyph--body" role="img" title={description}>
+                      {getBodyGlyph(body.bodyId)}
+                    </span>
+                  </li>
+                );
+              })}
+            </ul>
+          </div>
+          <div className="nn-sky-symbolic-group">
+            <p className="nn-type-label">{chartUi(locale, 'sky.currentAspects')}</p>
+            {snapshot.currentAspects.length > 0 ? (
+              <ul aria-label={chartUi(locale, 'sky.currentAspects')} className="nn-sky-symbolic-row nn-sky-symbolic-row--aspects">
+                {snapshot.currentAspects.map((aspect, index) => {
+                  const description = formatAspect(aspect, locale);
+
+                  return (
+                    <li key={`${aspect.firstBodyId}-${aspect.secondBodyId}-${index}`}>
+                      <span aria-label={description} className="nn-sky-symbolic-aspect" role="img" title={description}>
+                        <span aria-hidden="true" className="nn-astrology-glyph">{getBodyGlyph(aspect.firstBodyId)}</span>
+                        <span aria-hidden="true" className="nn-astrology-glyph nn-sky-symbolic-aspect__relation">{getAspectGlyph(aspect.aspectType)}</span>
+                        <span aria-hidden="true" className="nn-astrology-glyph">{getBodyGlyph(aspect.secondBodyId)}</span>
+                      </span>
+                    </li>
+                  );
+                })}
+              </ul>
+            ) : (
+              <p className="nn-type-body-small">{chartUi(locale, 'sky.noCurrentAspects')}</p>
+            )}
+          </div>
+          {retrogradeBodies.length > 0 ? (
+            <p className="nn-sky-symbolic-note nn-type-metadata">
+              <span aria-hidden="true" className="nn-astrology-glyph mr-1">{RETROGRADE_GLYPH}</span>
               {chartUiFormat(
                 locale,
                 retrogradeBodies.length === 1
@@ -137,13 +173,36 @@ function SkyHighlights({ snapshot, compact = false, locale }: { snapshot: SkySna
                   : 'sky.retrogradeCount.many',
                 { count: retrogradeBodies.length, motion: retrogradeTerm }
               )}
-            </span>
-          </li>
-        ) : null}
-        {highlightedAspects.length === 0 && retrogradeBodies.length === 0
-          ? <li>{chartUi(locale, 'sky.noHighlights')}</li>
-          : null}
-      </ul>
+            </p>
+          ) : null}
+        </div>
+      ) : (
+        <ul className="mt-3 space-y-2 nn-type-body-small">
+          {highlightedAspects.map((aspect, index) => (
+            <li className="flex items-start gap-2" key={`${aspect.firstBodyId}-${aspect.secondBodyId}-${index}`}>
+              <span aria-hidden="true" className="shrink-0 text-natal-accent">{getBodyGlyph(aspect.firstBodyId)} {getAspectGlyph(aspect.aspectType)} {getBodyGlyph(aspect.secondBodyId)}</span>
+              <span>{formatAspect(aspect, locale)}</span>
+            </li>
+          ))}
+          {retrogradeBodies.length > 0 ? (
+            <li className="flex items-start gap-2">
+              <span aria-hidden="true" className="nn-astrology-glyph shrink-0 text-natal-accent">{RETROGRADE_GLYPH}</span>
+              <span>
+                {chartUiFormat(
+                  locale,
+                  retrogradeBodies.length === 1
+                    ? 'sky.retrogradeCount.one'
+                    : 'sky.retrogradeCount.many',
+                  { count: retrogradeBodies.length, motion: retrogradeTerm }
+                )}
+              </span>
+            </li>
+          ) : null}
+          {highlightedAspects.length === 0 && retrogradeBodies.length === 0
+            ? <li>{chartUi(locale, 'sky.noHighlights')}</li>
+            : null}
+        </ul>
+      )}
     </section>
   );
 }
@@ -217,7 +276,7 @@ function SkyChartPanel({
 
   return (
     <div
-      className={`nn-sky-chart-panel min-w-0 rounded-[var(--nn-radius-large)] border border-natal-border/70 bg-natal-night/30 shadow-[var(--nn-shadow-low)] ${compact ? 'p-2 sm:p-3 lg:p-4' : 'p-3 sm:p-6 lg:p-8'}`}
+      className={`nn-sky-chart-panel min-w-0 rounded-[var(--nn-radius-large)] border border-natal-border/70 bg-natal-night/30 shadow-[var(--nn-shadow-low)] ${compact ? 'nn-sky-chart-panel--compact p-2 sm:p-3 lg:p-4' : 'p-3 sm:p-6 lg:p-8'}`}
       data-sky-interactive="true"
     >
       <ChartRenderer
@@ -228,7 +287,7 @@ function SkyChartPanel({
       />
       <button
         aria-label={chartUi(locale, 'chart.expand')}
-        className="nn-button nn-button--quiet mt-3 w-full sm:w-auto"
+        className={`nn-button nn-sky-expand-action mt-3 w-full sm:w-auto ${compact ? 'nn-button--secondary' : 'nn-button--quiet'}`}
         onClick={onExpand}
         ref={expandButtonRef}
         type="button"

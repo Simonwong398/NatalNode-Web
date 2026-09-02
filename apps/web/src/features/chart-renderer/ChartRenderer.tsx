@@ -94,6 +94,7 @@ type BodyDisplay = {
 
 const CHART_COLORS = {
   atmosphere: 'var(--nn-bg-observatory)',
+  accentSupporting: 'var(--nn-accent-supporting)',
   angle: 'var(--nn-chart-angle)',
   bodyPrimary: 'var(--nn-chart-body-primary)',
   bodySecondary: 'var(--nn-chart-body-secondary)',
@@ -167,6 +168,7 @@ const UNKNOWN_ASPECT_STYLE: AspectStyle = {
 };
 
 const SVG_TEXT = 'ui-sans-serif, system-ui, sans-serif';
+const SVG_SYMBOL_TEXT = '"Segoe UI Symbol", "Noto Sans Symbols 2", "Noto Sans Symbols", ui-sans-serif, system-ui, sans-serif';
 const PRECISION_TICK_COUNT = 72;
 const BODY_COLLISION_THRESHOLD_DEGREES = 6;
 const SECTOR_OPACITIES = [0.08, 0.14] as const;
@@ -413,6 +415,7 @@ function renderHouseCusp(cusp: HouseCusp, locale: SupportedLocale | undefined) {
 type BodyRenderProps = {
   display: BodyDisplay;
   locale: SupportedLocale | undefined;
+  showcase: boolean;
   showHouses: boolean;
   showBodyAbbreviations: boolean;
   activePlanetId: string | null;
@@ -446,6 +449,7 @@ function describeBody(
 function renderBody({
   display,
   locale,
+  showcase,
   showHouses,
   showBodyAbbreviations,
   activePlanetId,
@@ -544,8 +548,8 @@ function renderBody({
         cx={marker.x}
         cy={marker.y}
         fill={CHART_COLORS.bodySecondary}
-        fillOpacity="0.16"
-        r="8"
+        fillOpacity={showcase ? '0.22' : '0.16'}
+        r={showcase ? '12' : '8'}
       />
       <circle
         aria-hidden="true"
@@ -553,17 +557,17 @@ function renderBody({
         cx={marker.x}
         cy={marker.y}
         fill={CHART_COLORS.bodyPrimary}
-        r="4.5"
+        r={showcase ? '6' : '4.5'}
         stroke={CHART_COLORS.surface}
-        strokeWidth="1.5"
+        strokeWidth={showcase ? '1.8' : '1.5'}
       />
       <text
         aria-hidden="true"
         className="nn-chart-planet__glyph"
         dominantBaseline="middle"
         fill={CHART_COLORS.bodyPrimary}
-        fontFamily={SVG_TEXT}
-        fontSize="17"
+        fontFamily={SVG_SYMBOL_TEXT}
+        fontSize={showcase ? '26' : '17'}
         fontWeight="700"
         textAnchor="middle"
         x={label.x}
@@ -595,7 +599,8 @@ function renderAspect(
   resolvedAspect: ResolvedAspect,
   index: number,
   locale: SupportedLocale | undefined,
-  activePlanetId: string | null
+  activePlanetId: string | null,
+  showcase: boolean
 ) {
   const firstPoint = longitudeToPoint(resolvedAspect.firstBody.longitude, ASPECT_ENDPOINT_RADIUS);
   const secondPoint = longitudeToPoint(resolvedAspect.secondBody.longitude, ASPECT_ENDPOINT_RADIUS);
@@ -617,11 +622,19 @@ function renderAspect(
       <title>{description}</title>
       <line
         fill="none"
-        opacity={hasFocus ? (isFocused ? 0.98 : 0.08) : resolvedAspect.style.opacity}
+        opacity={hasFocus
+          ? (isFocused ? 0.98 : 0.08)
+          : showcase
+            ? Math.min(0.82, resolvedAspect.style.opacity + 0.12)
+            : resolvedAspect.style.opacity}
         stroke={resolvedAspect.style.stroke}
         strokeDasharray={resolvedAspect.style.strokeDasharray}
         strokeLinecap="round"
-        strokeWidth={isFocused ? resolvedAspect.style.strokeWidth + 0.55 : resolvedAspect.style.strokeWidth}
+        strokeWidth={isFocused
+          ? resolvedAspect.style.strokeWidth + 0.55
+          : showcase
+            ? resolvedAspect.style.strokeWidth + 0.25
+            : resolvedAspect.style.strokeWidth}
         vectorEffect="non-scaling-stroke"
         x1={firstPoint.x}
         x2={secondPoint.x}
@@ -930,7 +943,7 @@ export default function ChartRenderer({
             cx={CHART_CENTER}
             cy={CHART_CENTER}
             fill={CHART_COLORS.surface}
-            fillOpacity="0.68"
+            fillOpacity={isShowcase ? '0.76' : '0.68'}
             r={ZODIAC_OUTER_RADIUS}
             stroke={CHART_COLORS.borderStrong}
             strokeOpacity="0.88"
@@ -945,6 +958,18 @@ export default function ChartRenderer({
             strokeOpacity="0.62"
             strokeWidth="1"
           />
+          {isShowcase ? (
+            <circle
+              cx={CHART_CENTER}
+              cy={CHART_CENTER}
+              fill="none"
+              r={ZODIAC_OUTER_RADIUS + 14}
+              stroke={CHART_COLORS.accentSupporting}
+              strokeDasharray="1 10"
+              strokeOpacity="0.36"
+              strokeWidth="1.2"
+            />
+          ) : null}
           {!isShowcase ? renderPrecisionTicks() : null}
           {!isShowcase ? renderDegreeLabels() : null}
         </g>
@@ -966,19 +991,23 @@ export default function ChartRenderer({
                     ZODIAC_INNER_RADIUS
                   )}
                   fill={CHART_COLORS.zodiac}
-                  fillOpacity={SECTOR_OPACITIES[index % SECTOR_OPACITIES.length]}
+                  fillOpacity={isShowcase
+                    ? index % 2
+                      ? 0.2
+                      : 0.12
+                    : SECTOR_OPACITIES[index % SECTOR_OPACITIES.length]}
                   stroke={CHART_COLORS.zodiac}
-                  strokeOpacity="0.58"
-                  strokeWidth="0.9"
+                  strokeOpacity={isShowcase ? '0.72' : '0.58'}
+                  strokeWidth={isShowcase ? '1.2' : '0.9'}
                 />
                 {glyph ? (
                   <text
                     aria-hidden="true"
                     dominantBaseline="middle"
-                    fill={CHART_COLORS.textSecondary}
-                    fontFamily={SVG_TEXT}
-                    fontSize="18"
-                    fontWeight="600"
+                    fill={isShowcase ? CHART_COLORS.bodyPrimary : CHART_COLORS.textSecondary}
+                    fontFamily={SVG_SYMBOL_TEXT}
+                    fontSize={isShowcase ? '27' : '18'}
+                    fontWeight={isShowcase ? '700' : '600'}
                     textAnchor="middle"
                     x={label.x}
                     y={label.y - 7}
@@ -995,12 +1024,39 @@ export default function ChartRenderer({
           cx={CHART_CENTER}
           cy={CHART_CENTER}
           fill={CHART_COLORS.surface}
-          fillOpacity="0.86"
+          fillOpacity={isShowcase ? '0.92' : '0.86'}
           r={ZODIAC_INNER_RADIUS}
           stroke={CHART_COLORS.borderStrong}
           strokeOpacity="0.72"
           strokeWidth="1.5"
         />
+
+        {isShowcase ? (
+          <>
+            <circle
+              aria-hidden="true"
+              cx={CHART_CENTER}
+              cy={CHART_CENTER}
+              fill="none"
+              r={ZODIAC_INNER_RADIUS - 9}
+              stroke={CHART_COLORS.accentSupporting}
+              strokeDasharray="2 8"
+              strokeOpacity="0.24"
+              strokeWidth="1.1"
+            />
+            <circle
+              aria-hidden="true"
+              cx={CHART_CENTER}
+              cy={CHART_CENTER}
+              fill="none"
+              r={ASPECT_ENDPOINT_RADIUS + 21}
+              stroke={CHART_COLORS.borderStrong}
+              strokeDasharray="1 7"
+              strokeOpacity="0.3"
+              strokeWidth="1"
+            />
+          </>
+        ) : null}
 
         {/* Houses and angles are rendered only from supplied facts and policy. */}
         {presentationPolicy.showHouses && !isSkyChart ? (
@@ -1028,7 +1084,7 @@ export default function ChartRenderer({
 
         {/* Aspects are subordinate, and focus state is presentation-only. */}
         <g aria-label={suppliedAspectsLabel} role="group">
-          {renderableAspects.map((aspect, index) => renderAspect(aspect, index, locale, activePlanetId))}
+          {renderableAspects.map((aspect, index) => renderAspect(aspect, index, locale, activePlanetId, isShowcase))}
         </g>
 
         {/* Bodies stay at their supplied longitudes; only labels are separated. */}
@@ -1042,6 +1098,7 @@ export default function ChartRenderer({
             onLeave: clearHover,
             onSelect: setSelectedPlanetId,
             selectedPlanetId,
+            showcase: isShowcase,
             showHouses: presentationPolicy.showHouses,
             showBodyAbbreviations: !isShowcase,
             activePlanetId

@@ -43,9 +43,9 @@ const t = (key: UiMessageKey) => getUiMessage(locale, key);
         <h1 class="nn-type-page-title max-w-2xl">{t('calculate.title')}</h1>
         <p class="nn-type-body max-w-xl">{t('calculate.description')}</p>
       </header>
-      <div class="grid gap-8 md:grid-cols-[minmax(0,1fr)_minmax(18rem,0.72fr)]">
+      <div class="grid gap-8 md:grid-cols-[minmax(0,1fr)_minmax(20rem,0.78fr)]">
         <aside class="order-1 min-w-0 md:order-2" aria-label={t('sky.currentTitle')}>
-          <section class="nn-surface nn-surface--instrument mt-8 p-3 sm:p-5" aria-labelledby="homepage-current-sky-title">
+          <section class="nn-surface nn-surface--instrument nn-public-sky-showcase mt-8 p-3 sm:p-5" aria-labelledby="homepage-current-sky-title">
             <p class="nn-eyebrow">{t('sky.currentTitle')}</p>
             <h2 class="nn-type-section-title mt-1" id="homepage-current-sky-title">{t('sky.currentEyebrow')}</h2>
             <CurrentSkyInstrument
