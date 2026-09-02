@@ -337,11 +337,28 @@ export function registerAccountExportRoutes(
           return internalError();
         }
 
+        const initialPractitioner =
+          openedSnapshot.getPractitioner === undefined
+            ? {
+                application: null,
+                profile: null,
+                profileRevisions: []
+              }
+            : await awaitAccountExportOperation(
+                () => openedSnapshot.getPractitioner!(),
+                deadline.signal
+              );
+
+        if (deadline.signal.aborted || deadline.remainingMs() <= 0) {
+          return internalError();
+        }
+
         validateAccountExportInitialRepresentation(
           snapshot,
           initialIdentityPage,
           exportedAt,
-          initialNotificationPage
+          initialNotificationPage,
+          initialPractitioner
         );
 
         if (deadline.signal.aborted) {
@@ -353,6 +370,7 @@ export function registerAccountExportRoutes(
           snapshot,
           initialIdentityPage,
           initialNotificationPage,
+          initialPractitioner,
           exportedAt,
           signal: deadline.signal,
           onSuccess: cleanupSuccess,

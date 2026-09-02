@@ -98,6 +98,75 @@ export const ACCOUNT_DATA_EXPORT_FEEDBACK_SQL = `
   ORDER BY created_at ASC, feedback_id ASC
   LIMIT $4`;
 
+export const ACCOUNT_DATA_EXPORT_PRACTITIONER_APPLICATION_SQL = `
+  SELECT
+    application_id,
+    requested_display_name,
+    professional_headline,
+    bio,
+    practice_areas,
+    languages,
+    country_or_region,
+    website_url,
+    practice_statement,
+    evidence_urls,
+    consent_to_public_profile,
+    submitted_at,
+    status,
+    finalized_at,
+    purge_eligible_at
+  FROM practitioner_applications
+  WHERE user_id = $1
+  ORDER BY submitted_at DESC, application_id DESC
+  LIMIT 1`;
+
+export const ACCOUNT_DATA_EXPORT_PRACTITIONER_STATUS_HISTORY_SQL = `
+  SELECT
+    action,
+    created_at
+  FROM practitioner_review_events
+  WHERE application_id = $1
+    AND subject_type = 'APPLICATION'
+  ORDER BY created_at ASC, review_event_id ASC`;
+
+export const ACCOUNT_DATA_EXPORT_PRACTITIONER_PROFILE_SQL = `
+  SELECT
+    practitioner_id,
+    display_name,
+    professional_headline,
+    bio,
+    practice_areas,
+    languages,
+    country_or_region,
+    website_url,
+    founding_practitioner,
+    approved_at,
+    profile_status,
+    created_at,
+    updated_at
+  FROM practitioner_profiles
+  WHERE user_id = $1
+  ORDER BY created_at DESC, practitioner_id DESC
+  LIMIT 1`;
+
+export const ACCOUNT_DATA_EXPORT_PRACTITIONER_PROFILE_REVISIONS_SQL = `
+  SELECT
+    revisions.professional_headline,
+    revisions.display_name,
+    revisions.bio,
+    revisions.practice_areas,
+    revisions.languages,
+    revisions.country_or_region,
+    revisions.website_url,
+    revisions.status,
+    revisions.submitted_at,
+    revisions.reviewed_at
+  FROM practitioner_profile_revisions AS revisions
+  INNER JOIN practitioner_profiles AS profiles
+    ON profiles.practitioner_id = revisions.practitioner_id
+   AND profiles.user_id = $1
+  ORDER BY revisions.submitted_at ASC, revisions.revision_id ASC`;
+
 export const ACCOUNT_DATA_EXPORT_NOTIFICATION_CHANNEL_PREFERENCES_SQL = `
   SELECT
     channel,
@@ -185,6 +254,58 @@ export interface AccountDataExportFeedbackRow {
   readonly category: string;
   readonly message: string;
   readonly created_at: Date | string;
+}
+
+export interface AccountDataExportPractitionerApplicationRow {
+  readonly application_id: string;
+  readonly requested_display_name: string;
+  readonly professional_headline: string;
+  readonly bio: string;
+  readonly practice_areas: readonly string[];
+  readonly languages: readonly string[];
+  readonly country_or_region: string;
+  readonly website_url: string | null;
+  readonly practice_statement: string;
+  readonly evidence_urls: readonly string[];
+  readonly consent_to_public_profile: true;
+  readonly submitted_at: Date | string;
+  readonly status: string;
+  readonly finalized_at: Date | string | null;
+  readonly purge_eligible_at: Date | string | null;
+}
+
+export interface AccountDataExportPractitionerStatusHistoryRow {
+  readonly action: string;
+  readonly created_at: Date | string;
+}
+
+export interface AccountDataExportPractitionerProfileRow {
+  readonly practitioner_id: string;
+  readonly display_name: string;
+  readonly professional_headline: string;
+  readonly bio: string;
+  readonly practice_areas: readonly string[];
+  readonly languages: readonly string[];
+  readonly country_or_region: string;
+  readonly website_url: string | null;
+  readonly founding_practitioner: boolean;
+  readonly approved_at: Date | string;
+  readonly profile_status: string;
+  readonly created_at: Date | string;
+  readonly updated_at: Date | string;
+}
+
+export interface AccountDataExportPractitionerProfileRevisionRow {
+  readonly display_name: string;
+  readonly professional_headline: string;
+  readonly bio: string;
+  readonly practice_areas: readonly string[];
+  readonly languages: readonly string[];
+  readonly country_or_region: string;
+  readonly website_url: string | null;
+  readonly status: string;
+  readonly submitted_at: Date | string;
+  readonly reviewed_at: Date | string | null;
 }
 
 export interface AccountDataExportNotificationChannelPreferenceRow {

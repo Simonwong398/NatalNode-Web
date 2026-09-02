@@ -15,6 +15,14 @@ section. The amendment contains only safe preference and subscription
 metadata, remains owner-scoped inside the existing repeatable-read snapshot,
 and never exports push endpoints, endpoint hashes, or browser push keys.
 
+### WEB-PRACTITIONER-001 additive Practitioner metadata amendment
+
+The account-owned Practitioner relationship is included as a privacy-minimized
+top-level `practitioner` section. It contains the user's submitted application
+fields, evidence URLs, status history, approved/revoked profile data, and
+bounded profile-revision history. Reviewer identity, reviewer notes, retention
+holds, and other reviewer-only fields are never exported.
+
 ### WEB-API-001B3B-R1 delivery revision
 
 The browser delivery contract below supersedes the earlier single-request
@@ -392,7 +400,7 @@ type JsonValue =
   | { readonly [key: string]: JsonValue };
 
 interface NatalNodeAccountDataExportV1 {
-  readonly exportSchemaVersion: '1.1';
+  readonly exportSchemaVersion: '1.2';
   readonly exportedAt: string;
   readonly account: {
     readonly createdAt: string;
@@ -402,6 +410,7 @@ interface NatalNodeAccountDataExportV1 {
   readonly charts: readonly AccountChartExportV1[];
   readonly feedback: readonly FeedbackExportV1[];
   readonly notifications: NotificationsExportV1;
+  readonly practitioner: PractitionerExportV1;
 }
 
 interface EmailMagicLinkExportIdentityV1 {
@@ -470,6 +479,62 @@ interface NotificationPushSubscriptionExportV1 {
   readonly lastSuccessAt: string | null;
   readonly invalidatedAt: string | null;
 }
+
+interface PractitionerExportV1 {
+  readonly application: PractitionerApplicationExportV1 | null;
+  readonly profile: PractitionerProfileExportV1 | null;
+  readonly profileRevisions: readonly PractitionerProfileRevisionExportV1[];
+}
+
+interface PractitionerApplicationExportV1 {
+  readonly requestedDisplayName: string;
+  readonly professionalHeadline: string;
+  readonly bio: string;
+  readonly practiceAreas: readonly string[];
+  readonly languages: readonly string[];
+  readonly countryOrRegion: string;
+  readonly websiteUrl?: string;
+  readonly practiceStatement: string;
+  readonly evidenceUrls: readonly string[];
+  readonly consentToPublicProfile: true;
+  readonly submittedAt: string;
+  readonly status: string;
+  readonly statusHistory: readonly {
+    readonly status: string;
+    readonly changedAt: string;
+  }[];
+  readonly finalizedAt: string | null;
+  readonly purgeEligibleAt: string | null;
+}
+
+interface PractitionerProfileExportV1 {
+  readonly practitionerId: string;
+  readonly displayName: string;
+  readonly professionalHeadline: string;
+  readonly bio: string;
+  readonly practiceAreas: readonly string[];
+  readonly languages: readonly string[];
+  readonly countryOrRegion: string;
+  readonly websiteUrl?: string;
+  readonly foundingPractitioner: boolean;
+  readonly approvedAt: string;
+  readonly profileStatus: string;
+  readonly createdAt: string;
+  readonly updatedAt: string;
+}
+
+interface PractitionerProfileRevisionExportV1 {
+  readonly displayName: string;
+  readonly professionalHeadline: string;
+  readonly bio: string;
+  readonly practiceAreas: readonly string[];
+  readonly languages: readonly string[];
+  readonly countryOrRegion: string;
+  readonly websiteUrl?: string;
+  readonly status: string;
+  readonly submittedAt: string;
+  readonly reviewedAt: string | null;
+}
 ```
 
 For records produced by the current application, `normalizedChartRequest` is expected to conform to `ChartRequest` and `canonicalChartResult` is expected to conform to `ChartResult`. The export authority, however, is the persisted JSONB snapshot—not whichever scientific parser happens to be current when the user downloads it.
@@ -480,7 +545,7 @@ An illustrative empty-account envelope is:
 
 ```json
 {
-  "exportSchemaVersion": "1.1",
+  "exportSchemaVersion": "1.2",
   "exportedAt": "2026-08-27T12:00:00.000Z",
   "account": {
     "createdAt": "2026-08-01T12:00:00.000Z",
@@ -500,6 +565,11 @@ An illustrative empty-account envelope is:
     "channelPreferences": [],
     "categoryPreferences": [],
     "pushSubscriptions": []
+  },
+  "practitioner": {
+    "application": null,
+    "profile": null,
+    "profileRevisions": []
   }
 }
 ```
@@ -511,8 +581,8 @@ The top-level names are product-domain names, not raw table names. Data is not d
 ## 14. Export schema versioning
 
 `exportSchemaVersion` identifies the NatalNode account-export envelope. The
-current additive V1.1 representation is the exact string `"1.1"`; it preserves
-all V1.0 fields and adds the reviewed top-level `notifications` section.
+current additive V1.2 representation is the exact string `"1.2"`; it preserves
+all V1.1 fields and adds the reviewed top-level `practitioner` section.
 
 This is distinct from:
 
@@ -521,7 +591,7 @@ This is distinct from:
 
 Version rules:
 
-- compatible additive fields may advance the minor version after contract review; the Consumer notification metadata amendment advances V1 from `1.0` to `1.1`;
+- compatible additive fields may advance the minor version after contract review; the Consumer notification metadata amendment advanced V1 from `1.0` to `1.1`, and the Practitioner metadata amendment advances it to `1.2`;
 - removal, renaming, meaning changes, incompatible type changes, or nesting changes require a major version;
 - a future identity type requires an explicit export presenter and a reviewed schema change;
 - existing stored `ChartResult` values remain in their persisted scientific schema and are never upgraded merely because export schema changes; and

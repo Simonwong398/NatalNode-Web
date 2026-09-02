@@ -3,7 +3,8 @@ import {
   type AccountDataExportChartMetadata,
   type AccountDataExportFeedback,
   type AccountDataExportIdentity,
-  type AccountDataExportNote
+  type AccountDataExportNote,
+  type AccountDataExportPractitioner
 } from '../account/account-data-export.js';
 import type {
   AccountDataExportCursor,
@@ -19,6 +20,7 @@ export interface AccountExportStreamOptions {
   readonly snapshot: AccountDataExportSnapshot;
   readonly initialIdentityPage: AccountDataExportPage<AccountDataExportIdentity>;
   readonly initialNotificationPage: AccountDataExportNotificationsPage;
+  readonly initialPractitioner: AccountDataExportPractitioner;
   readonly exportedAt: string;
   readonly signal: AbortSignal;
   readonly onSuccess: () => Promise<void>;
@@ -41,7 +43,8 @@ export function validateAccountExportInitialRepresentation(
   snapshot: AccountDataExportSnapshot,
   initialIdentityPage: AccountDataExportPage<AccountDataExportIdentity>,
   exportedAt: string,
-  notificationPage: AccountDataExportNotificationsPage
+  notificationPage: AccountDataExportNotificationsPage,
+  practitioner: AccountDataExportPractitioner
 ): void {
   serializeAccountExportValue(ACCOUNT_DATA_EXPORT_SCHEMA_VERSION);
   serializeAccountExportValue(exportedAt);
@@ -55,6 +58,7 @@ export function validateAccountExportInitialRepresentation(
   serializeAccountExportValue(notificationPage.channelPreferences);
   serializeAccountExportValue(notificationPage.categoryPreferences);
   serializeAccountExportValue(notificationPage.pushSubscriptions.items);
+  serializeAccountExportValue(practitioner);
 }
 
 function assertStreamActive(signal: AbortSignal): void {
@@ -232,7 +236,11 @@ async function* accountExportChunks(
     );
   }
 
-  yield ']}';
+  if (options.initialPractitioner === undefined) {
+    yield ']}';
+  } else {
+    yield ']},"practitioner":' + serialize(options.initialPractitioner);
+  }
   assertStreamActive(signal);
   await options.onSuccess();
   assertStreamActive(signal);

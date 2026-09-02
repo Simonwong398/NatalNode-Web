@@ -5,6 +5,7 @@ import {
   presentAccountDataExportFeedback,
   presentAccountDataExportIdentity,
   presentAccountDataExportNote,
+  presentAccountDataExportPractitioner,
   UnsupportedAccountDataExportIdentityError
 } from '../../account/account-data-export.js';
 import type {
@@ -13,7 +14,12 @@ import type {
   AccountDataExportFeedback,
   AccountDataExportIdentity,
   AccountDataExportNote,
-  AccountDataExportNotificationPushSubscription
+  AccountDataExportNotificationPushSubscription,
+  AccountDataExportPractitioner,
+  AccountDataExportPractitionerApplicationPresentationSource,
+  AccountDataExportPractitionerProfilePresentationSource,
+  AccountDataExportPractitionerProfileRevisionPresentationSource,
+  AccountDataExportPractitionerApplicationHistory
 } from '../../account/account-data-export.js';
 import { PostgresClientSqlExecutor } from './postgres-client-sql-executor.js';
 import type {
@@ -23,6 +29,10 @@ import type {
   AccountDataExportNoteRow,
   AccountDataExportProviderRow,
   AccountDataExportUserRow,
+  AccountDataExportPractitionerApplicationRow,
+  AccountDataExportPractitionerStatusHistoryRow,
+  AccountDataExportPractitionerProfileRow,
+  AccountDataExportPractitionerProfileRevisionRow,
   AccountDataExportNotificationCategoryPreferenceRow,
   AccountDataExportNotificationChannelPreferenceRow,
   AccountDataExportPushSubscriptionRow
@@ -40,6 +50,10 @@ import {
   ACCOUNT_DATA_EXPORT_NOTIFICATION_CATEGORY_PREFERENCES_SQL,
   ACCOUNT_DATA_EXPORT_NOTIFICATION_CHANNEL_PREFERENCES_SQL,
   ACCOUNT_DATA_EXPORT_PUSH_SUBSCRIPTIONS_SQL,
+  ACCOUNT_DATA_EXPORT_PRACTITIONER_APPLICATION_SQL,
+  ACCOUNT_DATA_EXPORT_PRACTITIONER_STATUS_HISTORY_SQL,
+  ACCOUNT_DATA_EXPORT_PRACTITIONER_PROFILE_SQL,
+  ACCOUNT_DATA_EXPORT_PRACTITIONER_PROFILE_REVISIONS_SQL,
   ACCOUNT_DATA_EXPORT_ROLLBACK_SQL,
   ACCOUNT_DATA_EXPORT_STATEMENT_TIMEOUT_SQL
 } from './account-data-export-queries.js';
@@ -53,6 +67,12 @@ import type {
   AccountDataExportSnapshotOpenOptions,
   AccountDataExportSnapshotOpenResult
 } from '../account-data-export-repository.js';
+import type {
+  PractitionerApplicationStatus,
+  PractitionerPracticeAreaId,
+  PractitionerProfileRevisionStatus,
+  PractitionerProfileStatus
+} from '@natalnode/contracts';
 
 const NORMAL_PAGE_SIZE = 100;
 const CHART_PAGE_SIZE = 1;
@@ -146,6 +166,65 @@ function presentNotificationPushSubscription(
     lastSuccessAt: toNullableTimestampString(row.last_success_at),
     invalidatedAt: toNullableTimestampString(row.invalidated_at)
   };
+}
+
+function exportApplicationStatus(value: string): PractitionerApplicationStatus {
+  if (
+    value === 'SUBMITTED' ||
+    value === 'CHANGES_REQUESTED' ||
+    value === 'APPROVED' ||
+    value === 'REJECTED' ||
+    value === 'WITHDRAWN' ||
+    value === 'REVOKED'
+  ) {
+    return value;
+  }
+
+  throw new Error('Account export contains an unknown Practitioner application status.');
+}
+
+function exportProfileStatus(value: string): PractitionerProfileStatus {
+  if (
+    value === 'APPROVED' ||
+    value === 'REVOKED' ||
+    value === 'WITHDRAWN' ||
+    value === 'DELETED'
+  ) {
+    return value;
+  }
+
+  throw new Error('Account export contains an unknown Practitioner profile status.');
+}
+
+function exportRevisionStatus(value: string): PractitionerProfileRevisionStatus {
+  if (value === 'PENDING' || value === 'APPROVED' || value === 'REJECTED') {
+    return value;
+  }
+
+  throw new Error('Account export contains an unknown Practitioner revision status.');
+}
+
+function exportReviewActionStatus(value: string): PractitionerApplicationStatus {
+  if (value === 'APPROVE') {
+    return 'APPROVED';
+  }
+  if (value === 'REQUEST_CHANGES') {
+    return 'CHANGES_REQUESTED';
+  }
+  if (value === 'REJECT') {
+    return 'REJECTED';
+  }
+  if (value === 'REVOKE') {
+    return 'REVOKED';
+  }
+
+  throw new Error('Account export contains an unknown Practitioner review action.');
+}
+
+function exportPracticeAreas(
+  value: readonly string[]
+): readonly PractitionerPracticeAreaId[] {
+  return value as readonly PractitionerPracticeAreaId[];
 }
 
 class AccountDataExportSnapshotClosedError extends Error {
@@ -442,6 +521,128 @@ class PostgresAccountDataExportSnapshot implements AccountDataExportSnapshot {
           }),
         (row) => row.feedback_id
       );
+    });
+  }
+
+  public getPractitioner(): Promise<AccountDataExportPractitioner> {
+    return this.read(async () => {
+      const applicationResult =
+        await this.executor.query<AccountDataExportPractitionerApplicationRow>(
+          ACCOUNT_DATA_EXPORT_PRACTITIONER_APPLICATION_SQL,
+          [this.userId]
+        );
+      const applicationRow = applicationResult.rows[0];
+
+      const profileResult =
+        await this.executor.query<AccountDataExportPractitionerProfileRow>(
+          ACCOUNT_DATA_EXPORT_PRACTITIONER_PROFILE_SQL,
+          [this.userId]
+        );
+      const profileRow = profileResult.rows[0];
+
+      let statusHistory: readonly AccountDataExportPractitionerApplicationHistory[] =
+        [];
+      if (applicationRow !== undefined) {
+        const historyResult =
+          await this.executor.query<AccountDataExportPractitionerStatusHistoryRow>(
+            ACCOUNT_DATA_EXPORT_PRACTITIONER_STATUS_HISTORY_SQL,
+            [applicationRow.application_id]
+          );
+        const currentStatus = exportApplicationStatus(applicationRow.status);
+        const history: AccountDataExportPractitionerApplicationHistory[] = [
+          { status: 'SUBMITTED', changedAt: toTimestampString(applicationRow.submitted_at) }
+        ];
+
+        for (const row of historyResult.rows) {
+          history.push({
+            status: exportReviewActionStatus(row.action),
+            changedAt: toTimestampString(row.created_at)
+          });
+        }
+
+        const last = history[history.length - 1];
+        const currentChangedAt = toTimestampString(
+          applicationRow.finalized_at ?? applicationRow.submitted_at
+        );
+        if (
+          last === undefined ||
+          last.status !== currentStatus ||
+          (currentStatus === 'SUBMITTED' && last.changedAt !== currentChangedAt)
+        ) {
+          history.push({ status: currentStatus, changedAt: currentChangedAt });
+        }
+        statusHistory = history;
+      }
+
+      const revisionsResult =
+        await this.executor.query<AccountDataExportPractitionerProfileRevisionRow>(
+          ACCOUNT_DATA_EXPORT_PRACTITIONER_PROFILE_REVISIONS_SQL,
+          [this.userId]
+        );
+
+      const application: AccountDataExportPractitionerApplicationPresentationSource | null =
+        applicationRow === undefined
+          ? null
+          : {
+              requestedDisplayName: applicationRow.requested_display_name,
+              professionalHeadline: applicationRow.professional_headline,
+              bio: applicationRow.bio,
+              practiceAreas: exportPracticeAreas(applicationRow.practice_areas),
+              languages: applicationRow.languages,
+              countryOrRegion: applicationRow.country_or_region,
+              ...(applicationRow.website_url === null
+                ? {}
+                : { websiteUrl: applicationRow.website_url }),
+              practiceStatement: applicationRow.practice_statement,
+              evidenceUrls: [...applicationRow.evidence_urls],
+              consentToPublicProfile: true,
+              submittedAt: toTimestampString(applicationRow.submitted_at),
+              status: exportApplicationStatus(applicationRow.status),
+              statusHistory,
+              finalizedAt: toNullableTimestampString(applicationRow.finalized_at),
+              purgeEligibleAt: toNullableTimestampString(applicationRow.purge_eligible_at)
+            };
+
+      const profile: AccountDataExportPractitionerProfilePresentationSource | null =
+        profileRow === undefined
+          ? null
+          : {
+              practitionerId: profileRow.practitioner_id,
+              displayName: profileRow.display_name,
+              professionalHeadline: profileRow.professional_headline,
+              bio: profileRow.bio,
+              practiceAreas: exportPracticeAreas(profileRow.practice_areas),
+              languages: profileRow.languages,
+              countryOrRegion: profileRow.country_or_region,
+              ...(profileRow.website_url === null
+                ? {}
+                : { websiteUrl: profileRow.website_url }),
+              foundingPractitioner: profileRow.founding_practitioner,
+              approvedAt: toTimestampString(profileRow.approved_at),
+              profileStatus: exportProfileStatus(profileRow.profile_status),
+              createdAt: toTimestampString(profileRow.created_at),
+              updatedAt: toTimestampString(profileRow.updated_at)
+            };
+
+      const profileRevisions: readonly AccountDataExportPractitionerProfileRevisionPresentationSource[] =
+        revisionsResult.rows.map((row) => ({
+          displayName: row.display_name,
+          professionalHeadline: row.professional_headline,
+          bio: row.bio,
+          practiceAreas: exportPracticeAreas(row.practice_areas),
+          languages: row.languages,
+          countryOrRegion: row.country_or_region,
+          ...(row.website_url === null ? {} : { websiteUrl: row.website_url }),
+          status: exportRevisionStatus(row.status),
+          submittedAt: toTimestampString(row.submitted_at),
+          reviewedAt: toNullableTimestampString(row.reviewed_at)
+        }));
+
+      return presentAccountDataExportPractitioner({
+        application,
+        profile,
+        profileRevisions
+      });
     });
   }
 

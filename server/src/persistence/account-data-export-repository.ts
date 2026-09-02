@@ -6,7 +6,8 @@ import type {
   AccountDataExportNote,
   AccountDataExportNotificationCategoryPreference,
   AccountDataExportNotificationChannelPreference,
-  AccountDataExportNotificationPushSubscription
+  AccountDataExportNotificationPushSubscription,
+  AccountDataExportPractitioner
 } from '../account/account-data-export.js';
 
 declare const accountDataExportCursorBrand: unique symbol;
@@ -45,6 +46,8 @@ export interface AccountDataExportSnapshot {
   listFeedback(
     cursor?: AccountDataExportCursor
   ): Promise<AccountDataExportPage<AccountDataExportFeedback>>;
+  /** Optional for backwards-compatible test/dry-run snapshots; PostgreSQL implements it. */
+  getPractitioner?(): Promise<AccountDataExportPractitioner>;
   listNotifications(): Promise<AccountDataExportNotificationsPage>;
   listNotificationPushSubscriptions(
     cursor?: AccountDataExportCursor

@@ -1,5 +1,12 @@
+import type {
+  PractitionerApplicationStatus,
+  PractitionerPracticeAreaId,
+  PractitionerProfileRevisionStatus,
+  PractitionerProfileStatus
+} from '@natalnode/contracts';
+
 /** The versioned envelope used by the account-export boundary. */
-export const ACCOUNT_DATA_EXPORT_SCHEMA_VERSION = '1.1' as const;
+export const ACCOUNT_DATA_EXPORT_SCHEMA_VERSION = '1.2' as const;
 
 export type JsonPrimitive = null | boolean | number | string;
 
@@ -100,6 +107,64 @@ export interface AccountDataExportNotifications {
   readonly pushSubscriptions: readonly AccountDataExportNotificationPushSubscription[];
 }
 
+export interface AccountDataExportPractitionerApplicationHistory {
+  readonly status: PractitionerApplicationStatus;
+  readonly changedAt: string;
+}
+
+export interface AccountDataExportPractitionerApplication {
+  readonly requestedDisplayName: string;
+  readonly professionalHeadline: string;
+  readonly bio: string;
+  readonly practiceAreas: readonly PractitionerPracticeAreaId[];
+  readonly languages: readonly string[];
+  readonly countryOrRegion: string;
+  readonly websiteUrl?: string;
+  readonly practiceStatement: string;
+  readonly evidenceUrls: readonly string[];
+  readonly consentToPublicProfile: true;
+  readonly submittedAt: string;
+  readonly status: PractitionerApplicationStatus;
+  readonly statusHistory: readonly AccountDataExportPractitionerApplicationHistory[];
+  readonly finalizedAt: string | null;
+  readonly purgeEligibleAt: string | null;
+}
+
+export interface AccountDataExportPractitionerProfile {
+  readonly practitionerId: string;
+  readonly displayName: string;
+  readonly professionalHeadline: string;
+  readonly bio: string;
+  readonly practiceAreas: readonly PractitionerPracticeAreaId[];
+  readonly languages: readonly string[];
+  readonly countryOrRegion: string;
+  readonly websiteUrl?: string;
+  readonly foundingPractitioner: boolean;
+  readonly approvedAt: string;
+  readonly profileStatus: PractitionerProfileStatus;
+  readonly createdAt: string;
+  readonly updatedAt: string;
+}
+
+export interface AccountDataExportPractitionerProfileRevision {
+  readonly displayName: string;
+  readonly professionalHeadline: string;
+  readonly bio: string;
+  readonly practiceAreas: readonly PractitionerPracticeAreaId[];
+  readonly languages: readonly string[];
+  readonly countryOrRegion: string;
+  readonly websiteUrl?: string;
+  readonly status: PractitionerProfileRevisionStatus;
+  readonly submittedAt: string;
+  readonly reviewedAt: string | null;
+}
+
+export interface AccountDataExportPractitioner {
+  readonly application: AccountDataExportPractitionerApplication | null;
+  readonly profile: AccountDataExportPractitionerProfile | null;
+  readonly profileRevisions: readonly AccountDataExportPractitionerProfileRevision[];
+}
+
 export interface AccountDataExportV1 {
   readonly exportSchemaVersion: typeof ACCOUNT_DATA_EXPORT_SCHEMA_VERSION;
   readonly exportedAt: string;
@@ -107,6 +172,7 @@ export interface AccountDataExportV1 {
   readonly charts: readonly AccountDataExportChart[];
   readonly feedback: readonly AccountDataExportFeedback[];
   readonly notifications: AccountDataExportNotifications;
+  readonly practitioner: AccountDataExportPractitioner;
 }
 
 /**
@@ -162,6 +228,17 @@ export interface AccountDataExportNotificationsPresentationSource {
   readonly categoryPreferences: readonly AccountDataExportNotificationCategoryPreference[];
   readonly pushSubscriptions: readonly AccountDataExportNotificationPushSubscription[];
 }
+
+export interface AccountDataExportPractitionerApplicationPresentationSource
+  extends Omit<AccountDataExportPractitionerApplication, 'statusHistory'> {
+  readonly statusHistory: readonly AccountDataExportPractitionerApplicationHistory[];
+}
+
+export interface AccountDataExportPractitionerProfilePresentationSource
+  extends AccountDataExportPractitionerProfile {}
+
+export interface AccountDataExportPractitionerProfileRevisionPresentationSource
+  extends AccountDataExportPractitionerProfileRevision {}
 
 export class UnsupportedAccountDataExportIdentityError extends Error {
   public readonly provider: string;
@@ -419,6 +496,78 @@ export function presentAccountDataExportNotifications(
   };
 }
 
+export function presentAccountDataExportPractitioner(
+  source: {
+    readonly application: AccountDataExportPractitionerApplicationPresentationSource | null;
+    readonly profile: AccountDataExportPractitionerProfilePresentationSource | null;
+    readonly profileRevisions: readonly AccountDataExportPractitionerProfileRevisionPresentationSource[];
+  }
+): AccountDataExportPractitioner {
+  const application = source.application;
+
+  return {
+    application:
+      application === null
+        ? null
+        : {
+            requestedDisplayName: application.requestedDisplayName,
+            professionalHeadline: application.professionalHeadline,
+            bio: application.bio,
+            practiceAreas: [...application.practiceAreas],
+            languages: [...application.languages],
+            countryOrRegion: application.countryOrRegion,
+            ...(application.websiteUrl === undefined
+              ? {}
+              : { websiteUrl: application.websiteUrl }),
+            practiceStatement: application.practiceStatement,
+            evidenceUrls: [...application.evidenceUrls],
+            consentToPublicProfile: true,
+            submittedAt: application.submittedAt,
+            status: application.status,
+            statusHistory: application.statusHistory.map((history) => ({
+              status: history.status,
+              changedAt: history.changedAt
+            })),
+            finalizedAt: application.finalizedAt,
+            purgeEligibleAt: application.purgeEligibleAt
+          },
+    profile:
+      source.profile === null
+        ? null
+        : {
+            practitionerId: source.profile.practitionerId,
+            displayName: source.profile.displayName,
+            professionalHeadline: source.profile.professionalHeadline,
+            bio: source.profile.bio,
+            practiceAreas: [...source.profile.practiceAreas],
+            languages: [...source.profile.languages],
+            countryOrRegion: source.profile.countryOrRegion,
+            ...(source.profile.websiteUrl === undefined
+              ? {}
+              : { websiteUrl: source.profile.websiteUrl }),
+            foundingPractitioner: source.profile.foundingPractitioner,
+            approvedAt: source.profile.approvedAt,
+            profileStatus: source.profile.profileStatus,
+            createdAt: source.profile.createdAt,
+            updatedAt: source.profile.updatedAt
+          },
+    profileRevisions: source.profileRevisions.map((revision) => ({
+      displayName: revision.displayName,
+      professionalHeadline: revision.professionalHeadline,
+      bio: revision.bio,
+      practiceAreas: [...revision.practiceAreas],
+      languages: [...revision.languages],
+      countryOrRegion: revision.countryOrRegion,
+      ...(revision.websiteUrl === undefined
+        ? {}
+        : { websiteUrl: revision.websiteUrl }),
+      status: revision.status,
+      submittedAt: revision.submittedAt,
+      reviewedAt: revision.reviewedAt
+    }))
+  };
+}
+
 /** Names used by the product contract remain available at this boundary. */
 export type NatalNodeAccountDataExportV1 = AccountDataExportV1;
 export type EmailMagicLinkExportIdentityV1 = AccountDataExportEmailMagicLinkIdentity;
@@ -433,3 +582,4 @@ export type NotificationCategoryPreferenceExportV1 =
 export type NotificationPushSubscriptionExportV1 =
   AccountDataExportNotificationPushSubscription;
 export type NotificationsExportV1 = AccountDataExportNotifications;
+export type PractitionerExportV1 = AccountDataExportPractitioner;
