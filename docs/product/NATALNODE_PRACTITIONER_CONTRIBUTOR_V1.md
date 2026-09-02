@@ -31,7 +31,7 @@ reviewer capability are launch-readiness evidence, not a production operations
 claim. Reviewer grants, professional-identity/disclosure wording, scheduler
 binding, and production distributed rate limiting remain gated. No Practitioner
 feature expansion was added. See
-[`NATALNODE_P0_LAUNCH_READINESS_V1.md`](./NATALNODE_P0_LAUNCH_READINESS_V1.md).
+[`NATALNODE_P0_EXTERNAL_GATE_DECISION_PACK_V1.md`](./NATALNODE_P0_EXTERNAL_GATE_DECISION_PACK_V1.md).
 
 ## V1 boundary
 

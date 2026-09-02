@@ -36,7 +36,7 @@ repository, with no privileged data-access route or reviewer authority added.
 capabilities; Private Feedback has no frozen internal reviewer capability.
 Privileged-surface event integration, retention, and access workflow remain
 policy-gated. See the current consolidated decision in
-[`NATALNODE_P0_LAUNCH_READINESS_V1.md`](./NATALNODE_P0_LAUNCH_READINESS_V1.md).
+[`NATALNODE_P0_EXTERNAL_GATE_DECISION_PACK_V1.md`](./NATALNODE_P0_EXTERNAL_GATE_DECISION_PACK_V1.md).
 
 ## 1. Purpose and authority
 

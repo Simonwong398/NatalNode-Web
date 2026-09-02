@@ -29,7 +29,7 @@ Community / Questions V1 remains a completed local product track. Its frozen
 now callable through the bounded Community maintenance executable; legal UGC
 wording, reviewer operations, scheduler binding, and production distributed
 rate limiting remain external gates. No Community feature expansion was added.
-See [`NATALNODE_P0_LAUNCH_READINESS_V1.md`](./NATALNODE_P0_LAUNCH_READINESS_V1.md).
+See [`NATALNODE_P0_EXTERNAL_GATE_DECISION_PACK_V1.md`](./NATALNODE_P0_EXTERNAL_GATE_DECISION_PACK_V1.md).
 
 ## Public identity
 

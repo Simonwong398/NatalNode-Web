@@ -1,11 +1,11 @@
 # NatalNode.com P0 Readiness Checkpoint V1
 
 - Status: **HISTORICAL CHECKPOINT / SUPERSEDED FOR CURRENT LAUNCH STATUS**
-- Task: `WEB-P0-READY-003` (historical); current consolidation: `WEB-P0-001`
+- Task: `WEB-P0-READY-003` (historical); historical consolidation: `WEB-P0-001`; current external-gate pack: `WEB-P0-002A`
 - Baseline: `8aa89a72cd9082ee4c532cb264a95dff094bcd40`
 - Baseline message: `docs: reconcile Web product roadmap after Practitioner V1`
 - Date: 2026-09-01
-- Mode: Historical product / architecture reconciliation; current launch status is maintained in [`NATALNODE_P0_LAUNCH_READINESS_V1.md`](./NATALNODE_P0_LAUNCH_READINESS_V1.md)
+- Mode: Historical product / architecture reconciliation; current launch status is maintained in [`NATALNODE_P0_EXTERNAL_GATE_DECISION_PACK_V1.md`](./NATALNODE_P0_EXTERNAL_GATE_DECISION_PACK_V1.md)
 - Checkpoint strategy: **V1 updated in place**; V1 is the living checkpoint
 - Production astronomy: `PROVIDER DECISION DEFERRED`
 - Deployment: `PAUSED`
@@ -36,8 +36,9 @@ claim separate. It performs no product implementation.
 ## Current launch-readiness supersession
 
 `WEB-P0-001 — P0 Launch-Readiness Closure + Production Gate Consolidation`
-is now the current launch-readiness authority. Its consolidated matrix and
-packages are in [`NATALNODE_P0_LAUNCH_READINESS_V1.md`](./NATALNODE_P0_LAUNCH_READINESS_V1.md).
+is the historical local-readiness consolidation. The current external-gate
+authority is `WEB-P0-002A`; its consolidated matrix and one decision package
+are in [`NATALNODE_P0_EXTERNAL_GATE_DECISION_PACK_V1.md`](./NATALNODE_P0_EXTERNAL_GATE_DECISION_PACK_V1.md).
 The historical rows below remain useful as decision history, but any statement
 that says Community or Practitioner retention maintenance is absent, that the
 Account Export matcher is unresolved, or that no local configuration gap can
@@ -441,9 +442,9 @@ P0 production release readiness    = NOT READY; policy, legal, external, operati
 
 The historical recommended next action was **P0 POLICY / OPERATIONS DECISION
 CHECKPOINT**. The current implementation/readiness campaign is recorded in
-`NATALNODE_P0_LAUNCH_READINESS_V1.md`; its final classification is
-`P0_MULTIPLE_EXTERNAL_GATES`. No new campaign is started automatically by this
-historical checkpoint.
+`NATALNODE_P0_LAUNCH_READINESS_V1.md`; the current external-gate decision pack
+is `NATALNODE_P0_EXTERNAL_GATE_DECISION_PACK_V1.md`. No `WEB-P0-002B`
+implementation is started automatically by this historical checkpoint.
 
 ## 12. Post-checkpoint new scope: Notification Platform / Subscription Foundation
 
@@ -452,8 +453,8 @@ After `WEB-P0-READY-003`, the product owner introduced the new
 proactive notification features. This is new scope, not a retroactive P0
 implementation gap, and it does not reopen the checkpoint conclusion that no
 safe unblocked local P0 gap was identified for the previously frozen scope.
-Current launch status is instead maintained by
-`NATALNODE_P0_LAUNCH_READINESS_V1.md`.
+Current external-gate launch status is instead maintained by
+`NATALNODE_P0_EXTERNAL_GATE_DECISION_PACK_V1.md`.
 
 `WEB-NOTIFY-001A` freezes the provider-neutral technical contract at
 `docs/product/NATALNODE_NOTIFICATION_PLATFORM_V1.md`. The bounded

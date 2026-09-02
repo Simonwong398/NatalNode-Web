@@ -29,7 +29,7 @@ metadata. It does not emit birth data, chart payloads, Feedback, Community or
 Practitioner content, tokens, or raw IP addresses. Sink selection, retention,
 region, access, and alerting remain operations/policy gates. The consolidated
 current status is in
-[`NATALNODE_P0_LAUNCH_READINESS_V1.md`](./NATALNODE_P0_LAUNCH_READINESS_V1.md).
+[`NATALNODE_P0_EXTERNAL_GATE_DECISION_PACK_V1.md`](./NATALNODE_P0_EXTERNAL_GATE_DECISION_PACK_V1.md).
 
 ## 1. Scope and non-goals
 

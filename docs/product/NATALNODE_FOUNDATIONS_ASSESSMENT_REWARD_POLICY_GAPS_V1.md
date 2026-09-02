@@ -16,7 +16,7 @@ Reward V1 is now locally complete within the frozen FREE/PRO entitlement
 boundary. The current implementation does not introduce billing, purchasable
 PRO, new tiers, or new assessment behavior. Account erasure and the unresolved
 commercial launch mode are recorded in
-[`NATALNODE_P0_LAUNCH_READINESS_V1.md`](./NATALNODE_P0_LAUNCH_READINESS_V1.md).
+[`NATALNODE_P0_EXTERNAL_GATE_DECISION_PACK_V1.md`](./NATALNODE_P0_EXTERNAL_GATE_DECISION_PACK_V1.md).
 
 ## 1. Frozen course and assessment identity
 

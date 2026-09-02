@@ -54,7 +54,7 @@ and does not silently add Community, Foundations progress, assessment attempts,
 Reward/commercial state, delivery history, or privacy-audit events. The current
 launch-readiness scope decision and the historical Account Export matcher
 correction are recorded in
-[`NATALNODE_P0_LAUNCH_READINESS_V1.md`](./NATALNODE_P0_LAUNCH_READINESS_V1.md).
+[`NATALNODE_P0_EXTERNAL_GATE_DECISION_PACK_V1.md`](./NATALNODE_P0_EXTERNAL_GATE_DECISION_PACK_V1.md).
 
 ## 1. Purpose
 

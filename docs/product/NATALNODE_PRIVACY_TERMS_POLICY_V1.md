@@ -35,7 +35,7 @@ Foundations/Reward, Community, Practitioner, and notification persistence have
 landed in bounded tracks. They do not establish legal approval, live provider
 configuration, production operations, or final public copy. Remaining legal,
 owner-policy, processor, backup/log, and scientific gates are consolidated in
-[`NATALNODE_P0_LAUNCH_READINESS_V1.md`](./NATALNODE_P0_LAUNCH_READINESS_V1.md).
+[`NATALNODE_P0_EXTERNAL_GATE_DECISION_PACK_V1.md`](./NATALNODE_P0_EXTERNAL_GATE_DECISION_PACK_V1.md).
 
 ## A. Confirmed Current Product Behavior
 

@@ -2,8 +2,8 @@
 
 - Status: ACCEPTED STRATEGIC ROADMAP / RECONCILED PRODUCT-STATE CHECKPOINT
 - Task: `WEB-ROADMAP-002`
-- Date: 2026-09-01
-- Current launch-readiness follow-up: `WEB-P0-001`
+- Date: 2026-09-02
+- Current launch-readiness follow-up: `WEB-P0-002A`
 - Scope: Post-V1 product-development blueprint and current product-state checkpoint
 - Mode: Documentation only
 
@@ -509,30 +509,30 @@ prerequisites are satisfied.
 ## 12. Immediate next Web product milestone
 
 ```text
-NEXT WEB PRODUCT MILESTONE: P0 LAUNCH-READINESS CLOSURE
-RECOMMENDED NEXT ACTION: P0_LAUNCH_READINESS
+NEXT WEB PRODUCT MILESTONE: WEB-P0-002A — P0 EXTERNAL GATE DECISION PACK
+RECOMMENDED NEXT ACTION: AUTHORIZE OWNER / LEGAL / SCIENTIFIC / OPERATIONS / CREDENTIAL DECISIONS
 ```
 
 The Web Product track is authorized to continue independently on non-scientific
 work, but the next milestone is not another feature implementation campaign.
 The first authoritative, still-uncompleted Web Product milestone is a
-P0 launch-readiness closure / policy and operations decision checkpoint. The
-current P0 launch-readiness consolidation records the safe local gaps closed
-by this campaign. Policy, legal, operations, deployment, processor, and
-provider gates still prevent a production release claim. The current
-consolidated readiness matrix is in
-[`NATALNODE_P0_LAUNCH_READINESS_V1.md`](./NATALNODE_P0_LAUNCH_READINESS_V1.md).
+P0 external-gate and production-readiness decision checkpoint. The historical
+`WEB-P0-001` consolidation records the safe local gaps closed by its campaign;
+the current consolidated gate register and one Product Owner decision package
+are in
+[`NATALNODE_P0_EXTERNAL_GATE_DECISION_PACK_V1.md`](./NATALNODE_P0_EXTERNAL_GATE_DECISION_PACK_V1.md).
 
-The checkpoint must obtain explicit owner-approved decisions for the retention
-registry and scheduler ownership, Privacy Access Audit authorization and
-deletion interaction, legal/public-copy inputs, backup/restore reconciliation,
-observability sink and retention ownership, processor boundaries, and the
-remaining deployment/credential responsibilities. Its scope is decision-only
-until those inputs are available.
+The checkpoint must obtain explicit owner-approved decisions for the production
+launch mode while `PROVIDER DECISION DEFERRED`, staging requirement, production
+region, retention and backup targets, Privacy Access Audit authorization,
+legal/public-copy inputs, observability and alert ownership, processor
+boundaries, Auth launch mode, commercial mode, and deployment/credential
+responsibilities. Its scope is decision-only until those inputs are available;
+`WEB-P0-002B` must not begin automatically.
 
 The historical `WEB-P0-POLICY-001A` task remains not executed/deferred and must
-not be recreated automatically. A new owner-assigned campaign identifier is
-required before any P0 decision checkpoint begins.
+not be recreated automatically. `WEB-P0-002A` is the explicitly assigned
+current decision checkpoint; it does not authorize `WEB-P0-002B`.
 
 The visual V1.1 functional baseline is frozen. No additional decorative
 visual reconstruction is the immediate next roadmap task. Scientific Core /

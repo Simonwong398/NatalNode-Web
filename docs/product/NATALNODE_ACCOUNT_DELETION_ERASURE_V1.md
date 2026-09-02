@@ -17,7 +17,7 @@ Its current graph includes later Foundations, Reward/commercial, notification,
 Community, and Practitioner relationships according to migrations `0017`–`0019`.
 Backups, infrastructure logs, processors, privacy-audit rows, and browser-held
 exports remain external residual boundaries. See the current reconciliation in
-[`NATALNODE_P0_LAUNCH_READINESS_V1.md`](./NATALNODE_P0_LAUNCH_READINESS_V1.md).
+[`NATALNODE_P0_EXTERNAL_GATE_DECISION_PACK_V1.md`](./NATALNODE_P0_EXTERNAL_GATE_DECISION_PACK_V1.md).
 
 ## 1. Purpose
 

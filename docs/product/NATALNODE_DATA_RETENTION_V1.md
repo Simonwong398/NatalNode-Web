@@ -30,7 +30,7 @@ and the Community frozen-retention purge path are represented by bounded server
 maintenance boundaries. Their scheduler, policy-value, backup, processor, and
 downstream-log gates remain external or policy-gated. The current consolidated
 registry and scheduler contract are maintained in
-[`NATALNODE_P0_LAUNCH_READINESS_V1.md`](./NATALNODE_P0_LAUNCH_READINESS_V1.md).
+[`NATALNODE_P0_EXTERNAL_GATE_DECISION_PACK_V1.md`](./NATALNODE_P0_EXTERNAL_GATE_DECISION_PACK_V1.md).
 
 ## 1. Scope
 

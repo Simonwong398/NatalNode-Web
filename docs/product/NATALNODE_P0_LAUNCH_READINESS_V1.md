@@ -1,6 +1,6 @@
 # NatalNode P0 Launch Readiness V1
 
-- **Status:** `P0 MULTIPLE EXTERNAL GATES REMAIN / LOCAL READINESS CAMPAIGN COMPLETE`
+- **Status:** `HISTORICAL WEB-P0-001 LOCAL READINESS CONSOLIDATION / SUPERSEDED FOR CURRENT EXTERNAL GATE STATUS`
 - **Task:** `WEB-P0-001`
 - **Starting baseline:** `8aa89a72cd9082ee4c532cb264a95dff094bcd40`
 - **Starting message:** `docs: reconcile Web product roadmap after Practitioner V1`
@@ -9,11 +9,13 @@
 - **Deployment:** `PAUSED`
 - **Production astronomy/provider:** `PROVIDER DECISION DEFERRED`
 
-This document is the authoritative launch-readiness consolidation for the
+This document is the historical local-readiness consolidation for the
 `WEB-P0-001` campaign. It records repository evidence, closes safe local
-readiness gaps, and separates remaining owner, legal, operations, processor,
-environment, and scientific-provider gates. It does not authorize a
-production launch, select a provider, or reopen a closed product track.
+readiness gaps, and separates the gates known at that earlier baseline. The
+current external-gate register and Product Owner decision package are in
+[`NATALNODE_P0_EXTERNAL_GATE_DECISION_PACK_V1.md`](./NATALNODE_P0_EXTERNAL_GATE_DECISION_PACK_V1.md)
+for `WEB-P0-002A`. Neither document authorizes a production launch, selects a
+provider, or reopens a closed product track.
 
 The fixed boundary remains:
 
@@ -743,10 +745,11 @@ campaign. The repository must not be described as production-ready until the
 owner-policy, legal, operations, processor, environment, and scientific gates
 are separately resolved and evidenced.
 
-Recommended next campaign:
+Current successor:
 
-`WEB-P0-002 — P0 External Gate Decision and Production Readiness`
+`WEB-P0-002A — P0 External Gate Decision Pack`
 
-That campaign should be decision-and-evidence led: resolve the consolidated
-owner/legal/operations/provider package, then perform only the environment work
-authorized by those decisions. It must not begin another feature campaign.
+The successor is decision-and-evidence led: resolve the consolidated
+owner/legal/operations/credential/scientific package, then perform only the
+environment work authorized by those decisions. `WEB-P0-002B` must not begin
+until that package is closed, and it must not become another feature campaign.
