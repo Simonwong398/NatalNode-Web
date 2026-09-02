@@ -3,15 +3,37 @@ import type { ServerDependencies } from '../dependencies.js';
 import { createProblemDetailsContextResponse } from '../problem-details/context-response.js';
 import {
   isSkyEventsRequest,
-  isSkySnapshotRequest
+  isSkySnapshotRequest,
+  readBoundedJson
 } from '../validation/index.js';
 
-async function readJson(context: Context): Promise<unknown> {
-  try {
-    return await context.req.json();
-  } catch (_error) {
-    return undefined;
+const SKY_REQUEST_MAXIMUM_BYTES = 8 * 1024;
+
+async function readJson(context: Context): Promise<unknown | Response> {
+  const parsed = await readBoundedJson(
+    context.req.raw,
+    SKY_REQUEST_MAXIMUM_BYTES
+  );
+
+  if (parsed.outcome === 'unsupported-media-type') {
+    return createProblemDetailsContextResponse(context, {
+      code: 'UNSUPPORTED_MEDIA_TYPE'
+    });
   }
+
+  if (parsed.outcome === 'too-large') {
+    return createProblemDetailsContextResponse(context, {
+      code: 'PAYLOAD_TOO_LARGE'
+    });
+  }
+
+  if (parsed.outcome === 'invalid') {
+    return createProblemDetailsContextResponse(context, {
+      code: 'INVALID_REQUEST'
+    });
+  }
+
+  return parsed.value;
 }
 
 async function getSkySnapshot(
@@ -19,6 +41,10 @@ async function getSkySnapshot(
   dependencies: ServerDependencies
 ): Promise<Response> {
   const request = await readJson(context);
+
+  if (request instanceof Response) {
+    return request;
+  }
 
   if (!isSkySnapshotRequest(request)) {
     return createProblemDetailsContextResponse(context, {
@@ -41,6 +67,10 @@ async function getSkyEvents(
   dependencies: ServerDependencies
 ): Promise<Response> {
   const request = await readJson(context);
+
+  if (request instanceof Response) {
+    return request;
+  }
 
   if (!isSkyEventsRequest(request)) {
     return createProblemDetailsContextResponse(context, {

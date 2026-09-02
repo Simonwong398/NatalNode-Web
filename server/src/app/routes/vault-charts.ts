@@ -15,26 +15,48 @@ import { requireAuthentication } from '../auth/index.js';
 import type { ServerDependencies } from '../dependencies.js';
 import { createProblemDetailsContextResponse } from '../problem-details/context-response.js';
 import {
+  enforceVaultMutationAccountRateLimit,
+  type InMemoryP0StagingRateLimiter
+} from '../security/api-rate-limiting.js';
+import { readVaultRouteIdentifier } from './vault-route-helpers.js';
+import {
   isMetadataUpdate,
   isSaveVaultChartApiRequest,
-  normalizeVaultChartDisplayName
+  normalizeVaultChartDisplayName,
+  normalizeVaultChartTags,
+  readBoundedJson
 } from '../validation/index.js';
+
+const VAULT_CHART_REQUEST_MAXIMUM_BYTES = 16 * 1024;
 
 async function parseMetadataUpdate(context: Context): Promise<
   UpdateVaultChartMetadataApiRequest | Response
 > {
-  let payload: unknown;
+  const parsed = await readBoundedJson(
+    context.req.raw,
+    VAULT_CHART_REQUEST_MAXIMUM_BYTES
+  );
 
-  try {
-    payload = await context.req.json();
-  } catch (_error) {
+  if (parsed.outcome === 'unsupported-media-type') {
+    return createProblemDetailsContextResponse(context, {
+      code: 'UNSUPPORTED_MEDIA_TYPE'
+    });
+  }
+
+  if (parsed.outcome === 'too-large') {
+    return createProblemDetailsContextResponse(context, {
+      code: 'PAYLOAD_TOO_LARGE'
+    });
+  }
+
+  if (parsed.outcome === 'invalid') {
     return createProblemDetailsContextResponse(context, {
       code: 'INVALID_REQUEST'
     });
   }
 
-  return isMetadataUpdate(payload)
-    ? payload
+  return isMetadataUpdate(parsed.value)
+    ? parsed.value
     : createProblemDetailsContextResponse(context, {
         code: 'INVALID_REQUEST'
       });
@@ -43,27 +65,45 @@ async function parseMetadataUpdate(context: Context): Promise<
 async function parseSaveVaultChartRequest(
   context: Context
 ): Promise<SaveVaultChartApiRequest | Response> {
-  let payload: unknown;
+  const parsed = await readBoundedJson(
+    context.req.raw,
+    VAULT_CHART_REQUEST_MAXIMUM_BYTES
+  );
 
-  try {
-    payload = await context.req.json();
-  } catch (_error) {
+  if (parsed.outcome === 'unsupported-media-type') {
+    return createProblemDetailsContextResponse(context, {
+      code: 'UNSUPPORTED_MEDIA_TYPE'
+    });
+  }
+
+  if (parsed.outcome === 'too-large') {
+    return createProblemDetailsContextResponse(context, {
+      code: 'PAYLOAD_TOO_LARGE'
+    });
+  }
+
+  if (parsed.outcome === 'invalid') {
     return createProblemDetailsContextResponse(context, {
       code: 'INVALID_REQUEST'
     });
   }
 
-  return isSaveVaultChartApiRequest(payload)
-    ? payload
+  return isSaveVaultChartApiRequest(parsed.value)
+    ? parsed.value
     : createProblemDetailsContextResponse(context, {
         code: 'INVALID_REQUEST'
       });
 }
 
-export function registerVaultChartRoutes(app: Hono, dependencies: ServerDependencies): void {
+export function registerVaultChartRoutes(
+  app: Hono,
+  dependencies: ServerDependencies,
+  rateLimiter: InMemoryP0StagingRateLimiter
+): void {
   app.post(
     '/api/vault/charts',
     requireAuthentication(dependencies.authenticator),
+    enforceVaultMutationAccountRateLimit(rateLimiter),
     async (context) => {
       const request = await parseSaveVaultChartRequest(context);
 
@@ -92,9 +132,9 @@ export function registerVaultChartRoutes(app: Hono, dependencies: ServerDependen
       const chart: VaultChartRecord = {
         chartId: dependencies.idGenerator.generate(),
         userId,
-        displayName: request.displayName,
+        displayName: normalizeVaultChartDisplayName(request.displayName),
         category: request.category,
-        tags: request.tags,
+        tags: normalizeVaultChartTags(request.tags),
         favorite: request.favorite,
         normalizedChartRequest: request.chart,
         canonicalChartResult,
@@ -132,7 +172,12 @@ export function registerVaultChartRoutes(app: Hono, dependencies: ServerDependen
     async (context) => {
       const principal = context.get('authenticatedPrincipal');
       const userId = principal.userId;
-      const chartId = context.req.param('chartId');
+      const chartId = readVaultRouteIdentifier(context, 'chartId');
+
+      if (chartId instanceof Response) {
+        return chartId;
+      }
+
       const chart = await dependencies.persistence.vaultCharts.findById(userId, chartId);
 
       if (!chart) {
@@ -149,10 +194,16 @@ export function registerVaultChartRoutes(app: Hono, dependencies: ServerDependen
   app.post(
     '/api/vault/charts/:chartId/duplicate',
     requireAuthentication(dependencies.authenticator),
+    enforceVaultMutationAccountRateLimit(rateLimiter),
     async (context) => {
       const principal = context.get('authenticatedPrincipal');
       const userId = principal.userId;
-      const sourceChartId = context.req.param('chartId');
+      const sourceChartId = readVaultRouteIdentifier(context, 'chartId');
+
+      if (sourceChartId instanceof Response) {
+        return sourceChartId;
+      }
+
       const sourceChart = await dependencies.persistence.vaultCharts.findById(
         userId,
         sourceChartId
@@ -207,6 +258,7 @@ export function registerVaultChartRoutes(app: Hono, dependencies: ServerDependen
   app.patch(
     '/api/vault/charts/:chartId',
     requireAuthentication(dependencies.authenticator),
+    enforceVaultMutationAccountRateLimit(rateLimiter),
     async (context) => {
       const update = await parseMetadataUpdate(context);
 
@@ -216,12 +268,20 @@ export function registerVaultChartRoutes(app: Hono, dependencies: ServerDependen
 
       const principal = context.get('authenticatedPrincipal');
       const userId = principal.userId;
-      const chartId = context.req.param('chartId');
+      const chartId = readVaultRouteIdentifier(context, 'chartId');
+
+      if (chartId instanceof Response) {
+        return chartId;
+      }
+
       const normalizedUpdate: UpdateVaultChartMetadataApiRequest = {
         ...update,
         ...(update.displayName === undefined
           ? {}
-          : { displayName: normalizeVaultChartDisplayName(update.displayName) })
+          : { displayName: normalizeVaultChartDisplayName(update.displayName) }),
+        ...(update.tags === undefined
+          ? {}
+          : { tags: normalizeVaultChartTags(update.tags) })
       };
       const chart = await dependencies.persistence.vaultCharts.updateMetadata(
         userId,
@@ -243,10 +303,16 @@ export function registerVaultChartRoutes(app: Hono, dependencies: ServerDependen
   app.delete(
     '/api/vault/charts/:chartId',
     requireAuthentication(dependencies.authenticator),
+    enforceVaultMutationAccountRateLimit(rateLimiter),
     async (context) => {
       const principal = context.get('authenticatedPrincipal');
       const userId = principal.userId;
-      const chartId = context.req.param('chartId');
+      const chartId = readVaultRouteIdentifier(context, 'chartId');
+
+      if (chartId instanceof Response) {
+        return chartId;
+      }
+
       const deleted = await dependencies.persistence.vaultCharts.deleteById(userId, chartId);
 
       if (!deleted) {

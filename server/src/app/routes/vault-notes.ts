@@ -12,9 +12,17 @@ import { requireAuthentication } from '../auth/index.js';
 import type { ServerDependencies } from '../dependencies.js';
 import { createProblemDetailsContextResponse } from '../problem-details/context-response.js';
 import {
+  enforceVaultMutationAccountRateLimit,
+  type InMemoryP0StagingRateLimiter
+} from '../security/api-rate-limiting.js';
+import { readVaultRouteIdentifier } from './vault-route-helpers.js';
+import {
   isChartNoteContentRequest,
-  normalizeChartNoteContent
+  normalizeChartNoteContent,
+  readBoundedJson
 } from '../validation/index.js';
+
+const VAULT_NOTE_REQUEST_MAXIMUM_BYTES = 16 * 1024;
 
 async function findOwnedChartUserId(
   context: Context,
@@ -31,29 +39,51 @@ async function findOwnedChartUserId(
 async function parseNoteContent(
   context: Context
 ): Promise<CreateChartNoteApiRequest | Response> {
-  let payload: unknown;
+  const parsed = await readBoundedJson(
+    context.req.raw,
+    VAULT_NOTE_REQUEST_MAXIMUM_BYTES
+  );
 
-  try {
-    payload = await context.req.json();
-  } catch (_error) {
+  if (parsed.outcome === 'unsupported-media-type') {
+    return createProblemDetailsContextResponse(context, {
+      code: 'UNSUPPORTED_MEDIA_TYPE'
+    });
+  }
+
+  if (parsed.outcome === 'too-large') {
+    return createProblemDetailsContextResponse(context, {
+      code: 'PAYLOAD_TOO_LARGE'
+    });
+  }
+
+  if (parsed.outcome === 'invalid') {
     return createProblemDetailsContextResponse(context, {
       code: 'INVALID_REQUEST'
     });
   }
 
-  return isChartNoteContentRequest(payload)
-    ? payload
+  return isChartNoteContentRequest(parsed.value)
+    ? parsed.value
     : createProblemDetailsContextResponse(context, {
         code: 'INVALID_REQUEST'
       });
 }
 
-export function registerVaultNoteRoutes(app: Hono, dependencies: ServerDependencies): void {
+export function registerVaultNoteRoutes(
+  app: Hono,
+  dependencies: ServerDependencies,
+  rateLimiter: InMemoryP0StagingRateLimiter
+): void {
   app.get(
     '/api/vault/charts/:chartId/notes',
     requireAuthentication(dependencies.authenticator),
     async (context) => {
-      const chartId = context.req.param('chartId');
+      const chartId = readVaultRouteIdentifier(context, 'chartId');
+
+      if (chartId instanceof Response) {
+        return chartId;
+      }
+
       const userId = await findOwnedChartUserId(context, dependencies, chartId);
 
       if (userId === null) {
@@ -72,8 +102,14 @@ export function registerVaultNoteRoutes(app: Hono, dependencies: ServerDependenc
   app.post(
     '/api/vault/charts/:chartId/notes',
     requireAuthentication(dependencies.authenticator),
+    enforceVaultMutationAccountRateLimit(rateLimiter),
     async (context) => {
-      const chartId = context.req.param('chartId');
+      const chartId = readVaultRouteIdentifier(context, 'chartId');
+
+      if (chartId instanceof Response) {
+        return chartId;
+      }
+
       const userId = await findOwnedChartUserId(context, dependencies, chartId);
 
       if (userId === null) {
@@ -108,9 +144,20 @@ export function registerVaultNoteRoutes(app: Hono, dependencies: ServerDependenc
   app.patch(
     '/api/vault/charts/:chartId/notes/:noteId',
     requireAuthentication(dependencies.authenticator),
+    enforceVaultMutationAccountRateLimit(rateLimiter),
     async (context) => {
-      const chartId = context.req.param('chartId');
-      const noteId = context.req.param('noteId');
+      const chartId = readVaultRouteIdentifier(context, 'chartId');
+
+      if (chartId instanceof Response) {
+        return chartId;
+      }
+
+      const noteId = readVaultRouteIdentifier(context, 'noteId');
+
+      if (noteId instanceof Response) {
+        return noteId;
+      }
+
       const userId = await findOwnedChartUserId(context, dependencies, chartId);
 
       if (userId === null) {
@@ -149,9 +196,20 @@ export function registerVaultNoteRoutes(app: Hono, dependencies: ServerDependenc
   app.delete(
     '/api/vault/charts/:chartId/notes/:noteId',
     requireAuthentication(dependencies.authenticator),
+    enforceVaultMutationAccountRateLimit(rateLimiter),
     async (context) => {
-      const chartId = context.req.param('chartId');
-      const noteId = context.req.param('noteId');
+      const chartId = readVaultRouteIdentifier(context, 'chartId');
+
+      if (chartId instanceof Response) {
+        return chartId;
+      }
+
+      const noteId = readVaultRouteIdentifier(context, 'noteId');
+
+      if (noteId instanceof Response) {
+        return noteId;
+      }
+
       const userId = await findOwnedChartUserId(context, dependencies, chartId);
 
       if (userId === null) {

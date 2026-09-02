@@ -7,6 +7,7 @@ import { isRecord } from './chart-request.js';
 
 const EMAIL_MAX_LENGTH = 254;
 const EMAIL_LOCAL_PART_MAX_LENGTH = 64;
+const EMAIL_MAGIC_LINK_TOKEN_MAX_LENGTH = 512;
 const EMAIL_PART_PATTERN = /^[^\s@]+$/u;
 const CONTROL_CHARACTER_PATTERN = /[\u0000-\u001F\u007F]/u;
 
@@ -69,6 +70,8 @@ export function isCompleteEmailMagicLinkApiRequest(
     isRecord(value) &&
     hasOnlyKeys(value, 'token') &&
     typeof value.token === 'string' &&
-    value.token.trim().length > 0
+    value.token.trim().length > 0 &&
+    value.token.length <= EMAIL_MAGIC_LINK_TOKEN_MAX_LENGTH &&
+    !CONTROL_CHARACTER_PATTERN.test(value.token)
   );
 }

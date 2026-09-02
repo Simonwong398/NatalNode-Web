@@ -17,11 +17,22 @@ export function isRecord(value: unknown): value is Record<string, unknown> {
 }
 
 function isStringOrNull(value: unknown): value is string | null {
-  return typeof value === 'string' || value === null;
+  return value === null || isBoundedString(value);
 }
 
 function isFiniteNumber(value: unknown): value is number {
   return typeof value === 'number' && Number.isFinite(value);
+}
+
+const CHART_REQUEST_STRING_MAXIMUM_CHARACTERS = 256;
+const CONTROL_CHARACTER_PATTERN = /[\u0000-\u001f\u007f-\u009f]/u;
+
+function isBoundedString(value: unknown): value is string {
+  return (
+    typeof value === 'string' &&
+    Array.from(value).length <= CHART_REQUEST_STRING_MAXIMUM_CHARACTERS &&
+    !CONTROL_CHARACTER_PATTERN.test(value)
+  );
 }
 
 function isBirthTimeAmbiguityStatus(value: unknown): value is BirthTimeAmbiguityStatus {
@@ -34,22 +45,28 @@ export function isBirthRequest(value: unknown): value is BirthRequest {
   }
 
   return (
-    typeof value.localDate === 'string' &&
+    isBoundedString(value.localDate) &&
     isStringOrNull(value.localTime) &&
-    typeof value.locationLabel === 'string' &&
+    isBoundedString(value.locationLabel) &&
     isFiniteNumber(value.latitude) &&
+    value.latitude >= -90 &&
+    value.latitude <= 90 &&
     isFiniteNumber(value.longitude) &&
-    typeof value.ianaTimeZone === 'string' &&
+    value.longitude >= -180 &&
+    value.longitude <= 180 &&
+    isBoundedString(value.ianaTimeZone) &&
     isStringOrNull(value.resolvedUtcInstant) &&
-    (isFiniteNumber(value.utcOffsetSeconds) || value.utcOffsetSeconds === null) &&
-    typeof value.timezoneDatabaseVersion === 'string' &&
-    typeof value.timezoneResolutionMethod === 'string' &&
+    (value.utcOffsetSeconds === null ||
+      (isFiniteNumber(value.utcOffsetSeconds) &&
+        Math.abs(value.utcOffsetSeconds) <= 86_400)) &&
+    isBoundedString(value.timezoneDatabaseVersion) &&
+    isBoundedString(value.timezoneResolutionMethod) &&
     isBirthTimeAmbiguityStatus(value.ambiguityStatus)
   );
 }
 
 export function isChartRequest(value: unknown): value is ChartRequest {
-  return isRecord(value) && isBirthRequest(value.birth) && typeof value.houseSystem === 'string';
+  return isRecord(value) && isBirthRequest(value.birth) && isBoundedString(value.houseSystem);
 }
 
 export function isChartCalculationApiRequest(value: unknown): value is ChartCalculationApiRequest {

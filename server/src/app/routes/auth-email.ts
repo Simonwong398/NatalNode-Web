@@ -16,6 +16,9 @@ import {
   isCompleteEmailMagicLinkApiRequest,
   isRequestEmailMagicLinkApiRequest
 } from '../validation/auth-email.js';
+import { readBoundedJson } from '../validation/index.js';
+
+const AUTH_EMAIL_REQUEST_MAXIMUM_BYTES = 8 * 1024;
 
 function markAuthenticationResponse(context: Context): void {
   context.header('Cache-Control', 'no-store');
@@ -24,18 +27,31 @@ function markAuthenticationResponse(context: Context): void {
 async function parseRequestEmailMagicLinkRequest(
   context: Context
 ): Promise<RequestEmailMagicLinkApiRequest | Response> {
-  let payload: unknown;
+  const parsed = await readBoundedJson(
+    context.req.raw,
+    AUTH_EMAIL_REQUEST_MAXIMUM_BYTES
+  );
 
-  try {
-    payload = await context.req.json();
-  } catch (_error) {
+  if (parsed.outcome === 'unsupported-media-type') {
+    return createProblemDetailsContextResponse(context, {
+      code: 'UNSUPPORTED_MEDIA_TYPE'
+    });
+  }
+
+  if (parsed.outcome === 'too-large') {
+    return createProblemDetailsContextResponse(context, {
+      code: 'PAYLOAD_TOO_LARGE'
+    });
+  }
+
+  if (parsed.outcome === 'invalid') {
     return createProblemDetailsContextResponse(context, {
       code: 'INVALID_REQUEST'
     });
   }
 
-  return isRequestEmailMagicLinkApiRequest(payload)
-    ? payload
+  return isRequestEmailMagicLinkApiRequest(parsed.value)
+    ? parsed.value
     : createProblemDetailsContextResponse(context, {
         code: 'INVALID_REQUEST'
       });
@@ -44,18 +60,31 @@ async function parseRequestEmailMagicLinkRequest(
 async function parseCompleteEmailMagicLinkRequest(
   context: Context
 ): Promise<CompleteEmailMagicLinkApiRequest | Response> {
-  let payload: unknown;
+  const parsed = await readBoundedJson(
+    context.req.raw,
+    AUTH_EMAIL_REQUEST_MAXIMUM_BYTES
+  );
 
-  try {
-    payload = await context.req.json();
-  } catch (_error) {
+  if (parsed.outcome === 'unsupported-media-type') {
+    return createProblemDetailsContextResponse(context, {
+      code: 'UNSUPPORTED_MEDIA_TYPE'
+    });
+  }
+
+  if (parsed.outcome === 'too-large') {
+    return createProblemDetailsContextResponse(context, {
+      code: 'PAYLOAD_TOO_LARGE'
+    });
+  }
+
+  if (parsed.outcome === 'invalid') {
     return createProblemDetailsContextResponse(context, {
       code: 'INVALID_REQUEST'
     });
   }
 
-  return isCompleteEmailMagicLinkApiRequest(payload)
-    ? payload
+  return isCompleteEmailMagicLinkApiRequest(parsed.value)
+    ? parsed.value
     : createProblemDetailsContextResponse(context, {
         code: 'INVALID_REQUEST'
       });
