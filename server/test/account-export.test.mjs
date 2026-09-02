@@ -199,6 +199,13 @@ function createSnapshot(options = {}) {
         nextCursor: null
       };
     },
+    async getPractitioner() {
+      return options.practitioner ?? {
+        application: null,
+        profile: null,
+        profileRevisions: []
+      };
+    },
     async commit() {
       commits += 1;
       events.push('commit');
@@ -625,10 +632,15 @@ test('account export streams the approved envelope with safe attachment headers 
   const body = await response.text();
   const exportValue = JSON.parse(body);
 
-  assert.equal(exportValue.exportSchemaVersion, '1.1');
+  assert.equal(exportValue.exportSchemaVersion, '1.2');
   assert.equal(exportValue.exportedAt, SERVER_NOW);
   assert.deepEqual(exportValue.account.identities, [defaultIdentity()]);
   assert.equal(exportValue.account.createdAt, '2026-08-01T00:00:00.000Z');
+  assert.deepEqual(exportValue.practitioner, {
+    application: null,
+    profile: null,
+    profileRevisions: []
+  });
   assert.equal(exportValue.charts.length, 1);
   assert.equal(exportValue.charts[0].displayName, chart.chart.displayName);
   assert.deepEqual(exportValue.charts[0].notes, [{
@@ -674,6 +686,73 @@ test('account export streams the approved envelope with safe attachment headers 
   assert.equal(snapshot.commits, 1);
   assert.equal(snapshot.rollbacks, 0);
   assert.equal(snapshot.events.at(-1), 'commit');
+});
+
+test('account export includes applicant-owned Practitioner data without reviewer-only fields', async () => {
+  const harness = createHarness({
+    snapshotFactory: () => createSnapshot({
+      practitioner: {
+        application: {
+          requestedDisplayName: 'Aster Vale',
+          professionalHeadline: 'Natal astrology educator',
+          bio: 'Clear educational writing about chart symbolism.',
+          practiceAreas: ['NATAL_ASTROLOGY'],
+          languages: ['en'],
+          countryOrRegion: 'Canada',
+          websiteUrl: 'https://example.test/practice',
+          practiceStatement: 'Descriptive, reflective, and educational practice.',
+          evidenceUrls: ['https://example.test/about'],
+          consentToPublicProfile: true,
+          submittedAt: '2026-08-01T00:00:00.000Z',
+          status: 'APPROVED',
+          statusHistory: [
+            { status: 'SUBMITTED', changedAt: '2026-08-01T00:00:00.000Z' },
+            { status: 'APPROVED', changedAt: '2026-08-02T00:00:00.000Z' }
+          ],
+          finalizedAt: null,
+          purgeEligibleAt: null
+        },
+        profile: {
+          practitionerId: 'practitioner-1',
+          displayName: 'Aster Vale',
+          professionalHeadline: 'Natal astrology educator',
+          bio: 'Clear educational writing about chart symbolism.',
+          practiceAreas: ['NATAL_ASTROLOGY'],
+          languages: ['en'],
+          countryOrRegion: 'Canada',
+          websiteUrl: 'https://example.test/practice',
+          foundingPractitioner: true,
+          approvedAt: '2026-08-02T00:00:00.000Z',
+          profileStatus: 'APPROVED',
+          createdAt: '2026-08-02T00:00:00.000Z',
+          updatedAt: '2026-08-02T00:00:00.000Z'
+        },
+        profileRevisions: [{
+          displayName: 'Aster Vale',
+          professionalHeadline: 'Natal astrology educator',
+          bio: 'Clear educational writing about chart symbolism.',
+          practiceAreas: ['NATAL_ASTROLOGY'],
+          languages: ['en'],
+          countryOrRegion: 'Canada',
+          status: 'APPROVED',
+          submittedAt: '2026-08-03T00:00:00.000Z',
+          reviewedAt: '2026-08-04T00:00:00.000Z'
+        }]
+      }
+    })
+  });
+
+  const response = await postExport(harness.app);
+  assert.equal(response.status, 200);
+  const body = await response.text();
+  const exportValue = JSON.parse(body);
+  assert.equal(exportValue.practitioner.application.requestedDisplayName, 'Aster Vale');
+  assert.deepEqual(exportValue.practitioner.application.evidenceUrls, ['https://example.test/about']);
+  assert.equal(exportValue.practitioner.profile.practitionerId, 'practitioner-1');
+  assert.equal(exportValue.practitioner.profile.foundingPractitioner, true);
+  assert.equal(exportValue.practitioner.profileRevisions.length, 1);
+  assert.equal(body.includes('reviewerUserId'), false);
+  assert.equal(body.includes('reviewer note'), false);
 });
 
 test('account export preserves an explicit empty notification state', async () => {
