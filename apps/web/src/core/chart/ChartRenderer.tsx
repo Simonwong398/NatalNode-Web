@@ -55,10 +55,12 @@ export type ChartRendererProps = {
   presentationPolicy: ChartPresentationPolicy;
   chartKind?: ChartInstrumentKind;
   semanticFocus?: ChartSemanticFocus;
+  focusCardLayout?: ChartFocusCardLayout;
 };
 
 export type ChartInstrumentData = ChartResult | SkySnapshotResult;
 export type ChartInstrumentKind = 'natal' | 'sky';
+export type ChartFocusCardLayout = 'inline' | 'reserved';
 
 type ChartInstrumentBody = BodyFact | SkyBodyPosition;
 type ChartInstrumentAspect = AspectFact | SkyCurrentAspect;
@@ -795,7 +797,8 @@ export default function ChartRenderer({
   locale,
   presentationPolicy,
   chartKind = 'natal',
-  semanticFocus = 'none'
+  semanticFocus = 'none',
+  focusCardLayout = 'inline'
 }: ChartRendererProps) {
   const rendererId = useId().replace(/:/g, '');
   const titleId = `${rendererId}-title`;
@@ -881,15 +884,27 @@ export default function ChartRenderer({
   const clearHover = (bodyId: string) => {
     setHoveredPlanetId((current) => current === bodyId ? null : current);
   };
+  const focusedBodyCard = activeBody ? (
+    <FocusedBodyCard
+      aspects={connectedAspects}
+      body={activeBody}
+      locale={locale}
+      selected={selectedPlanetId !== null}
+      focusCardId={focusCardId}
+      showHouses={presentationPolicy.showHouses}
+    />
+  ) : null;
 
   return (
     <div
-      className={`nn-chart-renderer nn-chart-renderer--${presentationPolicy.mode}`}
+      className={`nn-chart-renderer nn-chart-renderer--${presentationPolicy.mode}${focusCardLayout === 'reserved' ? ' nn-chart-renderer--focus-card-reserved' : ''}`}
       data-chart-instrument="true"
       data-chart-kind={chartKind}
+      data-focus-card-layout={focusCardLayout}
       data-presentation-mode={presentationPolicy.mode}
       data-semantic-focus={semanticFocus}
     >
+      <div className="nn-chart-renderer__visual">
       <svg
         aria-describedby={descriptionId}
         aria-labelledby={titleId}
@@ -1137,16 +1152,13 @@ export default function ChartRenderer({
       </svg>
 
       <p className="nn-chart-focus-hint">{chartUi(locale, 'chart.focusHint')}</p>
-      {activeBody ? (
-        <FocusedBodyCard
-          aspects={connectedAspects}
-          body={activeBody}
-          locale={locale}
-          selected={selectedPlanetId !== null}
-          focusCardId={focusCardId}
-          showHouses={presentationPolicy.showHouses}
-        />
+      </div>
+      {focusCardLayout === 'reserved' ? (
+        <div className="nn-chart-focus-card-slot nn-chart-focus-card-slot--reserved">
+          {focusedBodyCard}
+        </div>
       ) : null}
+      {focusCardLayout === 'inline' ? focusedBodyCard : null}
       <AspectLegend entries={renderableAspects} locale={locale} />
     </div>
   );

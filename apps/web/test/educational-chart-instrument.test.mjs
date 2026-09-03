@@ -59,6 +59,13 @@ const heroSource = readFileSync(
   new URL('../src/components/EditorialPlanetHero.astro', import.meta.url),
   'utf8'
 );
+const chartFocusDialogSource = readFileSync(
+  new URL('../src/features/chart-workspace/ChartFocusDialog.tsx', import.meta.url),
+  'utf8'
+);
+const mobileChartStylesSource = chartStylesSource.match(
+  /@media \(max-width: 767px\)[\s\S]*?(?=\n\s*@media|\s*$)/u
+)?.[0] ?? '';
 
 test('Chart Core exposes a closed semantic-focus vocabulary with overview as the default', () => {
   assert.deepEqual([...CHART_SEMANTIC_FOCUSES], [
@@ -145,4 +152,23 @@ test('Learn replaces the hero teaching surface while retaining the existing bran
     existsSync(new URL('../src/components/brand/NatalNodeBrandInstrument.astro', import.meta.url)),
     true
   );
+});
+
+test('Learn embeds a reserved focus-card slot and reuses the shared expandable chart dialog', () => {
+  assert.match(educationalComponentSource, /focusCardLayout="reserved"/u);
+  assert.match(educationalComponentSource, /ChartFocusDialog/gu);
+  assert.match(educationalComponentSource, /aria-controls=\{focusDialogId\}/u);
+  assert.match(educationalComponentSource, /aria-expanded=\{isChartFocusOpen\}/u);
+  assert.match(educationalComponentSource, /setExpandedSemanticFocus\(activeFocus\)/u);
+  assert.match(educationalComponentSource, /setIsChartFocusOpen\(false\)/u);
+  assert.match(educationalComponentSource, /document\.body\.classList\.add\('nn-chart-focus-lock'\)/u);
+  assert.match(educationalComponentSource, /returnFocusTarget\?\.focus\(\)/u);
+  assert.match(chartRendererSource, /focusCardLayout\?: ChartFocusCardLayout/u);
+  assert.match(chartRendererSource, /focusCardLayout = 'inline'/u);
+  assert.match(chartRendererSource, /nn-chart-focus-card-slot--reserved/u);
+  assert.match(chartStylesSource, /\.nn-chart-focus-card-slot--reserved[\s\S]*display:\s*grid/u);
+  assert.match(chartStylesSource, /grid-template-columns:\s*minmax\(0, 20rem\)\s+minmax\(0, 1fr\)/u);
+  assert.doesNotMatch(mobileChartStylesSource, /nn-chart-focus-card-slot--reserved[\s\S]*min-height/u);
+  assert.match(chartFocusDialogSource, /aria-modal="true"/u);
+  assert.match(chartFocusDialogSource, /semanticFocus=\{semanticFocus\}/u);
 });

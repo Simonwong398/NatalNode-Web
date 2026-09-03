@@ -524,6 +524,12 @@
     box-shadow: var(--nn-shadow-low);
   }
 
+  .nn-chart-focus-card-slot--reserved {
+    display: grid;
+    min-width: 0;
+    align-content: start;
+  }
+
   .nn-chart-legend {
     display: flex;
     flex-wrap: wrap;
@@ -859,6 +865,14 @@
     min-width: 0;
   }
 
+  .nn-educational-chart-instrument__chart-heading {
+    display: flex;
+    min-width: 0;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 0.75rem;
+  }
+
   .nn-educational-chart-instrument__chart-label {
     margin-top: 0.25rem;
     color: var(--nn-text-muted);
@@ -868,9 +882,20 @@
     text-transform: uppercase;
   }
 
+  .nn-educational-chart-instrument__expand {
+    flex: none;
+    min-height: 2.25rem;
+    padding-inline: 0.65rem;
+    white-space: nowrap;
+  }
+
   .nn-educational-chart-instrument__chart-wrap > div {
     width: min(100%, 20rem);
     margin-inline: auto;
+  }
+
+  .nn-educational-chart-instrument__chart-wrap > div .nn-chart-renderer__visual {
+    min-width: 0;
   }
 
   .nn-educational-chart-instrument__controls {
@@ -1154,12 +1179,50 @@
       width: min(100%, 19rem);
     }
 
+    .nn-educational-chart-instrument__chart-wrap > div .nn-chart-focus-card-slot--reserved .nn-chart-focus-card {
+      margin-top: 0;
+    }
+
     .nn-educational-chart-instrument__controls {
       grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 
     .nn-brand-instrument__reference {
       opacity: 0.72;
+    }
+  }
+
+  @media (min-width: 768px) {
+    .nn-educational-chart-instrument__chart-wrap > div {
+      width: min(100%, 34rem);
+    }
+
+    .nn-educational-chart-instrument__chart-wrap > div .nn-chart-renderer--focus-card-reserved {
+      display: grid;
+      grid-template-columns: minmax(0, 20rem) minmax(0, 1fr);
+      column-gap: 1rem;
+      align-items: start;
+    }
+
+    .nn-educational-chart-instrument__chart-wrap > div .nn-chart-renderer--focus-card-reserved .nn-chart-renderer__visual {
+      grid-column: 1;
+      grid-row: 1;
+    }
+
+    .nn-educational-chart-instrument__chart-wrap > div .nn-chart-renderer--focus-card-reserved .nn-chart-focus-card-slot--reserved {
+      grid-column: 2;
+      grid-row: 1;
+      min-height: 0;
+      align-self: stretch;
+    }
+
+    .nn-educational-chart-instrument__chart-wrap > div .nn-chart-renderer--focus-card-reserved .nn-chart-focus-card-slot--reserved .nn-chart-focus-card {
+      margin-top: 0;
+    }
+
+    .nn-educational-chart-instrument__chart-wrap > div .nn-chart-renderer--focus-card-reserved .nn-chart-legend {
+      grid-column: 1 / -1;
+      grid-row: 2;
     }
   }
 

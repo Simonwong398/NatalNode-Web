@@ -7,6 +7,7 @@ import {
   type ChartInstrumentKind
 } from '@/core/chart';
 import type { ChartPresentationPolicy } from '@/core/chart/chart-presentation-policy';
+import type { ChartSemanticFocus } from '@/core/chart/chart-semantic-focus';
 
 export type ChartFocusDialogProps = {
   chart: ChartInstrumentData;
@@ -16,6 +17,7 @@ export type ChartFocusDialogProps = {
   locale?: SupportedLocale;
   onClose: () => void;
   presentationPolicy: ChartPresentationPolicy;
+  semanticFocus?: ChartSemanticFocus;
 };
 
 /** Provides a larger, dismissible chart view without changing chart facts. */
@@ -26,7 +28,8 @@ export default function ChartFocusDialog({
   dialogId,
   locale,
   onClose,
-  presentationPolicy
+  presentationPolicy,
+  semanticFocus
 }: ChartFocusDialogProps) {
   const focusId = useId().replace(/:/g, '');
   const titleId = `${focusId}-title`;
@@ -76,6 +79,7 @@ export default function ChartFocusDialog({
             chartKind={chartKind}
             locale={locale}
             presentationPolicy={presentationPolicy}
+            semanticFocus={semanticFocus}
           />
         </div>
       </section>
