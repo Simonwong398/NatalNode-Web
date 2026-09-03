@@ -1,5 +1,7 @@
 import { getCollection } from 'astro:content';
 import type { APIRoute } from 'astro';
+import { SIGN_CLASSIFICATIONS } from '@/core/astrology-taxonomy/chart-taxonomy';
+import { getLocalizedPath, SUPPORTED_LOCALES } from '@/lib/localization';
 import { resolveCanonicalUrl } from '@/lib/seo';
 
 const publicPaths = [
@@ -16,6 +18,12 @@ const publicPaths = [
   '/practitioners/'
 ];
 
+const discoverPaths = [
+  '/discover/',
+  '/discover/zodiac/',
+  ...SIGN_CLASSIFICATIONS.map((sign) => `/discover/zodiac/${sign.id}/`)
+];
+
 const escapeXml = (value: string): string =>
   value.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&apos;');
 
@@ -23,6 +31,9 @@ export const GET: APIRoute = async () => {
   const articles = await getCollection('learn', ({ data }) => !data.draft);
   const urls = [...new Set([
     ...publicPaths.map((path) => resolveCanonicalUrl(path)),
+    ...SUPPORTED_LOCALES.flatMap((locale) =>
+      discoverPaths.map((path) => resolveCanonicalUrl(getLocalizedPath(locale, path)))
+    ),
     ...articles.map((entry) => resolveCanonicalUrl(`/learn/${entry.data.slug}`))
   ])].sort();
 

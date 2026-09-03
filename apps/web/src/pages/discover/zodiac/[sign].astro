@@ -1,0 +1,64 @@
+---
+import ZodiacExplorer from '@/features/discover/ZodiacExplorer';
+import { getCalculateHref, getZodiacFoundationsHref } from '@/features/discover/discover-links';
+import { getDiscoverSeoAlternates } from '@/features/discover/discover-seo';
+import { resolveAstrologyDomainTerm } from '@/core/astrology-taxonomy/astrology-glossary';
+import { SIGN_CLASSIFICATIONS, type SignId } from '@/core/astrology-taxonomy/chart-taxonomy';
+import SiteLayout from '@/layouts/SiteLayout.astro';
+import {
+  getLocalizedPath,
+  getPresentationLocale,
+  type SupportedLocale
+} from '@/lib/localization';
+import type { SeoMetadata } from '@/lib/seo';
+import { formatUiMessage, getUiMessage, type UiMessageKey } from '@/lib/ui-catalog';
+import { getZodiacSignContent } from '@/content/discover/zodiac';
+
+interface Props {
+  locale?: SupportedLocale;
+}
+
+export function getStaticPaths() {
+  return SIGN_CLASSIFICATIONS.map((sign) => ({
+    params: { sign: sign.id }
+  }));
+}
+
+const { locale: propLocale } = Astro.props as Props;
+const locale = propLocale ?? getPresentationLocale(Astro.url.pathname, Astro.locals.locale);
+const sign = SIGN_CLASSIFICATIONS.find((candidate) => candidate.id === Astro.params.sign);
+if (sign === undefined) {
+  throw new Error('Unknown Discover zodiac sign route');
+}
+
+const signId = sign.id as SignId;
+const signName = resolveAstrologyDomainTerm('sign', sign.label, locale)?.displayTerm ?? sign.label;
+const content = getZodiacSignContent(signId, locale);
+const routePath = `/discover/zodiac/${signId}/`;
+const ui = (key: UiMessageKey): string => getUiMessage(locale, key);
+const seo: SeoMetadata = {
+  title: formatUiMessage(locale, 'discover.zodiac.signTitle', { sign: signName }),
+  description: `${content.summary} ${content.chartFunction}`,
+  canonical: getLocalizedPath(locale, routePath),
+  alternates: getDiscoverSeoAlternates(routePath)
+};
+---
+
+<SiteLayout seo={seo}>
+  <main class="nn-container nn-container--editorial pb-20 pt-8 sm:pb-24 sm:pt-12">
+    <header class="max-w-3xl border-b border-nn-border-subtle pb-8">
+      <p class="nn-eyebrow">{ui('discover.zodiac.eyebrow')}</p>
+      <h1 class="nn-type-page-title mt-3">{signName}</h1>
+      <p class="nn-type-body mt-5 max-w-2xl">{ui('discover.zodiac.detailIntro')}</p>
+    </header>
+
+    <ZodiacExplorer
+      client:load
+      locale={locale}
+      initialSignId={signId}
+      mode="detail"
+      learnHref={getZodiacFoundationsHref(locale)}
+      calculateHref={getCalculateHref(locale)}
+    />
+  </main>
+</SiteLayout>

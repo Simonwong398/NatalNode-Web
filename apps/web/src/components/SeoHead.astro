@@ -28,6 +28,9 @@ const isPublicIndexable = robots === 'index,follow';
 <meta name="description" content={seo.description} />
 <meta name="robots" content={robots} />
 <link rel="canonical" href={canonicalUrl} />
+{isPublicIndexable && seo.alternates?.map(({ locale: alternateLocale, url }) => (
+  <link rel="alternate" hreflang={alternateLocale} href={resolveCanonicalUrl(url)} />
+))}
 {isPublicIndexable && (
   <>
     <meta property="og:title" content={seo.title} />

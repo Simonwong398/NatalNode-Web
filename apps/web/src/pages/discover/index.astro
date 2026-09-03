@@ -1,0 +1,96 @@
+---
+import SiteLayout from '@/layouts/SiteLayout.astro';
+import { getCalculateHref, getZodiacFoundationsHref } from '@/features/discover/discover-links';
+import { getDiscoverSeoAlternates } from '@/features/discover/discover-seo';
+import {
+  getLocalizedPath,
+  getPresentationLocale,
+  type SupportedLocale
+} from '@/lib/localization';
+import type { SeoMetadata } from '@/lib/seo';
+import { formatUiMessage, getUiMessage, type UiMessageKey } from '@/lib/ui-catalog';
+
+interface Props {
+  locale?: SupportedLocale;
+}
+
+const { locale: propLocale } = Astro.props as Props;
+const locale = propLocale ?? getPresentationLocale(Astro.url.pathname, Astro.locals.locale);
+const localize = (path: string): string => getLocalizedPath(locale, path);
+const ui = (key: UiMessageKey): string => getUiMessage(locale, key);
+const zodiacHref = localize('/discover/zodiac/');
+const seo: SeoMetadata = {
+  title: `${ui('discover.title')} | NatalNode`,
+  description: ui('discover.description'),
+  canonical: getLocalizedPath(locale, '/discover/'),
+  alternates: getDiscoverSeoAlternates('/discover/')
+};
+const discoverLearnHref = getZodiacFoundationsHref(locale);
+const calculateHref = getCalculateHref(locale);
+---
+
+<SiteLayout seo={seo}>
+  <main class="nn-container nn-container--editorial pb-20 pt-12 sm:pb-24 sm:pt-16">
+    <header class="grid min-w-0 gap-10 lg:grid-cols-[minmax(0,1.1fr)_minmax(18rem,0.9fr)] lg:items-end lg:gap-16">
+      <div class="max-w-3xl">
+        <p class="nn-eyebrow">{ui('discover.eyebrow')}</p>
+        <h1 class="nn-type-page-title mt-3">
+          {ui('discover.title')}
+        </h1>
+        <p class="nn-type-body mt-5 max-w-2xl">
+          {ui('discover.description')}
+        </p>
+        <a class="nn-button nn-button--primary mt-7" href={zodiacHref}>
+          {ui('discover.exploreZodiac')}
+        </a>
+      </div>
+
+      <aside class="nn-surface nn-surface--elevated min-w-0 p-5 sm:p-6" aria-labelledby="discover-structure-title">
+        <p class="nn-eyebrow">{ui('discover.structureEyebrow')}</p>
+        <h2 class="nn-type-card-title mt-2" id="discover-structure-title">
+          {ui('discover.structureTitle')}
+        </h2>
+        <p class="nn-type-body-small mt-4">
+          {ui('discover.structureDescription')}
+        </p>
+        <dl class="mt-6 grid grid-cols-3 gap-3 border-t border-nn-border-subtle pt-5">
+          <div class="min-w-0">
+            <dt class="nn-type-metadata">{formatUiMessage(locale, 'discover.signCount', { count: 12 })}</dt>
+            <dd class="mt-1 text-2xl font-semibold text-nn-text-primary">12</dd>
+          </div>
+          <div class="min-w-0">
+            <dt class="nn-type-metadata">{formatUiMessage(locale, 'discover.elementCount', { count: 4 })}</dt>
+            <dd class="mt-1 text-2xl font-semibold text-nn-text-primary">4</dd>
+          </div>
+          <div class="min-w-0">
+            <dt class="nn-type-metadata">{formatUiMessage(locale, 'discover.modalityCount', { count: 3 })}</dt>
+            <dd class="mt-1 text-2xl font-semibold text-nn-text-primary">3</dd>
+          </div>
+        </dl>
+      </aside>
+    </header>
+
+    <section class="mt-16 max-w-4xl border-t border-nn-border-subtle pt-12 sm:mt-20 sm:pt-16" aria-labelledby="discover-entry-title">
+      <p class="nn-eyebrow">{ui('discover.entryEyebrow')}</p>
+      <h2 class="nn-type-section-title mt-2" id="discover-entry-title">
+        {ui('discover.entryTitle')}
+      </h2>
+      <p class="nn-type-body mt-4 max-w-2xl">
+        {ui('discover.entryDescription')}
+      </p>
+      <a class="nn-button nn-button--secondary mt-6" href={zodiacHref}>
+        {ui('discover.entryAction')}
+      </a>
+    </section>
+
+    <p class="nn-type-body-small mt-12 max-w-3xl border-t border-nn-border-subtle pt-6">
+      <a class="text-nn-accent-supporting underline decoration-nn-accent-supporting/50 underline-offset-4 transition-colors hover:text-nn-text-primary" href={discoverLearnHref}>
+        {ui('discover.zodiac.learnCta')}
+      </a>
+      <span class="mx-2 text-nn-text-faint" aria-hidden="true">·</span>
+      <a class="text-nn-accent-supporting underline decoration-nn-accent-supporting/50 underline-offset-4 transition-colors hover:text-nn-text-primary" href={calculateHref}>
+        {ui('discover.zodiac.calculateCta')}
+      </a>
+    </p>
+  </main>
+</SiteLayout>
