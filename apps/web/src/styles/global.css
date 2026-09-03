@@ -865,7 +865,6 @@
     aspect-ratio: 1;
     --nn-brand-orbit-secondary: var(--nn-brand-silver, #E6E8EB);
     --nn-brand-core-shadow: rgb(0 0 0 / 0.36);
-    --nn-brand-core-void: #0A1422;
     --nn-brand-metal-deep: #24384B;
     --nn-brand-metal-side: #647B8C;
     --nn-brand-metal-mid: #A8B8C2;
@@ -876,7 +875,6 @@
   :root[data-nn-theme='light'] .nn-brand-instrument {
     --nn-brand-orbit-secondary: #45566D;
     --nn-brand-core-shadow: rgb(42 62 85 / 0.22);
-    --nn-brand-core-void: #D4E0EA;
     --nn-brand-metal-deep: #203249;
     --nn-brand-metal-side: #61758A;
     --nn-brand-metal-mid: #8FA4B6;
@@ -918,28 +916,16 @@
   }
 
   .nn-brand-instrument__core-sidewall,
-  .nn-brand-instrument__core-aperture,
-  .nn-brand-instrument__core-bezel,
-  .nn-brand-instrument__core-bezel-inner,
-  .nn-brand-instrument__core-rim-highlight,
-  .nn-brand-instrument__core-rim-shadow,
-  .nn-brand-instrument__core-rivets {
-    vector-effect: non-scaling-stroke;
-  }
-
-  .nn-brand-instrument__core-sidewall circle,
-  .nn-brand-instrument__core-aperture,
-  .nn-brand-instrument__core-bezel,
-  .nn-brand-instrument__core-bezel-inner,
-  .nn-brand-instrument__core-rim-highlight,
-  .nn-brand-instrument__core-rim-shadow {
+  .nn-brand-instrument__core-frame,
+  .nn-brand-instrument__core-brandmark,
+  .nn-brand-instrument__core-brandmark-inlay {
     vector-effect: non-scaling-stroke;
   }
 
   .nn-brand-instrument__core-sidewall,
-  .nn-brand-instrument__core-brandmark-side,
   .nn-brand-instrument__core-brandmark,
-  .nn-brand-instrument__core-rivets {
+  .nn-brand-instrument__core-brandmark-inlay,
+  .nn-brand-instrument__core-frame {
     pointer-events: none;
   }
 
@@ -947,19 +933,7 @@
     filter: drop-shadow(0 2px 2px var(--nn-brand-core-shadow));
   }
 
-  .nn-brand-instrument__core-aperture {
-    opacity: 0.94;
-  }
-
-  .nn-brand-instrument__core-brandmark-side {
-    filter: brightness(0.72) saturate(0.8);
-  }
-
   .nn-brand-instrument__core-brandmark {
-    filter: drop-shadow(0 1px 1px var(--nn-brand-core-shadow));
-  }
-
-  .nn-brand-instrument__core-rivets {
     filter: drop-shadow(0 1px 1px var(--nn-brand-core-shadow));
   }
 
