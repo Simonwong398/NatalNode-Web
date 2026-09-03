@@ -13,6 +13,10 @@ import {
 } from '@/lib/localization';
 import type { SeoMetadata } from '@/lib/seo';
 import { formatUiMessage, getUiMessage, type UiMessageKey } from '@/lib/ui-catalog';
+import {
+  getEducationalChart,
+  getEducationalChartPresentationPolicy
+} from '@/features/learn/educational-chart-source';
 
 interface Props {
   readonly locale?: SupportedLocale;
@@ -33,6 +37,8 @@ const locale = getPresentationLocale(
   Astro.url.pathname,
   requestedLocale ?? Astro.locals.locale
 );
+const educationalChart = await getEducationalChart();
+const educationalChartPresentationPolicy = getEducationalChartPresentationPolicy();
 const localize = (path: string): string => getLocalizedPath(locale, path);
 const foundationsUi = getFoundationsUiMessages(locale);
 const t = (key: UiMessageKey): string => getUiMessage(locale, key);
@@ -94,6 +100,9 @@ function formatDate(date: Date): string {
       title={t('learn.landing.title')}
       description={t('learn.landing.description')}
       titleId="learn-hero-title"
+      chart={educationalChart}
+      locale={locale}
+      presentationPolicy={educationalChartPresentationPolicy}
     />
 
     <FoundationsCourseSummary client:load locale={locale} ui={foundationsUi} />

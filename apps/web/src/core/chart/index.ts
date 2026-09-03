@@ -4,3 +4,8 @@ export type {
   ChartInstrumentKind,
   ChartRendererProps
 } from './ChartRenderer';
+export {
+  CHART_SEMANTIC_FOCUSES,
+  isChartSemanticFocus,
+  type ChartSemanticFocus
+} from './chart-semantic-focus.js';

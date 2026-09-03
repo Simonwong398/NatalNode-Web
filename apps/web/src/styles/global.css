@@ -472,6 +472,38 @@
     transition: opacity var(--nn-motion-fast) var(--nn-motion-ease);
   }
 
+  /* Semantic focus changes only layer emphasis; supplied geometry stays put. */
+  .nn-chart-layer {
+    transition: opacity var(--nn-motion-fast) var(--nn-motion-ease);
+  }
+
+  .nn-chart-renderer[data-semantic-focus='planets'] .nn-chart-layer--signs,
+  .nn-chart-renderer[data-semantic-focus='planets'] .nn-chart-layer--houses,
+  .nn-chart-renderer[data-semantic-focus='planets'] .nn-chart-layer--aspects {
+    opacity: 0.38;
+  }
+
+  .nn-chart-renderer[data-semantic-focus='signs'] .nn-chart-layer--planets,
+  .nn-chart-renderer[data-semantic-focus='signs'] .nn-chart-layer--houses,
+  .nn-chart-renderer[data-semantic-focus='signs'] .nn-chart-layer--aspects {
+    opacity: 0.38;
+  }
+
+  .nn-chart-renderer[data-semantic-focus='houses'] .nn-chart-layer--planets,
+  .nn-chart-renderer[data-semantic-focus='houses'] .nn-chart-layer--signs,
+  .nn-chart-renderer[data-semantic-focus='houses'] .nn-chart-layer--aspects {
+    opacity: 0.34;
+  }
+
+  .nn-chart-renderer[data-semantic-focus='aspects'] .nn-chart-layer--planets {
+    opacity: 0.72;
+  }
+
+  .nn-chart-renderer[data-semantic-focus='aspects'] .nn-chart-layer--signs,
+  .nn-chart-renderer[data-semantic-focus='aspects'] .nn-chart-layer--houses {
+    opacity: 0.34;
+  }
+
   .nn-chart-aspect--active {
     filter: drop-shadow(0 0 3px rgb(118 215 232 / 0.34));
   }
@@ -760,7 +792,8 @@
 
   @media (prefers-reduced-motion: reduce) {
     .nn-chart-planet,
-    .nn-chart-aspect {
+    .nn-chart-aspect,
+    .nn-chart-layer {
       transition: none;
     }
 
@@ -792,7 +825,7 @@
     display: flex;
     align-items: center;
     justify-content: flex-end;
-    pointer-events: none;
+    pointer-events: auto;
   }
 
   .nn-editorial-hero__media::after {
@@ -811,6 +844,105 @@
     width: min(100%, 36rem);
     max-width: 36rem;
     transform: none;
+  }
+
+  .nn-educational-chart-instrument {
+    display: grid;
+    width: min(100%, 34rem);
+    max-width: 34rem;
+    min-width: 0;
+    gap: 0.55rem;
+    padding-block: 0.25rem;
+  }
+
+  .nn-educational-chart-instrument__chart-wrap {
+    min-width: 0;
+  }
+
+  .nn-educational-chart-instrument__chart-label {
+    margin-top: 0.25rem;
+    color: var(--nn-text-muted);
+    font-size: 0.6875rem;
+    letter-spacing: 0.08em;
+    line-height: 1.3;
+    text-transform: uppercase;
+  }
+
+  .nn-educational-chart-instrument__chart-wrap > div {
+    width: min(100%, 20rem);
+    margin-inline: auto;
+  }
+
+  .nn-educational-chart-instrument__controls {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 0.4rem;
+    min-width: 0;
+  }
+
+  .nn-educational-chart-instrument__control {
+    min-width: 0;
+    min-height: 2.25rem;
+    padding: 0.45rem 0.35rem;
+    border: 1px solid var(--nn-border-default);
+    border-radius: var(--nn-radius-small);
+    color: var(--nn-text-secondary);
+    background: color-mix(in srgb, var(--nn-surface-base) 68%, transparent);
+    font-size: 0.6875rem;
+    font-weight: 650;
+    line-height: 1.2;
+    overflow-wrap: anywhere;
+    transition: color var(--nn-motion-fast) var(--nn-motion-ease), border-color var(--nn-motion-fast) var(--nn-motion-ease), background-color var(--nn-motion-fast) var(--nn-motion-ease), box-shadow var(--nn-motion-fast) var(--nn-motion-ease);
+  }
+
+  .nn-educational-chart-instrument__control:hover,
+  .nn-educational-chart-instrument__control--preview {
+    border-color: var(--nn-accent-supporting);
+    color: var(--nn-text-primary);
+    background: color-mix(in srgb, var(--nn-accent-supporting) 10%, var(--nn-surface-base));
+  }
+
+  .nn-educational-chart-instrument__control--selected {
+    border-color: var(--nn-accent-primary);
+    color: var(--nn-text-primary);
+    background: color-mix(in srgb, var(--nn-accent-primary) 14%, var(--nn-surface-base));
+    box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--nn-accent-primary) 28%, transparent);
+  }
+
+  .nn-educational-chart-instrument__control:focus-visible {
+    outline: 2px solid var(--nn-focus-ring);
+    outline-offset: 3px;
+  }
+
+  .nn-educational-chart-instrument__details {
+    min-width: 0;
+    padding-top: 0.65rem;
+    border-top: 1px solid color-mix(in srgb, var(--nn-border-default) 72%, transparent);
+  }
+
+  .nn-educational-chart-instrument__details-label {
+    color: var(--nn-accent-supporting);
+    font-size: 0.75rem;
+    font-weight: 700;
+    line-height: 1.35;
+  }
+
+  .nn-educational-chart-instrument__lesson-link {
+    display: inline-flex;
+    margin-top: 0.45rem;
+    max-width: 100%;
+    color: var(--nn-accent-primary);
+    font-size: 0.75rem;
+    font-weight: 700;
+    line-height: 1.35;
+    overflow-wrap: anywhere;
+    text-decoration: underline;
+    text-decoration-color: color-mix(in srgb, var(--nn-accent-primary) 55%, transparent);
+    text-underline-offset: 0.2em;
+  }
+
+  .nn-educational-chart-instrument__lesson-link:hover {
+    color: var(--nn-text-primary);
   }
 
   .nn-editorial-hero__content {
@@ -997,7 +1129,8 @@
       position: relative;
       inset: auto;
       width: 100%;
-      height: clamp(246px, calc(85vw - 26px), 294px);
+      height: auto;
+      min-height: 0;
       margin-top: clamp(16px, 5vw, 24px);
       align-items: flex-end;
       justify-content: center;
@@ -1012,12 +1145,29 @@
       max-width: 22rem;
     }
 
+    .nn-educational-chart-instrument {
+      width: 100%;
+      max-width: 24rem;
+    }
+
+    .nn-educational-chart-instrument__chart-wrap > div {
+      width: min(100%, 19rem);
+    }
+
+    .nn-educational-chart-instrument__controls {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
     .nn-brand-instrument__reference {
       opacity: 0.72;
     }
   }
 
   @media (prefers-reduced-motion: reduce) {
+    .nn-educational-chart-instrument__control {
+      transition: none;
+    }
+
     .nn-brand-instrument__orbit--cyan,
     .nn-brand-instrument__orbit--silver,
     .nn-brand-instrument__core {

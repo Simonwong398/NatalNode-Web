@@ -47,12 +47,14 @@ import {
 } from './geometry';
 import type { ChartPresentationPolicy } from './chart-presentation-policy.js';
 import { chartUi, chartUiFormat } from './chart-ui.js';
+import type { ChartSemanticFocus } from './chart-semantic-focus.js';
 
 export type ChartRendererProps = {
   chart: ChartInstrumentData;
   locale?: SupportedLocale;
   presentationPolicy: ChartPresentationPolicy;
   chartKind?: ChartInstrumentKind;
+  semanticFocus?: ChartSemanticFocus;
 };
 
 export type ChartInstrumentData = ChartResult | SkySnapshotResult;
@@ -792,7 +794,8 @@ export default function ChartRenderer({
   chart,
   locale,
   presentationPolicy,
-  chartKind = 'natal'
+  chartKind = 'natal',
+  semanticFocus = 'none'
 }: ChartRendererProps) {
   const rendererId = useId().replace(/:/g, '');
   const titleId = `${rendererId}-title`;
@@ -885,6 +888,7 @@ export default function ChartRenderer({
       data-chart-instrument="true"
       data-chart-kind={chartKind}
       data-presentation-mode={presentationPolicy.mode}
+      data-semantic-focus={semanticFocus}
     >
       <svg
         aria-describedby={descriptionId}
@@ -961,7 +965,12 @@ export default function ChartRenderer({
         </g>
 
         {/* Zodiac: the canonical twelve sectors remain the primary ring. */}
-        <g aria-label={zodiacSectorsLabel} role="group">
+        <g
+          aria-label={zodiacSectorsLabel}
+          className="nn-chart-layer nn-chart-layer--signs"
+          data-chart-layer="signs"
+          role="group"
+        >
           {ZODIAC_SIGNS.map((sign, index) => {
             const startLongitude = index * 30;
             const label = longitudeToPoint(startLongitude + 15, (ZODIAC_OUTER_RADIUS + ZODIAC_INNER_RADIUS) / 2);
@@ -1045,36 +1054,51 @@ export default function ChartRenderer({
         ) : null}
 
         {/* Houses and angles are rendered only from supplied facts and policy. */}
-        {presentationPolicy.showHouses && !isSkyChart ? (
-          <>
-            <circle
-              cx={CHART_CENTER}
-              cy={CHART_CENTER}
-              fill="none"
-              r={HOUSE_INNER_RADIUS}
-              stroke={CHART_COLORS.house}
-              strokeOpacity="0.42"
-              strokeWidth="1.1"
-            />
-            <g aria-label={chartUi(locale, 'chart.houseCusps')} role="group">
-              {houseCusps.map((cusp) => renderHouseCusp(cusp, locale))}
-            </g>
-          </>
-        ) : null}
+        <g
+          className="nn-chart-layer nn-chart-layer--houses"
+          data-chart-layer="houses"
+        >
+          {presentationPolicy.showHouses && !isSkyChart ? (
+            <>
+              <circle
+                cx={CHART_CENTER}
+                cy={CHART_CENTER}
+                fill="none"
+                r={HOUSE_INNER_RADIUS}
+                stroke={CHART_COLORS.house}
+                strokeOpacity="0.42"
+                strokeWidth="1.1"
+              />
+              <g aria-label={chartUi(locale, 'chart.houseCusps')} role="group">
+                {houseCusps.map((cusp) => renderHouseCusp(cusp, locale))}
+              </g>
+            </>
+          ) : null}
 
-        {angles.length > 0 ? (
-          <g aria-label={anglesLabel} role="group">
-            {angles.map((angle) => renderAngle(angle, locale))}
-          </g>
-        ) : null}
+          {angles.length > 0 ? (
+            <g aria-label={anglesLabel} role="group">
+              {angles.map((angle) => renderAngle(angle, locale))}
+            </g>
+          ) : null}
+        </g>
 
         {/* Aspects are subordinate, and focus state is presentation-only. */}
-        <g aria-label={suppliedAspectsLabel} role="group">
+        <g
+          aria-label={suppliedAspectsLabel}
+          className="nn-chart-layer nn-chart-layer--aspects"
+          data-chart-layer="aspects"
+          role="group"
+        >
           {renderableAspects.map((aspect, index) => renderAspect(aspect, index, locale, activePlanetId, isShowcase))}
         </g>
 
         {/* Bodies stay at their supplied longitudes; only labels are separated. */}
-        <g aria-label={suppliedBodiesLabel} role="group">
+        <g
+          aria-label={suppliedBodiesLabel}
+          className="nn-chart-layer nn-chart-layer--planets"
+          data-chart-layer="planets"
+          role="group"
+        >
           {bodyDisplays.map((display) => renderBody({
             connectedBodyIds,
             display,

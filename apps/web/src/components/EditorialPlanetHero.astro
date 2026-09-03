@@ -1,18 +1,27 @@
 ---
-import NatalNodeBrandInstrument from '@/components/brand/NatalNodeBrandInstrument.astro';
+import type { ChartResult } from '@natalnode/contracts';
+import EducationalChartInstrument from '@/features/learn/EducationalChartInstrument';
+import type { ChartPresentationPolicy } from '@/core/chart/chart-presentation-policy';
+import type { SupportedLocale } from '@/lib/localization';
 
 interface Props {
   eyebrow: string;
   title: string;
   description: string;
   titleId?: string;
+  chart: ChartResult;
+  locale: SupportedLocale;
+  presentationPolicy: ChartPresentationPolicy;
 }
 
 const {
   eyebrow,
   title,
   description,
-  titleId = 'editorial-hero-title'
+  titleId = 'editorial-hero-title',
+  chart,
+  locale,
+  presentationPolicy
 } = Astro.props;
 ---
 
@@ -23,7 +32,12 @@ const {
     <p class="nn-type-body mt-4 max-w-2xl">{description}</p>
   </div>
 
-  <div class="nn-editorial-hero__media" aria-hidden="true">
-    <NatalNodeBrandInstrument class="nn-editorial-hero__instrument" />
+  <div class="nn-editorial-hero__media">
+    <EducationalChartInstrument
+      client:only="react"
+      chart={chart}
+      locale={locale}
+      presentationPolicy={presentationPolicy}
+    />
   </div>
 </section>
