@@ -172,3 +172,20 @@ test('Learn embeds a reserved focus-card slot and reuses the shared expandable c
   assert.match(chartFocusDialogSource, /aria-modal="true"/u);
   assert.match(chartFocusDialogSource, /semanticFocus=\{semanticFocus\}/u);
 });
+
+test('Learn keeps semantic copy presentation stable and isolates its expanded dialog layout', () => {
+  assert.match(educationalComponentSource, /EDUCATIONAL_DETAIL_FOCUSES/u);
+  assert.match(educationalComponentSource, /aria-hidden=\{!isActive\}/u);
+  assert.match(educationalComponentSource, /tabIndex=\{isActive \? 0 : -1\}/u);
+  assert.match(educationalComponentSource, /layoutVariant="educational"/u);
+  assert.match(educationalComponentSource, /\bportal\b/u);
+  assert.match(chartStylesSource, /nn-educational-chart-instrument__details\s*\{[\s\S]*display:\s*grid/u);
+  assert.match(chartStylesSource, /nn-educational-chart-instrument__details-panel\s*\{[\s\S]*grid-area:\s*1 \/ 1[\s\S]*visibility:\s*hidden[\s\S]*pointer-events:\s*none/u);
+  assert.match(chartStylesSource, /nn-chart-focus-dialog--educational[\s\S]*grid-template-rows:\s*auto minmax\(0, 1fr\)/u);
+  assert.match(chartStylesSource, /nn-chart-focus-dialog--educational[\s\S]*grid-template-columns:\s*minmax\(0, 1fr\)\s+minmax\(17rem, 23rem\)/u);
+  assert.match(chartFocusDialogSource, /createPortal\(dialog, document\.body\)/u);
+  assert.match(chartFocusDialogSource, /focusCardLayout = 'inline'/u);
+  assert.match(chartFocusDialogSource, /layoutVariant = 'default'/u);
+  assert.match(chartFocusDialogSource, /portal = false/u);
+  assert.match(chartFocusDialogSource, /focusCardLayout=\{focusCardLayout\}/u);
+});

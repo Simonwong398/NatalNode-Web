@@ -1,4 +1,5 @@
 import { useId, type Ref } from 'react';
+import { createPortal } from 'react-dom';
 import { chartUi } from '@/core/chart/chart-ui';
 import type { SupportedLocale } from '../../lib/localization.js';
 import {
@@ -6,16 +7,22 @@ import {
   type ChartInstrumentData,
   type ChartInstrumentKind
 } from '@/core/chart';
+import type { ChartFocusCardLayout } from '@/core/chart/ChartRenderer';
 import type { ChartPresentationPolicy } from '@/core/chart/chart-presentation-policy';
 import type { ChartSemanticFocus } from '@/core/chart/chart-semantic-focus';
+
+export type ChartFocusDialogLayoutVariant = 'default' | 'educational';
 
 export type ChartFocusDialogProps = {
   chart: ChartInstrumentData;
   chartKind?: ChartInstrumentKind;
   closeButtonRef: Ref<HTMLButtonElement>;
   dialogId: string;
+  focusCardLayout?: ChartFocusCardLayout;
+  layoutVariant?: ChartFocusDialogLayoutVariant;
   locale?: SupportedLocale;
   onClose: () => void;
+  portal?: boolean;
   presentationPolicy: ChartPresentationPolicy;
   semanticFocus?: ChartSemanticFocus;
 };
@@ -26,8 +33,11 @@ export default function ChartFocusDialog({
   chartKind = 'natal',
   closeButtonRef,
   dialogId,
+  focusCardLayout = 'inline',
+  layoutVariant = 'default',
   locale,
   onClose,
+  portal = false,
   presentationPolicy,
   semanticFocus
 }: ChartFocusDialogProps) {
@@ -35,12 +45,12 @@ export default function ChartFocusDialog({
   const titleId = `${focusId}-title`;
   const descriptionId = `${focusId}-description`;
 
-  return (
+  const dialog = (
     <div
       aria-describedby={descriptionId}
       aria-labelledby={titleId}
       aria-modal="true"
-      className="nn-chart-focus-dialog"
+      className={`nn-chart-focus-dialog${layoutVariant === 'educational' ? ' nn-chart-focus-dialog--educational' : ''}`}
       id={dialogId}
       onMouseDown={(event) => {
         if (event.target === event.currentTarget) onClose();
@@ -80,9 +90,12 @@ export default function ChartFocusDialog({
             locale={locale}
             presentationPolicy={presentationPolicy}
             semanticFocus={semanticFocus}
+            focusCardLayout={focusCardLayout}
           />
         </div>
       </section>
     </div>
   );
+
+  return portal ? createPortal(dialog, document.body) : dialog;
 }

@@ -18,6 +18,11 @@ import {
 import { getLocalizedPath, type SupportedLocale } from '@/lib/localization';
 import { formatUiMessage, getUiMessage } from '@/lib/ui-catalog';
 
+const EDUCATIONAL_DETAIL_FOCUSES = [
+  'none',
+  ...EDUCATIONAL_CHART_LAYER_ORDER
+] as const satisfies readonly ChartSemanticFocus[];
+
 type EducationalChartInstrumentProps = {
   chart: ChartResult;
   locale: SupportedLocale;
@@ -41,14 +46,6 @@ export default function EducationalChartInstrument({
   const [expandedSemanticFocus, setExpandedSemanticFocus] = useState<ChartSemanticFocus>('none');
   const [isChartFocusOpen, setIsChartFocusOpen] = useState(false);
   const activeFocus = previewFocus ?? selectedFocus;
-  const activeDefinition = getEducationalChartLayerDefinition(activeFocus);
-  const activeLesson = getEducationalChartLesson(activeFocus);
-  const activeLabel = activeDefinition === null
-    ? getUiMessage(locale, 'learn.educationalChart.chartLabel')
-    : getUiMessage(locale, activeDefinition.labelKey);
-  const activeDescription = activeDefinition === null
-    ? getUiMessage(locale, 'learn.educationalChart.overviewDescription')
-    : getUiMessage(locale, activeDefinition.descriptionKey);
 
   const toggleSelectedFocus = (layer: EducationalChartLayer) => {
     setSelectedFocus((current) => current === layer ? 'none' : layer);
@@ -165,22 +162,44 @@ export default function EducationalChartInstrument({
           className="nn-educational-chart-instrument__details"
           id={detailsId}
         >
-          <p className="nn-educational-chart-instrument__details-label">
-            {activeLabel}
-          </p>
-          <p className="nn-type-body-small">
-            {activeDescription}
-          </p>
-          {activeLesson !== null && activeDefinition !== null ? (
-            <a
-              className="nn-educational-chart-instrument__lesson-link"
-              href={getLocalizedPath(locale, `/learn/foundations/${activeLesson.slug}/`)}
-            >
-              {formatUiMessage(locale, 'learn.educationalChart.learnAbout', {
-                layer: activeLabel
-              })}
-            </a>
-          ) : null}
+          {EDUCATIONAL_DETAIL_FOCUSES.map((focus) => {
+            const definition = getEducationalChartLayerDefinition(focus);
+            const lesson = getEducationalChartLesson(focus);
+            const label = definition === null
+              ? getUiMessage(locale, 'learn.educationalChart.chartLabel')
+              : getUiMessage(locale, definition.labelKey);
+            const description = definition === null
+              ? getUiMessage(locale, 'learn.educationalChart.overviewDescription')
+              : getUiMessage(locale, definition.descriptionKey);
+            const isActive = activeFocus === focus;
+
+            return (
+              <div
+                aria-hidden={!isActive}
+                className={`nn-educational-chart-instrument__details-panel${isActive ? ' nn-educational-chart-instrument__details-panel--active' : ''}`}
+                data-focus={focus}
+                key={focus}
+              >
+                <p className="nn-educational-chart-instrument__details-label">
+                  {label}
+                </p>
+                <p className="nn-type-body-small">
+                  {description}
+                </p>
+                {lesson !== null && definition !== null ? (
+                  <a
+                    className="nn-educational-chart-instrument__lesson-link"
+                    href={getLocalizedPath(locale, `/learn/foundations/${lesson.slug}/`)}
+                    tabIndex={isActive ? 0 : -1}
+                  >
+                    {formatUiMessage(locale, 'learn.educationalChart.learnAbout', {
+                      layer: label
+                    })}
+                  </a>
+                ) : null}
+              </div>
+            );
+          })}
         </div>
       </div>
 
@@ -191,8 +210,11 @@ export default function EducationalChartInstrument({
           dialogId={focusDialogId}
           locale={locale}
           onClose={() => setIsChartFocusOpen(false)}
+          layoutVariant="educational"
+          portal
           presentationPolicy={withChartPresentationMode(presentationPolicy, 'expanded')}
           semanticFocus={expandedSemanticFocus}
+          focusCardLayout="reserved"
         />
       ) : null}
     </>
