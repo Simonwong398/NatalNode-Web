@@ -5,13 +5,13 @@ import type {
   SkyCurrentAspect,
   SkySnapshotResult
 } from '@natalnode/contracts';
-import { ChartRenderer } from '@/features/chart-renderer';
+import { ChartRenderer } from '@/core/chart';
 import ChartFocusDialog from '@/features/chart-workspace/ChartFocusDialog';
 import {
   createSkyPresentationPolicy,
   withChartPresentationMode
-} from '@/features/chart-workspace/chart-presentation-policy';
-import { getAstrologyGlyph } from '@/components/astrology/AstrologyGlyph';
+} from '@/core/chart/chart-presentation-policy';
+import { getAstrologyGlyph } from '@/core/astrology-taxonomy/AstrologyGlyph';
 import { engineClient } from '@/lib/engine-client';
 import {
   DEFAULT_LOCALE,
@@ -20,13 +20,13 @@ import {
 import {
   resolveAstrologyDomainTerm,
   type AstrologyGlossaryDomainKind
-} from '@/lib/astrology-glossary';
+} from '@/core/astrology-taxonomy/astrology-glossary';
 import {
   chartCalculationStatus,
   chartUi,
   chartUiFormat,
   chartWarningMessage
-} from '../chart-experience/chart-ui.js';
+} from '@/core/chart/chart-ui';
 
 const UNKNOWN_GLYPH = '·';
 

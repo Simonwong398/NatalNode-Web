@@ -4,7 +4,7 @@ import { ChartWorkspace } from '@/features/chart-workspace';
 import { engineClient } from '@/lib/engine-client';
 import type { SupportedLocale } from '@/lib/localization';
 import { toChartRequest } from './chart-request';
-import { chartUi } from './chart-ui.js';
+import { chartUi } from '@/core/chart/chart-ui';
 import type { CalculatedChartSnapshot } from './types';
 
 interface ChartExperienceProps {

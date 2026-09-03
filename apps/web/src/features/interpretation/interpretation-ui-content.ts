@@ -5,14 +5,16 @@ import {
 import {
   resolveAstrologyDomainTerm,
   type AstrologyGlossaryDomainKind
-} from '../../lib/astrology-glossary.js';
+} from '@/core/astrology-taxonomy/astrology-glossary.js';
+import type {
+  SupportedAspectType,
+  SupportedPlanet
+} from '@/core/astrology-taxonomy/chart-taxonomy';
 import type {
   AspectDynamic,
   HouseDomain,
   PlanetMeaning,
-  SignStyle,
-  SupportedAspectType,
-  SupportedPlanet
+  SignStyle
 } from './interpretation-content.js';
 
 type InterpretationCopyResult = {

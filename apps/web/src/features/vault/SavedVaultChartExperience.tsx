@@ -11,7 +11,7 @@ import type {
   VaultChartRecord
 } from '@natalnode/contracts';
 import ChartWorkspaceView from '@/features/chart-workspace/ChartWorkspaceView';
-import { createChartPresentationPolicy } from '@/features/chart-workspace/chart-presentation-policy';
+import { createChartPresentationPolicy } from '@/core/chart/chart-presentation-policy';
 import VaultChartManagement from './VaultChartManagement';
 import { vaultUi } from './vault-ui.js';
 

@@ -55,6 +55,26 @@ const LOCALIZATION_URL = new URL(
   '../../dist/result-disclosure-characterization/lib/localization.js',
   import.meta.url
 );
+const CHART_UI_URL = new URL(
+  '../../dist/result-disclosure-characterization/core/chart/chart-ui.js',
+  import.meta.url
+);
+const CHART_POLICY_URL = new URL(
+  '../../dist/result-disclosure-characterization/core/chart/chart-presentation-policy.js',
+  import.meta.url
+);
+const ASTROLOGY_GLYPH_URL = new URL(
+  '../../dist/result-disclosure-characterization/core/astrology-taxonomy/AstrologyGlyph.js',
+  import.meta.url
+);
+const ASTROLOGY_GLOSSARY_URL = new URL(
+  '../../dist/result-disclosure-characterization/core/astrology-taxonomy/astrology-glossary.js',
+  import.meta.url
+);
+const CHART_TAXONOMY_URL = new URL(
+  '../../dist/result-disclosure-characterization/core/astrology-taxonomy/chart-taxonomy.js',
+  import.meta.url
+);
 const PROXIES_URL = new URL('./result-disclosure-proxies.mjs', import.meta.url);
 
 let activeScope;
@@ -101,7 +121,7 @@ async function loadComponent() {
       resolve(specifier, context, nextResolve) {
         if (
           specifier === '@/features/calculation-details' ||
-          specifier === '@/features/chart-renderer' ||
+          specifier === '@/core/chart' ||
           specifier === '@/features/interpretation'
         ) {
           return nextResolve(PROXIES_URL.href, context);
@@ -131,6 +151,29 @@ async function loadComponent() {
 
         if (specifier === '@/lib/localization') {
           return nextResolve(LOCALIZATION_URL.href, context);
+        }
+
+        if (specifier === '@/core/chart/chart-ui') {
+          return nextResolve(CHART_UI_URL.href, context);
+        }
+
+        if (specifier === '@/core/chart/chart-presentation-policy') {
+          return nextResolve(CHART_POLICY_URL.href, context);
+        }
+
+        if (specifier === '@/core/astrology-taxonomy/AstrologyGlyph') {
+          return nextResolve(ASTROLOGY_GLYPH_URL.href, context);
+        }
+
+        if (
+          specifier === '@/core/astrology-taxonomy/astrology-glossary' ||
+          specifier === '@/core/astrology-taxonomy/astrology-glossary.js'
+        ) {
+          return nextResolve(ASTROLOGY_GLOSSARY_URL.href, context);
+        }
+
+        if (specifier === '@/core/astrology-taxonomy/chart-taxonomy') {
+          return nextResolve(CHART_TAXONOMY_URL.href, context);
         }
 
         return nextResolve(specifier, context);

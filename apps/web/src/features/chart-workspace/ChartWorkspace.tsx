@@ -2,7 +2,7 @@ import type { Ref } from 'react';
 import type { CalculatedChartSnapshot } from '@/features/chart-experience/types';
 import type { SupportedLocale } from '@/lib/localization';
 import SaveChartPanel from '@/features/vault/SaveChartPanel';
-import { createChartPresentationPolicy } from './chart-presentation-policy';
+import { createChartPresentationPolicy } from '@/core/chart/chart-presentation-policy';
 import ChartWorkspaceView from './ChartWorkspaceView';
 
 export type ChartWorkspaceProps = {

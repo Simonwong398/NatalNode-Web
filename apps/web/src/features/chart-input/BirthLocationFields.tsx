@@ -1,5 +1,5 @@
 import type { SupportedLocale } from '../../lib/localization.js';
-import { chartUi } from '../chart-experience/chart-ui.js';
+import { chartUi } from '@/core/chart/chart-ui';
 
 interface BirthLocationFieldsProps {
   error?: string;

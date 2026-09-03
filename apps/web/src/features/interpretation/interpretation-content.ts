@@ -1,17 +1,7 @@
-export const SUPPORTED_PLANETS = [
-  'Sun',
-  'Moon',
-  'Mercury',
-  'Venus',
-  'Mars',
-  'Jupiter',
-  'Saturn',
-  'Uranus',
-  'Neptune',
-  'Pluto'
-] as const;
-
-export type SupportedPlanet = (typeof SUPPORTED_PLANETS)[number];
+import type {
+  SupportedAspectType,
+  SupportedPlanet
+} from '@/core/astrology-taxonomy/chart-taxonomy';
 
 export type PlanetMeaning = {
   focus: string;
@@ -29,13 +19,6 @@ export type HouseDomain = {
   expression: string;
   tension: string;
 };
-
-export type SupportedAspectType =
-  | 'conjunction'
-  | 'opposition'
-  | 'trine'
-  | 'square'
-  | 'sextile';
 
 export type AspectDynamic = {
   quality: string;

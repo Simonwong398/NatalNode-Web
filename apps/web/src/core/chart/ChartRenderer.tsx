@@ -19,7 +19,8 @@ import type {
 import {
   getAstrologyGlyph,
   getAstrologyNotation
-} from '@/components/astrology/AstrologyGlyph';
+} from '@/core/astrology-taxonomy/AstrologyGlyph';
+import { ZODIAC_SIGNS } from '@/core/astrology-taxonomy/chart-taxonomy';
 import {
   DEFAULT_LOCALE,
   type SupportedLocale
@@ -27,7 +28,7 @@ import {
 import {
   getAstrologyGlossaryNotation,
   resolveAstrologyDomainTerm
-} from '@/lib/astrology-glossary.js';
+} from '@/core/astrology-taxonomy/astrology-glossary.js';
 import {
   ANGLE_OUTER_RADIUS,
   ASPECT_ENDPOINT_RADIUS,
@@ -44,8 +45,8 @@ import {
   longitudeToPoint,
   radialLine
 } from './geometry';
-import type { ChartPresentationPolicy } from '@/features/chart-workspace/chart-presentation-policy';
-import { chartUi, chartUiFormat } from '../chart-experience/chart-ui.js';
+import type { ChartPresentationPolicy } from './chart-presentation-policy.js';
+import { chartUi, chartUiFormat } from './chart-ui.js';
 
 export type ChartRendererProps = {
   chart: ChartInstrumentData;
@@ -106,21 +107,6 @@ const CHART_COLORS = {
   textSecondary: 'var(--nn-text-secondary)',
   zodiac: 'var(--nn-chart-zodiac)'
 } as const;
-
-const ZODIAC_SIGNS = [
-  'Aries',
-  'Taurus',
-  'Gemini',
-  'Cancer',
-  'Leo',
-  'Virgo',
-  'Libra',
-  'Scorpio',
-  'Sagittarius',
-  'Capricorn',
-  'Aquarius',
-  'Pisces'
-] as const;
 
 const ASPECT_STYLES: Record<string, AspectStyle> = {
   conjunction: {

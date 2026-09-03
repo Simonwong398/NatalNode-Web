@@ -1,12 +1,12 @@
 import { useId, type Ref } from 'react';
-import { chartUi } from '../chart-experience/chart-ui.js';
+import { chartUi } from '@/core/chart/chart-ui';
 import type { SupportedLocale } from '../../lib/localization.js';
 import {
   ChartRenderer,
   type ChartInstrumentData,
   type ChartInstrumentKind
-} from '@/features/chart-renderer';
-import type { ChartPresentationPolicy } from './chart-presentation-policy';
+} from '@/core/chart';
+import type { ChartPresentationPolicy } from '@/core/chart/chart-presentation-policy';
 
 export type ChartFocusDialogProps = {
   chart: ChartInstrumentData;

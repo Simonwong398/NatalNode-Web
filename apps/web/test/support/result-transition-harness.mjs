@@ -34,6 +34,10 @@ const CHART_REQUEST_URL = new URL(
   '../../dist/result-transition-characterization/features/chart-experience/chart-request.js',
   import.meta.url
 );
+const CHART_UI_URL = new URL(
+  '../../dist/result-transition-characterization/core/chart/chart-ui.js',
+  import.meta.url
+);
 const PROXIES_URL = new URL('./result-transition-proxies.mjs', import.meta.url);
 
 let activeScope;
@@ -86,6 +90,10 @@ async function loadComponent() {
 
         if (specifier === './chart-request' && context.parentURL === EXPERIENCE_URL.href) {
           return nextResolve(CHART_REQUEST_URL.href, context);
+        }
+
+        if (specifier === '@/core/chart/chart-ui') {
+          return nextResolve(CHART_UI_URL.href, context);
         }
 
         return nextResolve(specifier, context);

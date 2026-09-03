@@ -5,7 +5,7 @@ import {
   getLocalizedPath,
   type SupportedLocale
 } from '../../lib/localization.js';
-import { chartUi, chartUiFormat } from '../chart-experience/chart-ui.js';
+import { chartUi, chartUiFormat } from '@/core/chart/chart-ui';
 
 type ElementName = 'Fire' | 'Earth' | 'Air' | 'Water';
 type ModalityName = 'Cardinal' | 'Fixed' | 'Mutable';

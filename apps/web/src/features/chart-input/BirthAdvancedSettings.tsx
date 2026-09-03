@@ -3,8 +3,8 @@ import {
   DEFAULT_LOCALE,
   type SupportedLocale
 } from '../../lib/localization.js';
-import { resolveAstrologyDomainTerm } from '../../lib/astrology-glossary.js';
-import { chartUi } from '../chart-experience/chart-ui.js';
+import { resolveAstrologyDomainTerm } from '@/core/astrology-taxonomy/astrology-glossary';
+import { chartUi } from '@/core/chart/chart-ui';
 import type { HouseSystemSelection } from './types';
 
 interface BirthAdvancedSettingsProps {

@@ -33,7 +33,7 @@ import {
   serializeFoundationsProgress,
   writeFoundationsProgress
 } from '../dist/learn-foundations-characterization/features/learn/foundations/progress.js';
-import { resolveAstrologyTerm } from '../dist/learn-foundations-characterization/lib/astrology-glossary.js';
+import { resolveAstrologyTerm } from '../dist/learn-foundations-characterization/core/astrology-taxonomy/astrology-glossary.js';
 import {
   FOUNDATIONS_FINAL_ASSESSMENT_ID,
   FOUNDATIONS_FINAL_ASSESSMENT_PASS_THRESHOLD,

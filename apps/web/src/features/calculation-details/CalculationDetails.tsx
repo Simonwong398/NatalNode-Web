@@ -4,12 +4,12 @@ import {
   DEFAULT_LOCALE,
   type SupportedLocale
 } from '../../lib/localization.js';
-import { resolveAstrologyDomainTerm } from '../../lib/astrology-glossary.js';
+import { resolveAstrologyDomainTerm } from '@/core/astrology-taxonomy/astrology-glossary';
 import {
   chartUi,
   chartWarningMessage
-} from '../chart-experience/chart-ui.js';
-import type { ChartPresentationPolicy } from '@/features/chart-workspace/chart-presentation-policy';
+} from '@/core/chart/chart-ui';
+import type { ChartPresentationPolicy } from '@/core/chart/chart-presentation-policy';
 
 export type CalculationDetailsProps = {
   chart: ChartResult;

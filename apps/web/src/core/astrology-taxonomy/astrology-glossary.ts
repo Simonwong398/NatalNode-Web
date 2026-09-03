@@ -2,7 +2,7 @@ import {
   DEFAULT_LOCALE,
   parseSupportedLocale,
   type SupportedLocale
-} from './localization.js';
+} from '../../lib/localization.js';
 import {
   ASTROLOGY_GLOSSARY_APPROVED_P0_VARIANT_SEEDS
 } from './astrology-glossary-production-variants.js';

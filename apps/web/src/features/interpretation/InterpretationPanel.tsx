@@ -1,12 +1,12 @@
 import { useId, useState } from 'react';
 import type { ChartResult } from '@natalnode/contracts';
 import type { SupportedLocale } from '@/lib/localization';
-import { chartUi, chartUiFormat } from '../chart-experience/chart-ui.js';
+import { chartUi, chartUiFormat } from '@/core/chart/chart-ui';
 import {
   createDeterministicInterpretation,
   type InterpretationItem
 } from './deterministic-interpretation';
-import type { ChartPresentationPolicy } from '@/features/chart-workspace/chart-presentation-policy';
+import type { ChartPresentationPolicy } from '@/core/chart/chart-presentation-policy';
 
 export type InterpretationPanelProps = {
   chart: ChartResult;

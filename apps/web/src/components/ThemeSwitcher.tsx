@@ -1,6 +1,6 @@
 import { useEffect, useState, type ChangeEvent } from 'react';
 import type { SupportedLocale } from '@/lib/localization';
-import { chartUi } from '@/features/chart-experience/chart-ui';
+import { chartUi } from '@/core/chart/chart-ui';
 
 export type ThemeMode = 'light' | 'dark' | 'auto';
 

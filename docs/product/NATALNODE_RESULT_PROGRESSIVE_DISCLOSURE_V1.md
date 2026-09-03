@@ -137,7 +137,7 @@ The active-section state has no visible desktop mode-switching role.
 | Calculation/configuration/provenance metadata and warnings | `CalculationDetails` | One native `details` disclosure, closed by default. |
 | New-result Vault persistence | `ChartWorkspace` injects `SaveChartPanel` | A complete save form appears below the Chart instrument. |
 | Result section navigation | `ChartWorkspaceView` | Available only on narrow screens. |
-| Unknown-time presentation availability | `chart-presentation-policy.ts` | Angles, houses, and house interpretation are suppressed. |
+| Unknown-time presentation availability | `core/chart/chart-presentation-policy.ts` | Angles, houses, and house interpretation are suppressed. |
 | Development disclosure | `ChartExperience` | Appears before the conditionally mounted result. |
 
 `ChartRenderer` must remain the owner of the wheel and its geometry.

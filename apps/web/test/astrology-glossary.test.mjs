@@ -18,7 +18,7 @@ import {
   isAstrologyGlossaryConceptId,
   resolveAstrologyDomainTerm,
   resolveAstrologyTerm
-} from '../dist/astrology-glossary-characterization/lib/astrology-glossary.js';
+} from '../dist/astrology-glossary-characterization/core/astrology-taxonomy/astrology-glossary.js';
 
 const EXPECTED_P0_COUNT = 51;
 const EXPECTED_P1_COUNT = 10;
@@ -473,7 +473,7 @@ test('availability is exposed for callers before rendering a professional term',
 test('representative P0 presentation paths depend on the glossary resolver and keep Class A separate', async () => {
   const [notationSource, rendererSource, workspaceSource, detailsSource, uiCatalogSource] = await Promise.all([
     readFile(new URL('../src/features/chart-workspace/AstrologicalNotation.tsx', import.meta.url), 'utf8'),
-    readFile(new URL('../src/features/chart-renderer/ChartRenderer.tsx', import.meta.url), 'utf8'),
+    readFile(new URL('../src/core/chart/ChartRenderer.tsx', import.meta.url), 'utf8'),
     readFile(new URL('../src/features/chart-workspace/ChartWorkspaceView.tsx', import.meta.url), 'utf8'),
     readFile(new URL('../src/features/calculation-details/CalculationDetails.tsx', import.meta.url), 'utf8'),
     readFile(new URL('../src/lib/ui-catalog.ts', import.meta.url), 'utf8')
@@ -503,7 +503,7 @@ test('remaining current Class B surfaces use the shared resolver boundary', asyn
 
   assert.match(birthSettings, /resolveAstrologyDomainTerm/u);
   assert.match(currentSky, /resolveAstrologyDomainTerm/u);
-  assert.match(currentSky, /getAstrologyGlossaryNotation/u);
+  assert.match(currentSky, /getAstrologyGlyph/u);
   assert.doesNotMatch(currentSky, /const BODY_GLYPHS|const ASPECT_GLYPHS|const BODY_ABBREVIATIONS/u);
   assert.match(signLookup, /resolveAstrologyDomainTerm/u);
   assert.match(aspectLookup, /resolveAstrologyDomainTerm/u);

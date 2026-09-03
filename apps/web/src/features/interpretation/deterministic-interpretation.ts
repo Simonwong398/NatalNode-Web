@@ -1,19 +1,21 @@
 import type { AngleFact, AspectFact, BodyFact, ChartResult } from '@natalnode/contracts';
 import type { SupportedLocale } from '@/lib/localization';
 import {
-  ASPECT_DYNAMICS,
-  HOUSE_DOMAINS,
-  PLANET_MEANINGS,
-  SIGN_STYLES,
   SUPPORTED_PLANETS,
   type SupportedAspectType,
   type SupportedPlanet
+} from '@/core/astrology-taxonomy/chart-taxonomy';
+import {
+  ASPECT_DYNAMICS,
+  HOUSE_DOMAINS,
+  PLANET_MEANINGS,
+  SIGN_STYLES
 } from './interpretation-content';
 import {
   getInterpretationUiCopy,
   type InterpretationUiCopy
 } from './interpretation-ui-content.js';
-import type { ChartPresentationPolicy } from '@/features/chart-workspace/chart-presentation-policy';
+import type { ChartPresentationPolicy } from '@/core/chart/chart-presentation-policy';
 
 export type InterpretationItem = {
   id: string;

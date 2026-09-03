@@ -9,24 +9,24 @@ import {
 } from 'react';
 import type { ChartResult } from '@natalnode/contracts';
 import { CalculationDetails } from '@/features/calculation-details';
-import { ChartRenderer } from '@/features/chart-renderer';
+import { ChartRenderer } from '@/core/chart';
 import { InterpretationPanel } from '@/features/interpretation';
 import {
   DEFAULT_LOCALE,
   type SupportedLocale
 } from '../../lib/localization.js';
-import { resolveAstrologyTerm } from '../../lib/astrology-glossary.js';
+import { resolveAstrologyTerm } from '@/core/astrology-taxonomy/astrology-glossary';
 import {
   withChartPresentationMode,
   type ChartPresentationPolicy
-} from './chart-presentation-policy';
+} from '@/core/chart/chart-presentation-policy';
 import ChartFocusDialog from './ChartFocusDialog.js';
 import ChartResultSummary from './ChartResultSummary.js';
 import {
   chartCalculationStatus,
   chartUi,
   chartUiFormat
-} from '../chart-experience/chart-ui.js';
+} from '@/core/chart/chart-ui';
 import AstrologicalNotation from './AstrologicalNotation';
 
 type ResultMode = 'chart' | 'interpretation' | 'details';

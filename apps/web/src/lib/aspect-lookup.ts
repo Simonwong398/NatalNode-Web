@@ -1,10 +1,13 @@
 import {
   ASPECT_DYNAMICS,
-  PLANET_MEANINGS,
+  PLANET_MEANINGS
+} from '@/features/interpretation/interpretation-content';
+import {
+  SUPPORTED_ASPECT_TYPES,
   SUPPORTED_PLANETS,
   type SupportedAspectType,
   type SupportedPlanet
-} from '@/features/interpretation/interpretation-content';
+} from '@/core/astrology-taxonomy/chart-taxonomy';
 import {
   DEFAULT_LOCALE,
   parseSupportedLocale,
@@ -13,25 +16,29 @@ import {
 import {
   resolveAstrologyDomainTerm,
   type AstrologyGlossaryDomainKind
-} from '@/lib/astrology-glossary';
+} from '@/core/astrology-taxonomy/astrology-glossary';
 import {
   formatToolDetailMessage,
   getToolDetailCopy
 } from '@/lib/tools-detail-copy';
 
-export { SUPPORTED_PLANETS } from '@/features/interpretation/interpretation-content';
-export type {
-  SupportedAspectType,
-  SupportedPlanet
-} from '@/features/interpretation/interpretation-content';
+export { SUPPORTED_PLANETS } from '@/core/astrology-taxonomy/chart-taxonomy';
+export type { SupportedAspectType, SupportedPlanet } from '@/core/astrology-taxonomy/chart-taxonomy';
 
-export const ASPECT_OPTIONS = [
-  { value: 'conjunction', label: 'Conjunction' },
-  { value: 'opposition', label: 'Opposition' },
-  { value: 'trine', label: 'Trine' },
-  { value: 'square', label: 'Square' },
-  { value: 'sextile', label: 'Sextile' }
-] as const satisfies readonly { value: SupportedAspectType; label: string }[];
+const ASPECT_LABELS: Record<SupportedAspectType, string> = {
+  conjunction: 'Conjunction',
+  opposition: 'Opposition',
+  trine: 'Trine',
+  square: 'Square',
+  sextile: 'Sextile'
+};
+
+export const ASPECT_OPTIONS = Object.freeze(
+  SUPPORTED_ASPECT_TYPES.map((value) => ({
+    value,
+    label: ASPECT_LABELS[value]
+  }))
+);
 
 export interface AspectLookupInterpretation {
   readonly title: string;

@@ -1,7 +1,7 @@
 import type { RefObject } from 'react';
 import { cn } from '@/lib/utils';
 import type { SupportedLocale } from '../../lib/localization.js';
-import { chartUi } from '../chart-experience/chart-ui.js';
+import { chartUi } from '@/core/chart/chart-ui';
 import type { BirthDatePart, BirthDateParts } from './birth-date-input';
 
 const inputClassName = 'nn-field';

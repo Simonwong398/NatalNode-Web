@@ -2,7 +2,7 @@ import {
   getAstrologyGlossaryNotation,
   type AstrologyGlossaryDomainKind,
   type AstrologyGlossaryNotation
-} from '../../lib/astrology-glossary.js';
+} from './astrology-glossary.js';
 
 /**
  * Resolve a canonical symbolic notation without changing the source fact.

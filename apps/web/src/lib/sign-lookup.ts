@@ -1,5 +1,11 @@
 import { SIGN_STYLES } from '@/features/interpretation/interpretation-content';
 import {
+  SIGN_CLASSIFICATIONS,
+  type SignElement,
+  type SignId,
+  type SignModality
+} from '@/core/astrology-taxonomy/chart-taxonomy';
+import {
   DEFAULT_LOCALE,
   parseSupportedLocale,
   type SupportedLocale
@@ -7,7 +13,7 @@ import {
 import {
   resolveAstrologyDomainTerm,
   type AstrologyGlossaryDomainKind
-} from '@/lib/astrology-glossary';
+} from '@/core/astrology-taxonomy/astrology-glossary';
 import {
   formatToolDetailMessage,
   getToolDetailCopy
@@ -20,7 +26,7 @@ export const ELEMENT_MEANINGS = {
   Water: 'A symbolic lens for feeling, imagination, memory, and connection.'
 } as const;
 
-export type SignElement = keyof typeof ELEMENT_MEANINGS;
+export type { SignElement, SignId, SignModality };
 
 export const MODALITY_MEANINGS = {
   Cardinal: 'A way of describing energy that initiates, begins, and responds to a starting point.',
@@ -28,31 +34,7 @@ export const MODALITY_MEANINGS = {
   Mutable: 'A way of describing energy that adapts, integrates, and makes room for change.'
 } as const;
 
-export type SignModality = keyof typeof MODALITY_MEANINGS;
-
-type SignOption = {
-  id: string;
-  label: string;
-  element: SignElement;
-  modality: SignModality;
-};
-
-export const SIGN_OPTIONS = [
-  { id: 'aries', label: 'Aries', element: 'Fire', modality: 'Cardinal' },
-  { id: 'taurus', label: 'Taurus', element: 'Earth', modality: 'Fixed' },
-  { id: 'gemini', label: 'Gemini', element: 'Air', modality: 'Mutable' },
-  { id: 'cancer', label: 'Cancer', element: 'Water', modality: 'Cardinal' },
-  { id: 'leo', label: 'Leo', element: 'Fire', modality: 'Fixed' },
-  { id: 'virgo', label: 'Virgo', element: 'Earth', modality: 'Mutable' },
-  { id: 'libra', label: 'Libra', element: 'Air', modality: 'Cardinal' },
-  { id: 'scorpio', label: 'Scorpio', element: 'Water', modality: 'Fixed' },
-  { id: 'sagittarius', label: 'Sagittarius', element: 'Fire', modality: 'Mutable' },
-  { id: 'capricorn', label: 'Capricorn', element: 'Earth', modality: 'Cardinal' },
-  { id: 'aquarius', label: 'Aquarius', element: 'Air', modality: 'Fixed' },
-  { id: 'pisces', label: 'Pisces', element: 'Water', modality: 'Mutable' }
-] as const satisfies readonly SignOption[];
-
-export type SignId = (typeof SIGN_OPTIONS)[number]['id'];
+export const SIGN_OPTIONS = SIGN_CLASSIFICATIONS;
 
 const SIGN_TENSIONS: Record<SignId, string> = {
   aries: 'Impatience can make it harder to pause, listen, or account for a slower pace.',

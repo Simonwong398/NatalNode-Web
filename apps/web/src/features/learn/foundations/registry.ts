@@ -1,4 +1,4 @@
-import type { AstrologyGlossaryConceptId } from '../../../lib/astrology-glossary.js';
+import type { AstrologyGlossaryConceptId } from '../../../core/astrology-taxonomy/astrology-glossary.js';
 import {
   parseSupportedLocale,
   SUPPORTED_LOCALES,

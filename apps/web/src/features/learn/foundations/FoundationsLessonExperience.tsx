@@ -1,6 +1,6 @@
 import { useEffect, useState, type ReactNode } from 'react';
 import type { FoundationsProgressApiResponse } from '@natalnode/contracts';
-import { resolveAstrologyTerm } from '../../../lib/astrology-glossary.js';
+import { resolveAstrologyTerm } from '@/core/astrology-taxonomy/astrology-glossary';
 import { getLocalizedPath, type SupportedLocale } from '../../../lib/localization.js';
 import FoundationsAuthorityStatus from './FoundationsAuthorityStatus.js';
 import {

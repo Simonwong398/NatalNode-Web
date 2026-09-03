@@ -123,7 +123,7 @@ The inventory was checked against the current Web repository at the 001I baselin
 | Chart contracts | `packages/contracts/src/chart.ts` (`BodyFact`, `AngleFact`, `HouseCusp`, `HouseFacts`, `AspectPhaseState`, `AspectFact`, `ChartResult`) | Bodies, angles, house/cusp/system values, aspects, orb, and aspect phase are stable chart concepts |
 | Canonical chart fixture | `packages/test-fixtures/src/index.ts` | Ten bodies, signs, `ASC`/`MC`, Placidus, house cusps, five aspects, orb, phase, and retrograde are current fixture evidence |
 | Workspace notation | `apps/web/src/features/chart-workspace/AstrologicalNotation.tsx` | Body/sign/aspect notation, angle terms, house forms, retrograde, orb, and phase are rendered or formatted |
-| Chart renderer | `apps/web/src/features/chart-renderer/ChartRenderer.tsx` | Twelve signs, body abbreviations, five aspect styles, house cusps, bodies, angles, and retrograde accessibility text are represented |
+| Chart renderer | `apps/web/src/core/chart/ChartRenderer.tsx` | Twelve signs, body abbreviations, five aspect styles, house cusps, bodies, angles, and retrograde accessibility text are represented |
 | Workspace view | `apps/web/src/features/chart-workspace/ChartWorkspaceView.tsx` | Natal Chart, Ascendant/Midheaven, houses, and major-aspect context are current; ordinary surrounding labels remain Class A |
 | Birth advanced settings | `apps/web/src/features/chart-input/BirthAdvancedSettings.tsx` and `apps/web/src/features/chart-input/types.ts` | Placidus, Whole Sign, and Equal are current selectable system values |
 | Calculation details | `apps/web/src/features/calculation-details/CalculationDetails.tsx` | House System and Requested House System values are represented; the surrounding labels are ordinary UI |
@@ -393,7 +393,7 @@ The following locations were inventoried as raw-English or source-value evidence
 | File | Symbols/terms observed | Role |
 | --- | --- | --- |
 | `apps/web/src/features/chart-workspace/AstrologicalNotation.tsx` | `PLANET_GLYPHS`, `ZODIAC_GLYPHS`, `ASPECT_LABELS`, `ASC`, `MC`, house forms, `retrograde`, orb, phase | Workspace professional notation and display evidence |
-| `apps/web/src/features/chart-renderer/ChartRenderer.tsx` | `ZODIAC_SIGNS`, body abbreviations, `renderHouseCusp`, `renderBody`, `renderAngle`, aspect styles, `ASC`, `MC`, `retrograde` | Chart visual/accessible professional notation evidence |
+| `apps/web/src/core/chart/ChartRenderer.tsx` | `ZODIAC_SIGNS`, body abbreviations, `renderHouseCusp`, `renderBody`, `renderAngle`, aspect styles, `ASC`, `MC`, `retrograde` | Chart visual/accessible professional notation evidence |
 | `apps/web/src/features/chart-workspace/ChartWorkspaceView.tsx` | `Natal Chart`, `Ascendant`, `Midheaven`, houses, `Major aspects` | Workspace terminology; surrounding product labels excluded |
 | `apps/web/src/features/chart-input/BirthAdvancedSettings.tsx` | `House system`, `Placidus`, `Whole Sign`, `Equal` | System option evidence; form label is Class A |
 | `apps/web/src/features/calculation-details/CalculationDetails.tsx` | `House System`, `Requested House System`, system values | Calculation-details evidence; metadata labels remain boundary terms |

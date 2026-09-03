@@ -1,6 +1,6 @@
 import { useId, useState } from 'react';
 import type { AngleFact, AspectFact, BodyFact, ChartResult } from '@natalnode/contracts';
-import { AstrologyGlyph } from '../../components/astrology/AstrologyGlyph.js';
+import { AstrologyGlyph } from '@/core/astrology-taxonomy/AstrologyGlyph';
 import {
   DEFAULT_LOCALE,
   type SupportedLocale
@@ -9,9 +9,9 @@ import {
   getAstrologyGlossaryNotation,
   resolveAstrologyDomainTerm,
   type AstrologyGlossaryDomainKind
-} from '../../lib/astrology-glossary.js';
-import { chartUi, chartUiFormat } from '../chart-experience/chart-ui.js';
-import type { ChartPresentationPolicy } from './chart-presentation-policy';
+} from '@/core/astrology-taxonomy/astrology-glossary';
+import { chartUi, chartUiFormat } from '@/core/chart/chart-ui';
+import type { ChartPresentationPolicy } from '@/core/chart/chart-presentation-policy';
 
 function formatNumericValue(value: number): string {
   return Number.isInteger(value) ? String(value) : value.toFixed(2).replace(/\.?0+$/, '');

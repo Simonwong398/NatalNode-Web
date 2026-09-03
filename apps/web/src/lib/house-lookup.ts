@@ -7,7 +7,7 @@ import {
 import {
   resolveAstrologyDomainTerm,
   type AstrologyGlossaryDomainKind
-} from '@/lib/astrology-glossary';
+} from '@/core/astrology-taxonomy/astrology-glossary';
 import {
   formatToolDetailMessage,
   getToolDetailCopy

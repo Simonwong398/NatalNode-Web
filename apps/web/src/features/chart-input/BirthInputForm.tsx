@@ -26,7 +26,7 @@ import {
   type BirthDateParts
 } from './birth-date-input';
 import { useBirthInputResolution } from './useBirthInputResolution';
-import { chartUi } from '../chart-experience/chart-ui.js';
+import { chartUi } from '@/core/chart/chart-ui';
 
 type ValidationField = 'localDate' | 'localTime' | 'locationLabel' | 'houseSystem';
 
