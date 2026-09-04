@@ -112,7 +112,7 @@ test('localizes workspace controls while preserving professional and provenance 
   );
 });
 
-test('Save intent reveals one unchanged form without changing mode and submits the same chart request', async () => {
+test('Save intent reveals one unchanged form and submits the same chart request with explicit state', async () => {
   await withResultWorkspace({}, async (scope) => {
     const saveAction = scope.button('Save chart');
     const saveRegion = scope.document.getElementById(saveAction.getAttribute('aria-controls'));
@@ -122,6 +122,8 @@ test('Save intent reveals one unchanged form without changing mode and submits t
     assert.equal(saveAction.getAttribute('aria-expanded'), 'true');
     assert.equal(saveRegion.hidden, false);
     assert.equal(saveRegion.querySelectorAll('form').length, 1);
+    assert.match(scope.text(saveRegion), /authoritative chart calculation is not available/u);
+    assert.doesNotMatch(scope.text(saveRegion), /recalculate/u);
     assert.equal(scope.control('Chart name').closest('[id]') !== null, true);
     assert.equal(scope.control('Category').value, 'SELF');
     assertActiveMode(scope, 'Chart');
@@ -140,6 +142,7 @@ test('Save intent reveals one unchanged form without changing mode and submits t
     assert.deepEqual(requestBody.chart, TEST_CHART_REQUEST);
     assert.equal(requestBody.displayName, 'Focused fixture chart');
     assert.equal(requestBody.category, 'SELF');
+    assert.equal(requestBody.saveMode, 'INPUT_ONLY');
   });
 });
 
@@ -317,5 +320,8 @@ test('development disclosures and the production SaveChartPanel integration rema
   }
 
   assert.match(workspaceSource, /import SaveChartPanel from '@\/features\/vault\/SaveChartPanel';/u);
-  assert.match(workspaceSource, /<SaveChartPanel chartRequest=\{snapshot\.request\} locale=\{locale\} \/>/u);
+  assert.match(
+    workspaceSource,
+    /<SaveChartPanel[\s\S]*chartRequest=\{snapshot\.request\}[\s\S]*chartResult=\{snapshot\.result\}[\s\S]*locale=\{locale\}[\s\S]*\/>/u
+  );
 });

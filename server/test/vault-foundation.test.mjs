@@ -429,7 +429,7 @@ test('Vault API saves input-only records without calculation, enforces capacity,
       async calculateChartWithOutcome() {
         calls.calculate += 1;
         return {
-          chart: createCompleteChartResult(),
+          chart: calculatedResult,
           observability: {}
         };
       }
@@ -444,6 +444,7 @@ test('Vault API saves input-only records without calculation, enforces capacity,
     locationResolutionService: createLocationResolutionService()
   };
   const app = createApp(dependencies);
+  let calculatedResult = createCompleteChartResult();
 
   const requestBody = {
     chart: createChartRequest(),
@@ -477,6 +478,24 @@ test('Vault API saves input-only records without calculation, enforces capacity,
   assert.equal(capacityResponse.status, 409);
   assert.equal((await capacityResponse.json()).code, 'CAPACITY_REACHED');
   assert.equal(calls.calculate, 0);
+  assert.equal(records.length, 3);
+
+  calculatedResult = createDevelopmentFixtureResult();
+  const contradictoryFixtureResponse = await app.request('/api/vault/charts', {
+    method: 'POST',
+    headers: {
+      Origin: PUBLIC_WEB_ORIGIN,
+      'X-Test-User': 'owner-1',
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+      ...requestBody,
+      saveMode: 'CHART_RESULT_AVAILABLE'
+    })
+  });
+  assert.equal(contradictoryFixtureResponse.status, 409);
+  assert.equal((await contradictoryFixtureResponse.json()).code, 'INVALID_STATE');
+  assert.equal(calls.calculate, 1);
   assert.equal(records.length, 3);
 
   const foreignResponse = await app.request(

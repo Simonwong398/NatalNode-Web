@@ -408,6 +408,7 @@ export async function withResultWorkspace(options = {}, exercise) {
     const chartRequest = options.chartRequest ?? TEST_CHART_REQUEST;
     const savePanel = React.createElement(SaveChartPanel, {
       chartRequest,
+      chartResult: chart,
       locale: options.locale
     });
     const render = () => {

@@ -1,7 +1,7 @@
 import { useEffect, useId, useRef, useState } from 'react';
 import type {
   ChartRequest,
-  SaveVaultChartApiRequest,
+  ChartResult,
   VaultChartCategory
 } from '@natalnode/contracts';
 import {
@@ -10,6 +10,10 @@ import {
   VAULT_CHART_CATEGORIES,
   type SaveVaultChartResult
 } from './save-vault-chart';
+import {
+  createSaveVaultChartRequest,
+  resolveVaultSaveIntent
+} from './vault-save-intent.js';
 import {
   DEFAULT_LOCALE,
   getLocalizedPath,
@@ -30,6 +34,7 @@ type SaveState =
 
 export interface SaveChartPanelProps {
   chartRequest: ChartRequest;
+  chartResult: ChartResult;
   locale?: SupportedLocale;
 }
 
@@ -50,7 +55,11 @@ function toSaveState(result: SaveVaultChartResult): SaveState {
   }
 }
 
-export default function SaveChartPanel({ chartRequest, locale }: SaveChartPanelProps) {
+export default function SaveChartPanel({
+  chartRequest,
+  chartResult,
+  locale
+}: SaveChartPanelProps) {
   const [displayName, setDisplayName] = useState('');
   const [category, setCategory] = useState<VaultChartCategory>('SELF');
   const [nameError, setNameError] = useState<string | null>(null);
@@ -63,6 +72,7 @@ export default function SaveChartPanel({ chartRequest, locale }: SaveChartPanelP
   const displayNameErrorId = `${panelId}-display-name-error`;
   const categoryId = `${panelId}-category`;
   const vaultPath = getLocalizedPath(locale ?? DEFAULT_LOCALE, '/vault');
+  const saveIntent = resolveVaultSaveIntent(chartResult);
   currentChartRequestRef.current = chartRequest;
 
   useEffect(() => {
@@ -101,13 +111,14 @@ export default function SaveChartPanel({ chartRequest, locale }: SaveChartPanelP
     }
 
     const submittedChartRequest = chartRequest;
-    const request: SaveVaultChartApiRequest = {
+    const request = createSaveVaultChartRequest({
       chart: submittedChartRequest,
+      chartResult,
       displayName: trimmedDisplayName,
       category,
       tags: [],
       favorite: false
-    };
+    });
 
     saveInFlightRef.current = true;
     setNameError(null);
@@ -141,7 +152,9 @@ export default function SaveChartPanel({ chartRequest, locale }: SaveChartPanelP
           {vaultUi(locale, 'workspace.saveChartTitle')}
         </h3>
         <p className="nn-type-body-small mt-2">
-          {vaultUi(locale, 'workspace.saveChartDescription')}
+          {saveIntent === 'INPUT_ONLY'
+            ? vaultUi(locale, 'vault.provenanceInputOnly')
+            : vaultUi(locale, 'workspace.saveChartDescription')}
         </p>
 
         <form
@@ -215,7 +228,12 @@ export default function SaveChartPanel({ chartRequest, locale }: SaveChartPanelP
         <div className="mt-3 min-h-6">
           {saveState === 'saved' ? (
             <p className="nn-status nn-status--success" role="status">
-              {vaultUi(locale, 'vault.inputSaved')}{' '}
+              {vaultUi(
+                locale,
+                saveIntent === 'INPUT_ONLY'
+                  ? 'vault.inputSaved'
+                  : 'workspace.chartSaved'
+              )}{' '}
               <a className="font-medium underline underline-offset-4 hover:text-white" href={vaultPath}>
                 {vaultUi(locale, 'workspace.viewVault')}
               </a>

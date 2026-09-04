@@ -22,7 +22,11 @@ export default function ChartWorkspace({ locale, resultTargetRef, snapshot }: Ch
       requestedHouseSystem={snapshot.request.houseSystem}
       resultTargetRef={resultTargetRef}
     >
-      <SaveChartPanel chartRequest={snapshot.request} locale={locale} />
+      <SaveChartPanel
+        chartRequest={snapshot.request}
+        chartResult={snapshot.result}
+        locale={locale}
+      />
     </ChartWorkspaceView>
   );
 }
