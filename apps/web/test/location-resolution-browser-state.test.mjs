@@ -182,7 +182,15 @@ async function drainMicrotasks() {
   await Promise.resolve();
 }
 
-async function withLocationProbe({ client, debounceMs = 15, locale = 'zh-Hant' }, exercise) {
+async function withLocationProbe(
+  {
+    client,
+    debounceMs = 15,
+    locale = 'zh-Hant',
+    showDevelopmentDiagnostics = true
+  },
+  exercise
+) {
   const window = new Window({ url: 'https://example.test/calculate' });
   installWindowGlobals(window);
   const container = window.document.createElement('div');
@@ -208,9 +216,12 @@ async function withLocationProbe({ client, debounceMs = 15, locale = 'zh-Hant' }
           type: 'text'
         }),
         React.createElement(LocationResolutionPanel, {
+          diagnostics: controller.diagnostics,
           locale,
+          onPanelMounted: controller.setPanelMounted,
           onSelectCandidate: controller.selectCandidate,
-          resolution: controller.resolution
+          resolution: controller.resolution,
+          showDevelopmentDiagnostics
         })
       );
     }
@@ -232,6 +243,22 @@ async function withLocationProbe({ client, debounceMs = 15, locale = 'zh-Hant' }
       state() {
         return container.querySelector('[data-location-resolution-state]')?.dataset
           .locationResolutionState ?? null;
+      },
+      diagnostics() {
+        const diagnostics = container.querySelector('[data-location-diagnostic-state]');
+        if (!diagnostics) {
+          return null;
+        }
+
+        return {
+          state: diagnostics.dataset.locationDiagnosticState,
+          generation: diagnostics.dataset.locationGeneration,
+          httpStatus: diagnostics.dataset.locationHttpStatus,
+          stage: diagnostics.dataset.locationClientStage,
+          errorKind: diagnostics.dataset.locationErrorKind,
+          candidateCount: diagnostics.dataset.locationCandidateCount,
+          panelMounted: diagnostics.dataset.locationPanelMounted
+        };
       },
       candidateButtons() {
         return [...container.querySelectorAll('[data-location-candidate-id]')];
@@ -311,6 +338,15 @@ test('real CANDIDATES response moves Shanghai from SEARCHING to selectable and t
     await scope.wait(35);
     assert.equal(scope.state(), 'CANDIDATES');
     assert.equal(scope.candidateButtons().length, 1);
+    assert.deepEqual(scope.diagnostics(), {
+      state: 'CANDIDATES',
+      generation: '1',
+      httpStatus: '200',
+      stage: 'CANDIDATES_ACCEPTED',
+      errorKind: 'NONE',
+      candidateCount: '1',
+      panelMounted: 'true'
+    });
     assert.equal(scope.candidateButtons()[0].dataset.locationCandidateId, 'candidate-shanghai');
     assert.equal(scope.container.querySelector('[data-location-canonical]'), null);
     assert.match(scope.text(), /上海, 上海市, 中国/u);
@@ -321,6 +357,15 @@ test('real CANDIDATES response moves Shanghai from SEARCHING to selectable and t
 
     await scope.click(scope.candidateButtons()[0]);
     assert.equal(scope.state(), 'RESOLVED');
+    assert.deepEqual(scope.diagnostics(), {
+      state: 'RESOLVED',
+      generation: '2',
+      httpStatus: '200',
+      stage: 'RESOLVED_ACCEPTED',
+      errorKind: 'NONE',
+      candidateCount: '1',
+      panelMounted: 'true'
+    });
     assert.equal(calls.length, 2);
     assert.deepEqual(JSON.parse(calls[1].init.body), {
       candidateId: 'candidate-shanghai',
@@ -426,6 +471,9 @@ test('stale and aborted rapid-typing requests cannot overwrite the active CANDID
     assert.equal(scope.state(), 'CANDIDATES');
     assert.equal(scope.candidateButtons().length, 1);
     assert.equal(scope.candidateButtons()[0].dataset.locationCandidateId, 'candidate-shanghai');
+    assert.equal(scope.diagnostics().generation, '3');
+    assert.equal(scope.diagnostics().candidateCount, '1');
+    assert.equal(scope.diagnostics().stage, 'CANDIDATES_ACCEPTED');
   });
 });
 
@@ -454,5 +502,61 @@ test('a successful search after ERROR clears the error and renders candidates', 
     assert.equal(scope.state(), 'CANDIDATES');
     assert.equal(scope.candidateButtons().length, 1);
     assert.equal(scope.container.querySelector('[role="alert"]'), null);
+    assert.equal(scope.diagnostics().state, 'CANDIDATES');
+    assert.equal(scope.diagnostics().stage, 'CANDIDATES_ACCEPTED');
+    assert.equal(scope.diagnostics().errorKind, 'NONE');
   });
+});
+
+test('development diagnostics expose safe failure and candidate fields only', async () => {
+  const client = new (await loadModules()).FetchLocationResolutionClient(
+    async () =>
+      new Response(
+        JSON.stringify({ state: 'CANDIDATES', candidates: [{ candidateId: 'invalid' }] }),
+        { status: 200 }
+      )
+  );
+
+  await withLocationProbe({ client }, async (scope) => {
+    await scope.change('Shanghai China');
+    await scope.wait(35);
+
+    assert.equal(scope.state(), 'ERROR');
+    assert.deepEqual(scope.diagnostics(), {
+      state: 'ERROR',
+      generation: '1',
+      httpStatus: '200',
+      stage: 'CONTRACT_PARSE_FAILED',
+      errorKind: 'CLIENT_CONTRACT_ERROR',
+      candidateCount: '0',
+      panelMounted: 'true'
+    });
+
+    const diagnostics = scope.container.querySelector('[data-location-diagnostic-state]');
+    assert.ok(diagnostics);
+    assert.doesNotMatch(
+      diagnostics.outerHTML,
+      /Shanghai China|31\.22222|121\.45806|candidate-shanghai|Asia\/Shanghai/iu
+    );
+  });
+});
+
+test('development diagnostics panel is excluded when the runtime flag is disabled', async () => {
+  const client = {
+    search() {
+      return Promise.resolve({ state: 'CANDIDATES', candidates: [shanghaiCandidate] });
+    },
+    resolve() {
+      return Promise.resolve(null);
+    }
+  };
+
+  await withLocationProbe(
+    { client, showDevelopmentDiagnostics: false },
+    async (scope) => {
+      await scope.change('Shanghai China');
+      await scope.wait(35);
+      assert.equal(scope.diagnostics(), null);
+    }
+  );
 });

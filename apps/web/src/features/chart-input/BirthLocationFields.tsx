@@ -5,6 +5,7 @@ import type {
   LocationCandidate,
   LocationResolutionViewState
 } from './location-resolution';
+import type { LocationResolutionDiagnostics } from './location-resolution-diagnostics';
 
 interface BirthLocationFieldsProps {
   error?: string;
@@ -12,8 +13,11 @@ interface BirthLocationFieldsProps {
   locale?: SupportedLocale;
   locationLabel: string;
   onLocationLabelChange: (value: string) => void;
+  locationDiagnostics?: LocationResolutionDiagnostics;
   locationResolution?: LocationResolutionViewState;
   onLocationCandidateSelect?: (candidate: LocationCandidate) => void;
+  onLocationPanelMounted?: (mounted: boolean) => void;
+  showDevelopmentDiagnostics?: boolean;
 }
 
 export default function BirthLocationFields({
@@ -22,8 +26,11 @@ export default function BirthLocationFields({
   locale,
   locationLabel,
   onLocationLabelChange,
+  locationDiagnostics,
   locationResolution,
-  onLocationCandidateSelect
+  onLocationCandidateSelect,
+  onLocationPanelMounted,
+  showDevelopmentDiagnostics = false
 }: BirthLocationFieldsProps) {
   return (
     <>
@@ -52,8 +59,11 @@ export default function BirthLocationFields({
         <LocationResolutionPanel
           isInteractionDisabled={isInteractionDisabled}
           locale={locale}
+          diagnostics={locationDiagnostics}
+          onPanelMounted={onLocationPanelMounted}
           onSelectCandidate={onLocationCandidateSelect}
           resolution={locationResolution}
+          showDevelopmentDiagnostics={showDevelopmentDiagnostics}
         />
       ) : null}
     </>

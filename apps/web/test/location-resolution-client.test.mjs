@@ -117,6 +117,201 @@ test('browser client handles an explicit unresolved response and generic failure
   );
 });
 
+test('client emits safe lifecycle diagnostics for accepted search and resolve responses', async () => {
+  const { fetchImplementation } = createFetch({
+    '/api/location/search': {
+      state: 'CANDIDATES',
+      candidates: [candidate]
+    },
+    '/api/location/resolve': {
+      state: 'RESOLVED',
+      location
+    }
+  });
+  const client = new FetchLocationResolutionClient(fetchImplementation);
+  const searchEvents = [];
+
+  await client.search(
+    { query: '上海', locale: 'zh-Hant' },
+    undefined,
+    (event) => searchEvents.push(event)
+  );
+
+  assert.deepEqual(
+    searchEvents.map(({ stage }) => stage),
+    ['REQUEST_STARTED', 'RESPONSE_RECEIVED', 'RESPONSE_PARSED', 'CANDIDATES_ACCEPTED']
+  );
+  assert.deepEqual(searchEvents.at(-1), {
+    stage: 'CANDIDATES_ACCEPTED',
+    errorKind: 'NONE',
+    httpStatus: 200,
+    candidateCount: 1
+  });
+
+  const resolveEvents = [];
+  await client.resolve(
+    { candidateId: candidate.candidateId, locale: 'zh-Hant' },
+    undefined,
+    (event) => resolveEvents.push(event)
+  );
+
+  assert.deepEqual(
+    resolveEvents.map(({ stage }) => stage),
+    ['RESOLVE_STARTED', 'RESOLVE_RECEIVED', 'RESPONSE_PARSED', 'RESOLVED_ACCEPTED']
+  );
+  assert.deepEqual(resolveEvents.at(-1), {
+    stage: 'RESOLVED_ACCEPTED',
+    errorKind: 'NONE',
+    httpStatus: 200
+  });
+  assert.deepEqual(
+    Object.keys(searchEvents[0]).sort(),
+    ['errorKind', 'httpStatus', 'stage']
+  );
+  assert.doesNotMatch(
+    JSON.stringify([...searchEvents, ...resolveEvents]),
+    /上海|31\.2304|121\.4737|candidate-1|Asia\/Shanghai/iu
+  );
+});
+
+test('client captures non-2xx HTTP status before rejecting without parsing the body', async () => {
+  for (const status of [503, 403]) {
+    const events = [];
+    const client = new FetchLocationResolutionClient(
+      async () =>
+        new Response(JSON.stringify({ message: 'provider secret' }), {
+          status,
+          headers: { 'Content-Type': 'application/json' }
+        })
+    );
+
+    await assert.rejects(
+      client.search(
+        { query: 'place', locale: 'en' },
+        undefined,
+        (event) => events.push(event)
+      ),
+      (error) => {
+        assert.equal(error instanceof LocationResolutionClientError, true);
+        assert.equal(error.kind, 'HTTP_ERROR');
+        assert.equal(error.stage, 'HTTP_FAILED');
+        assert.equal(error.httpStatus, status);
+        assert.equal(error.message, 'Location resolution is unavailable.');
+        return true;
+      }
+    );
+
+    assert.deepEqual(
+      events.map(({ stage }) => stage),
+      ['REQUEST_STARTED', 'RESPONSE_RECEIVED', 'HTTP_FAILED']
+    );
+    assert.equal(events[1].httpStatus, status);
+    assert.equal(events[2].httpStatus, status);
+  }
+});
+
+test('client distinguishes invalid JSON from a valid JSON contract failure', async () => {
+  const jsonEvents = [];
+  const invalidJsonClient = new FetchLocationResolutionClient(
+    async () => new Response('{not-json', { status: 200 })
+  );
+
+  await assert.rejects(
+    invalidJsonClient.search(
+      { query: 'place', locale: 'en' },
+      undefined,
+      (event) => jsonEvents.push(event)
+    ),
+    (error) => {
+      assert.equal(error.kind, 'RESPONSE_JSON_ERROR');
+      assert.equal(error.stage, 'JSON_PARSE_FAILED');
+      assert.equal(error.httpStatus, 200);
+      return true;
+    }
+  );
+  assert.deepEqual(
+    jsonEvents.map(({ stage }) => stage),
+    ['REQUEST_STARTED', 'RESPONSE_RECEIVED', 'JSON_PARSE_FAILED']
+  );
+
+  const contractEvents = [];
+  const invalidContractClient = new FetchLocationResolutionClient(
+    async () =>
+      new Response(
+        JSON.stringify({ state: 'CANDIDATES', candidates: [{ candidateId: 'invalid' }] }),
+        { status: 200 }
+      )
+  );
+
+  await assert.rejects(
+    invalidContractClient.search(
+      { query: 'place', locale: 'en' },
+      undefined,
+      (event) => contractEvents.push(event)
+    ),
+    (error) => {
+      assert.equal(error.kind, 'CLIENT_CONTRACT_ERROR');
+      assert.equal(error.stage, 'CONTRACT_PARSE_FAILED');
+      assert.equal(error.httpStatus, 200);
+      return true;
+    }
+  );
+  assert.deepEqual(
+    contractEvents.map(({ stage }) => stage),
+    ['REQUEST_STARTED', 'RESPONSE_RECEIVED', 'RESPONSE_PARSED', 'CONTRACT_PARSE_FAILED']
+  );
+});
+
+test('client distinguishes network rejection and abort without exposing rejection details', async () => {
+  const networkEvents = [];
+  const networkClient = new FetchLocationResolutionClient(async () => {
+    throw new Error('private network detail');
+  });
+
+  await assert.rejects(
+    networkClient.search(
+      { query: 'place', locale: 'en' },
+      undefined,
+      (event) => networkEvents.push(event)
+    ),
+    (error) => {
+      assert.equal(error.kind, 'NETWORK_ERROR');
+      assert.equal(error.stage, 'NETWORK_FAILED');
+      assert.equal(error.httpStatus, null);
+      assert.equal(error.message, 'Location resolution is unavailable.');
+      assert.equal(error.message.includes('private network detail'), false);
+      return true;
+    }
+  );
+  assert.deepEqual(
+    networkEvents.map(({ stage }) => stage),
+    ['REQUEST_STARTED', 'NETWORK_FAILED']
+  );
+
+  const abortEvents = [];
+  const abortClient = new FetchLocationResolutionClient(async () => {
+    const error = new Error('aborted');
+    error.name = 'AbortError';
+    throw error;
+  });
+
+  await assert.rejects(
+    abortClient.search(
+      { query: 'place', locale: 'en' },
+      undefined,
+      (event) => abortEvents.push(event)
+    ),
+    (error) => {
+      assert.equal(error.name, 'AbortError');
+      return true;
+    }
+  );
+  assert.deepEqual(
+    abortEvents.map(({ stage }) => stage),
+    ['REQUEST_STARTED', 'ABORTED']
+  );
+});
+
 test('client and hook stay provider-neutral and support stale-request cancellation', () => {
   const clientSource = readFileSync(
     new URL('../src/features/chart-input/location-resolution-client.ts', import.meta.url),

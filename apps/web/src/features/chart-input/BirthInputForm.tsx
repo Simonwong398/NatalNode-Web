@@ -22,6 +22,7 @@ import {
   type LocationCandidate,
   type LocationResolutionViewState
 } from './location-resolution';
+import type { LocationResolutionDiagnostics } from './location-resolution-diagnostics';
 import {
   EMPTY_BIRTH_DATE_PARTS,
   composeBirthDate,
@@ -49,13 +50,16 @@ export interface BirthInputFormProps {
   isCalculationPending?: boolean;
   locale?: SupportedLocale;
   /** Provider-neutral state supplied by the location BFF integration. */
+  locationDiagnostics?: LocationResolutionDiagnostics;
   locationResolution?: LocationResolutionViewState;
   onLocationCandidateSelect?: (candidate: LocationCandidate) => void;
+  onLocationPanelMounted?: (mounted: boolean) => void;
   onLocationQueryChange?: (rawQuery: string) => void;
   onResolvedInput: (selection: ResolvedBirthInputSelection) => void;
   /** Production compositions must opt into the explicit location gate. */
   requireResolvedLocation?: boolean;
   resolver?: BirthInputResolver;
+  showDevelopmentDiagnostics?: boolean;
 }
 
 export interface ResolvedBirthInputSelection {
@@ -150,12 +154,15 @@ function BirthDataTrustSection({ locale }: { locale?: SupportedLocale }) {
 export default function BirthInputForm({
   isCalculationPending = false,
   locale,
+  locationDiagnostics,
   locationResolution,
   onLocationCandidateSelect,
+  onLocationPanelMounted,
   onLocationQueryChange,
   onResolvedInput,
   requireResolvedLocation = false,
-  resolver = defaultResolver
+  resolver = defaultResolver,
+  showDevelopmentDiagnostics = false
 }: BirthInputFormProps) {
   const [draft, setDraft] = useState<BirthInputDraft>(INITIAL_BIRTH_INPUT_STATE);
   const [birthDateParts, setBirthDateParts] = useState<BirthDateParts>(EMPTY_BIRTH_DATE_PARTS);
@@ -373,9 +380,12 @@ export default function BirthInputForm({
               isInteractionDisabled={isInteractionDisabled}
               locale={locale}
               locationLabel={draft.locationLabel}
+              locationDiagnostics={locationDiagnostics}
               locationResolution={locationResolution}
               onLocationCandidateSelect={onLocationCandidateSelect}
               onLocationLabelChange={(locationLabel) => updateEditableDraft({ locationLabel })}
+              onLocationPanelMounted={onLocationPanelMounted}
+              showDevelopmentDiagnostics={showDevelopmentDiagnostics}
             />
             <BirthResolutionFeedback
               isDevelopmentFixture={isDevelopmentFixtureResolver}

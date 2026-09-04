@@ -18,22 +18,78 @@ export interface LocationSearchClientResult {
   readonly candidates: readonly LocationCandidate[];
 }
 
+export type LocationClientStage =
+  | 'IDLE'
+  | 'DEBOUNCE_PENDING'
+  | 'REQUEST_STARTED'
+  | 'RESPONSE_RECEIVED'
+  | 'RESPONSE_PARSED'
+  | 'CANDIDATES_ACCEPTED'
+  | 'RESOLVE_STARTED'
+  | 'RESOLVE_RECEIVED'
+  | 'RESOLVED_ACCEPTED'
+  | 'ABORTED'
+  | 'STALE_IGNORED'
+  | 'NETWORK_FAILED'
+  | 'HTTP_FAILED'
+  | 'JSON_PARSE_FAILED'
+  | 'CONTRACT_PARSE_FAILED'
+  | 'UNKNOWN';
+
+export type LocationClientErrorKind =
+  | 'NONE'
+  | 'NETWORK_ERROR'
+  | 'HTTP_ERROR'
+  | 'RESPONSE_JSON_ERROR'
+  | 'CLIENT_CONTRACT_ERROR'
+  | 'ABORTED'
+  | 'UNKNOWN';
+
+export interface LocationResolutionClientDiagnosticEvent {
+  readonly stage: LocationClientStage;
+  readonly errorKind: LocationClientErrorKind;
+  readonly httpStatus: number | null;
+  readonly candidateCount?: number;
+}
+
+export type LocationResolutionClientObserver = (
+  event: LocationResolutionClientDiagnosticEvent
+) => void;
+
 export interface LocationResolutionClient {
   search(
     input: { readonly query: string; readonly locale: SupportedLocale },
-    signal?: AbortSignal
+    signal?: AbortSignal,
+    observer?: LocationResolutionClientObserver
   ): Promise<LocationSearchClientResult>;
   resolve(
     input: { readonly candidateId: string; readonly locale: SupportedLocale },
-    signal?: AbortSignal
+    signal?: AbortSignal,
+    observer?: LocationResolutionClientObserver
   ): Promise<CanonicalResolvedLocation | null>;
 }
 
 export class LocationResolutionClientError extends Error {
-  public constructor() {
+  public readonly kind: LocationClientErrorKind;
+  public readonly stage: LocationClientStage;
+  public readonly httpStatus: number | null;
+
+  public constructor(
+    kind: LocationClientErrorKind = 'UNKNOWN',
+    stage: LocationClientStage = 'UNKNOWN',
+    httpStatus: number | null = null
+  ) {
     super('Location resolution is unavailable.');
     this.name = 'LocationResolutionClientError';
+    this.kind = kind;
+    this.stage = stage;
+    this.httpStatus = httpStatus;
   }
+}
+
+interface LocationClientResponse {
+  readonly payload: unknown;
+  readonly httpStatus: number | null;
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -204,6 +260,17 @@ function isAbortError(error: unknown): boolean {
   );
 }
 
+function emitDiagnostic(
+  observer: LocationResolutionClientObserver | undefined,
+  event: LocationResolutionClientDiagnosticEvent
+): void {
+  try {
+    observer?.(Object.freeze(event));
+  } catch {
+    // Diagnostic observers must never change the request contract.
+  }
+}
+
 export class FetchLocationResolutionClient implements LocationResolutionClient {
   public constructor(
     private readonly fetchImplementation: typeof globalThis.fetch = globalThis.fetch
@@ -215,26 +282,85 @@ export class FetchLocationResolutionClient implements LocationResolutionClient {
 
   public async search(
     input: { readonly query: string; readonly locale: SupportedLocale },
-    signal?: AbortSignal
+    signal?: AbortSignal,
+    observer?: LocationResolutionClientObserver
   ): Promise<LocationSearchClientResult> {
-    const payload = await this.post(LOCATION_SEARCH_ENDPOINT, input, signal);
+    const { payload, httpStatus } = await this.post(
+      LOCATION_SEARCH_ENDPOINT,
+      input,
+      signal,
+      'SEARCH',
+      observer
+    );
     if (!isRecord(payload) || !Array.isArray(payload.candidates)) {
-      throw new LocationResolutionClientError();
+      emitDiagnostic(observer, {
+        stage: 'CONTRACT_PARSE_FAILED',
+        errorKind: 'CLIENT_CONTRACT_ERROR',
+        httpStatus
+      });
+      throw new LocationResolutionClientError(
+        'CLIENT_CONTRACT_ERROR',
+        'CONTRACT_PARSE_FAILED',
+        httpStatus
+      );
     }
 
-    const candidates = Object.freeze(payload.candidates.map(parseCandidate));
+    let candidates: readonly LocationCandidate[];
+    try {
+      candidates = Object.freeze(payload.candidates.map(parseCandidate));
+    } catch {
+      emitDiagnostic(observer, {
+        stage: 'CONTRACT_PARSE_FAILED',
+        errorKind: 'CLIENT_CONTRACT_ERROR',
+        httpStatus
+      });
+      throw new LocationResolutionClientError(
+        'CLIENT_CONTRACT_ERROR',
+        'CONTRACT_PARSE_FAILED',
+        httpStatus
+      );
+    }
+
     if (
       payload.state !== 'CANDIDATES' &&
       payload.state !== 'UNRESOLVED'
     ) {
-      throw new LocationResolutionClientError();
+      emitDiagnostic(observer, {
+        stage: 'CONTRACT_PARSE_FAILED',
+        errorKind: 'CLIENT_CONTRACT_ERROR',
+        httpStatus
+      });
+      throw new LocationResolutionClientError(
+        'CLIENT_CONTRACT_ERROR',
+        'CONTRACT_PARSE_FAILED',
+        httpStatus
+      );
     }
 
     if (
       payload.state === 'CANDIDATES' && candidates.length === 0 ||
       payload.state === 'UNRESOLVED' && candidates.length > 0
     ) {
-      throw new LocationResolutionClientError();
+      emitDiagnostic(observer, {
+        stage: 'CONTRACT_PARSE_FAILED',
+        errorKind: 'CLIENT_CONTRACT_ERROR',
+        httpStatus,
+        candidateCount: candidates.length
+      });
+      throw new LocationResolutionClientError(
+        'CLIENT_CONTRACT_ERROR',
+        'CONTRACT_PARSE_FAILED',
+        httpStatus
+      );
+    }
+
+    if (payload.state === 'CANDIDATES') {
+      emitDiagnostic(observer, {
+        stage: 'CANDIDATES_ACCEPTED',
+        errorKind: 'NONE',
+        httpStatus,
+        candidateCount: candidates.length
+      });
     }
 
     return Object.freeze({ state: payload.state, candidates });
@@ -242,11 +368,27 @@ export class FetchLocationResolutionClient implements LocationResolutionClient {
 
   public async resolve(
     input: { readonly candidateId: string; readonly locale: SupportedLocale },
-    signal?: AbortSignal
+    signal?: AbortSignal,
+    observer?: LocationResolutionClientObserver
   ): Promise<CanonicalResolvedLocation | null> {
-    const payload = await this.post(LOCATION_RESOLVE_ENDPOINT, input, signal);
+    const { payload, httpStatus } = await this.post(
+      LOCATION_RESOLVE_ENDPOINT,
+      input,
+      signal,
+      'RESOLVE',
+      observer
+    );
     if (!isRecord(payload)) {
-      throw new LocationResolutionClientError();
+      emitDiagnostic(observer, {
+        stage: 'CONTRACT_PARSE_FAILED',
+        errorKind: 'CLIENT_CONTRACT_ERROR',
+        httpStatus
+      });
+      throw new LocationResolutionClientError(
+        'CLIENT_CONTRACT_ERROR',
+        'CONTRACT_PARSE_FAILED',
+        httpStatus
+      );
     }
 
     if (payload.state === 'UNRESOLVED') {
@@ -254,17 +396,55 @@ export class FetchLocationResolutionClient implements LocationResolutionClient {
     }
 
     if (payload.state !== 'RESOLVED' || !('location' in payload)) {
-      throw new LocationResolutionClientError();
+      emitDiagnostic(observer, {
+        stage: 'CONTRACT_PARSE_FAILED',
+        errorKind: 'CLIENT_CONTRACT_ERROR',
+        httpStatus
+      });
+      throw new LocationResolutionClientError(
+        'CLIENT_CONTRACT_ERROR',
+        'CONTRACT_PARSE_FAILED',
+        httpStatus
+      );
     }
 
-    return parseResolvedLocation(payload.location);
+    let resolvedLocation: CanonicalResolvedLocation;
+    try {
+      resolvedLocation = parseResolvedLocation(payload.location);
+    } catch {
+      emitDiagnostic(observer, {
+        stage: 'CONTRACT_PARSE_FAILED',
+        errorKind: 'CLIENT_CONTRACT_ERROR',
+        httpStatus
+      });
+      throw new LocationResolutionClientError(
+        'CLIENT_CONTRACT_ERROR',
+        'CONTRACT_PARSE_FAILED',
+        httpStatus
+      );
+    }
+
+    emitDiagnostic(observer, {
+      stage: 'RESOLVED_ACCEPTED',
+      errorKind: 'NONE',
+      httpStatus
+    });
+    return resolvedLocation;
   }
 
   private async post(
     endpoint: string,
     body: unknown,
-    signal?: AbortSignal
-  ): Promise<unknown> {
+    signal: AbortSignal | undefined,
+    operation: 'SEARCH' | 'RESOLVE',
+    observer: LocationResolutionClientObserver | undefined
+  ): Promise<LocationClientResponse> {
+    emitDiagnostic(observer, {
+      stage: operation === 'SEARCH' ? 'REQUEST_STARTED' : 'RESOLVE_STARTED',
+      errorKind: 'NONE',
+      httpStatus: null
+    });
+
     let response: Response;
     try {
       response = await this.fetchImplementation(endpoint, {
@@ -280,19 +460,59 @@ export class FetchLocationResolutionClient implements LocationResolutionClient {
       });
     } catch (error) {
       if (isAbortError(error)) {
+        emitDiagnostic(observer, {
+          stage: 'ABORTED',
+          errorKind: 'ABORTED',
+          httpStatus: null
+        });
         throw error;
       }
-      throw new LocationResolutionClientError();
+      emitDiagnostic(observer, {
+        stage: 'NETWORK_FAILED',
+        errorKind: 'NETWORK_ERROR',
+        httpStatus: null
+      });
+      throw new LocationResolutionClientError(
+        'NETWORK_ERROR',
+        'NETWORK_FAILED'
+      );
     }
 
+    const httpStatus = Number.isFinite(response.status) ? response.status : null;
+    emitDiagnostic(observer, {
+      stage: operation === 'SEARCH' ? 'RESPONSE_RECEIVED' : 'RESOLVE_RECEIVED',
+      errorKind: 'NONE',
+      httpStatus
+    });
+
     if (!response.ok) {
-      throw new LocationResolutionClientError();
+      emitDiagnostic(observer, {
+        stage: 'HTTP_FAILED',
+        errorKind: 'HTTP_ERROR',
+        httpStatus
+      });
+      throw new LocationResolutionClientError('HTTP_ERROR', 'HTTP_FAILED', httpStatus);
     }
 
     try {
-      return await response.json();
+      const payload = await response.json();
+      emitDiagnostic(observer, {
+        stage: 'RESPONSE_PARSED',
+        errorKind: 'NONE',
+        httpStatus
+      });
+      return Object.freeze({ payload, httpStatus });
     } catch (_error) {
-      throw new LocationResolutionClientError();
+      emitDiagnostic(observer, {
+        stage: 'JSON_PARSE_FAILED',
+        errorKind: 'RESPONSE_JSON_ERROR',
+        httpStatus
+      });
+      throw new LocationResolutionClientError(
+        'RESPONSE_JSON_ERROR',
+        'JSON_PARSE_FAILED',
+        httpStatus
+      );
     }
   }
 }

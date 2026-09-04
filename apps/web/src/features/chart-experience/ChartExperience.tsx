@@ -7,6 +7,7 @@ import {
 import { ChartWorkspace } from '@/features/chart-workspace';
 import { engineClient } from '@/lib/engine-client';
 import type { SupportedLocale } from '@/lib/localization';
+import { IS_DEVELOPMENT_RUNTIME } from '@/lib/runtime';
 import { toChartRequest } from './chart-request';
 import { chartUi } from '@/core/chart/chart-ui';
 import type { CalculatedChartSnapshot } from './types';
@@ -90,10 +91,13 @@ export default function ChartExperience({
         isCalculationPending={isCalculating}
         onResolvedInput={handleResolvedInput}
         locale={locale}
+        locationDiagnostics={locationResolution.diagnostics}
         locationResolution={locationResolution.resolution}
         onLocationCandidateSelect={locationResolution.selectCandidate}
+        onLocationPanelMounted={locationResolution.setPanelMounted}
         onLocationQueryChange={locationResolution.setRawQuery}
         requireResolvedLocation={requireResolvedLocation}
+        showDevelopmentDiagnostics={IS_DEVELOPMENT_RUNTIME}
       />
 
       <section

@@ -1,16 +1,22 @@
+import { useEffect } from 'react';
 import type { SupportedLocale } from '../../lib/localization.js';
 import { chartUi } from '@/core/chart/chart-ui';
 import { LOCATION_SEARCH_MINIMUM_CHARACTERS } from './location-resolution';
+import LocationResolutionDiagnostics from './LocationResolutionDiagnostics';
 import type {
   LocationCandidate,
   LocationResolutionViewState
 } from './location-resolution';
+import type { LocationResolutionDiagnostics as LocationResolutionDiagnosticsState } from './location-resolution-diagnostics';
 
 interface LocationResolutionPanelProps {
+  readonly diagnostics?: LocationResolutionDiagnosticsState;
   readonly isInteractionDisabled?: boolean;
   readonly locale?: SupportedLocale;
+  readonly onPanelMounted?: (mounted: boolean) => void;
   readonly onSelectCandidate?: (candidate: LocationCandidate) => void;
   readonly resolution: LocationResolutionViewState;
+  readonly showDevelopmentDiagnostics?: boolean;
 }
 
 function candidateLabel(candidate: LocationCandidate): string {
@@ -35,11 +41,19 @@ function statusDescription(
 }
 
 export default function LocationResolutionPanel({
+  diagnostics,
   isInteractionDisabled = false,
   locale,
+  onPanelMounted,
   onSelectCandidate,
-  resolution
+  resolution,
+  showDevelopmentDiagnostics = false
 }: LocationResolutionPanelProps) {
+  useEffect(() => {
+    onPanelMounted?.(true);
+    return () => onPanelMounted?.(false);
+  }, [onPanelMounted]);
+
   const { state } = resolution;
   const shouldShow = state !== 'EMPTY';
   const attribution =
@@ -152,6 +166,10 @@ export default function LocationResolutionPanel({
             {attribution.label}
           </a>
         </p>
+      ) : null}
+
+      {showDevelopmentDiagnostics && diagnostics ? (
+        <LocationResolutionDiagnostics diagnostics={diagnostics} />
       ) : null}
     </div>
   );
