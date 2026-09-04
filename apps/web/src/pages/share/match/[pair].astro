@@ -1,0 +1,39 @@
+---
+import SiteLayout from '@/layouts/SiteLayout.astro';
+import SignMatchCard from '@/features/share/SignMatchCard.astro';
+import { createSignMatchCardModel } from '@/features/share/share-card-models';
+import { createShareSeo } from '@/features/share/share-seo';
+import { getPresentationLocale, type SupportedLocale } from '@/lib/localization';
+import {
+  getShareMatchSlug,
+  parseShareMatchSlug,
+  SHARE_MATCH_PAIRS
+} from '@/lib/share-links';
+
+interface Props {
+  locale?: SupportedLocale;
+}
+
+export function getStaticPaths() {
+  return SHARE_MATCH_PAIRS.map((pair) => ({
+    params: { pair: getShareMatchSlug(pair) }
+  }));
+}
+
+const { locale: propLocale } = Astro.props as Props;
+const locale = propLocale ?? getPresentationLocale(Astro.url.pathname, Astro.locals.locale);
+const pair = parseShareMatchSlug(Astro.params.pair);
+
+if (pair === null) {
+  throw new Error('Unknown Share sign match route');
+}
+
+const model = createSignMatchCardModel(locale, pair);
+const seo = createShareSeo(locale, model);
+---
+
+<SiteLayout seo={seo} mode="editorial">
+  <main class="nn-container nn-container--editorial pb-20 pt-8 sm:pb-24 sm:pt-12">
+    <SignMatchCard model={model} />
+  </main>
+</SiteLayout>

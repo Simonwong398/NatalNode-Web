@@ -1,0 +1,21 @@
+---
+import Page from '../../../share/match/[pair].astro';
+import {
+  parseSupportedLocale,
+  SUPPORTED_LOCALES
+} from '@/lib/localization';
+import { SHARE_MATCH_PAIRS, getShareMatchSlug } from '@/lib/share-links';
+
+export function getStaticPaths() {
+  return SUPPORTED_LOCALES.flatMap((locale) => SHARE_MATCH_PAIRS.map((pair) => ({
+    params: { locale, pair: getShareMatchSlug(pair) }
+  })));
+}
+
+const locale = parseSupportedLocale(Astro.params.locale);
+if (locale === null) {
+  throw new Error('Unsupported locale route parameter');
+}
+---
+
+<Page locale={locale} />

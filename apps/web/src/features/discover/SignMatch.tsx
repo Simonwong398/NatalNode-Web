@@ -16,6 +16,7 @@ import {
   getZodiacModalityContent
 } from '@/content/discover/zodiac';
 import { getLocalizedPath, type SupportedLocale } from '@/lib/localization';
+import { getShareMatchPath } from '@/lib/share-links';
 import { formatUiMessage, getUiMessage, type UiMessageKey } from '@/lib/ui-catalog';
 import {
   getSignMatchPath,
@@ -63,6 +64,7 @@ export default function SignMatch({
   const modalityAName = getZodiacModalityContent(signA.modality, locale).label;
   const modalityBName = getZodiacModalityContent(signB.modality, locale).label;
   const sameSign = signA.id === signB.id;
+  const shareHref = getShareMatchPath(locale, { signA: signA.id, signB: signB.id });
 
   useEffect(() => {
     const handlePopState = () => {
@@ -263,6 +265,9 @@ export default function SignMatch({
         </a>
         <a className="nn-button nn-button--quiet" href={elementsModesHref}>
           {ui(locale, 'discover.match.elementsModesCta')}
+        </a>
+        <a className="nn-button nn-button--quiet" href={shareHref}>
+          {ui(locale, 'share.match.shareAction')}
         </a>
       </nav>
     </div>

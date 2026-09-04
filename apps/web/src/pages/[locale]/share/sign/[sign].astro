@@ -1,0 +1,18 @@
+---
+import Page from '../../../share/sign/[sign].astro';
+import { SIGN_CLASSIFICATIONS } from '@/core/astrology-taxonomy/chart-taxonomy';
+import { parseSupportedLocale, SUPPORTED_LOCALES } from '@/lib/localization';
+
+export function getStaticPaths() {
+  return SUPPORTED_LOCALES.flatMap((locale) => SIGN_CLASSIFICATIONS.map((sign) => ({
+    params: { locale, sign: sign.id }
+  })));
+}
+
+const locale = parseSupportedLocale(Astro.params.locale);
+if (locale === null) {
+  throw new Error('Unsupported locale route parameter');
+}
+---
+
+<Page locale={locale} />

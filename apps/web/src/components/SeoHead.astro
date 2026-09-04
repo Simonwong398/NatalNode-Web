@@ -38,6 +38,7 @@ const isPublicIndexable = robots === 'index,follow';
     <meta property="og:url" content={canonicalUrl} />
     <meta property="og:site_name" content={SITE_NAME} />
     <meta property="og:type" content={ogType} />
+    {seo.ogLocale && <meta property="og:locale" content={seo.ogLocale} />}
     {ogType === 'article' && articlePublishedTime && (
       <meta property="article:published_time" content={articlePublishedTime} />
     )}

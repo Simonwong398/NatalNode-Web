@@ -19,6 +19,7 @@ import {
   ZODIAC_MODALITY_MEMBERS
 } from '@/content/discover/zodiac';
 import { getLocalizedPath, type SupportedLocale } from '@/lib/localization';
+import { getShareElementsModesPath } from '@/lib/share-links';
 import { formatUiMessage, getUiMessage, type UiMessageKey } from '@/lib/ui-catalog';
 
 type Props = {
@@ -113,6 +114,12 @@ export default function ElementsModesExplorer({
                     </li>
                   ))}
                 </ul>
+                <a
+                  className="nn-button nn-button--quiet -ml-3 mt-5"
+                  href={getShareElementsModesPath(locale, { kind: 'element', value: element })}
+                >
+                  {formatUiMessage(locale, 'share.elements.shareAction', { concept: elementName })}
+                </a>
               </li>
             );
           })}
@@ -144,6 +151,12 @@ export default function ElementsModesExplorer({
                     </li>
                   ))}
                 </ul>
+                <a
+                  className="nn-button nn-button--quiet -ml-3 mt-5"
+                  href={getShareElementsModesPath(locale, { kind: 'modality', value: modality })}
+                >
+                  {formatUiMessage(locale, 'share.elements.shareAction', { concept: modalityName })}
+                </a>
               </li>
             );
           })}

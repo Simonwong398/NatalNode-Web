@@ -1,0 +1,18 @@
+---
+import Page from '../../../share/elements-modes/[concept].astro';
+import { parseSupportedLocale, SUPPORTED_LOCALES } from '@/lib/localization';
+import { SHARE_ELEMENT_MODE_CONCEPTS } from '@/lib/share-links';
+
+export function getStaticPaths() {
+  return SUPPORTED_LOCALES.flatMap((locale) => SHARE_ELEMENT_MODE_CONCEPTS.map((concept) => ({
+    params: { locale, concept: concept.slug }
+  })));
+}
+
+const locale = parseSupportedLocale(Astro.params.locale);
+if (locale === null) {
+  throw new Error('Unsupported locale route parameter');
+}
+---
+
+<Page locale={locale} />

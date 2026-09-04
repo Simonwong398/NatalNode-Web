@@ -1,0 +1,36 @@
+---
+import SiteLayout from '@/layouts/SiteLayout.astro';
+import SignCard from '@/features/share/SignCard.astro';
+import { createSignCardModel } from '@/features/share/share-card-models';
+import { createShareSeo } from '@/features/share/share-seo';
+import { SIGN_CLASSIFICATIONS } from '@/core/astrology-taxonomy/chart-taxonomy';
+import { getPresentationLocale, type SupportedLocale } from '@/lib/localization';
+import { parseShareSignId } from '@/lib/share-links';
+
+interface Props {
+  locale?: SupportedLocale;
+}
+
+export function getStaticPaths() {
+  return SIGN_CLASSIFICATIONS.map((sign) => ({
+    params: { sign: sign.id }
+  }));
+}
+
+const { locale: propLocale } = Astro.props as Props;
+const locale = propLocale ?? getPresentationLocale(Astro.url.pathname, Astro.locals.locale);
+const signId = parseShareSignId(Astro.params.sign);
+
+if (signId === null) {
+  throw new Error('Unknown Share sign route');
+}
+
+const model = createSignCardModel(locale, signId);
+const seo = createShareSeo(locale, model);
+---
+
+<SiteLayout seo={seo} mode="editorial">
+  <main class="nn-container nn-container--editorial pb-20 pt-8 sm:pb-24 sm:pt-12">
+    <SignCard model={model} />
+  </main>
+</SiteLayout>

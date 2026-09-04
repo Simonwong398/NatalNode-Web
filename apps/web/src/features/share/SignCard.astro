@@ -1,0 +1,43 @@
+---
+import ShareCard from './ShareCard.astro';
+import type { SignCardModel } from './share-card-models';
+import { getUiMessage } from '@/lib/ui-catalog';
+
+interface Props {
+  model: SignCardModel;
+}
+
+const { model } = Astro.props;
+---
+
+<ShareCard model={model}>
+  <div slot="content" class="flex min-w-0 flex-col gap-5">
+    <div class="flex min-w-0 items-center gap-4 border-b border-nn-border-subtle pb-5">
+      <span class="flex size-16 shrink-0 items-center justify-center rounded-full border border-nn-accent-supporting/60 bg-nn-surface-interactive text-4xl leading-none text-nn-accent-supporting" aria-hidden="true">
+        {model.glyph ?? '·'}
+      </span>
+      <div class="min-w-0">
+        <p class="nn-type-metadata">{model.elementName} · {model.modalityName}</p>
+        <h2 class="nn-type-card-title mt-1 break-words">{model.signName}</h2>
+      </div>
+    </div>
+
+    <p class="nn-type-body-small">{model.summary}</p>
+
+    <dl class="grid min-w-0 grid-cols-2 gap-3">
+      <div class="min-w-0 rounded-nn-small border border-nn-border-subtle bg-nn-surface-interactive p-3">
+        <dt class="nn-type-metadata">{getUiMessage(model.locale, 'share.sign.element')}</dt>
+        <dd class="mt-1 break-words font-semibold text-nn-text-primary">{model.elementName}</dd>
+      </div>
+      <div class="min-w-0 rounded-nn-small border border-nn-border-subtle bg-nn-surface-interactive p-3">
+        <dt class="nn-type-metadata">{getUiMessage(model.locale, 'share.sign.modality')}</dt>
+        <dd class="mt-1 break-words font-semibold text-nn-text-primary">{model.modalityName}</dd>
+      </div>
+    </dl>
+
+    <section class="border-t border-nn-border-subtle pt-4">
+      <h2 class="nn-type-label">{model.chartFunctionLabel}</h2>
+      <p class="nn-type-body-small mt-2">{model.chartFunction}</p>
+    </section>
+  </div>
+</ShareCard>

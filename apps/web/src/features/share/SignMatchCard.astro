@@ -1,0 +1,41 @@
+---
+import ShareCard from './ShareCard.astro';
+import type { SignMatchCardModel } from './share-card-models';
+import { getUiMessage } from '@/lib/ui-catalog';
+
+interface Props {
+  model: SignMatchCardModel;
+}
+
+const { model } = Astro.props;
+---
+
+<ShareCard model={model}>
+  <div slot="content" class="flex min-w-0 flex-col gap-5">
+    <div class="grid min-w-0 gap-3 sm:grid-cols-2">
+      {model.signs.map((sign, index) => (
+        <article class="min-w-0 rounded-nn-small border border-nn-border-subtle bg-nn-surface-interactive p-4" data-share-sign={sign.id} data-share-match={`${model.pair.signA}--${model.pair.signB}`}>
+          <p class="nn-type-metadata">{index === 0 ? getUiMessage(model.locale, 'share.match.signA') : getUiMessage(model.locale, 'share.match.signB')}</p>
+          <div class="mt-3 flex min-w-0 items-center gap-3">
+            <span class="shrink-0 text-3xl leading-none text-nn-accent-supporting" aria-hidden="true">
+              {sign.glyph ?? '·'}
+            </span>
+            <h2 class="nn-type-card-title min-w-0 break-words">{sign.name}</h2>
+          </div>
+          <p class="nn-type-body-small mt-3">{sign.elementName} · {sign.modalityName}</p>
+        </article>
+      ))}
+    </div>
+
+    <div class="grid min-w-0 gap-4 border-t border-nn-border-subtle pt-5 sm:grid-cols-2">
+      <section class="min-w-0">
+        <h2 class="nn-type-label">{model.elementRelationshipLabel}</h2>
+        <p class="nn-type-body-small mt-2">{model.elementRelationship}</p>
+      </section>
+      <section class="min-w-0">
+        <h2 class="nn-type-label">{model.modalityRelationshipLabel}</h2>
+        <p class="nn-type-body-small mt-2">{model.modalityRelationship}</p>
+      </section>
+    </div>
+  </div>
+</ShareCard>

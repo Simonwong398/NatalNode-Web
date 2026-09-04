@@ -13,6 +13,7 @@ import {
   ZODIAC_MODALITY_MEMBERS
 } from '@/content/discover/zodiac';
 import { getLocalizedPath, type SupportedLocale } from '@/lib/localization';
+import { getShareSignPath } from '@/lib/share-links';
 import { formatUiMessage, getUiMessage, type UiMessageKey } from '@/lib/ui-catalog';
 
 type Props = {
@@ -77,6 +78,7 @@ export default function ZodiacExplorer({
 
   const selectorLabel = ui(locale, 'discover.zodiac.selectorLabel');
   const explorerPath = getLocalizedPath(locale, '/discover/zodiac/');
+  const shareSignHref = getShareSignPath(locale, selectedSign.id);
 
   return (
     <div className="nn-discover-zodiac min-w-0">
@@ -235,6 +237,9 @@ export default function ZodiacExplorer({
         </a>
         <a className="nn-button nn-button--quiet" href={elementsModesHref}>
           {ui(locale, 'discover.zodiac.elementsModesCta')}
+        </a>
+        <a className="nn-button nn-button--quiet" href={shareSignHref}>
+          {formatUiMessage(locale, 'share.sign.shareAction', { sign: selectedName })}
         </a>
       </nav>
     </div>

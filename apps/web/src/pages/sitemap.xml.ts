@@ -3,6 +3,11 @@ import type { APIRoute } from 'astro';
 import { SIGN_CLASSIFICATIONS } from '@/core/astrology-taxonomy/chart-taxonomy';
 import { getLocalizedPath, SUPPORTED_LOCALES } from '@/lib/localization';
 import { resolveCanonicalUrl } from '@/lib/seo';
+import {
+  getShareMatchSlug,
+  SHARE_ELEMENT_MODE_CONCEPTS,
+  SHARE_MATCH_PAIRS
+} from '@/lib/share-links';
 
 const publicPaths = [
   '/',
@@ -26,6 +31,12 @@ const discoverPaths = [
   ...SIGN_CLASSIFICATIONS.map((sign) => `/discover/zodiac/${sign.id}/`)
 ];
 
+const sharePaths = [
+  ...SIGN_CLASSIFICATIONS.map((sign) => `/share/sign/${sign.id}/`),
+  ...SHARE_MATCH_PAIRS.map((pair) => `/share/match/${getShareMatchSlug(pair)}/`),
+  ...SHARE_ELEMENT_MODE_CONCEPTS.map((concept) => `/share/elements-modes/${concept.slug}/`)
+];
+
 const escapeXml = (value: string): string =>
   value.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&apos;');
 
@@ -39,6 +50,9 @@ export const GET: APIRoute = async () => {
     ),
     ...SUPPORTED_LOCALES.flatMap((locale) =>
       discoverPaths.map((path) => resolveCanonicalUrl(getLocalizedPath(locale, path)))
+    ),
+    ...SUPPORTED_LOCALES.flatMap((locale) =>
+      sharePaths.map((path) => resolveCanonicalUrl(getLocalizedPath(locale, path)))
     ),
     ...articles.map((entry) =>
       resolveCanonicalUrl(

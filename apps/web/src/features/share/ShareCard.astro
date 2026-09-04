@@ -1,0 +1,59 @@
+---
+import BrandLockup from '@/components/brand/BrandLockup.astro';
+import ShareCardActions from './ShareCardActions';
+import { getLocalizedPath } from '@/lib/localization';
+import { resolveCanonicalUrl } from '@/lib/seo';
+import { getUiMessage } from '@/lib/ui-catalog';
+import type { ShareCardModel } from './share-card-models';
+
+interface Props {
+  model: ShareCardModel;
+}
+
+const { model } = Astro.props;
+const titleId = `share-card-title-${model.kind}`;
+const canonicalUrl = resolveCanonicalUrl(model.canonicalPath);
+---
+
+<article
+  class="nn-share-card nn-surface nn-surface--elevated mx-auto w-full max-w-5xl overflow-hidden p-4 sm:p-6 lg:p-8"
+  data-share-card={model.kind}
+  aria-labelledby={titleId}
+>
+  <div class="flex min-h-0 flex-col gap-6 rounded-nn-medium border border-nn-border-subtle bg-nn-surface-base p-5 sm:gap-8 sm:p-8 lg:aspect-[1.91/1] lg:p-10">
+    <header class="flex min-w-0 items-center justify-between gap-4 border-b border-nn-border-subtle pb-4">
+      <BrandLockup href={getLocalizedPath(model.locale, '/')} tone="white-cyan" size={24} class="min-w-0" />
+      <p class="nn-type-metadata min-w-0 text-right">{model.sourceLabel}</p>
+    </header>
+
+    <div class="grid min-h-0 flex-1 gap-6 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)] lg:gap-10">
+      <div class="min-w-0">
+        <p class="nn-eyebrow">{model.eyebrow}</p>
+        <h1 class="nn-type-page-title mt-3 max-w-3xl break-words" id={titleId}>{model.title}</h1>
+        <p class="nn-type-body mt-4 max-w-2xl">{model.subtitle}</p>
+      </div>
+
+      <div class="min-w-0 self-start lg:self-stretch">
+        <slot name="content" />
+      </div>
+    </div>
+
+    <footer class="flex min-w-0 flex-col gap-4 border-t border-nn-border-subtle pt-5 sm:gap-5 sm:pt-6 lg:flex-row lg:items-end lg:justify-between">
+      <p class="nn-type-body-small max-w-2xl">{model.disclosure}</p>
+      <div class="flex min-w-0 flex-wrap items-center gap-3 lg:justify-end">
+        <a class="nn-button nn-button--primary" href={model.ctaHref}>{model.ctaLabel}</a>
+        <ShareCardActions
+          client:load
+          canonicalUrl={canonicalUrl}
+          title={model.title}
+          text={model.shareText}
+          shareLabel={getUiMessage(model.locale, 'share.share')}
+          copyLabel={getUiMessage(model.locale, 'share.copyLink')}
+          copiedLabel={getUiMessage(model.locale, 'share.copied')}
+          copyFailedLabel={getUiMessage(model.locale, 'share.copyFailed')}
+          shareFailedLabel={getUiMessage(model.locale, 'share.shareFailed')}
+        />
+      </div>
+    </footer>
+  </div>
+</article>

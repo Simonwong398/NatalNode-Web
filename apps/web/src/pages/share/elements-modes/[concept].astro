@@ -1,0 +1,38 @@
+---
+import SiteLayout from '@/layouts/SiteLayout.astro';
+import ElementsModesCard from '@/features/share/ElementsModesCard.astro';
+import { createElementsModesCardModel } from '@/features/share/share-card-models';
+import { createShareSeo } from '@/features/share/share-seo';
+import { getPresentationLocale, type SupportedLocale } from '@/lib/localization';
+import {
+  parseShareElementModeConcept,
+  SHARE_ELEMENT_MODE_CONCEPTS
+} from '@/lib/share-links';
+
+interface Props {
+  locale?: SupportedLocale;
+}
+
+export function getStaticPaths() {
+  return SHARE_ELEMENT_MODE_CONCEPTS.map((concept) => ({
+    params: { concept: concept.slug }
+  }));
+}
+
+const { locale: propLocale } = Astro.props as Props;
+const locale = propLocale ?? getPresentationLocale(Astro.url.pathname, Astro.locals.locale);
+const concept = parseShareElementModeConcept(Astro.params.concept);
+
+if (concept === null) {
+  throw new Error('Unknown Share elements-and-modes route');
+}
+
+const model = createElementsModesCardModel(locale, concept);
+const seo = createShareSeo(locale, model);
+---
+
+<SiteLayout seo={seo} mode="editorial">
+  <main class="nn-container nn-container--editorial pb-20 pt-8 sm:pb-24 sm:pt-12">
+    <ElementsModesCard model={model} />
+  </main>
+</SiteLayout>
