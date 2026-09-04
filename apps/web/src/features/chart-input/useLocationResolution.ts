@@ -100,6 +100,10 @@ export function useLocationResolution(
 
       timerRef.current = setTimeout(async () => {
         timerRef.current = undefined;
+        if (requestSequenceRef.current !== requestSequence) {
+          return;
+        }
+
         const controller = new AbortController();
         abortControllerRef.current = controller;
 
@@ -124,6 +128,7 @@ export function useLocationResolution(
         } catch (error) {
           if (
             requestSequenceRef.current !== requestSequence ||
+            controller.signal.aborted ||
             isAbortError(error)
           ) {
             return;
@@ -177,6 +182,7 @@ export function useLocationResolution(
         .catch((error: unknown) => {
           if (
             requestSequenceRef.current !== requestSequence ||
+            controller.signal.aborted ||
             isAbortError(error)
           ) {
             return;
@@ -198,7 +204,12 @@ export function useLocationResolution(
     [cancelPendingRequest, client, locale]
   );
 
-  useEffect(() => cancelPendingRequest, [cancelPendingRequest]);
+  useEffect(() => {
+    return () => {
+      requestSequenceRef.current += 1;
+      cancelPendingRequest();
+    };
+  }, [cancelPendingRequest]);
 
   return { resolution, setRawQuery, selectCandidate };
 }
