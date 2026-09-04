@@ -139,9 +139,15 @@ The complete bootstrap composition chain is:
 `ServerBootstrap` owns the PostgreSQL runtime and exposes only `app` and
 `close()`. `EngineClient` and `EmailMagicLinkDelivery` are externally supplied
 and borrowed; they have no bootstrap lifecycle here. Migration execution is
-explicit and separate from bootstrap. Readiness checks, HTTP listener and
-`HOST`/`PORT` configuration, signal handling, and concrete Engine/email
-providers remain separate runtime boundaries.
+explicit and separate from bootstrap. Before composing the application, the
+real PostgreSQL bootstrap performs a read-only Vault schema compatibility
+preflight: it verifies that migration `0020` is tracked with the current
+repository checksum and that the required Vault columns exist. It never applies
+migrations. The canonical release command remains `npm run db:migrate`; a
+pending or drifted schema fails startup with a safe actionable diagnostic
+instead of allowing a later Vault request to return an opaque persistence 500.
+Readiness checks, HTTP listener and `HOST`/`PORT` configuration, signal handling,
+and concrete Engine/email providers remain separate runtime boundaries.
 
 The process runtime extends the chain:
 

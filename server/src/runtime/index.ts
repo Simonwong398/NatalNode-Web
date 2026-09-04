@@ -3,7 +3,10 @@ export { createServerRuntimeDependencies } from './create-server-runtime-depende
 export {
   createPostgresPoolRuntime,
   PostgresMigrationError,
-  runPostgresMigrations
+  runPostgresMigrations,
+  assertVaultSchemaCompatibility,
+  PostgresSchemaCompatibilityError,
+  VAULT_REQUIRED_SCHEMA_MIGRATION_VERSION
 } from './postgres/index.js';
 export { DurationAuthenticationExpirationPolicy } from './duration-authentication-expiration-policy.js';
 export {

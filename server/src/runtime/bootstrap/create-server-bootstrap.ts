@@ -1,12 +1,18 @@
+import { fileURLToPath } from 'node:url';
 import { createApp } from '../../app/index.js';
 import type { ServerEnvironmentConfig } from '../environment/index.js';
 import { createServerRuntimeDependencies } from '../create-server-runtime-dependencies.js';
 import {
+  assertVaultSchemaCompatibility,
   createPostgresPoolRuntime,
   type PostgresPoolRuntime
 } from '../postgres/index.js';
 import type { ServerBootstrapBindings } from './server-bootstrap-bindings.js';
 import type { ServerBootstrap } from './server-bootstrap.js';
+
+const MIGRATIONS_DIRECTORY = fileURLToPath(
+  new URL('../../../db/migrations/', import.meta.url)
+);
 
 async function closeAfterCompositionFailure(
   postgresRuntime: PostgresPoolRuntime,
@@ -33,6 +39,11 @@ export async function createServerBootstrap(
   );
 
   try {
+    await assertVaultSchemaCompatibility(
+      postgresRuntime.sqlExecutor,
+      MIGRATIONS_DIRECTORY
+    );
+
     const serverDependencies = createServerRuntimeDependencies(
       {
         sqlExecutor: postgresRuntime.sqlExecutor,

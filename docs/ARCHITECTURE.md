@@ -106,6 +106,14 @@ Validation levels are separate gates and MUST be reported precisely:
    environment; otherwise report `OWNER_BROWSER_QA_PENDING`.
 5. `PRODUCT_ACCEPTED` — the required Product Owner acceptance gate is complete.
 
+A successful static artifact, TypeScript build, or migration-file check is only
+`BUILT_ARTIFACT_PASS`; it is not `BUILT_RUNTIME_PASS`. For persistence-backed
+features, `BUILT_RUNTIME_PASS` requires the built server, a real PostgreSQL
+schema migrated through the canonical migration runner, an authenticated API
+request through the real local serving boundary, and a successful repository
+round-trip. A server that starts against an incompatible schema does not meet
+the built-runtime gate, even when source tests and static builds are green.
+
 Lower validation levels MUST NOT substitute for a higher required gate. Source
 tests, happy-dom, component mounting, and mock fetch do not prove that the
 hydrated built browser artifact works. Built-runtime parity MUST be verified
