@@ -78,11 +78,23 @@ boundary and is not implemented by this provider.
 
 ## Reliability, privacy, and attribution
 
-Requests use native server `fetch`, a bounded timeout, no retries, and generic
-unavailable responses. The provider has no logging sink. Search queries,
-coordinates, birth data, usernames, and provider payloads must not appear in
-ordinary logs or persistent search history. Candidate and resolved records are
-bounded, short-lived process memory only.
+Both `searchJSON` and `timezoneJSON` use one 4,000 ms interactive upstream
+deadline. The provider and provider-neutral service guard are both bounded to
+that deadline; a request that exceeds it is aborted and fails closed. V1 makes
+one upstream request per operation and performs no automatic retries.
+
+The free GeoNames service has no SLA, so transient upstream, network, and
+provider-status failures remain possible. A paid or SLA-backed provider is
+deferred. A self-hosted GeoNames dataset is a possible future reliability
+direction, but is not part of this provider integration.
+
+Failure-only diagnostics may be emitted through the provider's structured
+diagnostic sink using only `provider`, `operation`, `outcome`, and `durationMs`.
+The browser still receives only the generic unavailable result. Search queries,
+coordinates, birth data, usernames, complete request URLs, and provider
+payloads must not appear in diagnostics, ordinary logs, or persistent search
+history. Candidate and resolved records are bounded, short-lived process
+memory only.
 
 When a GeoNames-backed candidate or resolution is shown, the UI may display the
 source attribution link:

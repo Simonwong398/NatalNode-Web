@@ -5,7 +5,7 @@ import {
   type LocationLocale
 } from '@natalnode/contracts';
 
-export const LOCATION_PROVIDER_TIMEOUT_MS = 1_500;
+export const LOCATION_PROVIDER_TIMEOUT_MS = 4_000;
 export const LOCATION_RESOLUTION_ID_MAXIMUM_CHARACTERS = 256;
 export const LOCATION_DISPLAY_MAXIMUM_CHARACTERS = 256;
 export const LOCATION_TIMEZONE_MAXIMUM_CHARACTERS = 128;

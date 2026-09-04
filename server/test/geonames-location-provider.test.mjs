@@ -7,12 +7,14 @@ import {
   GEONAMES_API_ORIGIN,
   GEONAMES_LOCALE_LANGUAGE,
   GEONAMES_SEARCH_MAX_ROWS,
+  GEONAMES_REQUEST_TIMEOUT_MS,
   createGeoNamesLocationResolutionService,
   formatCanonicalDisplayName,
   isValidGeoNamesUsername
 } from '../dist/location-resolution/geonames-web-provider.js';
 import {
   InvalidLocationProviderDataError,
+  LOCATION_PROVIDER_TIMEOUT_MS,
   LocationResolutionProviderUnavailableError,
   ProviderLocationResolutionService
 } from '../dist/location-resolution/location-resolution-service.js';
@@ -34,6 +36,33 @@ function createFetch(handler) {
   };
 
   return { calls, fetchImplementation };
+}
+
+function createDiagnosticSink() {
+  const records = [];
+  return {
+    records,
+    write(record) {
+      records.push({ ...record });
+    }
+  };
+}
+
+function assertDiagnostic(record, operation, outcome) {
+  assert.deepEqual(Object.keys(record).sort(), [
+    'durationMs',
+    'operation',
+    'outcome',
+    'provider'
+  ]);
+  assert.deepEqual(record, {
+    provider: 'geonames',
+    operation,
+    outcome,
+    durationMs: record.durationMs
+  });
+  assert.equal(Number.isSafeInteger(record.durationMs), true);
+  assert.equal(record.durationMs >= 0, true);
 }
 
 function populatedPlace(overrides = {}) {
@@ -145,6 +174,34 @@ test('GeoNames search and timezone requests share the secure HTTPS origin', asyn
     ]
   );
   assert.equal(calls.every(({ url }) => url.protocol === 'https:'), true);
+});
+
+test('GeoNames uses one four-second bounded deadline and allows responses after the old 1400ms deadline', async (t) => {
+  assert.equal(GEONAMES_REQUEST_TIMEOUT_MS, 4_000);
+  assert.equal(LOCATION_PROVIDER_TIMEOUT_MS, 4_000);
+
+  t.mock.timers.enable({ apis: ['setTimeout'] });
+  try {
+    let resolveFetch;
+    const provider = new GeoNamesWebProvider({
+      username: 'test_account',
+      fetchImplementation: async () => new Promise((resolve) => {
+        resolveFetch = resolve;
+      })
+    });
+
+    const search = provider.search('Shanghai China', 'en');
+    assert.equal(typeof resolveFetch, 'function');
+
+    t.mock.timers.tick(1_401);
+    resolveFetch(jsonResponse({ geonames: [populatedPlace()] }));
+
+    const candidates = await search;
+    assert.equal(candidates.length, 1);
+    assert.equal(candidates[0].canonicalDisplayName, 'Shanghai, China');
+  } finally {
+    t.mock.timers.reset();
+  }
 });
 
 test('GeoNames locale mapping remains exactly the approved seven-locale set', async () => {
@@ -275,19 +332,33 @@ test('no results, unknown candidates, locale mismatch, invalid timezone, and mal
     { state: 'UNRESOLVED' }
   );
 
+  const malformedDiagnostics = createDiagnosticSink();
   const malformedProvider = new GeoNamesWebProvider({
     username: 'test_account',
+    diagnosticSink: malformedDiagnostics,
     fetchImplementation: async () => jsonResponse({
       geonames: [populatedPlace({ lat: 'not-a-coordinate' })]
     })
   });
   await assert.rejects(
     malformedProvider.search('broken', 'en'),
-    InvalidLocationProviderDataError
+    (error) => {
+      assert.equal(error instanceof InvalidLocationProviderDataError, true);
+      assert.equal(error.code, 'INVALID_PROVIDER_RESPONSE');
+      return true;
+    }
+  );
+  assert.equal(malformedDiagnostics.records.length, 1);
+  assertDiagnostic(
+    malformedDiagnostics.records[0],
+    'search',
+    'invalid_response'
   );
 
+  const invalidTimezoneDiagnostics = createDiagnosticSink();
   const invalidTimezoneProvider = new GeoNamesWebProvider({
     username: 'test_account',
+    diagnosticSink: invalidTimezoneDiagnostics,
     fetchImplementation: async (input) => input.pathname === '/searchJSON'
       ? jsonResponse({ geonames: [populatedPlace()] })
       : jsonResponse({ timezoneId: 'UTC+8' })
@@ -295,41 +366,103 @@ test('no results, unknown candidates, locale mismatch, invalid timezone, and mal
   const invalidCandidate = (await invalidTimezoneProvider.search('Shanghai', 'en'))[0];
   await assert.rejects(
     invalidTimezoneProvider.resolve(invalidCandidate.candidateId, 'en'),
-    InvalidLocationProviderDataError
+    (error) => {
+      assert.equal(error instanceof InvalidLocationProviderDataError, true);
+      assert.equal(error.code, 'INVALID_TIMEZONE_RESPONSE');
+      return true;
+    }
+  );
+  assert.equal(invalidTimezoneDiagnostics.records.length, 1);
+  assertDiagnostic(
+    invalidTimezoneDiagnostics.records[0],
+    'timezone',
+    'invalid_response'
   );
 });
 
 test('provider HTTP and GeoNames status errors are generic unavailable failures', async () => {
+  const httpDiagnostics = createDiagnosticSink();
   const httpFailure = new GeoNamesWebProvider({
     username: 'test_account',
+    diagnosticSink: httpDiagnostics,
     fetchImplementation: async () => jsonResponse({}, 503)
   });
   await assert.rejects(
     httpFailure.search('place', 'en'),
-    LocationResolutionProviderUnavailableError
+    (error) => {
+      assert.equal(error instanceof LocationResolutionProviderUnavailableError, true);
+      assert.equal(error.code, 'UPSTREAM_HTTP_ERROR');
+      return true;
+    }
   );
+  assert.equal(httpDiagnostics.records.length, 1);
+  assertDiagnostic(httpDiagnostics.records[0], 'search', 'upstream_error');
 
+  const statusDiagnostics = createDiagnosticSink();
   const apiFailure = new GeoNamesWebProvider({
     username: 'test_account',
+    diagnosticSink: statusDiagnostics,
     fetchImplementation: async () => jsonResponse({
       status: { message: 'account details must not escape', value: 10 }
     })
   });
   await assert.rejects(
     apiFailure.search('place', 'en'),
-    LocationResolutionProviderUnavailableError
+    (error) => {
+      assert.equal(error instanceof LocationResolutionProviderUnavailableError, true);
+      assert.equal(error.code, 'GEONAMES_STATUS_ERROR');
+      return true;
+    }
   );
+  assert.equal(statusDiagnostics.records.length, 1);
+  assertDiagnostic(
+    statusDiagnostics.records[0],
+    'search',
+    'provider_status_error'
+  );
+
+  const serializedDiagnostics = JSON.stringify([
+    ...httpDiagnostics.records,
+    ...statusDiagnostics.records
+  ]);
+  assert.doesNotMatch(serializedDiagnostics, /test_account|place|account details/u);
 });
 
-test('provider request timeout aborts without retries', async () => {
-  let calls = 0;
+test('provider network failures are classified without leaking request details', async () => {
+  const diagnostics = createDiagnosticSink();
   const provider = new GeoNamesWebProvider({
     username: 'test_account',
-    requestTimeoutMs: 5,
+    diagnosticSink: diagnostics,
+    fetchImplementation: async () => {
+      throw new Error('private transport detail');
+    }
+  });
+
+  await assert.rejects(
+    provider.search('Shanghai China', 'en'),
+    (error) => {
+      assert.equal(error instanceof LocationResolutionProviderUnavailableError, true);
+      assert.equal(error.code, 'NETWORK_ERROR');
+      return true;
+    }
+  );
+  assert.equal(diagnostics.records.length, 1);
+  assertDiagnostic(diagnostics.records[0], 'search', 'network_error');
+  assert.doesNotMatch(JSON.stringify(diagnostics.records), /test_account|Shanghai China/u);
+});
+
+test('provider request timeout aborts at the new deadline without retries', async (t) => {
+  let calls = 0;
+  let aborted = false;
+  const diagnostics = createDiagnosticSink();
+  const provider = new GeoNamesWebProvider({
+    username: 'test_account',
+    diagnosticSink: diagnostics,
     fetchImplementation: async (_input, init) => {
       calls += 1;
       await new Promise((_, reject) => {
         init.signal.addEventListener('abort', () => {
+          aborted = true;
           const error = new Error('aborted');
           error.name = 'AbortError';
           reject(error);
@@ -338,11 +471,64 @@ test('provider request timeout aborts without retries', async () => {
     }
   });
 
-  await assert.rejects(
-    provider.search('place', 'en'),
-    LocationResolutionProviderUnavailableError
-  );
+  t.mock.timers.enable({ apis: ['setTimeout'] });
+  try {
+    const search = provider.search('Shanghai China', 'en');
+    t.mock.timers.tick(GEONAMES_REQUEST_TIMEOUT_MS);
+    await assert.rejects(
+      search,
+      (error) => {
+        assert.equal(error instanceof LocationResolutionProviderUnavailableError, true);
+        assert.equal(error.code, 'REQUEST_TIMEOUT');
+        return true;
+      }
+    );
+  } finally {
+    t.mock.timers.reset();
+  }
+
   assert.equal(calls, 1);
+  assert.equal(aborted, true);
+  assert.equal(diagnostics.records.length, 1);
+  assertDiagnostic(diagnostics.records[0], 'search', 'timeout');
+});
+
+test('provider deadline also bounds response body parsing', async (t) => {
+  const diagnostics = createDiagnosticSink();
+  let resolveJson;
+  const provider = new GeoNamesWebProvider({
+    username: 'test_account',
+    diagnosticSink: diagnostics,
+    fetchImplementation: async () => ({
+      ok: true,
+      json: async () => new Promise((resolve) => {
+        resolveJson = resolve;
+      })
+    })
+  });
+
+  t.mock.timers.enable({ apis: ['setTimeout'] });
+  try {
+    const search = provider.search('Shanghai China', 'en');
+    for (let attempt = 0; attempt < 5 && typeof resolveJson !== 'function'; attempt += 1) {
+      await Promise.resolve();
+    }
+    assert.equal(typeof resolveJson, 'function');
+    t.mock.timers.tick(GEONAMES_REQUEST_TIMEOUT_MS);
+    await assert.rejects(
+      search,
+      (error) => {
+        assert.equal(error instanceof LocationResolutionProviderUnavailableError, true);
+        assert.equal(error.code, 'REQUEST_TIMEOUT');
+        return true;
+      }
+    );
+  } finally {
+    t.mock.timers.reset();
+  }
+
+  assert.equal(diagnostics.records.length, 1);
+  assertDiagnostic(diagnostics.records[0], 'search', 'timeout');
 });
 
 test('GeoNames configuration is optional, validated, and server-only', () => {
@@ -363,6 +549,17 @@ test('GeoNames configuration is optional, validated, and server-only', () => {
     () => parseServerEnvironment(serverEnvironment({ GEONAMES_USERNAME: 'test account' })),
     /Invalid GeoNames username environment variable: GEONAMES_USERNAME/u
   );
+  assert.throws(
+    () => new GeoNamesWebProvider({
+      username: '',
+      fetchImplementation: async () => jsonResponse({ geonames: [] })
+    }),
+    (error) => {
+      assert.equal(error instanceof TypeError, true);
+      assert.equal(error.code, 'CONFIGURATION_UNAVAILABLE');
+      return true;
+    }
+  );
 });
 
 test('runtime service factory remains provider-neutral and source contains no raw logging sink or offset promotion', () => {
@@ -373,4 +570,6 @@ test('runtime service factory remains provider-neutral and source contains no ra
   assert.equal(typeof createGeoNamesLocationResolutionService, 'function');
   assert.doesNotMatch(source, /console\.(log|warn|error)\s*\(/u);
   assert.doesNotMatch(source, /rawOffset|gmtOffset|dstOffset/u);
+  assert.doesNotMatch(source, /https:\/\/api\.geonames\.org/u);
+  assert.doesNotMatch(source, /http:\/\/api\.geonames\.org/u);
 });

@@ -1,4 +1,5 @@
 import { randomUUID } from 'node:crypto';
+import { performance } from 'node:perf_hooks';
 import type {
   CanonicalResolvedLocation,
   LocationAttribution,
@@ -17,8 +18,37 @@ import {
 export const GEONAMES_SOURCE_ID = 'geonames-free-web-services';
 export const GEONAMES_API_ORIGIN = 'https://secure.geonames.org';
 export const GEONAMES_SEARCH_MAX_ROWS = 8;
-export const GEONAMES_REQUEST_TIMEOUT_MS = 1_400;
+export const GEONAMES_REQUEST_TIMEOUT_MS = 4_000;
 export const GEONAMES_USERNAME_MAXIMUM_CHARACTERS = 64;
+
+export type GeoNamesProviderFailureCode =
+  | 'REQUEST_TIMEOUT'
+  | 'NETWORK_ERROR'
+  | 'UPSTREAM_HTTP_ERROR'
+  | 'GEONAMES_STATUS_ERROR'
+  | 'INVALID_PROVIDER_RESPONSE'
+  | 'INVALID_TIMEZONE_RESPONSE'
+  | 'CONFIGURATION_UNAVAILABLE';
+
+export type GeoNamesDiagnosticOperation = 'search' | 'timezone';
+
+export type GeoNamesDiagnosticOutcome =
+  | 'timeout'
+  | 'network_error'
+  | 'upstream_error'
+  | 'provider_status_error'
+  | 'invalid_response';
+
+export interface GeoNamesDiagnosticRecord {
+  readonly provider: 'geonames';
+  readonly operation: GeoNamesDiagnosticOperation;
+  readonly outcome: GeoNamesDiagnosticOutcome;
+  readonly durationMs: number;
+}
+
+export interface GeoNamesDiagnosticSink {
+  write(record: GeoNamesDiagnosticRecord): void;
+}
 
 export const GEONAMES_ATTRIBUTION: LocationAttribution = Object.freeze({
   label: 'GeoNames',
@@ -43,16 +73,62 @@ const DISPLAY_MAXIMUM_CHARACTERS = 256;
 const SOURCE_VERSION = 'geonames-free-web-services-v1';
 const DATASET_VERSION = null;
 
+type GeoNamesOperationalFailureCode = Exclude<
+  GeoNamesProviderFailureCode,
+  'CONFIGURATION_UNAVAILABLE'
+>;
+
+type GeoNamesUnavailableFailureCode = Exclude<
+  GeoNamesOperationalFailureCode,
+  'INVALID_PROVIDER_RESPONSE' | 'INVALID_TIMEZONE_RESPONSE'
+>;
+
+class GeoNamesProviderFailureError extends Error {
+  public constructor(public readonly code: GeoNamesProviderFailureCode) {
+    super('GeoNames provider request failed.');
+    this.name = 'GeoNamesProviderFailureError';
+  }
+}
+
+class GeoNamesUnavailableError extends LocationResolutionProviderUnavailableError {
+  public constructor(public readonly code: GeoNamesUnavailableFailureCode) {
+    super();
+    this.name = 'GeoNamesUnavailableError';
+  }
+}
+
+class GeoNamesInvalidResponseError extends InvalidLocationProviderDataError {
+  public constructor(
+    public readonly code:
+      | 'INVALID_PROVIDER_RESPONSE'
+      | 'INVALID_TIMEZONE_RESPONSE'
+  ) {
+    super();
+    this.name = 'GeoNamesInvalidResponseError';
+  }
+}
+
+class GeoNamesConfigurationError extends TypeError {
+  public readonly code = 'CONFIGURATION_UNAVAILABLE' as const;
+
+  public constructor(message: string) {
+    super(message);
+    this.name = 'GeoNamesConfigurationError';
+  }
+}
+
 export interface GeoNamesWebProviderOptions {
   readonly username: string;
   readonly fetchImplementation?: typeof globalThis.fetch;
   readonly requestTimeoutMs?: number;
+  readonly diagnosticSink?: GeoNamesDiagnosticSink;
 }
 
 export interface GeoNamesLocationResolutionServiceOptions {
   readonly fetchImplementation?: typeof globalThis.fetch;
   readonly requestTimeoutMs?: number;
   readonly providerTimeoutMs?: number;
+  readonly diagnosticSink?: GeoNamesDiagnosticSink;
 }
 
 interface GeoNamesRecord {
@@ -206,7 +282,7 @@ function readProviderStatus(value: unknown): boolean {
   }
 
   if (!isRecord(value.status)) {
-    throw new InvalidLocationProviderDataError();
+    throw new GeoNamesProviderFailureError('INVALID_PROVIDER_RESPONSE');
   }
 
   const numericValue =
@@ -217,7 +293,7 @@ function readProviderStatus(value: unknown): boolean {
         : null;
 
   if (numericValue === null || !Number.isSafeInteger(numericValue)) {
-    throw new InvalidLocationProviderDataError();
+    throw new GeoNamesProviderFailureError('INVALID_PROVIDER_RESPONSE');
   }
 
   if (numericValue === 0) {
@@ -246,20 +322,83 @@ export function isValidGeoNamesUsername(value: unknown): value is string {
   );
 }
 
+function diagnosticOutcome(
+  code: GeoNamesOperationalFailureCode
+): GeoNamesDiagnosticOutcome {
+  switch (code) {
+    case 'REQUEST_TIMEOUT':
+      return 'timeout';
+    case 'NETWORK_ERROR':
+      return 'network_error';
+    case 'UPSTREAM_HTTP_ERROR':
+      return 'upstream_error';
+    case 'GEONAMES_STATUS_ERROR':
+      return 'provider_status_error';
+    case 'INVALID_PROVIDER_RESPONSE':
+    case 'INVALID_TIMEZONE_RESPONSE':
+      return 'invalid_response';
+  }
+}
+
+function operationalFailureCode(
+  error: unknown,
+  fallback: 'INVALID_PROVIDER_RESPONSE' | 'INVALID_TIMEZONE_RESPONSE'
+): GeoNamesOperationalFailureCode {
+  if (error instanceof GeoNamesProviderFailureError) {
+    if (error.code === 'CONFIGURATION_UNAVAILABLE') {
+      return 'NETWORK_ERROR';
+    }
+
+    return error.code;
+  }
+
+  if (error instanceof InvalidLocationProviderDataError) {
+    return fallback;
+  }
+
+  return 'NETWORK_ERROR';
+}
+
+function toPublicFailure(
+  code: GeoNamesOperationalFailureCode
+): LocationResolutionProviderUnavailableError | InvalidLocationProviderDataError {
+  if (
+    code === 'INVALID_PROVIDER_RESPONSE' ||
+    code === 'INVALID_TIMEZONE_RESPONSE'
+  ) {
+    return new GeoNamesInvalidResponseError(code);
+  }
+
+  return new GeoNamesUnavailableError(code);
+}
+
+function createDefaultGeoNamesDiagnosticSink(): GeoNamesDiagnosticSink {
+  return {
+    write(record) {
+      process.stderr.write(`${JSON.stringify(record)}\n`);
+    }
+  };
+}
+
 export class GeoNamesWebProvider implements GeocodingProvider {
   private readonly candidateRecords = new Map<string, GeoNamesCandidateRecord>();
   private readonly username: string;
   private readonly fetchImplementation: typeof globalThis.fetch;
   private readonly requestTimeoutMs: number;
+  private readonly diagnosticSink: GeoNamesDiagnosticSink;
 
   public constructor(options: GeoNamesWebProviderOptions) {
     if (!isValidGeoNamesUsername(options.username)) {
-      throw new TypeError('GeoNames username configuration is invalid.');
+      throw new GeoNamesConfigurationError(
+        'GeoNames username configuration is invalid.'
+      );
     }
 
     const fetchImplementation = options.fetchImplementation ?? globalThis.fetch;
     if (typeof fetchImplementation !== 'function') {
-      throw new TypeError('A native fetch implementation is required.');
+      throw new GeoNamesConfigurationError(
+        'A native fetch implementation is required.'
+      );
     }
 
     const requestTimeoutMs = options.requestTimeoutMs ?? GEONAMES_REQUEST_TIMEOUT_MS;
@@ -270,6 +409,7 @@ export class GeoNamesWebProvider implements GeocodingProvider {
     this.username = options.username;
     this.fetchImplementation = fetchImplementation;
     this.requestTimeoutMs = requestTimeoutMs;
+    this.diagnosticSink = options.diagnosticSink ?? createDefaultGeoNamesDiagnosticSink();
   }
 
   public async search(
@@ -280,53 +420,71 @@ export class GeoNamesWebProvider implements GeocodingProvider {
       throw new TypeError('GeoNames search input is invalid.');
     }
 
-    const payload = await this.request('/searchJSON', {
-      q: query.trim(),
-      maxRows: GEONAMES_SEARCH_MAX_ROWS,
-      featureClass: 'P',
-      style: 'FULL',
-      isNameRequired: 'true',
-      lang: GEONAMES_LOCALE_LANGUAGE[locale]
-    });
+    const startedAt = performance.now();
 
-    if (readProviderStatus(payload)) {
-      throw new LocationResolutionProviderUnavailableError();
-    }
-
-    if (!isRecord(payload) || !Array.isArray(payload.geonames)) {
-      throw new InvalidLocationProviderDataError();
-    }
-
-    const seenGeonameIds = new Set<number>();
-    const candidates: LocationCandidate[] = [];
-
-    for (const item of payload.geonames) {
-      if (!isRecord(item)) {
-        throw new InvalidLocationProviderDataError();
-      }
-
-      const record = parseGeonameRecord(item);
-      if (record === null || seenGeonameIds.has(record.geonameId)) {
-        continue;
-      }
-
-      seenGeonameIds.add(record.geonameId);
-      const candidate = this.createCandidate(record);
-      this.rememberCandidate(candidate.candidateId, {
-        candidate,
-        locale,
-        latitude: record.lat,
-        longitude: record.lng,
-        expiresAt: Date.now() + LOCATION_TRANSIENT_RECORD_TTL_MS
+    try {
+      const payload = await this.request('/searchJSON', {
+        q: query.trim(),
+        maxRows: GEONAMES_SEARCH_MAX_ROWS,
+        featureClass: 'P',
+        style: 'FULL',
+        isNameRequired: 'true',
+        lang: GEONAMES_LOCALE_LANGUAGE[locale]
       });
-      candidates.push(candidate);
 
-      if (candidates.length >= GEONAMES_SEARCH_MAX_ROWS) {
-        break;
+      if (readProviderStatus(payload)) {
+        throw new GeoNamesProviderFailureError('GEONAMES_STATUS_ERROR');
       }
-    }
 
-    return Object.freeze(candidates);
+      if (!isRecord(payload) || !Array.isArray(payload.geonames)) {
+        throw new GeoNamesProviderFailureError('INVALID_PROVIDER_RESPONSE');
+      }
+
+      const seenGeonameIds = new Set<number>();
+      const candidates: LocationCandidate[] = [];
+
+      for (const item of payload.geonames) {
+        if (!isRecord(item)) {
+          throw new GeoNamesProviderFailureError('INVALID_PROVIDER_RESPONSE');
+        }
+
+        let record: GeoNamesRecord | null;
+        try {
+          record = parseGeonameRecord(item);
+        } catch (error) {
+          if (error instanceof InvalidLocationProviderDataError) {
+            throw new GeoNamesProviderFailureError('INVALID_PROVIDER_RESPONSE');
+          }
+
+          throw error;
+        }
+
+        if (record === null || seenGeonameIds.has(record.geonameId)) {
+          continue;
+        }
+
+        seenGeonameIds.add(record.geonameId);
+        const candidate = this.createCandidate(record);
+        this.rememberCandidate(candidate.candidateId, {
+          candidate,
+          locale,
+          latitude: record.lat,
+          longitude: record.lng,
+          expiresAt: Date.now() + LOCATION_TRANSIENT_RECORD_TTL_MS
+        });
+        candidates.push(candidate);
+
+        if (candidates.length >= GEONAMES_SEARCH_MAX_ROWS) {
+          break;
+        }
+      }
+
+      return Object.freeze(candidates);
+    } catch (error) {
+      const code = operationalFailureCode(error, 'INVALID_PROVIDER_RESPONSE');
+      this.reportFailure('search', code, startedAt);
+      throw toPublicFailure(code);
+    }
   }
 
   public async resolve(
@@ -343,46 +501,64 @@ export class GeoNamesWebProvider implements GeocodingProvider {
       return null;
     }
 
-    const payload = await this.request('/timezoneJSON', {
-      lat: record.latitude,
-      lng: record.longitude
-    });
+    const startedAt = performance.now();
 
-    if (readProviderStatus(payload)) {
-      throw new LocationResolutionProviderUnavailableError();
+    try {
+      const payload = await this.request('/timezoneJSON', {
+        lat: record.latitude,
+        lng: record.longitude
+      });
+
+      if (readProviderStatus(payload)) {
+        throw new GeoNamesProviderFailureError('GEONAMES_STATUS_ERROR');
+      }
+
+      if (!isRecord(payload)) {
+        throw new GeoNamesProviderFailureError('INVALID_PROVIDER_RESPONSE');
+      }
+
+      let ianaTimeZone: string;
+      try {
+        ianaTimeZone = parseTimezoneId(payload.timezoneId);
+      } catch (error) {
+        if (error instanceof InvalidLocationProviderDataError) {
+          throw new GeoNamesProviderFailureError('INVALID_TIMEZONE_RESPONSE');
+        }
+
+        throw error;
+      }
+
+      const candidate = record.candidate;
+
+      return Object.freeze({
+        resolutionId: randomUUID(),
+        canonicalDisplayName: candidate.canonicalDisplayName,
+        locality: candidate.locality,
+        region: candidate.region,
+        country: candidate.country,
+        countryCode: candidate.countryCode,
+        coordinates: Object.freeze({
+          latitude: record.latitude,
+          longitude: record.longitude
+        }),
+        ianaTimeZone,
+        status: 'RESOLVED' as const,
+        authority: Object.freeze({
+          kind: 'GEOCODING' as const,
+          sourceId: GEONAMES_SOURCE_ID,
+          recordId: candidate.candidateId
+        }),
+        source: Object.freeze({
+          sourceVersion: SOURCE_VERSION,
+          datasetVersion: DATASET_VERSION,
+          attribution: GEONAMES_ATTRIBUTION
+        })
+      });
+    } catch (error) {
+      const code = operationalFailureCode(error, 'INVALID_TIMEZONE_RESPONSE');
+      this.reportFailure('timezone', code, startedAt);
+      throw toPublicFailure(code);
     }
-
-    if (!isRecord(payload)) {
-      throw new InvalidLocationProviderDataError();
-    }
-
-    const ianaTimeZone = parseTimezoneId(payload.timezoneId);
-    const candidate = record.candidate;
-
-    return Object.freeze({
-      resolutionId: randomUUID(),
-      canonicalDisplayName: candidate.canonicalDisplayName,
-      locality: candidate.locality,
-      region: candidate.region,
-      country: candidate.country,
-      countryCode: candidate.countryCode,
-      coordinates: Object.freeze({
-        latitude: record.latitude,
-        longitude: record.longitude
-      }),
-      ianaTimeZone,
-      status: 'RESOLVED' as const,
-      authority: Object.freeze({
-        kind: 'GEOCODING' as const,
-        sourceId: GEONAMES_SOURCE_ID,
-        recordId: candidate.candidateId
-      }),
-      source: Object.freeze({
-        sourceVersion: SOURCE_VERSION,
-        datasetVersion: DATASET_VERSION,
-        attribution: GEONAMES_ATTRIBUTION
-      })
-    });
   }
 
   private createCandidate(record: GeoNamesRecord): LocationCandidate {
@@ -435,6 +611,25 @@ export class GeoNamesWebProvider implements GeocodingProvider {
     this.candidateRecords.set(candidateId, record);
   }
 
+  private reportFailure(
+    operation: GeoNamesDiagnosticOperation,
+    code: GeoNamesOperationalFailureCode,
+    startedAt: number
+  ): void {
+    const record = Object.freeze({
+      provider: 'geonames' as const,
+      operation,
+      outcome: diagnosticOutcome(code),
+      durationMs: Math.max(0, Math.round(performance.now() - startedAt))
+    });
+
+    try {
+      this.diagnosticSink.write(record);
+    } catch (_error) {
+      // Diagnostics must never change the provider's fail-closed behavior.
+    }
+  }
+
   private async request(
     path: '/searchJSON' | '/timezoneJSON',
     parameters: Readonly<Record<string, string | number>>
@@ -451,38 +646,56 @@ export class GeoNamesWebProvider implements GeocodingProvider {
     const deadline = new Promise<never>((_resolve, reject) => {
       timeoutHandle = setTimeout(() => {
         controller.abort();
-        reject(new LocationResolutionProviderUnavailableError());
+        reject(new GeoNamesProviderFailureError('REQUEST_TIMEOUT'));
       }, this.requestTimeoutMs);
     });
 
     try {
-      const response = await Promise.race([
-        this.fetchImplementation(url, {
-          method: 'GET',
-          headers: { Accept: 'application/json' },
-          signal: controller.signal
-        }),
-        deadline
-      ]);
+      let response: unknown;
+      try {
+        response = await Promise.race([
+          this.fetchImplementation(url, {
+            method: 'GET',
+            headers: { Accept: 'application/json' },
+            signal: controller.signal
+          }),
+          deadline
+        ]);
+      } catch (error) {
+        if (error instanceof GeoNamesProviderFailureError) {
+          throw error;
+        }
+
+        throw new GeoNamesProviderFailureError('NETWORK_ERROR');
+      }
+
+      if (
+        !isRecord(response) ||
+        typeof response.ok !== 'boolean' ||
+        typeof response.json !== 'function'
+      ) {
+        throw new GeoNamesProviderFailureError('INVALID_PROVIDER_RESPONSE');
+      }
 
       if (!response.ok) {
-        throw new LocationResolutionProviderUnavailableError();
+        throw new GeoNamesProviderFailureError('UPSTREAM_HTTP_ERROR');
       }
 
       try {
-        return await response.json();
+        return await Promise.race([response.json(), deadline]);
       } catch (_error) {
-        throw new InvalidLocationProviderDataError();
+        if (_error instanceof GeoNamesProviderFailureError) {
+          throw _error;
+        }
+
+        throw new GeoNamesProviderFailureError('INVALID_PROVIDER_RESPONSE');
       }
     } catch (error) {
-      if (
-        error instanceof InvalidLocationProviderDataError ||
-        error instanceof LocationResolutionProviderUnavailableError
-      ) {
+      if (error instanceof GeoNamesProviderFailureError) {
         throw error;
       }
 
-      throw new LocationResolutionProviderUnavailableError();
+      throw new GeoNamesProviderFailureError('NETWORK_ERROR');
     } finally {
       if (timeoutHandle !== undefined) {
         clearTimeout(timeoutHandle);
@@ -498,7 +711,8 @@ export function createGeoNamesLocationResolutionService(
   const provider = new GeoNamesWebProvider({
     username,
     fetchImplementation: options.fetchImplementation,
-    requestTimeoutMs: options.requestTimeoutMs
+    requestTimeoutMs: options.requestTimeoutMs,
+    diagnosticSink: options.diagnosticSink
   });
 
   return new ProviderLocationResolutionService(
