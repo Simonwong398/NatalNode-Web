@@ -80,6 +80,7 @@ export async function runLocalDevelopmentComposition(): Promise<void> {
   try {
     publicEdge = await startLocalPublicEdge({
       ...localConfig,
+      localIntegrationDiagnostics: true,
       staticDirectory: ASTRO_STATIC_DIRECTORY
     });
   } catch (publicEdgeError) {

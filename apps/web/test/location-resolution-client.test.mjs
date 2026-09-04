@@ -76,6 +76,10 @@ test('browser client uses same-origin BFF routes and strips unknown response fie
   assert.equal(calls[0].init.method, 'POST');
   assert.equal(calls[0].init.credentials, 'same-origin');
   assert.equal(calls[0].init.cache, 'no-store');
+  assert.deepEqual(Object.keys(calls[0].init.headers).sort(), [
+    'Accept',
+    'Content-Type'
+  ]);
   assert.deepEqual(JSON.parse(calls[0].init.body), {
     query: '上海',
     locale: 'zh-Hant'
@@ -166,7 +170,14 @@ test('client emits safe lifecycle diagnostics for accepted search and resolve re
   });
   assert.deepEqual(
     Object.keys(searchEvents[0]).sort(),
-    ['errorKind', 'httpStatus', 'stage']
+    [
+      'errorKind',
+      'httpStatus',
+      'requestOrigin',
+      'requestTarget',
+      'signalStateAtDispatch',
+      'stage'
+    ]
   );
   assert.doesNotMatch(
     JSON.stringify([...searchEvents, ...resolveEvents]),
@@ -310,6 +321,76 @@ test('client distinguishes network rejection and abort without exposing rejectio
     abortEvents.map(({ stage }) => stage),
     ['REQUEST_STARTED', 'ABORTED']
   );
+});
+
+test('client binds the browser fetch receiver before dispatch', async () => {
+  let receiver;
+  const client = new FetchLocationResolutionClient(function nativeLikeFetch() {
+    receiver = this;
+    return Promise.resolve(
+      new Response(JSON.stringify({ state: 'UNRESOLVED', candidates: [] }), {
+        status: 200,
+        headers: { 'Content-Type': 'application/json' }
+      })
+    );
+  });
+
+  await client.search({ query: 'place', locale: 'en' });
+
+  assert.equal(receiver, globalThis);
+});
+
+test('client reports safe browser exception, signal, origin, and target metadata', async () => {
+  const networkEvents = [];
+  const networkClient = new FetchLocationResolutionClient(async () => {
+    throw new TypeError('private browser transport detail');
+  });
+
+  await assert.rejects(
+    networkClient.search(
+      { query: 'place', locale: 'en' },
+      undefined,
+      (event) => networkEvents.push(event)
+    ),
+    /Location resolution is unavailable/u
+  );
+
+  assert.deepEqual(networkEvents.at(-1), {
+    stage: 'NETWORK_FAILED',
+    errorKind: 'NETWORK_ERROR',
+    httpStatus: null,
+    fetchExceptionName: 'TypeError',
+    signalStateAtDispatch: 'ACTIVE',
+    requestOrigin: 'NO_ORIGIN',
+    requestTarget: 'SEARCH'
+  });
+  assert.doesNotMatch(JSON.stringify(networkEvents), /private browser transport detail/u);
+
+  const abortController = new AbortController();
+  abortController.abort();
+  const abortEvents = [];
+  const abortClient = new FetchLocationResolutionClient(async () => {
+    throw new DOMException('aborted', 'AbortError');
+  });
+
+  await assert.rejects(
+    abortClient.resolve(
+      { candidateId: 'candidate-1', locale: 'en' },
+      abortController.signal,
+      (event) => abortEvents.push(event)
+    ),
+    (error) => error.name === 'AbortError'
+  );
+
+  assert.deepEqual(abortEvents.at(-1), {
+    stage: 'ABORTED',
+    errorKind: 'ABORTED',
+    httpStatus: null,
+    fetchExceptionName: 'AbortError',
+    signalStateAtDispatch: 'ABORTED',
+    requestOrigin: 'NO_ORIGIN',
+    requestTarget: 'RESOLVE'
+  });
 });
 
 test('client and hook stay provider-neutral and support stale-request cancellation', () => {

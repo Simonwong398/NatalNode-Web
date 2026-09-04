@@ -212,6 +212,9 @@ test('location, cache, and diagnostics boundaries remain fail-closed', () => {
     'apps/web/src/features/chart-input/location-resolution-client.ts'
   );
   const locationRoute = readText('server/src/app/routes/location.ts');
+  const localPublicEdge = readText(
+    'server/src/executable/local-public-edge.ts'
+  );
   const chartRoute = readText('server/src/app/routes/chart.ts');
   const locationService = readText(
     'server/src/location-resolution/location-resolution-service.ts'
@@ -229,6 +232,13 @@ test('location, cache, and diagnostics boundaries remain fail-closed', () => {
   assert.match(browserLocationClient, /cache:\s*'no-store'/u);
   assert.doesNotMatch(browserLocationClient, /MockEngineClient|test-fixtures/u);
   assert.match(locationRoute, /LOCATION_RESOLUTION_UNAVAILABLE/u);
+  assert.match(localPublicEdge, /local\.location\.edge\.request/u);
+  assert.match(localPublicEdge, /localIntegrationDiagnostics/u);
+  assert.match(localPublicEdge, /forwardedToBff/u);
+  assert.doesNotMatch(
+    localPublicEdge,
+    /JSON\.stringify\(\s*request(?:\.headers|\.)/isu
+  );
   assert.match(locationService, /candidateAuthorities/u);
   assert.match(locationService, /resolvedLocations/u);
   assert.match(chartRoute, /runtimeMode !== 'production'/u);
@@ -297,6 +307,14 @@ test('the production Astro artifact contains the real location flow without deve
   assert.match(chartExperienceBundle, /data-location-canonical/u);
   assert.match(chartExperienceBundle, /LocationResolutionClientError/u);
   assert.match(chartExperienceBundle, /DEV:\s*!1|DEV:\s*false/u);
+  assert.match(
+    chartExperienceBundle,
+    /["'`]\/api\/location\/(?:search|resolve)["'`]/u
+  );
+  assert.doesNotMatch(
+    chartExperienceBundle,
+    /https?:\/\/(?:localhost|127\.0\.0\.1)(?::\d+)?\/api\/location\/(?:search|resolve)/u
+  );
   assert.doesNotMatch(chartExperienceBundle, /MockEngineClient|WEB_UI_FIXTURE_V1/u);
   assert.doesNotMatch(chartExperienceBundle, /https?:\/\/api\.geonames\.org/u);
 });
@@ -314,11 +332,14 @@ test('the built local public edge serves the exact static artifact with revalida
   assert.ok(existsSync(indexPath), 'Build web before running edge integrity guard.');
 
   const { startLocalPublicEdge } = await import(pathToFileURL(edgeModulePath).href);
+  const edgeDiagnostics = [];
   const runtime = await startLocalPublicEdge({
     publicPort: 0,
     apiHostname: '127.0.0.1',
     apiPort: 1,
-    staticDirectory: DIST_ROOT
+    staticDirectory: DIST_ROOT,
+    localIntegrationDiagnostics: true,
+    diagnosticSink: (record) => edgeDiagnostics.push(record)
   });
 
   try {
@@ -342,6 +363,50 @@ test('the built local public edge serves the exact static artifact with revalida
       bundleResponse.headers.get('content-type') ?? '',
       /javascript/u
     );
+
+    const origin = `http://localhost:${runtime.publicPort}`;
+    const locationResponse = await fetch(
+      `${origin}/api/location/search`,
+      {
+        method: 'POST',
+        headers: {
+          Origin: origin,
+          'Content-Type': 'application/json'
+        },
+        body: '{}'
+      }
+    );
+    assert.equal(locationResponse.status, 502);
+
+    const preflightResponse = await fetch(
+      `${origin}/api/location/resolve`,
+      {
+        method: 'OPTIONS',
+        headers: {
+          Origin: `http://127.0.0.1:${runtime.publicPort}`,
+          'Access-Control-Request-Method': 'POST'
+        }
+      }
+    );
+    assert.equal(preflightResponse.status, 502);
+    assert.deepEqual(edgeDiagnostics, [
+      {
+        event: 'local.location.edge.request',
+        method: 'POST',
+        pathFamily: 'location.search',
+        originRelation: 'SAME_ORIGIN',
+        status: 502,
+        forwardedToBff: true
+      },
+      {
+        event: 'local.location.edge.request',
+        method: 'OPTIONS',
+        pathFamily: 'location.resolve',
+        originRelation: 'CROSS_ORIGIN',
+        status: 502,
+        forwardedToBff: true
+      }
+    ]);
   } finally {
     await runtime.close();
   }

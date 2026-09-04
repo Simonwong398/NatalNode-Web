@@ -9,6 +9,10 @@ export default function LocationResolutionDiagnostics({
 }: LocationResolutionDiagnosticsProps) {
   const httpStatus =
     diagnostics.lastHttpStatus === null ? '—' : String(diagnostics.lastHttpStatus);
+  const fetchExceptionName = diagnostics.fetchExceptionName ?? '—';
+  const signalStateAtDispatch = diagnostics.signalStateAtDispatch ?? '—';
+  const requestOrigin = diagnostics.requestOrigin ?? '—';
+  const requestTarget = diagnostics.requestTarget ?? '—';
 
   return (
     <aside
@@ -21,6 +25,10 @@ export default function LocationResolutionDiagnostics({
       data-location-http-status={httpStatus}
       data-location-candidate-count={diagnostics.candidateCount}
       data-location-panel-mounted={diagnostics.panelMounted ? 'true' : 'false'}
+      data-location-fetch-exception-name={fetchExceptionName}
+      data-location-signal-state-at-dispatch={signalStateAtDispatch}
+      data-location-request-origin={requestOrigin}
+      data-location-request-target={requestTarget}
     >
       <p className="font-semibold text-[color:var(--nn-text-primary)]">LOCATION DIAGNOSTICS</p>
       <dl className="mt-2 grid grid-cols-2 gap-x-4 gap-y-1 sm:grid-cols-3">
@@ -52,6 +60,30 @@ export default function LocationResolutionDiagnostics({
           <dt>Panel mounted</dt>
           <dd className="mt-0.5 text-[color:var(--nn-text-primary)]">
             {diagnostics.panelMounted ? 'YES' : 'NO'}
+          </dd>
+        </div>
+        <div>
+          <dt>Fetch exception name</dt>
+          <dd className="mt-0.5 break-words text-[color:var(--nn-text-primary)]">
+            {fetchExceptionName}
+          </dd>
+        </div>
+        <div>
+          <dt>Signal at dispatch</dt>
+          <dd className="mt-0.5 text-[color:var(--nn-text-primary)]">
+            {signalStateAtDispatch}
+          </dd>
+        </div>
+        <div>
+          <dt>Request origin</dt>
+          <dd className="mt-0.5 text-[color:var(--nn-text-primary)]">
+            {requestOrigin}
+          </dd>
+        </div>
+        <div>
+          <dt>Request target</dt>
+          <dd className="mt-0.5 text-[color:var(--nn-text-primary)]">
+            {requestTarget}
           </dd>
         </div>
       </dl>

@@ -45,11 +45,31 @@ export type LocationClientErrorKind =
   | 'ABORTED'
   | 'UNKNOWN';
 
+export type LocationFetchExceptionName =
+  | 'TypeError'
+  | 'AbortError'
+  | 'SecurityError'
+  | 'NotAllowedError'
+  | 'UNKNOWN';
+
+export type LocationSignalState = 'ACTIVE' | 'ABORTED';
+
+export type LocationRequestOriginRelation =
+  | 'SAME_ORIGIN'
+  | 'CROSS_ORIGIN'
+  | 'NO_ORIGIN';
+
+export type LocationRequestTarget = 'SEARCH' | 'RESOLVE';
+
 export interface LocationResolutionClientDiagnosticEvent {
   readonly stage: LocationClientStage;
   readonly errorKind: LocationClientErrorKind;
   readonly httpStatus: number | null;
   readonly candidateCount?: number;
+  readonly fetchExceptionName?: LocationFetchExceptionName;
+  readonly signalStateAtDispatch?: LocationSignalState;
+  readonly requestOrigin?: LocationRequestOriginRelation;
+  readonly requestTarget?: LocationRequestTarget;
 }
 
 export type LocationResolutionClientObserver = (
@@ -251,13 +271,43 @@ function parseResolvedLocation(value: unknown): CanonicalResolvedLocation {
   });
 }
 
+function fetchExceptionName(error: unknown): LocationFetchExceptionName {
+  const name =
+    isRecord(error) && typeof error.name === 'string' ? error.name : undefined;
+
+  if (
+    name === 'TypeError' ||
+    name === 'AbortError' ||
+    name === 'SecurityError' ||
+    name === 'NotAllowedError'
+  ) {
+    return name;
+  }
+
+  return 'UNKNOWN';
+}
+
 function isAbortError(error: unknown): boolean {
-  return (
-    (typeof DOMException !== 'undefined' &&
-      error instanceof DOMException &&
-      error.name === 'AbortError') ||
-    (isRecord(error) && error.name === 'AbortError')
-  );
+  return fetchExceptionName(error) === 'AbortError';
+}
+
+function requestOriginRelation(endpoint: string): LocationRequestOriginRelation {
+  if (
+    typeof window === 'undefined' ||
+    typeof window.location?.origin !== 'string' ||
+    window.location.origin === ''
+  ) {
+    return 'NO_ORIGIN';
+  }
+
+  try {
+    const targetOrigin = new URL(endpoint, window.location.origin).origin;
+    return targetOrigin === window.location.origin
+      ? 'SAME_ORIGIN'
+      : 'CROSS_ORIGIN';
+  } catch {
+    return 'NO_ORIGIN';
+  }
 }
 
 function emitDiagnostic(
@@ -272,12 +322,18 @@ function emitDiagnostic(
 }
 
 export class FetchLocationResolutionClient implements LocationResolutionClient {
+  private readonly fetchImplementation: typeof globalThis.fetch;
+
   public constructor(
-    private readonly fetchImplementation: typeof globalThis.fetch = globalThis.fetch
+    fetchImplementation: typeof globalThis.fetch = globalThis.fetch
   ) {
     if (typeof fetchImplementation !== 'function') {
       throw new TypeError('A native fetch implementation is required.');
     }
+
+    // Browser fetch is a Web IDL method. Bind it once so invoking it from this
+    // client cannot change its global-object receiver before transport starts.
+    this.fetchImplementation = fetchImplementation.bind(globalThis);
   }
 
   public async search(
@@ -439,10 +495,18 @@ export class FetchLocationResolutionClient implements LocationResolutionClient {
     operation: 'SEARCH' | 'RESOLVE',
     observer: LocationResolutionClientObserver | undefined
   ): Promise<LocationClientResponse> {
+    const requestTarget: LocationRequestTarget = operation;
+    const requestOrigin = requestOriginRelation(endpoint);
+    const signalStateAtDispatch: LocationSignalState =
+      signal?.aborted === true ? 'ABORTED' : 'ACTIVE';
+
     emitDiagnostic(observer, {
       stage: operation === 'SEARCH' ? 'REQUEST_STARTED' : 'RESOLVE_STARTED',
       errorKind: 'NONE',
-      httpStatus: null
+      httpStatus: null,
+      requestOrigin,
+      requestTarget,
+      signalStateAtDispatch
     });
 
     let response: Response;
@@ -459,18 +523,27 @@ export class FetchLocationResolutionClient implements LocationResolutionClient {
         signal
       });
     } catch (error) {
+      const exceptionName = fetchExceptionName(error);
       if (isAbortError(error)) {
         emitDiagnostic(observer, {
           stage: 'ABORTED',
           errorKind: 'ABORTED',
-          httpStatus: null
+          httpStatus: null,
+          fetchExceptionName: exceptionName,
+          requestOrigin,
+          requestTarget,
+          signalStateAtDispatch
         });
         throw error;
       }
       emitDiagnostic(observer, {
         stage: 'NETWORK_FAILED',
         errorKind: 'NETWORK_ERROR',
-        httpStatus: null
+        httpStatus: null,
+        fetchExceptionName: exceptionName,
+        requestOrigin,
+        requestTarget,
+        signalStateAtDispatch
       });
       throw new LocationResolutionClientError(
         'NETWORK_ERROR',

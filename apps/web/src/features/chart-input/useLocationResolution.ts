@@ -98,6 +98,18 @@ function applyClientDiagnosticEvent(
     ...(event.candidateCount === undefined
       ? {}
       : { candidateCount: event.candidateCount }),
+    ...(event.fetchExceptionName === undefined
+      ? {}
+      : { fetchExceptionName: event.fetchExceptionName }),
+    ...(event.signalStateAtDispatch === undefined
+      ? {}
+      : { signalStateAtDispatch: event.signalStateAtDispatch }),
+    ...(event.requestOrigin === undefined
+      ? {}
+      : { requestOrigin: event.requestOrigin }),
+    ...(event.requestTarget === undefined
+      ? {}
+      : { requestTarget: event.requestTarget }),
     ...(isDiagnosticFailureStage(event.stage)
       ? { resolutionState: 'ERROR' as const }
       : {})
@@ -213,7 +225,11 @@ export function useLocationResolution(
         lastHttpStatus: null,
         candidateCount: 0,
         lastClientStage: rawQuery.trim() === '' ? 'IDLE' : 'DEBOUNCE_PENDING',
-        lastErrorKind: 'NONE'
+        lastErrorKind: 'NONE',
+        fetchExceptionName: null,
+        signalStateAtDispatch: null,
+        requestOrigin: null,
+        requestTarget: null
       });
       if (rawQuery.trim() === '') {
         return;
@@ -321,7 +337,11 @@ export function useLocationResolution(
         resolutionState: 'SEARCHING',
         lastHttpStatus: null,
         lastClientStage: 'RESOLVE_STARTED',
-        lastErrorKind: 'NONE'
+        lastErrorKind: 'NONE',
+        fetchExceptionName: null,
+        signalStateAtDispatch: null,
+        requestOrigin: null,
+        requestTarget: null
       });
       const controller = new AbortController();
       abortControllerRef.current = controller;

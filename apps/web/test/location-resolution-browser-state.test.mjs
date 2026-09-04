@@ -257,7 +257,11 @@ async function withLocationProbe(
           stage: diagnostics.dataset.locationClientStage,
           errorKind: diagnostics.dataset.locationErrorKind,
           candidateCount: diagnostics.dataset.locationCandidateCount,
-          panelMounted: diagnostics.dataset.locationPanelMounted
+          panelMounted: diagnostics.dataset.locationPanelMounted,
+          fetchExceptionName: diagnostics.dataset.locationFetchExceptionName,
+          signalStateAtDispatch: diagnostics.dataset.locationSignalStateAtDispatch,
+          requestOrigin: diagnostics.dataset.locationRequestOrigin,
+          requestTarget: diagnostics.dataset.locationRequestTarget
         };
       },
       candidateButtons() {
@@ -345,7 +349,11 @@ test('real CANDIDATES response moves Shanghai from SEARCHING to selectable and t
       stage: 'CANDIDATES_ACCEPTED',
       errorKind: 'NONE',
       candidateCount: '1',
-      panelMounted: 'true'
+      panelMounted: 'true',
+      fetchExceptionName: '—',
+      signalStateAtDispatch: 'ACTIVE',
+      requestOrigin: 'SAME_ORIGIN',
+      requestTarget: 'SEARCH'
     });
     assert.equal(scope.candidateButtons()[0].dataset.locationCandidateId, 'candidate-shanghai');
     assert.equal(scope.container.querySelector('[data-location-canonical]'), null);
@@ -364,7 +372,11 @@ test('real CANDIDATES response moves Shanghai from SEARCHING to selectable and t
       stage: 'RESOLVED_ACCEPTED',
       errorKind: 'NONE',
       candidateCount: '1',
-      panelMounted: 'true'
+      panelMounted: 'true',
+      fetchExceptionName: '—',
+      signalStateAtDispatch: 'ACTIVE',
+      requestOrigin: 'SAME_ORIGIN',
+      requestTarget: 'RESOLVE'
     });
     assert.equal(calls.length, 2);
     assert.deepEqual(JSON.parse(calls[1].init.body), {
@@ -529,7 +541,11 @@ test('development diagnostics expose safe failure and candidate fields only', as
       stage: 'CONTRACT_PARSE_FAILED',
       errorKind: 'CLIENT_CONTRACT_ERROR',
       candidateCount: '0',
-      panelMounted: 'true'
+      panelMounted: 'true',
+      fetchExceptionName: '—',
+      signalStateAtDispatch: 'ACTIVE',
+      requestOrigin: 'SAME_ORIGIN',
+      requestTarget: 'SEARCH'
     });
 
     const diagnostics = scope.container.querySelector('[data-location-diagnostic-state]');

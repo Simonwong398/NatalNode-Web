@@ -17,12 +17,36 @@ export interface LocalPublicEdgeConfig {
   readonly apiHostname: string;
   readonly apiPort: number;
   readonly staticDirectory: string;
+  readonly localIntegrationDiagnostics?: boolean;
+  readonly diagnosticSink?: LocalLocationEdgeDiagnosticSink;
 }
 
 export interface LocalPublicEdgeRuntime {
   readonly publicPort: number;
   close(): Promise<void>;
 }
+
+export type LocalLocationEdgeDiagnosticPathFamily =
+  | 'location.search'
+  | 'location.resolve';
+
+export type LocalLocationEdgeDiagnosticOriginRelation =
+  | 'SAME_ORIGIN'
+  | 'CROSS_ORIGIN'
+  | 'NO_ORIGIN';
+
+export interface LocalLocationEdgeDiagnosticRecord {
+  readonly event: 'local.location.edge.request';
+  readonly method: 'POST' | 'OPTIONS';
+  readonly pathFamily: LocalLocationEdgeDiagnosticPathFamily;
+  readonly originRelation: LocalLocationEdgeDiagnosticOriginRelation;
+  readonly status: number;
+  readonly forwardedToBff: boolean;
+}
+
+export type LocalLocationEdgeDiagnosticSink = (
+  record: LocalLocationEdgeDiagnosticRecord
+) => void;
 
 const CONTENT_TYPES: Readonly<Record<string, string>> = {
   '.css': 'text/css; charset=utf-8',
@@ -70,6 +94,70 @@ function parseRequestUrl(requestUrl: string | undefined): URL | undefined {
 
 function isApiPath(pathname: string): boolean {
   return pathname === '/api' || pathname.startsWith('/api/');
+}
+
+function locationPathFamily(
+  pathname: string
+): LocalLocationEdgeDiagnosticPathFamily | undefined {
+  if (pathname === '/api/location/search') return 'location.search';
+  if (pathname === '/api/location/resolve') return 'location.resolve';
+  return undefined;
+}
+
+function headerValue(
+  value: string | string[] | undefined
+): string | undefined {
+  return Array.isArray(value) ? value[0] : value;
+}
+
+function requestOriginRelation(
+  request: IncomingMessage
+): LocalLocationEdgeDiagnosticOriginRelation {
+  const origin = headerValue(request.headers.origin);
+  const host = headerValue(request.headers.host);
+
+  if (
+    origin === undefined ||
+    origin === 'null' ||
+    host === undefined ||
+    host === ''
+  ) {
+    return 'NO_ORIGIN';
+  }
+
+  try {
+    const parsedOrigin = new URL(origin);
+    if (parsedOrigin.protocol !== 'http:' && parsedOrigin.protocol !== 'https:') {
+      return 'NO_ORIGIN';
+    }
+
+    const edgeOrigin = new URL(`http://${host}`).origin;
+    return parsedOrigin.origin === edgeOrigin
+      ? 'SAME_ORIGIN'
+      : 'CROSS_ORIGIN';
+  } catch {
+    return 'NO_ORIGIN';
+  }
+}
+
+function createLocalLocationDiagnosticEmitter(
+  config: LocalPublicEdgeConfig
+): ((record: LocalLocationEdgeDiagnosticRecord) => void) | undefined {
+  if (!config.localIntegrationDiagnostics) {
+    return undefined;
+  }
+
+  const sink = config.diagnosticSink ?? ((record: LocalLocationEdgeDiagnosticRecord) => {
+    process.stdout.write(`${JSON.stringify(record)}\n`);
+  });
+
+  return (record) => {
+    try {
+      sink(record);
+    } catch {
+      // Local diagnostics must never change public request behavior.
+    }
+  };
 }
 
 function proxyHostname(hostname: string): string {
@@ -123,9 +211,20 @@ function proxyApiRequest(
   request: IncomingMessage,
   response: ServerResponse,
   config: LocalPublicEdgeConfig,
-  targetPath: string
+  targetPath: string,
+  onCompleted?: (status: number) => void
 ): void {
   const hostname = proxyHostname(config.apiHostname);
+  let completed = false;
+  const complete = (status: number): void => {
+    if (completed) {
+      return;
+    }
+
+    completed = true;
+    onCompleted?.(status);
+  };
+
   const proxyRequest = createProxyRequest(
     {
       hostname,
@@ -140,6 +239,7 @@ function proxyApiRequest(
       )
     },
     (proxyResponse) => {
+      complete(proxyResponse.statusCode ?? 502);
       response.writeHead(
         proxyResponse.statusCode ?? 502,
         proxyResponse.headers
@@ -150,6 +250,7 @@ function proxyApiRequest(
   );
 
   proxyRequest.once('error', () => {
+    complete(502);
     writePlainResponse(response, 502, 'Local API gateway error.');
   });
   request.once('aborted', () => proxyRequest.destroy());
@@ -301,11 +402,33 @@ export async function startLocalPublicEdge(
     }
 
     if (isApiPath(requestUrl.pathname)) {
+      const pathFamily = locationPathFamily(requestUrl.pathname);
+      const diagnosticMethod =
+        request.method === 'POST' || request.method === 'OPTIONS'
+          ? request.method
+          : undefined;
+      const emitLocationDiagnostic =
+        pathFamily !== undefined && diagnosticMethod !== undefined
+          ? createLocalLocationDiagnosticEmitter(config)
+          : undefined;
+
       proxyApiRequest(
         request,
         response,
         config,
-        `${requestUrl.pathname}${requestUrl.search}`
+        `${requestUrl.pathname}${requestUrl.search}`,
+        emitLocationDiagnostic === undefined || pathFamily === undefined || diagnosticMethod === undefined
+          ? undefined
+          : (status) => {
+              emitLocationDiagnostic({
+                event: 'local.location.edge.request',
+                method: diagnosticMethod,
+                pathFamily,
+                originRelation: requestOriginRelation(request),
+                status,
+                forwardedToBff: true
+              });
+            }
       );
       return;
     }
