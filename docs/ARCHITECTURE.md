@@ -58,3 +58,97 @@ This policy creates no mandatory architecture report, mandatory LOC report, CI g
 Semantic boundaries come before large implementations. New behavior must remain behind the fixed Website API / BFF → Engine Public API boundary, and `docs/PRD.md` plus Git history remain the authoritative record for product and implementation decisions.
 
 This policy does not authorize broad cleanup, unrelated refactors, an ADR, or changes outside the documentation and implementation scope explicitly requested for a task. The repository-wide proactive large-file decomposition program is paused and is not a mandatory execution backlog. It does not authorize a new manual large-file review or a continuation of the audit backlog.
+
+## Engineering Integrity and Validation Authority
+
+This section is the repository-owned engineering-integrity policy. It applies to
+production code, tests, fixtures, local development, and campaign reports. It
+complements `docs/PRD.md`, which remains the product source of truth.
+
+### Correctness and test integrity
+
+- Production behavior MUST NOT change solely to satisfy a test. A failing test
+  requires fixing the real defect or correcting an invalid test. Hidden product
+  paths whose purpose is assertion satisfaction MUST NOT be created.
+- Tests MAY replace external I/O with deterministic dependencies, but test mode
+  MUST NOT change validation, authority requirements, state transitions,
+  correctness semantics, security behavior, retry semantics, cache truth,
+  submission eligibility, or failure semantics.
+- Tests MUST observe actual product semantics. They MUST NOT seed hidden
+  correctness state, warm caches, retry or poll until an expected result appears,
+  advance timers into an otherwise unreachable success state, or bypass required
+  authority unless that exact mechanism is legitimate production behavior under
+  test.
+- Caches are performance layers only. Correctness MUST hold with a cache that is
+  cold, empty, disabled, expired, evicted, or unavailable. Cache or shadow state
+  MUST NOT fabricate authoritative correctness.
+- Asynchronous work MUST NOT return authoritative success before authoritative
+  work completes and rely on post-hoc reconciliation. Pending authority remains
+  pending or unresolved.
+- Development and test fixtures, mock engines, seeded stores, and synthetic
+  transports MUST remain explicit and structurally separate. An authoritative
+  provider failure MUST NOT silently fall back to fixture data or present mock
+  success as product success.
+- Authority-sensitive paths MUST fail closed. If required authoritative
+  information is missing, inconsistent, or unavailable, the result is
+  unavailable, unresolved, or pending; it MUST NOT be guessed or synthesized.
+
+### Validation evidence
+
+Validation levels are separate gates and MUST be reported precisely:
+
+1. `MODULE_PASS` — module, unit, contract, or focused source-level evidence.
+2. `SIMULATED_INTEGRATION_PASS` — composed components or services exercised
+   with controlled doubles or synthetic transports.
+3. `BUILT_RUNTIME_PASS` — the current built artifact exercised through its real
+   local serving boundary.
+4. `OWNER_BROWSER_PASS` — Product Owner evidence from the relevant real-browser
+   environment; otherwise report `OWNER_BROWSER_QA_PENDING`.
+5. `PRODUCT_ACCEPTED` — the required Product Owner acceptance gate is complete.
+
+Lower validation levels MUST NOT substitute for a higher required gate. Source
+tests, happy-dom, component mounting, and mock fetch do not prove that the
+hydrated built browser artifact works. Built-runtime parity MUST be verified
+separately when required. If real Product Owner browser behavior contradicts
+synthetic tests, the reproducible browser evidence wins.
+
+Development, test, local, and production differences MUST be explicit and
+intentional. Diagnostics and tooling may differ, but correctness semantics MUST
+NOT differ. Every implementation report MUST identify the strongest validation
+level achieved, list material environment differences, distinguish external
+owner gates from engineering blockers, and MUST NOT claim Product Accepted
+without the required evidence.
+
+### NatalNode authority boundaries
+
+- Website code MUST NOT perform astronomy calculations, access an astronomy
+  provider directly, or cross the fixed `NatalNode.com → Website API / BFF →
+  NatalNode Engine Public API` boundary.
+- GeoNames location resolution establishes place, coordinate, and IANA timezone
+  identity only. A GeoNames numeric UTC offset MUST NOT be treated as historical
+  birth-time authority.
+- Web code MUST NOT fabricate historical time authority, production chart facts,
+  or scientific results. Development astronomy fixtures MUST remain visibly
+  labelled; fixture success is not production scientific correctness.
+- Raw user location text is not location authority. Explicit candidate selection
+  is required; location guessing and automatic selection are forbidden.
+- Provider failures MUST NOT silently fall back to fixtures. Scientific accuracy
+  MUST NOT be monetized or degraded by tier.
+- `PROVIDER DECISION DEFERRED` remains authoritative until an approved product
+  and architecture decision explicitly changes it.
+
+### Codex workflow and automated guard
+
+Codex should implement autonomously within approved policy, use targeted
+validation, commit meaningful boundaries, and continue through large campaigns
+instead of returning after every commit. It should stop only for a genuine
+architecture, product, legal, or external blocker, and MUST NOT claim Product
+Accepted without the required Product Owner evidence.
+
+The repository guard `npm run test:engineering-integrity`, implemented by
+`scripts/test-engineering-integrity.test.mjs`, is the automated alignment check
+for explicit development doubles, fail-closed location and cache boundaries,
+secret-safe startup behavior, and built local-runtime composition. The guard
+supports this policy; it does not replace the validation ladder or owner
+browser/product acceptance gates. The guard MUST remain low-noise and MUST NOT
+be weakened by changing production semantics for its assertions.
