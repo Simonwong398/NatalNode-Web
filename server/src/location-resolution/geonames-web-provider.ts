@@ -15,7 +15,7 @@ import {
 } from './location-resolution-service.js';
 
 export const GEONAMES_SOURCE_ID = 'geonames-free-web-services';
-export const GEONAMES_API_ORIGIN = 'https://api.geonames.org';
+export const GEONAMES_API_ORIGIN = 'https://secure.geonames.org';
 export const GEONAMES_SEARCH_MAX_ROWS = 8;
 export const GEONAMES_REQUEST_TIMEOUT_MS = 1_400;
 export const GEONAMES_USERNAME_MAXIMUM_CHARACTERS = 64;

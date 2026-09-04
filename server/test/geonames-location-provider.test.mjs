@@ -119,6 +119,34 @@ test('GeoNames search requests the official bounded populated-place contract and
   assert.equal(Object.isFrozen(candidates), true);
 });
 
+test('GeoNames search and timezone requests share the secure HTTPS origin', async () => {
+  const { calls, fetchImplementation } = createFetch((url) => {
+    if (url.pathname === '/searchJSON') {
+      return jsonResponse({ geonames: [populatedPlace()] });
+    }
+
+    assert.equal(url.pathname, '/timezoneJSON');
+    return jsonResponse({ timezoneId: 'Asia/Shanghai' });
+  });
+  const provider = new GeoNamesWebProvider({
+    username: 'test_account',
+    fetchImplementation
+  });
+
+  const candidate = (await provider.search('Shanghai', 'en'))[0];
+  await provider.resolve(candidate.candidateId, 'en');
+
+  assert.equal(GEONAMES_API_ORIGIN, 'https://secure.geonames.org');
+  assert.deepEqual(
+    calls.map(({ url }) => ({ origin: url.origin, pathname: url.pathname })),
+    [
+      { origin: 'https://secure.geonames.org', pathname: '/searchJSON' },
+      { origin: 'https://secure.geonames.org', pathname: '/timezoneJSON' }
+    ]
+  );
+  assert.equal(calls.every(({ url }) => url.protocol === 'https:'), true);
+});
+
 test('GeoNames locale mapping remains exactly the approved seven-locale set', async () => {
   const { calls, fetchImplementation } = createFetch(() => jsonResponse({ geonames: [] }));
   const provider = new GeoNamesWebProvider({

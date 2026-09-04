@@ -12,11 +12,20 @@ GEONAMES_USERNAME
 
 The value is a GeoNames account name, not a password or browser credential. It
 must contain only the bounded account-name characters accepted by the runtime.
-Do not commit a real account name, demo account, password, token, or complete
-provider URL. If the value is absent, location resolution is unavailable and a
-production chart request remains fail-closed. Local public development keeps
-the fixed chart fixture; a local GeoNames username may be supplied explicitly
-for testing the location BFF without changing that fixture.
+Do not commit a real account name, demo account, password, or token. If the
+value is absent, location resolution is unavailable and a production chart
+request remains fail-closed. Local public development keeps the fixed chart
+fixture; a local GeoNames username may be supplied explicitly for testing the
+location BFF without changing that fixture.
+
+Production/free V1 HTTPS endpoint:
+
+```text
+https://secure.geonames.org
+```
+
+Both `searchJSON` and `timezoneJSON` use this secure origin. No HTTP fallback
+is permitted.
 
 ## Server-only request flow
 
