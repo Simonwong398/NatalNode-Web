@@ -140,7 +140,10 @@ export {
   InvalidLocationProviderDataError,
   LocationResolutionProviderUnavailableError,
   LOCATION_PROVIDER_TIMEOUT_MS,
-  ProviderLocationResolutionService
+  LOCATION_VISIBLE_CANDIDATE_LIMIT,
+  ProviderLocationResolutionService,
+  deduplicateLocationCandidates,
+  rankLocationCandidates
 } from './location-resolution/location-resolution-service.js';
 export {
   createGeoNamesLocationResolutionService,

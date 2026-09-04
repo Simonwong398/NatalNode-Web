@@ -502,7 +502,7 @@ test('the actual zh-Hant birth page keeps location labels localized through reso
 
     assert.equal(scope.state(), 'CANDIDATES');
     assert.match(normalizedText(scope.panel()), /地點候選項目/u);
-    assert.match(normalizedText(scope.candidateButtons()[0]), /上海, 上海市, 中國/u);
+    assert.match(normalizedText(scope.candidateButtons()[0]), /上海，上海市，中國/u);
     assert.doesNotMatch(normalizedText(scope.panel()), /Location candidates/u);
 
     await scope.click(scope.candidateButtons()[0]);
@@ -595,7 +595,7 @@ test('multiple real candidates remain explicit and selectable in the actual birt
     assert.equal(scope.state(), 'AMBIGUOUS');
     assert.equal(scope.candidateButtons().length, 2);
     assert.equal(scope.canonical(), null);
-    assert.match(scope.text(), /Shanghai, China \(alternate\)/u);
+    assert.match(scope.text(), /Shanghai, Shanghai Municipality, China/u);
 
     await scope.click(scope.candidateButtons()[1]);
 
@@ -604,7 +604,7 @@ test('multiple real candidates remain explicit and selectable in the actual birt
       candidateId: 'candidate-shanghai-alt',
       locale: 'en'
     });
-    assert.match(normalizedText(scope.canonical()), /alternate/u);
+    assert.match(normalizedText(scope.canonical()), /Shanghai Municipality/u);
   });
 });
 

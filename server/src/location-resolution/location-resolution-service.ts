@@ -9,6 +9,7 @@ export const LOCATION_PROVIDER_TIMEOUT_MS = 4_000;
 export const LOCATION_RESOLUTION_ID_MAXIMUM_CHARACTERS = 256;
 export const LOCATION_DISPLAY_MAXIMUM_CHARACTERS = 256;
 export const LOCATION_TIMEZONE_MAXIMUM_CHARACTERS = 128;
+export const LOCATION_VISIBLE_CANDIDATE_LIMIT = 6;
 export const LOCATION_TRANSIENT_CANDIDATE_LIMIT = 2_048;
 export const LOCATION_TRANSIENT_RESOLUTION_LIMIT = 2_048;
 export const LOCATION_TRANSIENT_RECORD_TTL_MS = 10 * 60 * 1_000;
@@ -173,6 +174,149 @@ function isLocationCandidate(value: unknown): value is LocationCandidate {
     isAuthority(value.authority) &&
     isSourceMetadata(value.source)
   );
+}
+
+function normalizeSearchText(value: string): string {
+  return value.trim().normalize('NFKC').toLocaleLowerCase('en-US');
+}
+
+function searchTokens(value: string): readonly string[] {
+  return normalizeSearchText(value)
+    .split(/[^\p{L}\p{N}]+/u)
+    .filter((token) => token !== '');
+}
+
+function containsTokenSequence(
+  queryTokens: readonly string[],
+  valueTokens: readonly string[]
+): boolean {
+  if (valueTokens.length === 0 || valueTokens.length > queryTokens.length) {
+    return false;
+  }
+
+  for (let start = 0; start <= queryTokens.length - valueTokens.length; start += 1) {
+    if (
+      valueTokens.every(
+        (token, offset) => queryTokens[start + offset] === token
+      )
+    ) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
+function hasExactLocalityMatch(
+  candidate: LocationCandidate,
+  normalizedQuery: string,
+  queryTokens: readonly string[]
+): boolean {
+  if (candidate.locality === null) {
+    return false;
+  }
+
+  const normalizedLocality = normalizeSearchText(candidate.locality);
+  return (
+    normalizedLocality === normalizedQuery ||
+    containsTokenSequence(queryTokens, searchTokens(candidate.locality))
+  );
+}
+
+function hasAdministrativeLocalityMatch(candidate: LocationCandidate): boolean {
+  return (
+    candidate.locality !== null &&
+    candidate.region !== null &&
+    normalizeSearchText(candidate.locality) === normalizeSearchText(candidate.region)
+  );
+}
+
+function queryTokenMatchCount(
+  candidate: LocationCandidate,
+  queryTokens: readonly string[]
+): number {
+  const candidateTokens = new Set<string>();
+  for (const value of [
+    candidate.locality,
+    candidate.region,
+    candidate.country,
+    candidate.countryCode
+  ]) {
+    if (value !== null) {
+      for (const token of searchTokens(value)) {
+        candidateTokens.add(token);
+      }
+    }
+  }
+
+  return [...new Set(queryTokens)].filter((token) => candidateTokens.has(token)).length;
+}
+
+interface RankedLocationCandidate {
+  readonly candidate: LocationCandidate;
+  readonly providerIndex: number;
+  readonly exactLocalityMatch: boolean;
+  readonly administrativeLocalityMatch: boolean;
+  readonly queryTokenMatches: number;
+}
+
+/**
+ * Orders candidates using only provider-neutral fields already present in the
+ * public candidate contract. Provider order is the final stable tie-breaker;
+ * candidate IDs, cache history, and user selections never influence ranking.
+ */
+export function rankLocationCandidates(
+  query: string,
+  candidates: readonly LocationCandidate[]
+): readonly LocationCandidate[] {
+  const normalizedQuery = normalizeSearchText(query);
+  const queryTokens = searchTokens(query);
+  const ranked = candidates.map<RankedLocationCandidate>((candidate, providerIndex) => ({
+    candidate,
+    providerIndex,
+    exactLocalityMatch: hasExactLocalityMatch(
+      candidate,
+      normalizedQuery,
+      queryTokens
+    ),
+    administrativeLocalityMatch: hasAdministrativeLocalityMatch(candidate),
+    queryTokenMatches: queryTokenMatchCount(candidate, queryTokens)
+  }));
+
+  ranked.sort((first, second) =>
+    Number(second.exactLocalityMatch) - Number(first.exactLocalityMatch) ||
+    Number(second.administrativeLocalityMatch) -
+      Number(first.administrativeLocalityMatch) ||
+    second.queryTokenMatches - first.queryTokenMatches ||
+    first.providerIndex - second.providerIndex
+  );
+
+  return Object.freeze(ranked.map(({ candidate }) => candidate));
+}
+
+/** Removes only exact authority duplicates; distinct records remain visible. */
+export function deduplicateLocationCandidates(
+  candidates: readonly LocationCandidate[]
+): readonly LocationCandidate[] {
+  const seenAuthorities = new Set<string>();
+  const uniqueCandidates: LocationCandidate[] = [];
+
+  for (const candidate of candidates) {
+    const authorityKey = [
+      candidate.authority.kind,
+      candidate.authority.sourceId,
+      candidate.authority.recordId
+    ].join('\u0000');
+
+    if (seenAuthorities.has(authorityKey)) {
+      continue;
+    }
+
+    seenAuthorities.add(authorityKey);
+    uniqueCandidates.push(candidate);
+  }
+
+  return Object.freeze(uniqueCandidates);
 }
 
 function isCanonicalResolvedLocation(
@@ -365,7 +509,13 @@ export class ProviderLocationResolutionService
       throw new InvalidLocationProviderDataError();
     }
 
-    const safeCandidates = Object.freeze(candidates.map(cloneCandidate));
+    const uniqueCandidates = deduplicateLocationCandidates(candidates);
+    const rankedCandidates = rankLocationCandidates(input.query, uniqueCandidates);
+    const safeCandidates = Object.freeze(
+      rankedCandidates
+        .slice(0, LOCATION_VISIBLE_CANDIDATE_LIMIT)
+        .map(cloneCandidate)
+    );
 
     for (const candidate of safeCandidates) {
       this.rememberCandidate(candidate.candidateId, input.locale);

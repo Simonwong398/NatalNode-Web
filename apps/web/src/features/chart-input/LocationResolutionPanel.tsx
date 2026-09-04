@@ -8,6 +8,7 @@ import type {
   LocationResolutionViewState
 } from './location-resolution';
 import type { LocationResolutionDiagnostics as LocationResolutionDiagnosticsState } from './location-resolution-diagnostics';
+import { formatLocationPresentation } from './location-presentation';
 
 interface LocationResolutionPanelProps {
   readonly diagnostics?: LocationResolutionDiagnosticsState;
@@ -19,8 +20,11 @@ interface LocationResolutionPanelProps {
   readonly showDevelopmentDiagnostics?: boolean;
 }
 
-function candidateLabel(candidate: LocationCandidate): string {
-  return candidate.canonicalDisplayName;
+function candidateLabel(
+  candidate: LocationCandidate,
+  locale: SupportedLocale | undefined
+): string {
+  return formatLocationPresentation(candidate, locale);
 }
 
 function statusDescription(
@@ -111,7 +115,7 @@ export default function LocationResolutionPanel({
                 onClick={() => onSelectCandidate?.(candidate)}
                 type="button"
               >
-                <span>{candidateLabel(candidate)}</span>
+                <span>{candidateLabel(candidate, locale)}</span>
                 <span aria-hidden="true">→</span>
                 <span className="sr-only">
                   {chartUi(locale, 'birthInput.location.chooseCandidate')}
@@ -128,7 +132,7 @@ export default function LocationResolutionPanel({
             <dt className="font-semibold text-natal-primary">
               {chartUi(locale, 'birthInput.location.canonicalLocation')}
             </dt>
-            <dd>{resolution.selectedLocation.canonicalDisplayName}</dd>
+            <dd>{formatLocationPresentation(resolution.selectedLocation, locale)}</dd>
           </div>
           <div>
             <dt className="font-semibold text-natal-primary">

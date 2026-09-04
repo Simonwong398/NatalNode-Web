@@ -15,8 +15,12 @@ import {
 } from '../dist/app/security/api-rate-limiting.js';
 import {
   InvalidLocationProviderDataError,
-  ProviderLocationResolutionService
+  LOCATION_VISIBLE_CANDIDATE_LIMIT,
+  ProviderLocationResolutionService,
+  deduplicateLocationCandidates,
+  rankLocationCandidates
 } from '../dist/location-resolution/location-resolution-service.js';
+import { SHANGHAI_OWNER_OBSERVED_CANDIDATES } from './support/geonames-shanghai-owner-output.mjs';
 
 const PUBLIC_WEB_ORIGIN = 'https://natalnode.test';
 
@@ -49,6 +53,34 @@ const resolvedLocation = {
   authority: candidate.authority,
   source: candidate.source
 };
+
+function makeLocationCandidate({
+  candidateId,
+  locality,
+  region,
+  country = 'China',
+  countryCode = 'CN',
+  sourceId = 'provider-neutral-test',
+  recordId = candidateId,
+  canonicalDisplayName = [locality, region, country].filter(Boolean).join(', '),
+  coordinates = { latitude: 31.2, longitude: 121.4 }
+}) {
+  return {
+    candidateId,
+    canonicalDisplayName,
+    locality,
+    region,
+    country,
+    countryCode,
+    coordinates,
+    authority: {
+      kind: 'GEOCODING',
+      sourceId,
+      recordId
+    },
+    source: { sourceVersion: 'test-v1', datasetVersion: null }
+  };
+}
 
 function createProvider(overrides = {}) {
   return {
@@ -158,6 +190,144 @@ test('provider-neutral service keeps raw query, candidate identity, and resolved
     { kind: 'search', query: '  la usa  ', locale: 'en' },
     { kind: 'resolve', candidateId: candidate.candidateId, locale: 'en' }
   ]);
+});
+
+test('location search ranking is deterministic, authority-safe, and visibly bounded', async () => {
+  const mainShanghai = makeLocationCandidate({
+    candidateId: 'shanghai-main',
+    locality: 'Shanghai',
+    region: 'Shanghai'
+  });
+  const minorYunnanShanghai = makeLocationCandidate({
+    candidateId: 'shanghai-yunnan',
+    locality: 'Shanghai',
+    region: 'Yunnan'
+  });
+  const minorSichuanShanghai = makeLocationCandidate({
+    candidateId: 'shanghai-sichuan',
+    locality: 'Shanghai',
+    region: 'Sichuan'
+  });
+  const exactAuthorityDuplicate = makeLocationCandidate({
+    candidateId: 'shanghai-main-duplicate',
+    locality: 'Shanghai',
+    region: 'Shanghai',
+    recordId: 'shanghai-main'
+  });
+  const candidates = [
+    makeLocationCandidate({
+      candidateId: 'shanghai-huacheng',
+      locality: 'Shanghai Huacheng',
+      region: 'Shanghai'
+    }),
+    minorYunnanShanghai,
+    mainShanghai,
+    minorSichuanShanghai,
+    makeLocationCandidate({
+      candidateId: 'xinzhuang',
+      locality: 'Xinzhuang',
+      region: 'Shanghai'
+    }),
+    makeLocationCandidate({
+      candidateId: 'shanghai-laluo',
+      locality: 'Shanghai Laluo',
+      region: 'Guizhou'
+    }),
+    makeLocationCandidate({
+      candidateId: 'shanghai-other',
+      locality: 'Shanghai Other',
+      region: 'Hunan'
+    }),
+    exactAuthorityDuplicate
+  ];
+
+  const rankedOnce = rankLocationCandidates('Shanghai China', candidates);
+  const rankedTwice = rankLocationCandidates('Shanghai China', candidates);
+  assert.deepEqual(
+    rankedOnce.map(({ candidateId }) => candidateId),
+    rankedTwice.map(({ candidateId }) => candidateId)
+  );
+  assert.equal(rankedOnce[0].candidateId, 'shanghai-main');
+  assert.ok(
+    rankedOnce.findIndex(({ candidateId }) => candidateId === 'shanghai-main') <
+      rankedOnce.findIndex(({ candidateId }) => candidateId === 'shanghai-yunnan')
+  );
+  assert.ok(
+    rankedOnce.findIndex(({ candidateId }) => candidateId === 'shanghai-main') <
+      rankedOnce.findIndex(({ candidateId }) => candidateId === 'shanghai-sichuan')
+  );
+
+  const unique = deduplicateLocationCandidates(candidates);
+  assert.equal(unique.length, candidates.length - 1);
+  assert.equal(
+    unique.filter(({ authority }) => authority.recordId === 'shanghai-main').length,
+    1
+  );
+
+  const service = new ProviderLocationResolutionService({
+    async search() {
+      return candidates;
+    },
+    async resolve() {
+      return null;
+    }
+  });
+  const result = await service.search({ query: 'Shanghai China', locale: 'en' });
+
+  assert.equal(result.state, 'CANDIDATES');
+  assert.equal(result.candidates.length, LOCATION_VISIBLE_CANDIDATE_LIMIT);
+  assert.equal('selectedLocation' in result, false);
+  assert.equal(
+    result.candidates.filter(({ authority }) => authority.recordId === 'shanghai-main').length,
+    1
+  );
+  assert.equal(
+    result.candidates.some(({ candidateId }) => candidateId === 'shanghai-yunnan'),
+    true
+  );
+  assert.equal(
+    result.candidates.some(({ candidateId }) => candidateId === 'shanghai-sichuan'),
+    true
+  );
+  assert.equal(
+    result.candidates.some(({ candidateId }) => candidateId === 'shanghai-main-duplicate'),
+    false
+  );
+});
+
+test('owner-observed Shanghai result shape keeps distinct same-name places and puts the municipality first', async () => {
+  const observedCandidates = SHANGHAI_OWNER_OBSERVED_CANDIDATES.map((observed, index) =>
+    makeLocationCandidate({
+      ...observed,
+      candidateId: `owner-observed-${index + 1}`,
+      recordId: `owner-observed-${index + 1}`,
+      coordinates: null
+    })
+  );
+  const service = new ProviderLocationResolutionService({
+    async search() {
+      return observedCandidates;
+    },
+    async resolve() {
+      return null;
+    }
+  });
+
+  const result = await service.search({ query: 'Shanghai China', locale: 'en' });
+  assert.equal(result.state, 'CANDIDATES');
+  assert.equal(result.candidates.length, LOCATION_VISIBLE_CANDIDATE_LIMIT);
+  assert.equal(result.candidates[0].locality, 'Shanghai');
+  assert.equal(result.candidates[0].region, 'Shanghai');
+  assert.equal(
+    result.candidates.filter(
+      ({ locality, region }) => locality === 'Shanghai' && region === 'Yunnan'
+    ).length,
+    3
+  );
+  assert.equal(
+    new Set(result.candidates.map(({ authority }) => authority.recordId)).size,
+    result.candidates.length
+  );
 });
 
 test('invalid provider data fails closed instead of becoming a canonical location', async () => {

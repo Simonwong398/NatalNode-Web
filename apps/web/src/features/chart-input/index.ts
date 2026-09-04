@@ -58,6 +58,8 @@ export type {
   LocationResolutionViewState,
   LocationSourceMetadata
 } from './location-resolution';
+export { formatLocationPresentation } from './location-presentation';
+export type { LocationPresentationInput } from './location-presentation';
 export {
   composeBirthDate,
   EMPTY_BIRTH_DATE_PARTS,

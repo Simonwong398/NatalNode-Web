@@ -17,6 +17,7 @@ import {
   UI_MESSAGE_KEYS,
   getUiMessage
 } from '../dist/location-resolution-characterization/lib/ui-catalog.js';
+import { formatLocationPresentation } from '../dist/location-resolution-characterization/features/chart-input/location-presentation.js';
 
 const LOCALES = ['en', 'es', 'fr', 'de', 'ja', 'ko', 'zh-Hant'];
 
@@ -69,6 +70,56 @@ test('raw location text stays separate from canonical authority', () => {
   const edited = beginLocationSearch('Los Angeles');
   assert.equal(edited.selectedLocation, null);
   assert.equal(canSubmitProductionCalculation(edited), false);
+});
+
+test('location presentation localizes country labels without mutating authority fields', () => {
+  const location = {
+    locality: 'Shanghai',
+    region: 'Shanghai',
+    country: 'China',
+    countryCode: 'CN',
+    coordinates: { latitude: 31.22222, longitude: 121.45806 },
+    ianaTimeZone: 'Asia/Shanghai',
+    authority: {
+      kind: 'GEOCODING',
+      sourceId: 'geonames-free-web-services',
+      recordId: 'candidate-shanghai'
+    }
+  };
+  const authoritySnapshot = structuredClone(location);
+
+  assert.deepEqual(
+    Object.fromEntries(
+      ['en', 'es', 'fr', 'de', 'ja', 'ko', 'zh-Hant'].map((locale) => [
+        locale,
+        formatLocationPresentation(location, locale)
+      ])
+    ),
+    {
+      en: 'Shanghai, China',
+      es: 'Shanghai, China',
+      fr: 'Shanghai, Chine',
+      de: 'Shanghai, China',
+      ja: 'Shanghai, 中国',
+      ko: 'Shanghai, 중국',
+      'zh-Hant': 'Shanghai，中國'
+    }
+  );
+  assert.deepEqual(location, authoritySnapshot);
+  assert.equal(
+    formatLocationPresentation(
+      { locality: '上海', region: '上海市', country: '中国', countryCode: 'CN' },
+      'zh-Hant'
+    ),
+    '上海，上海市，中國'
+  );
+  assert.equal(
+    formatLocationPresentation(
+      { locality: 'Shanghai', region: 'Shanghai', country: '中国', countryCode: null },
+      'zh-Hant'
+    ),
+    'Shanghai，中国'
+  );
 });
 
 test('explicit selection produces RESOLVED and retains canonical identity fields', () => {

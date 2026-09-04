@@ -357,7 +357,7 @@ test('real CANDIDATES response moves Shanghai from SEARCHING to selectable and t
     });
     assert.equal(scope.candidateButtons()[0].dataset.locationCandidateId, 'candidate-shanghai');
     assert.equal(scope.container.querySelector('[data-location-canonical]'), null);
-    assert.match(scope.text(), /上海, 上海市, 中国/u);
+    assert.match(scope.text(), /上海，上海市，中國/u);
     assert.deepEqual(JSON.parse(calls[0].init.body), {
       query: 'Shanghai China',
       locale: 'zh-Hant'

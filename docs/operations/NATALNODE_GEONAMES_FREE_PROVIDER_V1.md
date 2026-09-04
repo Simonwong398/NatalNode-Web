@@ -50,7 +50,17 @@ browser-supplied ID cannot create authority.
 
 The provider uses the official GeoNames search JSON service with a natural
 query, `featureClass=P` for populated places, `isNameRequired=true`, `style=FULL`,
-and at most eight results. The Web locale mapping is exactly:
+and an upstream `maxRows=8` bound. The provider-neutral service then removes
+only exact authority duplicates, applies deterministic relevance ordering, and
+exposes at most six candidates to the browser. The ranking uses only fields
+already present in the provider-neutral candidate contract: an exact locality
+match against query tokens, a locality/first-admin-region label match, query
+token coverage across locality/region/country/country code, and the provider's
+original order as the stable final tie-break. Population, feature code, and
+other administrative importance fields are not accepted by the current
+contract and are not invented or used.
+
+The Web locale mapping sent as the GeoNames `lang` request hint is exactly:
 
 ```text
 en      -> en
@@ -64,8 +74,12 @@ zh-Hant -> zh-Hant
 
 No `zh-Hans` locale is accepted. Canonical display is assembled from populated
 place, first administrative region, and country fields, preserving provider
-diacritics and omitting duplicate labels. Raw query text remains editable UI
-state and is never canonical authority.
+diacritics and omitting duplicate labels. The `lang` hint does not guarantee a
+translated locality or country string in the response, especially for
+`zh-Hant`. The Web UI derives display-only country labels from a stable
+`countryCode` with platform `Intl.DisplayNames` when available; authority IDs,
+coordinates, timezone identity, and provider canonical text are not mutated.
+Raw query text remains editable UI state and is never canonical authority.
 
 ## Timezone and historical time
 
