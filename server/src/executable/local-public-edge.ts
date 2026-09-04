@@ -20,6 +20,7 @@ export interface LocalPublicEdgeConfig {
 }
 
 export interface LocalPublicEdgeRuntime {
+  readonly publicPort: number;
   close(): Promise<void>;
 }
 
@@ -238,15 +239,21 @@ async function serveStaticRequest(
   response.end(request.method === 'HEAD' ? undefined : file);
 }
 
-function waitForListening(server: Server, port: number): Promise<void> {
-  return new Promise<void>((resolvePromise, rejectPromise) => {
+function waitForListening(server: Server, port: number): Promise<number> {
+  return new Promise<number>((resolvePromise, rejectPromise) => {
     const cleanup = (): void => {
       server.off('listening', onListening);
       server.off('error', onError);
     };
     const onListening = (): void => {
       cleanup();
-      resolvePromise();
+      const address = server.address();
+      if (address === null || typeof address === 'string') {
+        rejectPromise(new Error('Local public edge address is unavailable.'));
+        return;
+      }
+
+      resolvePromise(address.port);
     };
     const onError = (error: Error): void => {
       cleanup();
@@ -313,11 +320,12 @@ export async function startLocalPublicEdge(
     });
   });
 
-  await waitForListening(server, config.publicPort);
+  const publicPort = await waitForListening(server, config.publicPort);
 
   let closePromise: Promise<void> | undefined;
 
   return {
+    publicPort,
     close(): Promise<void> {
       if (closePromise === undefined) {
         closePromise = closeServer(server);

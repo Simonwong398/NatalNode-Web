@@ -57,7 +57,11 @@ const t = (key: UiMessageKey) => getUiMessage(locale, key);
           </section>
         </aside>
         <div class="order-2 min-w-0 md:order-1">
-          <ChartExperience locale={locale} client:load />
+          <ChartExperience
+            locale={locale}
+            requireResolvedLocation={true}
+            client:load
+          />
         </div>
       </div>
     </main>

@@ -10,13 +10,15 @@
   "scripts": {
     "dev": "npm --workspace=apps/web run dev",
     "build": "npm run build --workspace=packages/contracts --workspace=packages/test-fixtures --workspace=packages/engine-client --workspace=apps/web --workspace=server",
+    "build:local": "node scripts/build-local-development.mjs",
     "build:server": "npm run build --workspace=packages/contracts --workspace=packages/test-fixtures --workspace=packages/engine-client --workspace=server",
     "check": "npm run check --workspaces --if-present",
+    "test:engineering-integrity": "node --test scripts/test-engineering-integrity.test.mjs",
     "preserver:start": "npm run build:server",
     "server:start": "npm run start --workspace=server",
     "predb:migrate": "npm run build:server",
     "db:migrate": "npm run migrate --workspace=server",
-    "predev:local": "npm run build",
+    "predev:local": "npm run build:local",
     "dev:local": "npm run local --workspace=server",
     "predev:public": "node scripts/build-public-development.mjs",
     "dev:public": "npm run public --workspace=server"

@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "astro dev",
     "build": "astro build",
+    "build:local-integration": "astro build --mode local-integration",
     "check": "astro check",
     "test:localization": "tsc --ignoreConfig --noCheck --target ES2022 --module NodeNext --moduleResolution NodeNext --rootDir src --outDir dist/localization-characterization src/lib/localization.ts && node --test test/localization.test.mjs",
     "test:locale-preference": "tsc --ignoreConfig --noCheck --target ES2022 --module NodeNext --moduleResolution NodeNext --rootDir src --outDir dist/locale-preference-characterization src/lib/localization.ts src/lib/locale-preference.ts src/features/localization/locale-selector.ts && node --test test/locale-preference.test.mjs",
