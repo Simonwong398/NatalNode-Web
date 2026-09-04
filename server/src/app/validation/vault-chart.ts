@@ -1,7 +1,8 @@
 import type {
   SaveVaultChartApiRequest,
   UpdateVaultChartMetadataApiRequest,
-  VaultChartCategory
+  VaultChartCategory,
+  VaultScientificStatus
 } from '@natalnode/contracts';
 import { isChartRequest, isRecord } from './chart-request.js';
 
@@ -23,8 +24,12 @@ const SAVE_VAULT_CHART_KEYS = [
   'displayName',
   'category',
   'tags',
-  'favorite'
+  'favorite',
+  'saveMode'
 ] as const;
+const REQUIRED_SAVE_VAULT_CHART_KEYS = SAVE_VAULT_CHART_KEYS.filter(
+  (key) => key !== 'saveMode'
+);
 
 function hasOwn(value: Record<string, unknown>, key: string): boolean {
   return Object.prototype.hasOwnProperty.call(value, key);
@@ -45,6 +50,10 @@ function isSafeText(value: string, maximumCharacters: number): boolean {
 
 export function isVaultChartCategory(value: unknown): value is VaultChartCategory {
   return VAULT_CHART_CATEGORIES.some((category) => category === value);
+}
+
+export function isVaultScientificStatus(value: unknown): value is VaultScientificStatus {
+  return value === 'INPUT_ONLY' || value === 'CHART_RESULT_AVAILABLE';
 }
 
 export function normalizeVaultChartDisplayName(displayName: string): string {
@@ -114,11 +123,12 @@ export function isSaveVaultChartApiRequest(value: unknown): value is SaveVaultCh
   }
 
   return (
-    SAVE_VAULT_CHART_KEYS.every((key) => hasOwn(value, key)) &&
+    REQUIRED_SAVE_VAULT_CHART_KEYS.every((key) => hasOwn(value, key)) &&
     isChartRequest(value.chart) &&
     isValidVaultChartDisplayName(value.displayName) &&
     isVaultChartCategory(value.category) &&
     isStringArray(value.tags) &&
-    typeof value.favorite === 'boolean'
+    typeof value.favorite === 'boolean' &&
+    (value.saveMode === undefined || isVaultScientificStatus(value.saveMode))
   );
 }

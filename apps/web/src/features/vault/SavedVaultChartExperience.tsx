@@ -13,6 +13,8 @@ import type {
 import ChartWorkspaceView from '@/features/chart-workspace/ChartWorkspaceView';
 import { createChartPresentationPolicy } from '@/core/chart/chart-presentation-policy';
 import VaultChartManagement from './VaultChartManagement';
+import VaultRecordDetails from './VaultRecordDetails';
+import { isVaultChartRecord } from './vault-management-contract-guards';
 import { vaultUi } from './vault-ui.js';
 
 const VAULT_CHART_ENDPOINT = '/api/vault/charts';
@@ -192,11 +194,16 @@ function isGetVaultChartApiResponse(
     isRecord(value) &&
     isRecord(value.chart) &&
     value.chart.chartId === requestedChartId &&
+    isVaultChartRecord(value.chart) &&
     typeof value.chart.displayName === 'string' &&
     isVaultChartCategory(value.chart.category) &&
     typeof value.chart.createdAt === 'string' &&
     isChartRequest(value.chart.normalizedChartRequest) &&
-    isChartResult(value.chart.canonicalChartResult)
+    (value.chart.scientificStatus === 'INPUT_ONLY'
+      ? value.chart.canonicalChartResult === null ||
+        (value.chart.recordOrigin === 'DEVELOPMENT_FIXTURE' &&
+          isChartResult(value.chart.canonicalChartResult))
+      : isChartResult(value.chart.canonicalChartResult))
   );
 }
 
@@ -324,6 +331,11 @@ export default function SavedVaultChartExperience({
   }
 
   const presentationPolicy = createChartPresentationPolicy(state.chart.normalizedChartRequest);
+  const savedChartResult = state.chart.canonicalChartResult;
+  const hasAuthoritativeChartResult =
+    (state.chart.scientificStatus === 'CHART_RESULT_AVAILABLE' ||
+      (state.chart.scientificStatus === undefined && savedChartResult !== null)) &&
+    savedChartResult !== null;
 
   const handleChartUpdated = (updatedChart: VaultChartRecord) => {
     setState((currentState) => {
@@ -352,12 +364,15 @@ export default function SavedVaultChartExperience({
       locale={locale}
       onDeleted={() => window.location.replace(getLocalizedCurrentPath(window.location.pathname, '/vault'))}
     >
+      <VaultRecordDetails chart={state.chart} locale={locale} />
+      {hasAuthoritativeChartResult && savedChartResult !== null ? (
       <ChartWorkspaceView
-        chart={state.chart.canonicalChartResult}
+        chart={savedChartResult}
         locale={locale}
         presentationPolicy={presentationPolicy}
         requestedHouseSystem={state.chart.normalizedChartRequest.houseSystem}
       />
+      ) : null}
     </VaultChartManagement>
   );
 }

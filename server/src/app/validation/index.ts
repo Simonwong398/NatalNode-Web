@@ -25,6 +25,7 @@ export {
   isSaveVaultChartApiRequest,
   isStringArray,
   isVaultChartIdentifier,
+  isVaultScientificStatus,
   isValidVaultChartDisplayName,
   isVaultChartCategory,
   normalizeVaultChartDisplayName,

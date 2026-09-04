@@ -10,6 +10,7 @@ import {
   selectCanonicalLocation,
   LOCATION_SEARCH_DEBOUNCE_MS,
   LOCATION_SEARCH_MINIMUM_CHARACTERS,
+  type CanonicalResolvedLocation,
   type LocationCandidate,
   type LocationResolutionViewState
 } from './location-resolution';
@@ -29,6 +30,8 @@ import {
 export interface UseLocationResolutionOptions {
   readonly client?: LocationResolutionClient;
   readonly debounceMs?: number;
+  /** Rehydrates a previously resolved, user-owned location snapshot. */
+  readonly initialResolvedLocation?: CanonicalResolvedLocation;
   readonly locale?: SupportedLocale;
   readonly minimumQueryCharacters?: number;
 }
@@ -144,7 +147,12 @@ export function useLocationResolution(
   const minimumQueryCharacters =
     options.minimumQueryCharacters ?? LOCATION_SEARCH_MINIMUM_CHARACTERS;
   const [resolution, setResolution] = useState<LocationResolutionViewState>(
-    EMPTY_LOCATION_RESOLUTION_STATE
+    options.initialResolvedLocation === undefined
+      ? EMPTY_LOCATION_RESOLUTION_STATE
+      : selectCanonicalLocation(
+          EMPTY_LOCATION_RESOLUTION_STATE,
+          options.initialResolvedLocation
+        )
   );
   const [diagnostics, setDiagnostics] = useState<LocationResolutionDiagnostics>(
     EMPTY_LOCATION_RESOLUTION_DIAGNOSTICS
@@ -406,6 +414,29 @@ export function useLocationResolution(
       updateDiagnosticsForGeneration
     ]
   );
+
+  useEffect(() => {
+    const initialLocation = options.initialResolvedLocation;
+
+    if (initialLocation === undefined) {
+      return;
+    }
+
+    requestSequenceRef.current += 1;
+    cancelPendingRequest();
+    setResolution(
+      selectCanonicalLocation(EMPTY_LOCATION_RESOLUTION_STATE, initialLocation)
+    );
+    setDiagnostics((current) =>
+      updateLocationResolutionDiagnostics(current, {
+        resolutionState: 'RESOLVED',
+        lastClientStage: 'RESOLVED_ACCEPTED',
+        lastErrorKind: 'NONE',
+        lastHttpStatus: null,
+        candidateCount: 0
+      })
+    );
+  }, [cancelPendingRequest, options.initialResolvedLocation]);
 
   useEffect(() => {
     return () => {

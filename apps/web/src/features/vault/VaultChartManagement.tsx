@@ -42,7 +42,12 @@ export default function VaultChartManagement({
 
       <VaultChartNotesManager chartId={chart.chartId} locale={locale} />
 
-      <VaultChartDeletionPanel chartId={chart.chartId} onDeleted={onDeleted} locale={locale} />
+      <VaultChartDeletionPanel
+        chartId={chart.chartId}
+        chartName={chart.displayName}
+        onDeleted={onDeleted}
+        locale={locale}
+      />
 
     </div>
   );

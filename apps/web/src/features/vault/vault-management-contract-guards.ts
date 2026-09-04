@@ -25,7 +25,69 @@ function isVaultChartCategory(value: unknown): value is VaultChartCategory {
   );
 }
 
-function isVaultChartRecord(value: unknown): value is VaultChartRecord {
+function isNullableString(value: unknown): value is string | null {
+  return typeof value === 'string' || value === null;
+}
+
+function isVaultChartRecordState(value: Record<string, unknown>): boolean {
+  if (value.scientificStatus === undefined) {
+    return (
+      isRecord(value.canonicalChartResult) &&
+      typeof value.engineVersion === 'string' &&
+      typeof value.chartSchemaVersion === 'string'
+    );
+  }
+
+  const isInputOnly = value.scientificStatus === 'INPUT_ONLY';
+  const isAvailable = value.scientificStatus === 'CHART_RESULT_AVAILABLE';
+
+  if (!isInputOnly && !isAvailable) {
+    return false;
+  }
+
+  if (
+    typeof value.recordVersion !== 'number' ||
+    !Number.isSafeInteger(value.recordVersion) ||
+    value.recordVersion < 1 ||
+    (isInputOnly && value.calculationAuthorityState !== 'AUTHORITY_INCOMPLETE') ||
+    (isAvailable && value.calculationAuthorityState !== 'AUTHORITATIVE') ||
+    (isAvailable && value.recordOrigin !== 'USER_INPUT') ||
+    (!isAvailable &&
+      value.recordOrigin !== 'USER_INPUT' &&
+      value.recordOrigin !== 'DEVELOPMENT_FIXTURE') ||
+    typeof value.sourceContext !== 'string' ||
+    ![
+      'UNRESOLVED',
+      'RESOLVED',
+      'AMBIGUOUS',
+      'NONEXISTENT',
+      'UNKNOWN_BIRTH_TIME'
+    ].includes(value.timeAuthorityState as string) ||
+    !isNullableString(value.chartResultContractVersion) ||
+    !isNullableString(value.scientificConfigurationIdentity) ||
+    !isRecord(value.scientificProvenance) ||
+    value.scientificProvenance.schemaVersion !== '1' ||
+    typeof value.savedAt !== 'string'
+  ) {
+    return false;
+  }
+
+  if (isAvailable) {
+    return (
+      isRecord(value.canonicalChartResult) &&
+      typeof value.engineVersion === 'string' &&
+      typeof value.chartSchemaVersion === 'string'
+    );
+  }
+
+  return (
+    value.canonicalChartResult === null ||
+    (value.recordOrigin === 'DEVELOPMENT_FIXTURE' &&
+      isRecord(value.canonicalChartResult))
+  );
+}
+
+export function isVaultChartRecord(value: unknown): value is VaultChartRecord {
   return (
     isRecord(value) &&
     typeof value.chartId === 'string' &&
@@ -36,9 +98,7 @@ function isVaultChartRecord(value: unknown): value is VaultChartRecord {
     value.tags.every((tag) => typeof tag === 'string') &&
     typeof value.favorite === 'boolean' &&
     isRecord(value.normalizedChartRequest) &&
-    isRecord(value.canonicalChartResult) &&
-    typeof value.engineVersion === 'string' &&
-    typeof value.chartSchemaVersion === 'string' &&
+    isVaultChartRecordState(value) &&
     (typeof value.astronomyConfigurationId === 'string' ||
       value.astronomyConfigurationId === null) &&
     (typeof value.provenanceEnvelopeId === 'string' ||

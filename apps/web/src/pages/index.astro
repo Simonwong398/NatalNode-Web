@@ -5,6 +5,7 @@ import { ChartExperience } from '@/features/chart-experience';
 import { CurrentSkyInstrument } from '@/features/public-sky';
 import { getPresentationLocale, type SupportedLocale } from '@/lib/localization';
 import { getUiMessage, type UiMessageKey } from '@/lib/ui-catalog';
+import type { SeoMetadata } from '@/lib/seo';
 
 interface Props {
   locale?: SupportedLocale;
@@ -15,10 +16,12 @@ const isLocalizedPage = localizedLocale !== undefined;
 
 const CURRENT_SKY_AT_UTC = '2026-09-01T12:00:00.000Z';
 
-const seo = {
+const initialVaultRecordId = Astro.url.searchParams.get('vaultRecordId');
+const seo: SeoMetadata = {
   title: 'NatalNode — Natal Chart Calculator',
   description: 'Calculate and understand a natal chart with clear uncertainty handling, structured interpretation, and inspectable calculation details.',
-  canonical: '/'
+  canonical: '/',
+  ...(initialVaultRecordId === null ? {} : { robots: 'noindex,nofollow' })
 } as const;
 const locale = localizedLocale ?? getPresentationLocale(Astro.url.pathname, Astro.locals.locale);
 const t = (key: UiMessageKey) => getUiMessage(locale, key);
@@ -58,6 +61,7 @@ const t = (key: UiMessageKey) => getUiMessage(locale, key);
         </aside>
         <div class="order-2 min-w-0 md:order-1">
           <ChartExperience
+            initialVaultRecordId={initialVaultRecordId}
             locale={locale}
             requireResolvedLocation={true}
             client:load

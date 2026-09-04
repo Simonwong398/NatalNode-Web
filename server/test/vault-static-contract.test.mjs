@@ -38,13 +38,14 @@ test('Vault management frontend reuses existing endpoints and keeps deferred fea
     'utf8'
   );
 
-  assert.match(management, /Save changes/u);
-  assert.match(management, /<label[\s\S]*Chart name/u);
-  assert.match(management, /<select[\s\S]*Category/u);
-  assert.match(management, /Add note/u);
-  assert.match(management, /Save note/u);
-  assert.match(management, /Delete chart/u);
-  assert.match(management, /Duplicate chart/u);
+  assert.match(management, /vault\.saveChanges/u);
+  assert.match(management, /vault\.chartName/u);
+  assert.match(management, /vault\.category/u);
+  assert.match(management, /vault\.addNote/u);
+  assert.match(management, /vault\.saveNote/u);
+  assert.match(management, /vault\.deleteChart/u);
+  assert.match(management, /vault\.duplicate/u);
+  assert.match(management, /role="alertdialog"/u);
   assert.match(management, /window\.confirm/u);
   assert.match(api, /jsonRequest\('PATCH'/u);
   assert.match(api, /jsonRequest\('POST'/u);

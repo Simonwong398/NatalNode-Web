@@ -25,7 +25,7 @@ export function createPostgresPersistence(
     authSessions: new PostgresAuthSessionRepository(executor),
     emailMagicLinkChallenges: new PostgresEmailMagicLinkChallengeRepository(executor),
     feedbackSubmissions: new PostgresFeedbackSubmissionRepository(executor),
-    vaultCharts: new PostgresVaultChartRepository(executor),
+    vaultCharts: new PostgresVaultChartRepository(executor, transactionRunner),
     chartNotes: new PostgresChartNoteRepository(executor),
     notificationPreferences: new PostgresNotificationPreferenceRepository(
       executor

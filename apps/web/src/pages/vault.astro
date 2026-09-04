@@ -33,6 +33,7 @@ const t = (key: UiMessageKey): string => getUiMessage(locale, key);
       aria-labelledby="vault-list-title"
     >
       <h2 class="sr-only" id="vault-list-title">{t('vault.listTitle')}</h2>
+      <p class="nn-type-metadata mt-4" data-vault-capacity hidden></p>
       <p class="nn-async-state" data-vault-loading role="status" aria-live="polite">
         {t('vault.loading')}
       </p>
@@ -56,14 +57,16 @@ const t = (key: UiMessageKey): string => getUiMessage(locale, key);
   const error = root?.querySelector<HTMLElement>('[data-vault-error]');
   const empty = root?.querySelector<HTMLElement>('[data-vault-empty]');
   const list = root?.querySelector<HTMLUListElement>('[data-vault-list]');
+  const capacity = root?.querySelector<HTMLElement>('[data-vault-capacity]');
 
-  if (root && loading && error && empty && list) {
+  if (root && loading && error && empty && list && capacity) {
     initializeVaultPage({
       root,
       loading,
       error,
       empty,
-      list
+      list,
+      capacity
     });
   }
 </script>

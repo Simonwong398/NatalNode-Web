@@ -19,7 +19,14 @@ import { formatVaultUi, vaultCategoryLabel, vaultUi } from './vault-ui.js';
 
 const DISPLAY_NAME_MAX_LENGTH = 120;
 
-type SaveState = 'idle' | 'saving' | 'saved' | 'invalid-request' | 'failed';
+type SaveState =
+  | 'idle'
+  | 'saving'
+  | 'saved'
+  | 'invalid-request'
+  | 'capacity-reached'
+  | 'invalid-state'
+  | 'failed';
 
 export interface SaveChartPanelProps {
   chartRequest: ChartRequest;
@@ -32,6 +39,10 @@ function toSaveState(result: SaveVaultChartResult): SaveState {
       return 'saved';
     case 'invalid-request':
       return 'invalid-request';
+    case 'capacity-reached':
+      return 'capacity-reached';
+    case 'invalid-state':
+      return 'invalid-state';
     case 'failed':
       return 'failed';
     case 'redirected':
@@ -204,7 +215,7 @@ export default function SaveChartPanel({ chartRequest, locale }: SaveChartPanelP
         <div className="mt-3 min-h-6">
           {saveState === 'saved' ? (
             <p className="nn-status nn-status--success" role="status">
-              {vaultUi(locale, 'workspace.chartSaved')}{' '}
+              {vaultUi(locale, 'vault.inputSaved')}{' '}
               <a className="font-medium underline underline-offset-4 hover:text-white" href={vaultPath}>
                 {vaultUi(locale, 'workspace.viewVault')}
               </a>
@@ -213,6 +224,16 @@ export default function SaveChartPanel({ chartRequest, locale }: SaveChartPanelP
           {saveState === 'invalid-request' ? (
             <p className="nn-status nn-status--error" role="alert">
               {vaultUi(locale, 'vault.invalidMetadata')}
+            </p>
+          ) : null}
+          {saveState === 'capacity-reached' ? (
+            <p className="nn-status nn-status--error" role="alert">
+              {vaultUi(locale, 'vault.capacityReachedShort')}
+            </p>
+          ) : null}
+          {saveState === 'invalid-state' ? (
+            <p className="nn-status nn-status--error" role="alert">
+              {vaultUi(locale, 'vault.inputUnavailable')}
             </p>
           ) : null}
           {saveState === 'failed' ? (

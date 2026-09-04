@@ -43,8 +43,8 @@ export interface AccountDataExportAccount
 }
 
 export interface AccountDataExportChartCalculation {
-  readonly engineVersion: string;
-  readonly chartSchemaVersion: string;
+  readonly engineVersion: string | null;
+  readonly chartSchemaVersion: string | null;
   readonly astronomyConfigurationId: string | null;
   readonly provenanceEnvelopeId: string | null;
 }
@@ -200,8 +200,8 @@ export interface AccountDataExportChartPresentationSource {
   readonly favorite: boolean;
   readonly normalizedChartRequest: unknown;
   readonly canonicalChartResult: unknown;
-  readonly engineVersion: string;
-  readonly chartSchemaVersion: string;
+  readonly engineVersion: string | null;
+  readonly chartSchemaVersion: string | null;
   readonly astronomyConfigurationId: string | null;
   readonly provenanceEnvelopeId: string | null;
   readonly createdAt: string;

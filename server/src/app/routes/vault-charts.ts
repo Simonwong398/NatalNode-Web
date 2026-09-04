@@ -28,8 +28,36 @@ import {
   parseVaultChartListQuery,
   readBoundedJson
 } from '../validation/index.js';
+import {
+  VAULT_FREE_RECORD_LIMIT,
+  assertEligibleVaultRecordInput,
+  createVaultRecord,
+  isDevelopmentVaultFixtureResult,
+  VaultRecordEligibilityError
+} from '../../vault/vault-record-domain.js';
+import type { VaultCapacity } from '@natalnode/contracts';
 
 const VAULT_CHART_REQUEST_MAXIMUM_BYTES = 16 * 1024;
+
+function vaultCapacity(used: number): VaultCapacity {
+  return {
+    used,
+    limit: VAULT_FREE_RECORD_LIMIT,
+    tier: 'FREE',
+    proExpansionAvailable: false
+  };
+}
+
+async function readVaultCapacity(
+  repository: ServerDependencies['persistence']['vaultCharts'],
+  userId: string
+): Promise<VaultCapacity | undefined> {
+  if (repository.countForUser === undefined) {
+    return undefined;
+  }
+
+  return vaultCapacity(await repository.countForUser(userId));
+}
 
 async function parseMetadataUpdate(context: Context): Promise<
   UpdateVaultChartMetadataApiRequest | Response
@@ -115,42 +143,100 @@ export function registerVaultChartRoutes(
 
       const principal = context.get('authenticatedPrincipal');
       const userId = principal.userId;
-      let canonicalChartResult: ChartResult;
+      let canonicalChartResult: ChartResult | null = null;
+      const saveMode = request.saveMode ?? 'CHART_RESULT_AVAILABLE';
+      const allowDevelopmentFixtureRequest =
+        request.saveMode === undefined &&
+        dependencies.operationalConfig?.runtimeMode !== 'production';
 
       try {
-        const outcome =
-          await dependencies.chartCalculator.calculateChartWithOutcome(
-            request.chart
-          );
-        context.set('calculationObservability', outcome.observability);
-        canonicalChartResult = outcome.chart;
-      } catch (_error) {
+        /* Reject malformed or non-authoritative input before invoking the
+         * calculation boundary. Development's legacy fixture path is the
+         * only exception, and it is still classified explicitly below. */
+        assertEligibleVaultRecordInput(
+          request.chart,
+          dependencies.locationResolutionService,
+          { allowDevelopmentFixture: allowDevelopmentFixtureRequest }
+        );
+      } catch (error) {
+        if (error instanceof VaultRecordEligibilityError) {
+          return createProblemDetailsContextResponse(context, {
+            code:
+              error.code === 'INVALID_INPUT'
+                ? 'INVALID_REQUEST'
+                : 'INVALID_STATE'
+          });
+        }
+
+        throw error;
+      }
+
+      if (saveMode === 'CHART_RESULT_AVAILABLE') {
+        try {
+          const outcome =
+            await dependencies.chartCalculator.calculateChartWithOutcome(
+              request.chart
+            );
+          context.set('calculationObservability', outcome.observability);
+          canonicalChartResult = outcome.chart;
+        } catch (_error) {
+          return createProblemDetailsContextResponse(context, {
+            code: 'CALCULATION_UNAVAILABLE'
+          });
+        }
+      }
+
+      let chart: VaultChartRecord;
+
+      try {
+        chart = createVaultRecord({
+          userId,
+          displayName: normalizeVaultChartDisplayName(request.displayName),
+          category: request.category,
+          tags: normalizeVaultChartTags(request.tags),
+          favorite: request.favorite,
+          chart: request.chart,
+          idGenerator: dependencies.idGenerator,
+          clock: dependencies.clock,
+          locationResolutionService: dependencies.locationResolutionService,
+          saveMode,
+          canonicalChartResult,
+          allowDevelopmentFixtureSnapshot:
+            request.saveMode === undefined &&
+            dependencies.operationalConfig?.runtimeMode !== 'production' &&
+            canonicalChartResult !== null &&
+            isDevelopmentVaultFixtureResult(canonicalChartResult)
+        });
+      } catch (error) {
+        if (error instanceof VaultRecordEligibilityError) {
+          return createProblemDetailsContextResponse(context, {
+            code:
+              error.code === 'INVALID_INPUT'
+                ? 'INVALID_REQUEST'
+                : 'INVALID_STATE'
+          });
+        }
+
+        throw error;
+      }
+
+      const repository = dependencies.persistence.vaultCharts;
+      const creation =
+        repository.createWithCapacity === undefined
+          ? (await repository.create(chart), 'created' as const)
+          : await repository.createWithCapacity(chart, VAULT_FREE_RECORD_LIMIT);
+
+      if (creation === 'capacity-reached') {
         return createProblemDetailsContextResponse(context, {
-          code: 'CALCULATION_UNAVAILABLE'
+          code: 'CAPACITY_REACHED'
         });
       }
 
-      const timestamp = dependencies.clock.now();
-      const chart: VaultChartRecord = {
-        chartId: dependencies.idGenerator.generate(),
-        userId,
-        displayName: normalizeVaultChartDisplayName(request.displayName),
-        category: request.category,
-        tags: normalizeVaultChartTags(request.tags),
-        favorite: request.favorite,
-        normalizedChartRequest: request.chart,
-        canonicalChartResult,
-        engineVersion: canonicalChartResult.engineVersion,
-        chartSchemaVersion: canonicalChartResult.schemaVersion,
-        astronomyConfigurationId: canonicalChartResult.metadata.astronomyConfigurationId,
-        provenanceEnvelopeId: canonicalChartResult.metadata.provenanceEnvelopeId,
-        createdAt: timestamp,
-        updatedAt: timestamp
+      const capacity = await readVaultCapacity(repository, userId);
+      const response: SaveVaultChartApiResponse = {
+        chart,
+        ...(capacity === undefined ? {} : { capacity })
       };
-
-      await dependencies.persistence.vaultCharts.create(chart);
-
-      const response: SaveVaultChartApiResponse = { chart };
       return context.json(response, 201);
     }
   );
@@ -181,11 +267,13 @@ export function registerVaultChartRoutes(
           }
         : await repository.listPageForUser(userId, query);
       const lastCursor = page.nextCursor;
+      const capacity = await readVaultCapacity(repository, userId);
       const response: ListVaultChartsApiResponse = {
         charts: page.charts,
         nextCursor: lastCursor === null
           ? null
-          : encodeVaultChartListCursor(userId, lastCursor)
+          : encodeVaultChartListCursor(userId, lastCursor),
+        ...(capacity === undefined ? {} : { capacity })
       };
 
       return context.json(response);
@@ -256,25 +344,52 @@ export function registerVaultChartRoutes(
         });
       }
 
-      const timestamp = dependencies.clock.now();
-      const duplicate: VaultChartRecord = {
-        chartId: dependencies.idGenerator.generate(),
-        userId,
-        displayName: sourceChart.displayName,
-        category: sourceChart.category,
-        tags: [...sourceChart.tags],
-        favorite: sourceChart.favorite,
-        normalizedChartRequest: sourceChart.normalizedChartRequest,
-        canonicalChartResult,
-        engineVersion: canonicalChartResult.engineVersion,
-        chartSchemaVersion: canonicalChartResult.schemaVersion,
-        astronomyConfigurationId: canonicalChartResult.metadata.astronomyConfigurationId,
-        provenanceEnvelopeId: canonicalChartResult.metadata.provenanceEnvelopeId,
-        createdAt: timestamp,
-        updatedAt: timestamp
-      };
+      let duplicate: VaultChartRecord;
 
-      await dependencies.persistence.vaultCharts.create(duplicate);
+      try {
+        duplicate = createVaultRecord({
+          userId,
+          displayName: sourceChart.displayName,
+          category: sourceChart.category,
+          tags: sourceChart.tags,
+          favorite: sourceChart.favorite,
+          chart: sourceChart.normalizedChartRequest,
+          idGenerator: dependencies.idGenerator,
+          clock: dependencies.clock,
+          locationResolutionService: dependencies.locationResolutionService,
+          saveMode: 'CHART_RESULT_AVAILABLE',
+          canonicalChartResult,
+          allowDevelopmentFixtureSnapshot:
+            dependencies.operationalConfig?.runtimeMode !== 'production' &&
+            isDevelopmentVaultFixtureResult(canonicalChartResult)
+        });
+      } catch (error) {
+        if (error instanceof VaultRecordEligibilityError) {
+          return createProblemDetailsContextResponse(context, {
+            code:
+              error.code === 'INVALID_INPUT'
+                ? 'INVALID_REQUEST'
+                : 'INVALID_STATE'
+          });
+        }
+
+        throw error;
+      }
+
+      const repository = dependencies.persistence.vaultCharts;
+      const creation =
+        repository.createWithCapacity === undefined
+          ? (await repository.create(duplicate), 'created' as const)
+          : await repository.createWithCapacity(
+              duplicate,
+              VAULT_FREE_RECORD_LIMIT
+            );
+
+      if (creation === 'capacity-reached') {
+        return createProblemDetailsContextResponse(context, {
+          code: 'CAPACITY_REACHED'
+        });
+      }
 
       const response: DuplicateVaultChartApiResponse = { chart: duplicate };
       return context.json(response, 201);

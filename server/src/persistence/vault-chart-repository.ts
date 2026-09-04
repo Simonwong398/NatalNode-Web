@@ -18,6 +18,17 @@ export interface VaultChartListOptions {
 
 export interface VaultChartRepository {
   create(chart: VaultChartRecord): Promise<void>;
+  /**
+   * Creates a record while enforcing the account's server-side capacity.
+   * PostgreSQL implementations must perform the count and insert in one
+   * transaction; the optional shape preserves small legacy test doubles.
+   */
+  createWithCapacity?(
+    chart: VaultChartRecord,
+    capacity: number
+  ): Promise<'created' | 'capacity-reached'>;
+  /** Returns the durable owner-scoped record count for capacity presentation. */
+  countForUser?(userId: string): Promise<number>;
   findById(userId: string, chartId: string): Promise<VaultChartRecord | null>;
   listForUser(userId: string): Promise<readonly VaultChartRecord[]>;
   /** Cursor page used by the HTTP boundary; optional for legacy test doubles. */

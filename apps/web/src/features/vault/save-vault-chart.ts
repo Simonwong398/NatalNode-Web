@@ -5,6 +5,7 @@ import type {
   VaultChartRecord
 } from '@natalnode/contracts';
 import { getLocalizedCurrentPath } from '../../lib/localization.js';
+import { isVaultChartRecord } from './vault-management-contract-guards.js';
 
 const VAULT_CHARTS_ENDPOINT = '/api/vault/charts';
 const SIGN_IN_PATH = '/auth/sign-in';
@@ -20,6 +21,8 @@ export const VAULT_CHART_CATEGORIES: readonly VaultChartCategory[] = [
 export type SaveVaultChartResult =
   | { readonly status: 'saved'; readonly chart: VaultChartRecord }
   | { readonly status: 'invalid-request' }
+  | { readonly status: 'capacity-reached' }
+  | { readonly status: 'invalid-state' }
   | { readonly status: 'failed' }
   | { readonly status: 'redirected' };
 
@@ -29,31 +32,6 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 
 export function isVaultChartCategory(value: unknown): value is VaultChartCategory {
   return VAULT_CHART_CATEGORIES.some((category) => category === value);
-}
-
-function isNullableString(value: unknown): value is string | null {
-  return typeof value === 'string' || value === null;
-}
-
-function isVaultChartRecord(value: unknown): value is VaultChartRecord {
-  return (
-    isRecord(value) &&
-    typeof value.chartId === 'string' &&
-    typeof value.userId === 'string' &&
-    typeof value.displayName === 'string' &&
-    isVaultChartCategory(value.category) &&
-    Array.isArray(value.tags) &&
-    value.tags.every((tag) => typeof tag === 'string') &&
-    typeof value.favorite === 'boolean' &&
-    isRecord(value.normalizedChartRequest) &&
-    isRecord(value.canonicalChartResult) &&
-    typeof value.engineVersion === 'string' &&
-    typeof value.chartSchemaVersion === 'string' &&
-    isNullableString(value.astronomyConfigurationId) &&
-    isNullableString(value.provenanceEnvelopeId) &&
-    typeof value.createdAt === 'string' &&
-    typeof value.updatedAt === 'string'
-  );
 }
 
 function isSaveVaultChartApiResponse(
@@ -66,7 +44,7 @@ function isInvalidRequestProblem(value: unknown): boolean {
   return isRecord(value) && value.code === 'INVALID_REQUEST';
 }
 
-/** Saves metadata plus the normalized input; the server recalculates all scientific output. */
+/** Saves the normalized input; the server owns eligibility and scientific state. */
 export async function saveVaultChart(
   request: SaveVaultChartApiRequest
 ): Promise<SaveVaultChartResult> {
@@ -101,6 +79,18 @@ export async function saveVaultChart(
       return isInvalidRequestProblem(payload)
         ? { status: 'invalid-request' }
         : { status: 'failed' };
+    }
+
+    if (response.status === 409) {
+      const payload: unknown = await response.json();
+
+      if (isRecord(payload) && payload.code === 'CAPACITY_REACHED') {
+        return { status: 'capacity-reached' };
+      }
+
+      if (isRecord(payload) && payload.code === 'INVALID_STATE') {
+        return { status: 'invalid-state' };
+      }
     }
 
     return { status: 'failed' };

@@ -13,8 +13,6 @@ import {
   withVaultChartManagement
 } from './support/vault-chart-management-harness.mjs';
 
-const CHART_CONFIRMATION =
-  'Delete this saved chart? The saved chart and all associated notes will be removed.';
 const NOTE_CONFIRMATION = 'Delete this note?';
 const FORBIDDEN_MUTATION_FIELDS = [
   'userId',
@@ -38,6 +36,13 @@ function chartUrl(chart) {
 
 function duplicateUrl(chart) {
   return `${chartUrl(chart)}/duplicate`;
+}
+
+async function openChartDeleteConfirmation(scope) {
+  await scope.click(scope.button('Delete chart'));
+  const dialog = scope.role('alertdialog');
+  assert.match(scope.text(dialog), /Fixture chart/);
+  return dialog;
 }
 
 function notesUrl(chart) {
@@ -708,10 +713,13 @@ test('note delete non-navigation failures retain the note, release the lock, and
 });
 
 test('chart deletion freezes exact confirmation cancellation without invoking the callback', async () => {
-  await withVaultChartManagement({ confirmResults: [false] }, async (scope) => {
+  await withVaultChartManagement({}, async (scope) => {
     await mountWithNotes(scope, scope.chart);
-    await scope.click(scope.button('Delete chart'));
-    assert.deepEqual(scope.confirmCalls, [CHART_CONFIRMATION]);
+    const dialog = await openChartDeleteConfirmation(scope);
+    assert.equal(scope.confirmCalls.length, 0);
+    assert.equal(scope.document.activeElement, scope.button('Cancel', dialog));
+    await scope.click(scope.button('Cancel', dialog));
+    assert.equal(scope.roles('alertdialog').length, 0);
     assert.equal(scope.fetch.callsFor('DELETE', chartUrl(scope.chart)).length, 0);
     assert.equal(scope.onDeletedCalls.length, 0);
     assert.equal(scope.button('Delete chart').disabled, false);
@@ -798,17 +806,16 @@ test('chart duplication aborts on unmount and ignores a late response', async ()
 test('chart deletion pending state suppresses repeats, leaves other sections operable, and delegates success exactly once', async () => {
   const deletion = deferred();
 
-  await withVaultChartManagement({ confirmResults: [true, true] }, async (scope) => {
+  await withVaultChartManagement({}, async (scope) => {
     await mountWithNotes(scope, scope.chart);
     scope.fetch.enqueue('DELETE', chartUrl(scope.chart), deletion.promise);
-    await scope.click(scope.button('Delete chart'));
+    const dialog = await openChartDeleteConfirmation(scope);
 
-    assert.deepEqual(scope.confirmCalls, [CHART_CONFIRMATION]);
+    await scope.click(scope.button('Delete chart', dialog));
     assert.equal(scope.button('Deleting…').disabled, true);
     assert.equal(scope.control('Chart name').disabled, false);
     assert.equal(scope.control('Add a note').disabled, false);
     await scope.click(scope.button('Deleting…'));
-    assert.deepEqual(scope.confirmCalls, [CHART_CONFIRMATION]);
     assert.equal(scope.fetch.callsFor('DELETE', chartUrl(scope.chart)).length, 1);
 
     deletion.resolve(jsonResponse({ deleted: true }));
@@ -825,10 +832,11 @@ test('chart delete non-navigation failures release deleting state, preserve call
   ];
 
   for (const [status, message] of cases) {
-    await withVaultChartManagement({ confirmResults: [true] }, async (scope) => {
+    await withVaultChartManagement({}, async (scope) => {
       await mountWithNotes(scope, scope.chart);
       scope.fetch.enqueue('DELETE', chartUrl(scope.chart), statusResponse(status));
-      await scope.click(scope.button('Delete chart'));
+      const dialog = await openChartDeleteConfirmation(scope);
+      await scope.click(scope.button('Delete chart', dialog));
       await scope.flush();
       scope.role('alert', message);
       assert.equal(scope.button('Delete chart').disabled, false);
@@ -892,10 +900,11 @@ test('unauthorized redirect policy is consistent for load, metadata, note mutati
     assert.match(scope.container.textContent, /First fixture note/);
   });
 
-  await withVaultChartManagement({ confirmResults: [true] }, async (scope) => {
+  await withVaultChartManagement({}, async (scope) => {
     await mountWithNotes(scope, scope.chart);
     scope.fetch.enqueue('DELETE', chartUrl(scope.chart), statusResponse(401));
-    await scope.click(scope.button('Delete chart'));
+    const dialog = await openChartDeleteConfirmation(scope);
+    await scope.click(scope.button('Delete chart', dialog));
     await scope.flush();
     assert.deepEqual(scope.locationReplaceCalls, ['/en/auth/sign-in']);
     assert.equal(scope.button('Deleting…').disabled, true);
@@ -918,7 +927,7 @@ test('independent busy mechanisms permit metadata, note, and chart mutations to 
   const create = deferred();
   const deletion = deferred();
 
-  await withVaultChartManagement({ confirmResults: [true] }, async (scope) => {
+  await withVaultChartManagement({}, async (scope) => {
     await mountWithNotes(scope, scope.chart);
     scope.fetch.enqueue('PATCH', chartUrl(scope.chart), metadata.promise);
     scope.fetch.enqueue('POST', notesUrl(scope.chart), create.promise);
@@ -928,7 +937,8 @@ test('independent busy mechanisms permit metadata, note, and chart mutations to 
     await scope.submit(scope.control('Chart name').form);
     await scope.change(scope.control('Add a note'), 'Concurrent note');
     await scope.submit(scope.control('Add a note').form);
-    await scope.click(scope.button('Delete chart'));
+    const dialog = await openChartDeleteConfirmation(scope);
+    await scope.click(scope.button('Delete chart', dialog));
 
     assert.equal(scope.fetch.callsFor('PATCH', chartUrl(scope.chart)).length, 1);
     assert.equal(scope.fetch.callsFor('POST', notesUrl(scope.chart)).length, 1);
@@ -945,11 +955,12 @@ test('independent busy mechanisms permit metadata, note, and chart mutations to 
 
   const chartDeletion = deferred();
   const metadataAfterDelete = deferred();
-  await withVaultChartManagement({ confirmResults: [true] }, async (scope) => {
+  await withVaultChartManagement({}, async (scope) => {
     await mountWithNotes(scope, scope.chart);
     scope.fetch.enqueue('DELETE', chartUrl(scope.chart), chartDeletion.promise);
     scope.fetch.enqueue('PATCH', chartUrl(scope.chart), metadataAfterDelete.promise);
-    await scope.click(scope.button('Delete chart'));
+    const dialog = await openChartDeleteConfirmation(scope);
+    await scope.click(scope.button('Delete chart', dialog));
     await scope.change(scope.control('Chart name'), 'Started after delete');
     await scope.submit(scope.control('Chart name').form);
     assert.equal(scope.fetch.callsFor('DELETE', chartUrl(scope.chart)).length, 1);

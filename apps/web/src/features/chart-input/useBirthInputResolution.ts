@@ -32,8 +32,13 @@ function toExactResolution(
   };
 }
 
-export function useBirthInputResolution(resolver: BirthInputResolver) {
-  const [resolution, setResolution] = useState<BirthInputResolution | null>(null);
+export function useBirthInputResolution(
+  resolver: BirthInputResolver,
+  initialResolution: BirthInputResolution | null = null
+) {
+  const [resolution, setResolution] = useState<BirthInputResolution | null>(
+    initialResolution
+  );
   const [resolutionError, setResolutionError] = useState<string | null>(null);
   const [isResolving, setIsResolving] = useState(false);
   const latestRequestRef = useRef(0);

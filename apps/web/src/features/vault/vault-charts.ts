@@ -1,7 +1,10 @@
 import type {
   CurrentSessionApiResponse,
   VaultChartCategory,
-  VaultChartRecord
+  VaultChartRecord,
+  VaultCapacity,
+  VaultRecordOrigin,
+  VaultScientificStatus
 } from '@natalnode/contracts';
 import { getLocalizedCurrentPath } from '../../lib/localization.js';
 import {
@@ -23,11 +26,15 @@ const VAULT_CHART_CATEGORIES: readonly VaultChartCategory[] = [
 type VaultChartListItem = Pick<
   VaultChartRecord,
   'chartId' | 'displayName' | 'category' | 'createdAt'
->;
+> & {
+  readonly recordOrigin?: VaultRecordOrigin;
+  readonly scientificStatus?: VaultScientificStatus;
+};
 
 interface VaultChartCollectionResponse {
   readonly charts: readonly VaultChartListItem[];
   readonly nextCursor: string | null;
+  readonly capacity?: VaultCapacity;
 }
 
 type VaultPageState = 'loading' | 'loaded' | 'empty' | 'error';
@@ -38,6 +45,7 @@ export interface VaultPageElements {
   readonly error: HTMLElement;
   readonly empty: HTMLElement;
   readonly list: HTMLUListElement;
+  readonly capacity: HTMLElement;
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -62,9 +70,28 @@ function isVaultChartListItem(value: unknown): value is VaultChartListItem {
     isRecord(value) &&
     typeof value.chartId === 'string' &&
     value.chartId.length > 0 &&
-    typeof value.displayName === 'string' &&
-    isVaultChartCategory(value.category) &&
-    typeof value.createdAt === 'string'
+      typeof value.displayName === 'string' &&
+      isVaultChartCategory(value.category) &&
+      typeof value.createdAt === 'string' &&
+      (value.recordOrigin === undefined ||
+        value.recordOrigin === 'USER_INPUT' ||
+        value.recordOrigin === 'DEVELOPMENT_FIXTURE') &&
+      (value.scientificStatus === undefined ||
+      value.scientificStatus === 'INPUT_ONLY' ||
+      value.scientificStatus === 'CHART_RESULT_AVAILABLE')
+  );
+}
+
+function isVaultCapacity(value: unknown): value is VaultCapacity {
+  return (
+    isRecord(value) &&
+    typeof value.used === 'number' &&
+    Number.isSafeInteger(value.used) &&
+    value.used >= 0 &&
+    value.used <= 3 &&
+    value.limit === 3 &&
+    value.tier === 'FREE' &&
+    value.proExpansionAvailable === false
   );
 }
 
@@ -75,7 +102,8 @@ function isVaultChartCollectionResponse(
     isRecord(value) &&
     Array.isArray(value.charts) &&
     value.charts.every((chart) => isVaultChartListItem(chart)) &&
-    (typeof value.nextCursor === 'string' || value.nextCursor === null)
+    (typeof value.nextCursor === 'string' || value.nextCursor === null) &&
+    (value.capacity === undefined || isVaultCapacity(value.capacity))
   );
 }
 
@@ -119,6 +147,16 @@ function renderChartList(
     category.className = 'nn-badge mt-4 self-start';
     category.textContent = categoryLabel(chart.category);
 
+    const state = document.createElement('p');
+    state.className = 'nn-type-metadata mt-3';
+    state.textContent = getDocumentUiMessage(
+      chart.recordOrigin === 'DEVELOPMENT_FIXTURE'
+        ? 'vault.state.developmentFixture'
+        : chart.scientificStatus === 'CHART_RESULT_AVAILABLE'
+          ? 'vault.state.authoritative'
+          : 'vault.state.inputOnly'
+    );
+
     const savedAt = document.createElement('time');
     savedAt.className = 'nn-type-metadata mt-5 block';
 
@@ -141,7 +179,7 @@ function renderChartList(
     );
     openLink.textContent = getDocumentUiMessage('vault.open');
 
-    item.append(title, category, savedAt, openLink);
+    item.append(title, category, state, savedAt, openLink);
     list.append(item);
   }
 }
@@ -149,7 +187,8 @@ function renderChartList(
 function render(
   elements: VaultPageElements,
   state: VaultPageState,
-  charts: readonly VaultChartListItem[] = []
+  charts: readonly VaultChartListItem[] = [],
+  capacity?: VaultCapacity
 ): void {
   elements.root.setAttribute('aria-busy', state === 'loading' ? 'true' : 'false');
   setVisibility(elements.loading, state === 'loading');
@@ -165,6 +204,23 @@ function render(
     renderChartList(elements.list, charts);
   } else {
     elements.list.replaceChildren();
+  }
+
+  if (capacity === undefined) {
+    elements.capacity.textContent = '';
+    elements.capacity.hidden = true;
+  } else {
+    elements.capacity.hidden = false;
+    elements.capacity.textContent =
+      capacity.used >= capacity.limit
+        ? formatDocumentUiMessage('vault.capacityReached', {
+            used: capacity.used,
+            limit: capacity.limit
+          })
+        : formatDocumentUiMessage('vault.capacity', {
+            used: capacity.used,
+            limit: capacity.limit
+          });
   }
 }
 
@@ -231,7 +287,8 @@ async function loadVaultCharts(elements: VaultPageElements): Promise<void> {
     render(
       elements,
       vaultPayload.charts.length === 0 ? 'empty' : 'loaded',
-      vaultPayload.charts
+      vaultPayload.charts,
+      vaultPayload.capacity
     );
   } catch (_error) {
     render(elements, 'error');

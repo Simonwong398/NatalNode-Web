@@ -1,4 +1,5 @@
 import { useRef, useState } from 'react';
+import type { ChartRequest } from '@natalnode/contracts';
 import type { SupportedLocale } from '../../lib/localization.js';
 import BirthAdvancedSettings from './BirthAdvancedSettings';
 import BirthDateTimeFields from './BirthDateTimeFields';
@@ -46,9 +47,92 @@ type EditableDraft = Pick<
 
 const defaultResolver: BirthInputResolver = new DevelopmentBirthInputResolver();
 
+function draftFromChartRequest(chartRequest?: ChartRequest): BirthInputDraft {
+  if (chartRequest === undefined) {
+    return { ...INITIAL_BIRTH_INPUT_STATE };
+  }
+
+  const birth = chartRequest.birth;
+  const houseSystem =
+    birth &&
+    (chartRequest.houseSystem === 'Placidus' ||
+      chartRequest.houseSystem === 'Whole Sign' ||
+      chartRequest.houseSystem === 'Equal')
+      ? chartRequest.houseSystem
+      : '';
+
+  return {
+    localDate: birth.localDate,
+    localTime: birth.localTime,
+    locationLabel: birth.locationLabel,
+    latitude: birth.latitude,
+    longitude: birth.longitude,
+    ianaTimeZone: birth.ianaTimeZone,
+    resolvedUtcInstant: birth.resolvedUtcInstant,
+    utcOffsetSeconds: birth.utcOffsetSeconds,
+    timezoneDatabaseVersion: birth.timezoneDatabaseVersion,
+    timezoneResolutionMethod: birth.timezoneResolutionMethod,
+    ambiguityStatus: birth.ambiguityStatus,
+    houseSystem
+  };
+}
+
+function resolutionFromChartRequest(
+  chartRequest?: ChartRequest
+): BirthInputResolution | null {
+  if (chartRequest === undefined) {
+    return null;
+  }
+
+  const birth = chartRequest.birth;
+  const base = {
+    localDate: birth.localDate,
+    locationLabel: birth.locationLabel,
+    latitude: birth.latitude,
+    longitude: birth.longitude,
+    ianaTimeZone: birth.ianaTimeZone,
+    timezoneDatabaseVersion: birth.timezoneDatabaseVersion,
+    timezoneResolutionMethod: birth.timezoneResolutionMethod
+  };
+
+  if (
+    birth.ambiguityStatus === 'EXACT' &&
+    birth.localTime !== null &&
+    birth.resolvedUtcInstant !== null &&
+    birth.utcOffsetSeconds !== null
+  ) {
+    return {
+      ...base,
+      localTime: birth.localTime,
+      resolvedUtcInstant: birth.resolvedUtcInstant,
+      utcOffsetSeconds: birth.utcOffsetSeconds,
+      ambiguityStatus: 'EXACT'
+    };
+  }
+
+  if (
+    birth.ambiguityStatus === 'UNKNOWN_TIME' &&
+    birth.localTime === null &&
+    birth.resolvedUtcInstant === null &&
+    birth.utcOffsetSeconds === null
+  ) {
+    return {
+      ...base,
+      localTime: null,
+      resolvedUtcInstant: null,
+      utcOffsetSeconds: null,
+      ambiguityStatus: 'UNKNOWN_TIME'
+    };
+  }
+
+  return null;
+}
+
 export interface BirthInputFormProps {
   isCalculationPending?: boolean;
   locale?: SupportedLocale;
+  /** Optional saved Vault input to reopen without changing its authority. */
+  initialChartRequest?: ChartRequest;
   /** Provider-neutral state supplied by the location BFF integration. */
   locationDiagnostics?: LocationResolutionDiagnostics;
   locationResolution?: LocationResolutionViewState;
@@ -154,6 +238,7 @@ function BirthDataTrustSection({ locale }: { locale?: SupportedLocale }) {
 export default function BirthInputForm({
   isCalculationPending = false,
   locale,
+  initialChartRequest,
   locationDiagnostics,
   locationResolution,
   onLocationCandidateSelect,
@@ -164,8 +249,14 @@ export default function BirthInputForm({
   resolver = defaultResolver,
   showDevelopmentDiagnostics = false
 }: BirthInputFormProps) {
-  const [draft, setDraft] = useState<BirthInputDraft>(INITIAL_BIRTH_INPUT_STATE);
-  const [birthDateParts, setBirthDateParts] = useState<BirthDateParts>(EMPTY_BIRTH_DATE_PARTS);
+  const [draft, setDraft] = useState<BirthInputDraft>(() =>
+    draftFromChartRequest(initialChartRequest)
+  );
+  const [birthDateParts, setBirthDateParts] = useState<BirthDateParts>(() =>
+    initialChartRequest === undefined
+      ? EMPTY_BIRTH_DATE_PARTS
+      : toBirthDateParts(initialChartRequest.birth.localDate) ?? EMPTY_BIRTH_DATE_PARTS
+  );
   const [errors, setErrors] = useState<ValidationErrors>({});
   const [isAdvancedSettingsOpen, setIsAdvancedSettingsOpen] = useState(false);
   const timeInputRef = useRef<HTMLInputElement>(null);
@@ -177,7 +268,10 @@ export default function BirthInputForm({
     resolutionError,
     resolveDraft,
     selectCandidate
-  } = useBirthInputResolution(resolver);
+  } = useBirthInputResolution(
+    resolver,
+    resolutionFromChartRequest(initialChartRequest)
+  );
   const unknownTime = draft.ambiguityStatus === 'UNKNOWN_TIME';
   const isInteractionDisabled = isResolving || isCalculationPending;
   const isDevelopmentFixtureResolver = resolver instanceof DevelopmentBirthInputResolver;

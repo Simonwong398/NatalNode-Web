@@ -231,8 +231,8 @@ export interface AccountDataExportChartRow {
   readonly favorite: boolean;
   readonly normalized_input: unknown;
   readonly canonical_result: unknown;
-  readonly engine_version: string;
-  readonly chart_schema_version: string;
+  readonly engine_version: string | null;
+  readonly chart_schema_version: string | null;
   readonly astronomy_configuration_id: string | null;
   readonly provenance_envelope_id: string | null;
   readonly created_at: Date | string;

@@ -1,12 +1,14 @@
 import { useEffect, useRef, useState } from 'react';
+import type { ChartRequest } from '@natalnode/contracts';
 import {
   BirthInputForm,
+  type CanonicalResolvedLocation,
   type ResolvedBirthInputSelection,
   useLocationResolution
 } from '@/features/chart-input';
 import { ChartWorkspace } from '@/features/chart-workspace';
 import { engineClient } from '@/lib/engine-client';
-import type { SupportedLocale } from '@/lib/localization';
+import { getLocalizedCurrentPath, type SupportedLocale } from '@/lib/localization';
 import { IS_DEVELOPMENT_RUNTIME } from '@/lib/runtime';
 import { toChartRequest } from './chart-request';
 import { chartUi } from '@/core/chart/chart-ui';
@@ -14,25 +16,183 @@ import type { CalculatedChartSnapshot } from './types';
 
 interface ChartExperienceProps {
   readonly locale?: SupportedLocale;
+  /** Optional authenticated Vault record to reopen as input. */
+  readonly initialVaultRecordId?: string | null;
   /** Production compositions opt into the explicit location authority gate. */
   readonly requireResolvedLocation?: boolean;
 }
 
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
+
+function isFiniteNumber(value: unknown): value is number {
+  return typeof value === 'number' && Number.isFinite(value);
+}
+
+function isChartRequest(value: unknown): value is ChartRequest {
+  if (!isRecord(value) || !isRecord(value.birth)) {
+    return false;
+  }
+
+  const birth = value.birth;
+
+  return (
+    typeof value.houseSystem === 'string' &&
+    value.houseSystem.trim() !== '' &&
+    typeof birth.localDate === 'string' &&
+    (typeof birth.localTime === 'string' || birth.localTime === null) &&
+    typeof birth.locationLabel === 'string' &&
+    (birth.locationResolutionId === undefined ||
+      (typeof birth.locationResolutionId === 'string' &&
+        birth.locationResolutionId !== '')) &&
+    isFiniteNumber(birth.latitude) &&
+    isFiniteNumber(birth.longitude) &&
+    typeof birth.ianaTimeZone === 'string' &&
+    (typeof birth.resolvedUtcInstant === 'string' ||
+      birth.resolvedUtcInstant === null) &&
+    (isFiniteNumber(birth.utcOffsetSeconds) || birth.utcOffsetSeconds === null) &&
+    typeof birth.timezoneDatabaseVersion === 'string' &&
+    typeof birth.timezoneResolutionMethod === 'string' &&
+    (birth.ambiguityStatus === 'EXACT' ||
+      birth.ambiguityStatus === 'AMBIGUOUS' ||
+      birth.ambiguityStatus === 'NONEXISTENT' ||
+      birth.ambiguityStatus === 'UNKNOWN_TIME')
+  );
+}
+
+function savedLocationFromChartRequest(
+  chartRequest: ChartRequest
+): CanonicalResolvedLocation | null {
+  const birth = chartRequest.birth;
+  const resolutionId = birth.locationResolutionId;
+
+  if (resolutionId === undefined) {
+    return null;
+  }
+
+  return {
+    resolutionId,
+    canonicalDisplayName: birth.locationLabel,
+    locality: null,
+    region: null,
+    country: birth.locationLabel,
+    countryCode: null,
+    coordinates: {
+      latitude: birth.latitude,
+      longitude: birth.longitude
+    },
+    ianaTimeZone: birth.ianaTimeZone,
+    status: 'RESOLVED',
+    authority: {
+      kind: 'GEOCODING',
+      sourceId: 'vault-record',
+      recordId: resolutionId
+    },
+    source: {
+      sourceVersion: null,
+      datasetVersion: null,
+      attribution: null
+    }
+  };
+}
+
+function isVaultRecordResponse(
+  value: unknown,
+  requestedRecordId: string
+): value is { readonly chart: { readonly normalizedChartRequest: ChartRequest } } {
+  return (
+    isRecord(value) &&
+    isRecord(value.chart) &&
+    value.chart.chartId === requestedRecordId &&
+    isChartRequest(value.chart.normalizedChartRequest)
+  );
+}
+
 export default function ChartExperience({
   locale,
+  initialVaultRecordId = null,
   requireResolvedLocation = false
 }: ChartExperienceProps) {
   const [snapshot, setSnapshot] = useState<CalculatedChartSnapshot | null>(null);
   const [isCalculating, setIsCalculating] = useState(false);
   const [calculationError, setCalculationError] = useState<string | null>(null);
+  const [reopenedChartRequest, setReopenedChartRequest] =
+    useState<ChartRequest | null>(null);
+  const [reopenedLocation, setReopenedLocation] =
+    useState<CanonicalResolvedLocation | null>(null);
+  const [reopenError, setReopenError] = useState<string | null>(null);
   const [successfulCalculationSequence, setSuccessfulCalculationSequence] = useState(0);
   const calculationInFlightRef = useRef(false);
   const handledResultTransitionRef = useRef(0);
   const resultTargetRef = useRef<HTMLElement>(null);
-  const locationResolution = useLocationResolution({ locale });
+  const locationResolution = useLocationResolution({
+    locale,
+    initialResolvedLocation: reopenedLocation ?? undefined
+  });
 
   // These canonical fixture identities remain explicit in the localized UI:
   // UI DEVELOPMENT ONLY, NOT SCIENTIFIC EVIDENCE, NOT PRODUCTION ASTRONOMY.
+
+  useEffect(() => {
+    if (initialVaultRecordId === null || initialVaultRecordId === undefined) {
+      setReopenedChartRequest(null);
+      setReopenedLocation(null);
+      setReopenError(null);
+      return;
+    }
+
+    const requestedRecordId = initialVaultRecordId;
+    const abortController = new AbortController();
+
+    async function loadVaultRecord(): Promise<void> {
+      try {
+        const response = await fetch(
+          `/api/vault/charts/${encodeURIComponent(requestedRecordId)}`,
+          {
+            method: 'GET',
+            headers: { Accept: 'application/json' },
+            credentials: 'same-origin',
+            cache: 'no-store',
+            signal: abortController.signal
+          }
+        );
+
+        if (response.status === 401) {
+          window.location.replace(
+            getLocalizedCurrentPath(window.location.pathname, '/auth/sign-in')
+          );
+          return;
+        }
+
+        if (response.status !== 200) {
+          setReopenError(chartUi(locale, 'vault.savedChartLoadError'));
+          return;
+        }
+
+        const payload: unknown = await response.json();
+
+        if (!isVaultRecordResponse(payload, requestedRecordId)) {
+          setReopenError(chartUi(locale, 'vault.savedChartLoadError'));
+          return;
+        }
+
+        setReopenedChartRequest(payload.chart.normalizedChartRequest);
+        setReopenedLocation(
+          savedLocationFromChartRequest(payload.chart.normalizedChartRequest)
+        );
+        setReopenError(null);
+      } catch (_error) {
+        if (!abortController.signal.aborted) {
+          setReopenError(chartUi(locale, 'vault.savedChartLoadError'));
+        }
+      }
+    }
+
+    void loadVaultRecord();
+
+    return () => abortController.abort();
+  }, [initialVaultRecordId, locale]);
 
   useEffect(() => {
     if (
@@ -88,6 +248,12 @@ export default function ChartExperience({
   return (
     <>
       <BirthInputForm
+        key={
+          reopenedChartRequest === null
+            ? initialVaultRecordId === null ? 'new-input' : 'vault-input-loading'
+            : `vault-input-${initialVaultRecordId}`
+        }
+        initialChartRequest={reopenedChartRequest ?? undefined}
         isCalculationPending={isCalculating}
         onResolvedInput={handleResolvedInput}
         locale={locale}
@@ -144,6 +310,11 @@ export default function ChartExperience({
             role="alert"
           >
             {calculationError}
+          </p>
+        ) : null}
+        {reopenError ? (
+          <p className="nn-notice nn-notice--error mt-4" role="alert">
+            {reopenError}
           </p>
         ) : null}
       </section>
