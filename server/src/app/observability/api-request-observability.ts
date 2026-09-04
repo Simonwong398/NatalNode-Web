@@ -9,6 +9,8 @@ export const REQUEST_ID_HEADER = 'X-Request-Id';
 export type EndpointFamily =
   | 'health'
   | 'chart'
+  | 'location.search'
+  | 'location.resolve'
   | 'sky.snapshot'
   | 'sky.events'
   | 'auth.email.request'
@@ -89,6 +91,8 @@ function boundedMethod(method: string): HttpMethod {
 export function classifyApiEndpointFamily(pathname: string): EndpointFamily {
   if (pathname === '/api/health') return 'health';
   if (pathname === '/api/chart') return 'chart';
+  if (pathname === '/api/location/search') return 'location.search';
+  if (pathname === '/api/location/resolve') return 'location.resolve';
   if (pathname === '/api/sky/snapshot') return 'sky.snapshot';
   if (pathname === '/api/sky/events') return 'sky.events';
   if (pathname === '/api/auth/email/request') return 'auth.email.request';

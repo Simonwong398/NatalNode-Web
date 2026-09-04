@@ -3,19 +3,19 @@ import SiteLayout from '@/layouts/SiteLayout.astro';
 import { getAstrologyGlyph, getAstrologyNotation } from '@/core/astrology-taxonomy/AstrologyGlyph';
 import { SEO_TOOL_TAXONOMY } from '@/lib/content-taxonomy';
 import { getLocalizedPath, getPresentationLocale } from '@/lib/localization';
-import type { SeoMetadata } from '@/lib/seo';
+import { createPublicSeo } from '@/lib/public-seo';
 import { formatUiMessage, getUiMessage, type UiMessageKey } from '@/lib/ui-catalog';
-
-const seo: SeoMetadata = {
-  title: 'Astrology Reference Tools | NatalNode',
-  description: 'Explore clear reference tools for signs, houses, and aspects, or start a NatalNode chart calculation.',
-  canonical: '/tools/'
-};
 
 const availableTools = SEO_TOOL_TAXONOMY.filter((tool) => tool.status === 'AVAILABLE');
 const locale = getPresentationLocale(Astro.url.pathname, Astro.locals.locale);
 const localize = (path: string): string => getLocalizedPath(locale, path);
 const t = (key: UiMessageKey): string => getUiMessage(locale, key);
+const seo = createPublicSeo(
+  locale,
+  '/tools/',
+  `${t('tools.title')} | NatalNode`,
+  t('tools.description')
+);
 
 const toolCopy = {
   '/tools/sign-lookup': {

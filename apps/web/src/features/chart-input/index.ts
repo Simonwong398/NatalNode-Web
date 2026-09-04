@@ -25,6 +25,25 @@ export type {
   UnknownTimeBirthInputResolution
 } from './types';
 export type { BirthInputResolver } from './resolver';
+export { default as LocationResolutionPanel } from './LocationResolutionPanel';
+export {
+  EMPTY_LOCATION_RESOLUTION_STATE,
+  applyLocationCandidates,
+  beginLocationSearch,
+  canSubmitProductionCalculation,
+  markLocationError,
+  markLocationUnresolved,
+  selectCanonicalLocation
+} from './location-resolution';
+export type {
+  CanonicalResolvedLocation,
+  LocationAuthority,
+  LocationCandidate,
+  LocationCoordinates,
+  LocationResolutionState,
+  LocationResolutionViewState,
+  LocationSourceMetadata
+} from './location-resolution';
 export {
   composeBirthDate,
   EMPTY_BIRTH_DATE_PARTS,

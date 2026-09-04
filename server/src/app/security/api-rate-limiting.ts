@@ -36,6 +36,16 @@ export const P0_STAGING_RATE_LIMIT_POLICIES = {
     limit: 20,
     windowMs: 10 * 60 * 1_000
   },
+  locationSearch: {
+    identifier: 'LOCATION_SEARCH',
+    limit: 30,
+    windowMs: 10 * 60 * 1_000
+  },
+  locationResolve: {
+    identifier: 'LOCATION_RESOLVE',
+    limit: 30,
+    windowMs: 10 * 60 * 1_000
+  },
   skyQuery: {
     identifier: 'SKY_QUERY',
     limit: 60,
@@ -434,6 +444,14 @@ export function selectP0StagingRateLimitPolicy(
 
   if (method === 'POST' && pathname === '/api/chart') {
     return P0_STAGING_RATE_LIMIT_POLICIES.chartCalculation;
+  }
+
+  if (method === 'POST' && pathname === '/api/location/search') {
+    return P0_STAGING_RATE_LIMIT_POLICIES.locationSearch;
+  }
+
+  if (method === 'POST' && pathname === '/api/location/resolve') {
+    return P0_STAGING_RATE_LIMIT_POLICIES.locationResolve;
   }
 
   if (method === 'POST' && (pathname === '/api/sky/snapshot' || pathname === '/api/sky/events')) {

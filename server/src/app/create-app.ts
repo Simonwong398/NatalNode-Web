@@ -16,6 +16,7 @@ import {
   enforceOperationalSurface
 } from './security/runtime-operational-boundary.js';
 import { createChartRoute } from './routes/chart.js';
+import { registerLocationResolutionRoutes } from './routes/location.js';
 import { createProblemDetailsContextResponse } from './problem-details/context-response.js';
 import { registerEmailAuthenticationRoutes } from './routes/auth-email.js';
 import { registerGoogleAuthenticationRoutes } from './routes/google-auth.js';
@@ -112,6 +113,7 @@ export function createApp(
   );
   app.get('/api/health', (context) => context.json(HEALTH_RESPONSE));
   app.post('/api/chart', createChartRoute(dependencies));
+  registerLocationResolutionRoutes(app, dependencies);
   registerSkyRoutes(app, dependencies);
   registerEmailAuthenticationRoutes(app, dependencies);
   registerGoogleAuthenticationRoutes(app, dependencies);

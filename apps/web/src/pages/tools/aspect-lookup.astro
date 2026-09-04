@@ -10,18 +10,18 @@ import {
 } from '@/core/astrology-taxonomy/astrology-glossary';
 import { getLocalizedPath, getPresentationLocale } from '@/lib/localization';
 import { getToolDetailCopy } from '@/lib/tools-detail-copy';
+import { createPublicSeo } from '@/lib/public-seo';
 import { getUiMessage, type UiMessageKey } from '@/lib/ui-catalog';
-import type { SeoMetadata } from '@/lib/seo';
-
-const seo: SeoMetadata = {
-  title: 'Aspect Lookup: Understand Planetary Aspects | NatalNode',
-  description: 'Choose two planets and a major aspect to explore a clear, deterministic educational interpretation.',
-  canonical: '/tools/aspect-lookup'
-};
 const locale = getPresentationLocale(Astro.url.pathname, Astro.locals.locale);
 const localize = (path: string): string => getLocalizedPath(locale, path);
 const copy = getToolDetailCopy(locale);
 const ui = (key: UiMessageKey): string => getUiMessage(locale, key);
+const seo = createPublicSeo(
+  locale,
+  '/tools/aspect-lookup',
+  `${copy.aspect.title} | NatalNode`,
+  copy.aspect.description
+);
 const glossaryTerm = (kind: AstrologyGlossaryDomainKind, value: unknown): string =>
   resolveAstrologyDomainTerm(kind, value, locale)?.displayTerm ??
   (typeof value === 'string' ? value : String(value));

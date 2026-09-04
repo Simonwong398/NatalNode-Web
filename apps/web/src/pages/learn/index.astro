@@ -11,6 +11,7 @@ import {
   getPresentationLocale,
   type SupportedLocale
 } from '@/lib/localization';
+import { createPublicSeo } from '@/lib/public-seo';
 import type { SeoMetadata } from '@/lib/seo';
 import { formatUiMessage, getUiMessage, type UiMessageKey } from '@/lib/ui-catalog';
 import {
@@ -24,24 +25,27 @@ interface Props {
 
 const { locale: requestedLocale } = Astro.props as Props;
 
-const articles = (await getCollection('learn', ({ data }) => !data.draft)).sort(
-  (first, second) => second.data.publishedAt.getTime() - first.data.publishedAt.getTime()
-);
-
-const seo: SeoMetadata = {
-  title: 'Learn Astrology with Clarity | NatalNode',
-  description: 'Foundational astrology education with clear language, explicit inputs, and transparent interpretation.',
-  canonical: '/learn/'
-};
 const locale = getPresentationLocale(
   Astro.url.pathname,
   requestedLocale ?? Astro.locals.locale
 );
+const articles = (await getCollection('learn', ({ data }) =>
+  !data.draft && data.locale === locale
+)).sort(
+  (first, second) => second.data.publishedAt.getTime() - first.data.publishedAt.getTime()
+);
+
 const educationalChart = await getEducationalChart();
 const educationalChartPresentationPolicy = getEducationalChartPresentationPolicy();
 const localize = (path: string): string => getLocalizedPath(locale, path);
 const foundationsUi = getFoundationsUiMessages(locale);
 const t = (key: UiMessageKey): string => getUiMessage(locale, key);
+const seo: SeoMetadata = createPublicSeo(
+  locale,
+  '/learn/',
+  `${t('learn.landing.title')} | NatalNode`,
+  t('learn.landing.description')
+);
 
 const categoryCopy: Record<LearnCategory, { label: UiMessageKey; description: UiMessageKey }> = {
   FOUNDATIONS: {
@@ -121,28 +125,24 @@ function formatDate(date: Date): string {
             <li class="nn-surface p-5 sm:p-6">
               <article>
                 <p class="nn-badge">
-                  {article.data.slug === 'what-is-a-natal-chart'
-                    ? t('learn.landing.article.foundations')
+                  {categoryCopy[article.data.category]
+                    ? t(categoryCopy[article.data.category].label)
                     : article.data.category.replace('_', ' ')}
                 </p>
                 <h3 class="nn-type-card-title mt-4">
                   <a
                     class="font-semibold underline decoration-natal-accent/50 underline-offset-4 transition-colors hover:text-natal-accent"
-                    href={localize(`/learn/${article.data.slug}`)}
+                    href={localize(`/learn/${article.data.contentId}`)}
                   >
-                    {article.data.slug === 'what-is-a-natal-chart'
-                      ? t('learn.landing.article.foundationsTitle')
-                      : article.data.title}
+                    {article.data.title}
                   </a>
                 </h3>
                 <p class="nn-type-body-small mt-3 max-w-3xl">
-                  {article.data.slug === 'what-is-a-natal-chart'
-                    ? t('learn.landing.article.foundationsSummary')
-                    : article.data.summary ?? article.data.description}
+                  {article.data.summary ?? article.data.description}
                 </p>
                 <a
                   class="mt-5 inline-flex font-semibold text-natal-accent underline decoration-natal-accent/50 underline-offset-4 transition-colors hover:text-white"
-                  href={localize(`/learn/${article.data.slug}`)}
+                  href={localize(`/learn/${article.data.contentId}`)}
                 >
                   {t('learn.landing.readGuide')}
                 </a>

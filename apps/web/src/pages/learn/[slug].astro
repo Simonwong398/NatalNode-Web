@@ -2,27 +2,35 @@
 import { getCollection, render, type CollectionEntry } from 'astro:content';
 import SiteLayout from '@/layouts/SiteLayout.astro';
 import { LEARN_CATEGORIES, type LearnCategory } from '@/lib/content-taxonomy';
-import { getLocalizedPath, getPresentationLocale } from '@/lib/localization';
+import { getLocalizedPath, getPresentationLocale, type SupportedLocale } from '@/lib/localization';
+import { getPublicSeoAlternates } from '@/lib/public-seo';
 import { resolveCanonicalUrl, type SeoMetadata } from '@/lib/seo';
 import { formatUiMessage, getUiMessage, type UiMessageKey } from '@/lib/ui-catalog';
 
 type Props = {
   entry: CollectionEntry<'learn'>;
+  locale?: SupportedLocale;
 };
 
 export async function getStaticPaths() {
-  const articles = await getCollection('learn', ({ data }) => !data.draft);
+  const articles = await getCollection(
+    'learn',
+    ({ data }) => !data.draft && data.locale === 'en'
+  );
 
   return articles.map((entry) => ({
-    params: { slug: entry.data.slug },
+    params: { slug: entry.data.contentId },
     props: { entry }
   }));
 }
 
-const { entry } = Astro.props as Props;
+const { entry, locale: requestedLocale } = Astro.props as Props;
 const { Content } = await render(entry);
 const category = LEARN_CATEGORIES.find((item) => item.key === entry.data.category);
-const locale = getPresentationLocale(Astro.url.pathname, Astro.locals.locale);
+const locale = getPresentationLocale(
+  Astro.url.pathname,
+  requestedLocale ?? Astro.locals.locale
+);
 const localize = (path: string): string => getLocalizedPath(locale, path);
 const categoryLabelKey: Record<LearnCategory, UiMessageKey> = {
   FOUNDATIONS: 'learn.landing.category.foundations',
@@ -42,7 +50,8 @@ const publishedDate = new Intl.DateTimeFormat(locale, {
 const seo: SeoMetadata = {
   title: `${entry.data.title} | NatalNode`,
   description: entry.data.description,
-  canonical: `/learn/${entry.data.slug}`
+  canonical: getLocalizedPath(locale, `/learn/${entry.data.contentId}`),
+  alternates: getPublicSeoAlternates(`/learn/${entry.data.contentId}`)
 };
 const canonicalUrl = resolveCanonicalUrl(seo.canonical);
 const articleStructuredData: Record<string, unknown> = {

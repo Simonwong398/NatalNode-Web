@@ -9,6 +9,8 @@ export interface BirthRequest {
   localDate: string;
   localTime: string | null;
   locationLabel: string;
+  /** Opaque canonical location identity; required by a production boundary. */
+  locationResolutionId?: string;
   latitude: number;
   longitude: number;
   ianaTimeZone: string;

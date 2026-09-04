@@ -6,10 +6,14 @@ import { parseSupportedLocale, SUPPORTED_LOCALES } from '@/lib/localization';
 export async function getStaticPaths() {
   const entries = await getCollection('learn', ({ data }) => !data.draft);
 
-  return SUPPORTED_LOCALES.flatMap((locale) => entries.map((entry) => ({
-    params: { locale, slug: entry.data.slug },
-    props: { entry }
-  })));
+  return SUPPORTED_LOCALES.flatMap((locale) =>
+    entries
+      .filter((entry) => entry.data.locale === locale)
+      .map((entry) => ({
+        params: { locale, slug: entry.data.contentId },
+        props: { entry, locale }
+      }))
+  );
 }
 
 const locale = parseSupportedLocale(Astro.params.locale);
@@ -18,4 +22,4 @@ if (locale === null) {
 }
 ---
 
-<Page entry={Astro.props.entry} />
+<Page entry={Astro.props.entry} locale={locale} />

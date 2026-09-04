@@ -48,6 +48,9 @@ export function isBirthRequest(value: unknown): value is BirthRequest {
     isBoundedString(value.localDate) &&
     isStringOrNull(value.localTime) &&
     isBoundedString(value.locationLabel) &&
+    (value.locationResolutionId === undefined ||
+      (isBoundedString(value.locationResolutionId) &&
+        value.locationResolutionId.trim() !== '')) &&
     isFiniteNumber(value.latitude) &&
     value.latitude >= -90 &&
     value.latitude <= 90 &&

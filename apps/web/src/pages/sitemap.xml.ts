@@ -32,11 +32,19 @@ const escapeXml = (value: string): string =>
 export const GET: APIRoute = async () => {
   const articles = await getCollection('learn', ({ data }) => !data.draft);
   const urls = [...new Set([
-    ...publicPaths.map((path) => resolveCanonicalUrl(path)),
+    ...SUPPORTED_LOCALES.flatMap((locale) =>
+      publicPaths.map((path) =>
+        resolveCanonicalUrl(getLocalizedPath(locale, path))
+      )
+    ),
     ...SUPPORTED_LOCALES.flatMap((locale) =>
       discoverPaths.map((path) => resolveCanonicalUrl(getLocalizedPath(locale, path)))
     ),
-    ...articles.map((entry) => resolveCanonicalUrl(`/learn/${entry.data.slug}`))
+    ...articles.map((entry) =>
+      resolveCanonicalUrl(
+        getLocalizedPath(entry.data.locale, `/learn/${entry.data.contentId}`)
+      )
+    )
   ])].sort();
 
   const urlEntries = urls.map((url) => `  <url><loc>${escapeXml(url)}</loc></url>`).join('\n');

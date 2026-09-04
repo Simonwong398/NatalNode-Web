@@ -13,6 +13,8 @@ const learn = defineCollection({
     title: z.string().min(1),
     description: z.string().min(1),
     slug: z.string().min(1),
+    contentId: z.string().min(1),
+    locale: z.enum(['en', 'es', 'fr', 'de', 'ja', 'ko', 'zh-Hant']),
     category: z.enum(LEARN_CATEGORY_KEYS),
     publishedAt: z.coerce.date(),
     updatedAt: z.coerce.date().optional(),

@@ -1,7 +1,9 @@
 ---
 title: What Is a Natal Chart?
 description: A clear introduction to natal charts, their inputs, and the difference between calculated chart facts and interpretation.
-slug: what-is-a-natal-chart
+slug: en/what-is-a-natal-chart
+contentId: what-is-a-natal-chart
+locale: en
 category: FOUNDATIONS
 publishedAt: 2026-08-25
 draft: false
@@ -37,4 +39,4 @@ A trustworthy chart product separates at least two layers. The first is the calc
 
 Keeping the layers distinct makes it easier to review a result, explain uncertainty, and correct an input without confusing a piece of interpretation for a calculated fact. It also gives readers a clearer way to understand what a chart can and cannot support.
 
-Natal charts are best approached as a framework for reflection and meaning-making rather than a script for a person’s life. Start with the inputs, preserve uncertainty where it exists, and read the symbols with curiosity rather than fatalism. You can return to the [Learn hub](/learn/) for more foundations, explore the [Tools hub](/tools/) as useful utilities are published, or return to the [chart workspace](/) when you are ready to work with a chart.
+Natal charts are best approached as a framework for reflection and meaning-making rather than a script for a person’s life. Start with the inputs, preserve uncertainty where it exists, and read the symbols with curiosity rather than fatalism. You can return to the [Learn hub](./) for more foundations, explore the [Tools hub](../tools/) as useful utilities are published, or return to the [chart workspace](../) when you are ready to work with a chart.

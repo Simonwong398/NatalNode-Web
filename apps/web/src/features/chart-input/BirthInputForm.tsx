@@ -16,6 +16,10 @@ import {
   type CalculationReadyBirthInputResolution,
   type HouseSystem
 } from './types';
+import type {
+  LocationCandidate,
+  LocationResolutionViewState
+} from './location-resolution';
 import {
   EMPTY_BIRTH_DATE_PARTS,
   composeBirthDate,
@@ -42,6 +46,9 @@ const defaultResolver: BirthInputResolver = new DevelopmentBirthInputResolver();
 export interface BirthInputFormProps {
   isCalculationPending?: boolean;
   locale?: SupportedLocale;
+  /** Optional provider-neutral state supplied by a future BFF integration. */
+  locationResolution?: LocationResolutionViewState;
+  onLocationCandidateSelect?: (candidate: LocationCandidate) => void;
   onResolvedInput: (selection: ResolvedBirthInputSelection) => void;
   resolver?: BirthInputResolver;
 }
@@ -137,6 +144,8 @@ function BirthDataTrustSection({ locale }: { locale?: SupportedLocale }) {
 export default function BirthInputForm({
   isCalculationPending = false,
   locale,
+  locationResolution,
+  onLocationCandidateSelect,
   onResolvedInput,
   resolver = defaultResolver
 }: BirthInputFormProps) {
@@ -327,6 +336,8 @@ export default function BirthInputForm({
               isInteractionDisabled={isInteractionDisabled}
               locale={locale}
               locationLabel={draft.locationLabel}
+              locationResolution={locationResolution}
+              onLocationCandidateSelect={onLocationCandidateSelect}
               onLocationLabelChange={(locationLabel) => updateEditableDraft({ locationLabel })}
             />
             <BirthResolutionFeedback

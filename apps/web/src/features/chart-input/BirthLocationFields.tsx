@@ -1,5 +1,10 @@
 import type { SupportedLocale } from '../../lib/localization.js';
 import { chartUi } from '@/core/chart/chart-ui';
+import LocationResolutionPanel from './LocationResolutionPanel';
+import type {
+  LocationCandidate,
+  LocationResolutionViewState
+} from './location-resolution';
 
 interface BirthLocationFieldsProps {
   error?: string;
@@ -7,6 +12,8 @@ interface BirthLocationFieldsProps {
   locale?: SupportedLocale;
   locationLabel: string;
   onLocationLabelChange: (value: string) => void;
+  locationResolution?: LocationResolutionViewState;
+  onLocationCandidateSelect?: (candidate: LocationCandidate) => void;
 }
 
 export default function BirthLocationFields({
@@ -14,7 +21,9 @@ export default function BirthLocationFields({
   isInteractionDisabled,
   locale,
   locationLabel,
-  onLocationLabelChange
+  onLocationLabelChange,
+  locationResolution,
+  onLocationCandidateSelect
 }: BirthLocationFieldsProps) {
   return (
     <>
@@ -38,6 +47,14 @@ export default function BirthLocationFields({
         <p className="nn-status nn-status--error mt-2" id="birth-place-error" role="alert">
           {error}
         </p>
+      ) : null}
+      {locationResolution ? (
+        <LocationResolutionPanel
+          isInteractionDisabled={isInteractionDisabled}
+          locale={locale}
+          onSelectCandidate={onLocationCandidateSelect}
+          resolution={locationResolution}
+        />
       ) : null}
     </>
   );

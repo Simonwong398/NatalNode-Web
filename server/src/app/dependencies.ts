@@ -22,6 +22,7 @@ import type { Clock, IdGenerator } from './creation-boundaries.js';
 import type { NotificationAccountService } from '../notification-platform/notification-account-service.js';
 import type { FoundationsLearningService } from '../learning/foundations/postgres-foundations-learning-service.js';
 import type { ServerOperationalConfig } from '../runtime/server-runtime-config.js';
+import type { LocationResolutionService } from '../location-resolution/location-resolution-service.js';
 
 export interface ServerDependencies {
   readonly publicWebOrigin: string;
@@ -36,6 +37,8 @@ export interface ServerDependencies {
   readonly engineClient: EngineClient;
   readonly chartCalculator: ChartCalculationService;
   readonly clock: Clock;
+  /** Omitted until an approved geocoding provider is bound. */
+  readonly locationResolutionService?: LocationResolutionService;
   /** Omitted by public-development so authenticated notification use fails closed. */
   readonly notificationAccountService?: NotificationAccountService;
   /** Omitted by public-development until the authenticated learning store is configured. */

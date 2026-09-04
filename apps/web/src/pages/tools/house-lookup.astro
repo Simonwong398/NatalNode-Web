@@ -7,18 +7,18 @@ import {
 } from '@/core/astrology-taxonomy/astrology-glossary';
 import { getLocalizedPath, getPresentationLocale } from '@/lib/localization';
 import { getToolDetailCopy } from '@/lib/tools-detail-copy';
+import { createPublicSeo } from '@/lib/public-seo';
 import { getUiMessage, type UiMessageKey } from '@/lib/ui-catalog';
-import type { SeoMetadata } from '@/lib/seo';
-
-const seo: SeoMetadata = {
-  title: 'Astrology House Lookup: Understand the 12 Houses | NatalNode',
-  description: 'Select one of the twelve astrological houses to explore its traditional interpretive themes in a focused educational lookup.',
-  canonical: '/tools/house-lookup'
-};
 const locale = getPresentationLocale(Astro.url.pathname, Astro.locals.locale);
 const localize = (path: string): string => getLocalizedPath(locale, path);
 const copy = getToolDetailCopy(locale);
 const ui = (key: UiMessageKey): string => getUiMessage(locale, key);
+const seo = createPublicSeo(
+  locale,
+  '/tools/house-lookup',
+  `${copy.house.title} | NatalNode`,
+  copy.house.description
+);
 const glossaryTerm = (kind: AstrologyGlossaryDomainKind, value: unknown): string =>
   resolveAstrologyDomainTerm(kind, value, locale)?.displayTerm ??
   (typeof value === 'string' ? value : String(value));

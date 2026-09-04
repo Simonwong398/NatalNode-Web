@@ -64,3 +64,9 @@ export {
   isFoundationsMergeProgressApiRequest,
   readBoundedFoundationsLearningJson
 } from './learn-foundations.js';
+export {
+  LOCATION_CANDIDATE_ID_MAXIMUM_CHARACTERS,
+  LOCATION_QUERY_MAXIMUM_CHARACTERS,
+  isLocationResolveApiRequest,
+  isLocationSearchApiRequest
+} from './location-resolution.js';

@@ -7,18 +7,18 @@ import {
 } from '@/core/astrology-taxonomy/astrology-glossary';
 import { getLocalizedPath, getPresentationLocale } from '@/lib/localization';
 import { getToolDetailCopy } from '@/lib/tools-detail-copy';
+import { createPublicSeo } from '@/lib/public-seo';
 import { getUiMessage, type UiMessageKey } from '@/lib/ui-catalog';
-import type { SeoMetadata } from '@/lib/seo';
-
-const seo: SeoMetadata = {
-  title: 'Zodiac Sign Lookup: Understand the 12 Signs | NatalNode',
-  description: 'Select one of the twelve zodiac signs to explore its element, modality, and interpretive themes in a focused educational lookup.',
-  canonical: '/tools/sign-lookup'
-};
 const locale = getPresentationLocale(Astro.url.pathname, Astro.locals.locale);
 const localize = (path: string): string => getLocalizedPath(locale, path);
 const copy = getToolDetailCopy(locale);
 const ui = (key: UiMessageKey): string => getUiMessage(locale, key);
+const seo = createPublicSeo(
+  locale,
+  '/tools/sign-lookup',
+  `${copy.sign.title} | NatalNode`,
+  copy.sign.description
+);
 const glossaryTerm = (kind: AstrologyGlossaryDomainKind, value: unknown): string =>
   resolveAstrologyDomainTerm(kind, value, locale)?.displayTerm ??
   (typeof value === 'string' ? value : String(value));

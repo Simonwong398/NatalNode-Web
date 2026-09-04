@@ -136,6 +136,22 @@ export type {
 } from './app/index.js';
 
 export {
+  createProviderLocationResolutionService,
+  InvalidLocationProviderDataError,
+  LocationResolutionProviderUnavailableError,
+  LOCATION_PROVIDER_TIMEOUT_MS,
+  ProviderLocationResolutionService
+} from './location-resolution/location-resolution-service.js';
+export type {
+  GeocodingProvider,
+  LocationResolutionService,
+  LocationResolveInput,
+  LocationResolveOutcome,
+  LocationSearchInput,
+  LocationSearchOutcome
+} from './location-resolution/location-resolution-service.js';
+
+export {
   createServerBootstrap,
   createServerRuntimeDependencies,
   createPostgresPoolRuntime,
