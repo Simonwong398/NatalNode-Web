@@ -17,3 +17,15 @@ export function getZodiacFoundationsHref(locale: SupportedLocale): string {
 export function getCalculateHref(locale: SupportedLocale): string {
   return getLocalizedPath(locale, '/');
 }
+
+export function getDiscoverMatchHref(locale: SupportedLocale): string {
+  return getLocalizedPath(locale, '/discover/match/');
+}
+
+export function getElementsModesHref(locale: SupportedLocale): string {
+  return getLocalizedPath(locale, '/discover/elements-modes/');
+}
+
+export function getZodiacHref(locale: SupportedLocale): string {
+  return getLocalizedPath(locale, '/discover/zodiac/');
+}

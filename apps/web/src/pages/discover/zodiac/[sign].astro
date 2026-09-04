@@ -1,6 +1,11 @@
 ---
 import ZodiacExplorer from '@/features/discover/ZodiacExplorer';
-import { getCalculateHref, getZodiacFoundationsHref } from '@/features/discover/discover-links';
+import {
+  getCalculateHref,
+  getDiscoverMatchHref,
+  getElementsModesHref,
+  getZodiacFoundationsHref
+} from '@/features/discover/discover-links';
 import { getDiscoverSeoAlternates } from '@/features/discover/discover-seo';
 import { resolveAstrologyDomainTerm } from '@/core/astrology-taxonomy/astrology-glossary';
 import { SIGN_CLASSIFICATIONS, type SignId } from '@/core/astrology-taxonomy/chart-taxonomy';
@@ -59,6 +64,8 @@ const seo: SeoMetadata = {
       mode="detail"
       learnHref={getZodiacFoundationsHref(locale)}
       calculateHref={getCalculateHref(locale)}
+      matchHref={getDiscoverMatchHref(locale)}
+      elementsModesHref={getElementsModesHref(locale)}
     />
   </main>
 </SiteLayout>

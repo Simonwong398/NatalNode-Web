@@ -1,6 +1,11 @@
 ---
 import SiteLayout from '@/layouts/SiteLayout.astro';
-import { getCalculateHref, getZodiacFoundationsHref } from '@/features/discover/discover-links';
+import {
+  getCalculateHref,
+  getDiscoverMatchHref,
+  getElementsModesHref,
+  getZodiacFoundationsHref
+} from '@/features/discover/discover-links';
 import { getDiscoverSeoAlternates } from '@/features/discover/discover-seo';
 import {
   getLocalizedPath,
@@ -19,6 +24,8 @@ const locale = propLocale ?? getPresentationLocale(Astro.url.pathname, Astro.loc
 const localize = (path: string): string => getLocalizedPath(locale, path);
 const ui = (key: UiMessageKey): string => getUiMessage(locale, key);
 const zodiacHref = localize('/discover/zodiac/');
+const matchHref = getDiscoverMatchHref(locale);
+const elementsModesHref = getElementsModesHref(locale);
 const seo: SeoMetadata = {
   title: `${ui('discover.title')} | NatalNode`,
   description: ui('discover.description'),
@@ -70,17 +77,40 @@ const calculateHref = getCalculateHref(locale);
       </aside>
     </header>
 
-    <section class="mt-16 max-w-4xl border-t border-nn-border-subtle pt-12 sm:mt-20 sm:pt-16" aria-labelledby="discover-entry-title">
+    <section class="mt-16 border-t border-nn-border-subtle pt-12 sm:mt-20 sm:pt-16" aria-labelledby="discover-experiences-title">
       <p class="nn-eyebrow">{ui('discover.entryEyebrow')}</p>
-      <h2 class="nn-type-section-title mt-2" id="discover-entry-title">
-        {ui('discover.entryTitle')}
+      <h2 class="nn-type-section-title mt-2" id="discover-experiences-title">
+        {ui('discover.experiencesTitle')}
       </h2>
       <p class="nn-type-body mt-4 max-w-2xl">
-        {ui('discover.entryDescription')}
+        {ui('discover.experiencesDescription')}
       </p>
-      <a class="nn-button nn-button--secondary mt-6" href={zodiacHref}>
-        {ui('discover.entryAction')}
-      </a>
+      <div class="mt-8 grid min-w-0 gap-5 lg:grid-cols-3">
+        <article class="nn-surface nn-surface--elevated flex min-w-0 flex-col p-5 sm:p-6">
+          <p class="nn-type-metadata">{ui('discover.zodiac.eyebrow')}</p>
+          <h3 class="nn-type-card-title mt-2">{ui('discover.entryTitle')}</h3>
+          <p class="nn-type-body-small mt-3 flex-1">{ui('discover.entryDescription')}</p>
+          <a class="nn-button nn-button--secondary mt-6 self-start" href={zodiacHref}>
+            {ui('discover.entryAction')}
+          </a>
+        </article>
+        <article class="nn-surface nn-surface--elevated flex min-w-0 flex-col p-5 sm:p-6">
+          <p class="nn-type-metadata">{ui('discover.match.eyebrow')}</p>
+          <h3 class="nn-type-card-title mt-2">{ui('discover.signMatchTitle')}</h3>
+          <p class="nn-type-body-small mt-3 flex-1">{ui('discover.signMatchDescription')}</p>
+          <a class="nn-button nn-button--secondary mt-6 self-start" href={matchHref}>
+            {ui('discover.signMatchAction')}
+          </a>
+        </article>
+        <article class="nn-surface nn-surface--elevated flex min-w-0 flex-col p-5 sm:p-6">
+          <p class="nn-type-metadata">{ui('discover.elementsModes.eyebrow')}</p>
+          <h3 class="nn-type-card-title mt-2">{ui('discover.elementsModesTitle')}</h3>
+          <p class="nn-type-body-small mt-3 flex-1">{ui('discover.elementsModesDescription')}</p>
+          <a class="nn-button nn-button--secondary mt-6 self-start" href={elementsModesHref}>
+            {ui('discover.elementsModesAction')}
+          </a>
+        </article>
+      </div>
     </section>
 
     <p class="nn-type-body-small mt-12 max-w-3xl border-t border-nn-border-subtle pt-6">

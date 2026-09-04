@@ -1,6 +1,11 @@
 ---
 import ZodiacExplorer from '@/features/discover/ZodiacExplorer';
-import { getCalculateHref, getZodiacFoundationsHref } from '@/features/discover/discover-links';
+import {
+  getCalculateHref,
+  getDiscoverMatchHref,
+  getElementsModesHref,
+  getZodiacFoundationsHref
+} from '@/features/discover/discover-links';
 import { getDiscoverSeoAlternates } from '@/features/discover/discover-seo';
 import SiteLayout from '@/layouts/SiteLayout.astro';
 import {
@@ -40,6 +45,8 @@ const seo: SeoMetadata = {
       locale={locale}
       learnHref={getZodiacFoundationsHref(locale)}
       calculateHref={getCalculateHref(locale)}
+      matchHref={getDiscoverMatchHref(locale)}
+      elementsModesHref={getElementsModesHref(locale)}
     />
   </main>
 </SiteLayout>

@@ -21,6 +21,8 @@ const publicPaths = [
 const discoverPaths = [
   '/discover/',
   '/discover/zodiac/',
+  '/discover/match/',
+  '/discover/elements-modes/',
   ...SIGN_CLASSIFICATIONS.map((sign) => `/discover/zodiac/${sign.id}/`)
 ];
 

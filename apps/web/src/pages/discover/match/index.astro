@@ -1,0 +1,55 @@
+---
+import SignMatch from '@/features/discover/SignMatch';
+import { parseSignMatchSearch } from '@/features/discover/sign-match';
+import {
+  getCalculateHref,
+  getElementsModesHref,
+  getZodiacFoundationsHref,
+  getZodiacHref
+} from '@/features/discover/discover-links';
+import { getDiscoverSeoAlternates } from '@/features/discover/discover-seo';
+import SiteLayout from '@/layouts/SiteLayout.astro';
+import {
+  getLocalizedPath,
+  getPresentationLocale,
+  type SupportedLocale
+} from '@/lib/localization';
+import type { SeoMetadata } from '@/lib/seo';
+import { getUiMessage, type UiMessageKey } from '@/lib/ui-catalog';
+
+interface Props {
+  locale?: SupportedLocale;
+}
+
+const { locale: propLocale } = Astro.props as Props;
+const locale = propLocale ?? getPresentationLocale(Astro.url.pathname, Astro.locals.locale);
+const ui = (key: UiMessageKey): string => getUiMessage(locale, key);
+const routePath = '/discover/match/';
+const seo: SeoMetadata = {
+  title: `${ui('discover.match.title')} | NatalNode`,
+  description: ui('discover.match.description'),
+  canonical: getLocalizedPath(locale, routePath),
+  alternates: getDiscoverSeoAlternates(routePath)
+};
+const initialPair = parseSignMatchSearch(Astro.url.searchParams);
+---
+
+<SiteLayout seo={seo}>
+  <main class="nn-container nn-container--editorial pb-20 pt-12 sm:pb-24 sm:pt-16">
+    <header class="max-w-3xl">
+      <p class="nn-eyebrow">{ui('discover.match.eyebrow')}</p>
+      <h1 class="nn-type-page-title mt-3">{ui('discover.match.title')}</h1>
+      <p class="nn-type-body mt-5 max-w-2xl">{ui('discover.match.description')}</p>
+    </header>
+
+    <SignMatch
+      client:load
+      locale={locale}
+      initialPair={initialPair}
+      learnHref={getZodiacFoundationsHref(locale)}
+      calculateHref={getCalculateHref(locale)}
+      zodiacHref={getZodiacHref(locale)}
+      elementsModesHref={getElementsModesHref(locale)}
+    />
+  </main>
+</SiteLayout>

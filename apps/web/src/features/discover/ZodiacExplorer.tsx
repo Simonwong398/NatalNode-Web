@@ -19,6 +19,8 @@ type Props = {
   locale: SupportedLocale;
   learnHref: string;
   calculateHref: string;
+  matchHref: string;
+  elementsModesHref: string;
   initialSignId?: SignId;
   mode?: 'explorer' | 'detail';
 };
@@ -41,6 +43,8 @@ export default function ZodiacExplorer({
   locale,
   learnHref,
   calculateHref,
+  matchHref,
+  elementsModesHref,
   initialSignId = DEFAULT_SIGN_ID,
   mode = 'explorer'
 }: Props) {
@@ -225,6 +229,12 @@ export default function ZodiacExplorer({
         </a>
         <a className="nn-button nn-button--secondary" href={calculateHref}>
           {ui(locale, 'discover.zodiac.calculateCta')}
+        </a>
+        <a className="nn-button nn-button--quiet" href={matchHref}>
+          {ui(locale, 'discover.zodiac.matchCta')}
+        </a>
+        <a className="nn-button nn-button--quiet" href={elementsModesHref}>
+          {ui(locale, 'discover.zodiac.elementsModesCta')}
         </a>
       </nav>
     </div>
