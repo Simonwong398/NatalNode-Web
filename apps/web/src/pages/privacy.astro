@@ -5,6 +5,7 @@ import {
   type SupportedLocale
 } from '@/lib/localization';
 import { getApprovedLegalContent } from '@/lib/legal-content';
+import { createPublicSeo } from '@/lib/public-seo';
 
 interface Props {
   locale?: SupportedLocale;
@@ -19,9 +20,7 @@ if (content === null) {
 }
 
 const seo = {
-  title: content.title,
-  description: content.description,
-  canonical: '/privacy',
+  ...createPublicSeo(locale, '/privacy', content.title, content.description),
   robots: 'index,follow'
 } as const;
 ---
@@ -32,14 +31,26 @@ const seo = {
       <p class="nn-eyebrow">{content.page.toUpperCase()}</p>
       <h1 class="nn-type-page-title mt-3">{content.title}</h1>
       <p class="nn-type-body mt-4 max-w-2xl">{content.description}</p>
+      <p class="nn-type-metadata mt-4">{content.effectiveDate}</p>
     </header>
+
+    <div class="mt-10 max-w-4xl space-y-4 sm:mt-12">
+      {content.introduction.map((paragraph) => <p class="nn-type-body whitespace-pre-line">{paragraph}</p>)}
+      <aside class="border-l-2 border-natal-accent/60 pl-4 nn-type-body-small">
+        {content.publicationNotice}
+      </aside>
+    </div>
 
     <div class="mt-12 max-w-4xl space-y-12 sm:mt-16 sm:space-y-16">
       {content.sections.map((section) => (
-        <section class="border-t border-natal-border/70 pt-8 sm:pt-10">
-          <h2 class="nn-type-section-title">{section.heading}</h2>
+        <section id={'legal-' + content.page + '-' + section.number} class="border-t border-natal-border/70 pt-8 sm:pt-10" aria-labelledby={'legal-' + content.page + '-' + section.number + '-heading'}>
+          <h2 id={'legal-' + content.page + '-' + section.number + '-heading'} class="nn-type-section-title">{section.number}. {section.heading}</h2>
           <div class="mt-5 space-y-4 nn-type-body">
-            {section.paragraphs.map((paragraph) => <p>{paragraph}</p>)}
+            {section.blocks.map((block) =>
+              block.kind === 'list'
+                ? <ul class="list-disc space-y-2 pl-6">{block.items.map((item) => <li>{item}</li>)}</ul>
+                : <p class="whitespace-pre-line">{block.text}</p>
+            )}
           </div>
         </section>
       ))}

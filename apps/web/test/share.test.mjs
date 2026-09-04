@@ -44,6 +44,7 @@ const discoverMatchSource = source('../src/features/discover/SignMatch.tsx');
 const discoverElementsSource = source('../src/features/discover/ElementsModesExplorer.tsx');
 const sitemapSource = source('../src/pages/sitemap.xml.ts');
 const seoHeadSource = source('../src/components/SeoHead.astro');
+const siteLayoutSource = source('../src/layouts/SiteLayout.astro');
 
 const privateDataPattern = /(?:birth(?:date|time)?|latitude|longitude|timezone|coordinate|chartId|userId|accessToken)/iu;
 
@@ -216,4 +217,6 @@ test('Share pages, metadata, sitemap, and Discover affordances stay bounded', ()
   assert.match(zodiacSource, /getShareSignPath/u);
   assert.match(discoverMatchSource, /getShareMatchPath/u);
   assert.match(discoverElementsSource, /getShareElementsModesPath/u);
+  assert.ok(siteLayoutSource.includes("href={localize('/privacy')}"));
+  assert.ok(siteLayoutSource.includes("href={localize('/terms')}"));
 });
