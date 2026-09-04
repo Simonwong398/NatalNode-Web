@@ -5,7 +5,8 @@ import {
   PUBLIC_DEVELOPMENT_API_PORT,
   PUBLIC_DEVELOPMENT_PUBLIC_ORIGIN,
   PUBLIC_DEVELOPMENT_PUBLIC_PORT,
-  assertPublicDevelopmentEnvironment
+  assertPublicDevelopmentEnvironment,
+  type PublicDevelopmentEnvironment
 } from './public-development-config.js';
 import { createPublicDevelopmentApp } from './public-development-dependencies.js';
 import { startNodeHttpListener, type NodeHttpListenerRuntime } from '../runtime/http/index.js';
@@ -66,7 +67,7 @@ async function closeAfterEdgeFailure(
 }
 
 export async function createPublicDevelopmentRuntime(
-  environment?: { readonly NODE_ENV?: string }
+  environment?: PublicDevelopmentEnvironment
 ): Promise<PublicDevelopmentRuntime> {
   assertPublicDevelopmentEnvironment(environment);
 

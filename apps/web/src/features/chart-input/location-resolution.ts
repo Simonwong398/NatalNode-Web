@@ -25,6 +25,10 @@ export interface LocationAuthority {
 export interface LocationSourceMetadata {
   readonly sourceVersion: string | null;
   readonly datasetVersion: string | null;
+  readonly attribution?: {
+    readonly label: string;
+    readonly url: string;
+  } | null;
 }
 
 export interface LocationCandidate {
@@ -69,6 +73,9 @@ export const EMPTY_LOCATION_RESOLUTION_STATE: LocationResolutionViewState =
     selectedLocation: null,
     errorMessage: null
   });
+
+export const LOCATION_SEARCH_MINIMUM_CHARACTERS = 3;
+export const LOCATION_SEARCH_DEBOUNCE_MS = 400;
 
 export function beginLocationSearch(
   rawQuery: string

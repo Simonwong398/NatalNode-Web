@@ -1,5 +1,6 @@
 import type { SupportedLocale } from '../../lib/localization.js';
 import { chartUi } from '@/core/chart/chart-ui';
+import { LOCATION_SEARCH_MINIMUM_CHARACTERS } from './location-resolution';
 import type {
   LocationCandidate,
   LocationResolutionViewState
@@ -13,10 +14,24 @@ interface LocationResolutionPanelProps {
 }
 
 function candidateLabel(candidate: LocationCandidate): string {
-  return [candidate.canonicalDisplayName, candidate.locality, candidate.region, candidate.country]
-    .filter((part): part is string => part !== null && part.trim() !== '')
-    .filter((part, index, parts) => parts.indexOf(part) === index)
-    .join(', ');
+  return candidate.canonicalDisplayName;
+}
+
+function statusDescription(
+  locale: SupportedLocale | undefined,
+  resolution: LocationResolutionViewState
+): string | null {
+  if (resolution.state === 'UNRESOLVED') {
+    return Array.from(resolution.rawQuery.trim()).length < LOCATION_SEARCH_MINIMUM_CHARACTERS
+      ? chartUi(locale, 'birthInput.location.minimumQuery')
+      : chartUi(locale, 'birthInput.location.noResults');
+  }
+
+  if (resolution.state === 'ERROR') {
+    return resolution.errorMessage ?? chartUi(locale, 'birthInput.location.errorMessage');
+  }
+
+  return null;
 }
 
 export default function LocationResolutionPanel({
@@ -27,6 +42,11 @@ export default function LocationResolutionPanel({
 }: LocationResolutionPanelProps) {
   const { state } = resolution;
   const shouldShow = state !== 'EMPTY';
+  const attribution =
+    resolution.selectedLocation?.source.attribution ??
+    resolution.candidates.find((candidate) => candidate.source.attribution !== undefined)
+      ?.source.attribution;
+  const description = statusDescription(locale, resolution);
 
   return (
     <div
@@ -35,7 +55,7 @@ export default function LocationResolutionPanel({
       data-location-resolution-state={state}
       hidden={!shouldShow}
     >
-      <p className="nn-type-label">
+      <p className="nn-type-label" role="status">
         {state === 'SEARCHING'
           ? chartUi(locale, 'birthInput.location.searching')
           : state === 'CANDIDATES'
@@ -48,6 +68,12 @@ export default function LocationResolutionPanel({
                   ? chartUi(locale, 'birthInput.location.unresolved')
                 : chartUi(locale, 'birthInput.location.error')}
       </p>
+
+      {description ? (
+        <p className="nn-type-body-small mt-2" role={state === 'ERROR' ? 'alert' : undefined}>
+          {description}
+        </p>
+      ) : null}
 
       {resolution.rawQuery ? (
         <dl className="mt-3 grid gap-2 nn-type-body-small" data-location-raw-query>
@@ -108,8 +134,23 @@ export default function LocationResolutionPanel({
       ) : null}
 
       {state === 'ERROR' && resolution.errorMessage ? (
-        <p className="nn-status nn-status--error mt-2" role="alert">
-          {resolution.errorMessage}
+        description === resolution.errorMessage ? null : (
+          <p className="nn-status nn-status--error mt-2" role="alert">
+            {resolution.errorMessage}
+          </p>
+        )
+      ) : null}
+
+      {attribution ? (
+        <p className="nn-type-metadata mt-3" data-location-attribution>
+          {chartUi(locale, 'birthInput.location.attribution')}{' '}
+          <a
+            href={attribution.url}
+            rel="noreferrer noopener"
+            target="_blank"
+          >
+            {attribution.label}
+          </a>
         </p>
       ) : null}
     </div>

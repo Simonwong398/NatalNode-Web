@@ -19,6 +19,7 @@ import {
   WEB_PUSH_VAPID_SUBJECT_ENVIRONMENT_VARIABLE
 } from '../../notification-platform/web-push-vapid.js';
 import { parseServerOperationalConfig } from './parse-server-operational-config.js';
+import { isValidGeoNamesUsername } from '../../location-resolution/geonames-web-provider.js';
 
 function parseGoogleIssuer(value: string): void {
   let issuer: URL;
@@ -146,6 +147,20 @@ function parsePublicWebOrigin(env: EnvironmentSource): string {
   return url.origin;
 }
 
+function parseGeoNamesUsername(env: EnvironmentSource): string | null {
+  const value = env.GEONAMES_USERNAME;
+
+  if (value === undefined) {
+    return null;
+  }
+
+  if (!isValidGeoNamesUsername(value)) {
+    return invalidVariable('GEONAMES_USERNAME', 'GeoNames username');
+  }
+
+  return value;
+}
+
 export function parseServerEnvironment(
   env: EnvironmentSource
 ): ServerEnvironmentConfig {
@@ -184,6 +199,7 @@ export function parseServerEnvironment(
     'AUTH_SESSION_COOKIE_SECURE'
   );
   const publicWebOrigin = parsePublicWebOrigin(env);
+  const geonamesUsername = parseGeoNamesUsername(env);
 
   if (publicWebOrigin.startsWith('https://') && !sessionCookieSecure) {
     return invalidVariable(
@@ -235,6 +251,9 @@ export function parseServerEnvironment(
   return {
     serverRuntimeConfig: {
       publicWebOrigin,
+      locationResolution: {
+        geonamesUsername
+      },
       operational: operationalConfig,
       webPush: {
         applicationServerKey: webPushCapability.applicationServerKey,

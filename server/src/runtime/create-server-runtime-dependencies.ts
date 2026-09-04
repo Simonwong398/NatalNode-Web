@@ -22,6 +22,7 @@ import { SystemClock } from './system-clock.js';
 import { NotificationAccountService } from '../notification-platform/notification-account-service.js';
 import { createWebPushCapability } from '../notification-platform/web-push-capability.js';
 import { PostgresFoundationsLearningService } from '../learning/foundations/postgres-foundations-learning-service.js';
+import { createGeoNamesLocationResolutionService } from '../location-resolution/geonames-web-provider.js';
 
 function assertValidTtl(seconds: number, name: string): void {
   if (!Number.isFinite(seconds) || !Number.isInteger(seconds) || seconds <= 0) {
@@ -98,7 +99,14 @@ export function createServerRuntimeDependencies(
           idGenerator,
           secureTokenGenerator,
           tokenHasher
-        });
+          });
+
+  const locationResolutionService =
+    config.locationResolution.geonamesUsername === null
+      ? undefined
+      : createGeoNamesLocationResolutionService(
+          config.locationResolution.geonamesUsername
+        );
 
   return {
     publicWebOrigin: config.publicWebOrigin,
@@ -124,7 +132,8 @@ export function createServerRuntimeDependencies(
     googleOidcProvider: bindings.googleOidcProvider,
     googleOAuthTransactionService,
     googleAuthAccountSessionLifecycle:
-      bindings.googleAuthAccountSessionLifecycle
+      bindings.googleAuthAccountSessionLifecycle,
+    locationResolutionService
   };
 }
 

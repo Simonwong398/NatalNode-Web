@@ -34,6 +34,7 @@ import {
   DurationAuthenticationExpirationPolicy
 } from '../runtime/duration-authentication-expiration-policy.js';
 import { SystemClock } from '../runtime/system-clock.js';
+import { createGeoNamesLocationResolutionService } from '../location-resolution/geonames-web-provider.js';
 import {
   PublicWebOriginMagicLinkUrlBuilder,
   Sha256TokenHasher,
@@ -268,6 +269,14 @@ export function createPublicDevelopmentDependencies(
 
   const clock = new SystemClock();
   const engineClient = new MockEngineClient();
+  const geonamesUsername =
+    environment === undefined
+      ? process.env.GEONAMES_USERNAME
+      : environment.GEONAMES_USERNAME;
+  const locationResolutionService =
+    geonamesUsername === undefined
+      ? undefined
+      : createGeoNamesLocationResolutionService(geonamesUsername);
 
   return {
     publicWebOrigin: PUBLIC_DEVELOPMENT_PUBLIC_ORIGIN,
@@ -285,6 +294,7 @@ export function createPublicDevelopmentDependencies(
       cacheIdentity: PUBLIC_DEVELOPMENT_CHART_RESULT_CACHE_IDENTITY
     }),
     clock,
+    locationResolutionService,
     secureTokenGenerator: publicDevelopmentSecureTokenGenerator,
     tokenHasher: new Sha256TokenHasher(),
     authenticationExpirationPolicy:

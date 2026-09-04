@@ -25,7 +25,8 @@
     "test:vault": "npm run build && node --test test/vault.test.mjs",
     "test:feedback": "npm run build && node --test test/feedback.test.mjs",
     "test:public-development": "node --test test/public-development.test.mjs",
-    "test:location-resolution": "npm run build --workspace=@natalnode/contracts && npm run build && node --test test/location-resolution.test.mjs"
+    "test:location-resolution": "npm run build --workspace=@natalnode/contracts && npm run build && node --test test/location-resolution.test.mjs",
+    "test:geonames-location": "npm run build --workspace=@natalnode/contracts && npm run build && node --test test/geonames-location-provider.test.mjs"
   },
   "dependencies": {
     "@hono/node-server": "^2.1.1",

@@ -35,6 +35,20 @@ export {
   markLocationUnresolved,
   selectCanonicalLocation
 } from './location-resolution';
+export {
+  FetchLocationResolutionClient,
+  LocationResolutionClientError,
+  createLocationResolutionClient
+} from './location-resolution-client';
+export type {
+  LocationResolutionClient,
+  LocationSearchClientResult
+} from './location-resolution-client';
+export { useLocationResolution } from './useLocationResolution';
+export type {
+  LocationResolutionController,
+  UseLocationResolutionOptions
+} from './useLocationResolution';
 export type {
   CanonicalResolvedLocation,
   LocationAuthority,

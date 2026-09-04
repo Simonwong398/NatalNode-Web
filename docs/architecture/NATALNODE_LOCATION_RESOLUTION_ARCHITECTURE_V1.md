@@ -1,10 +1,11 @@
 # NatalNode Location Resolution Architecture V1
 
-Status: provider-neutral foundation for WEB-P1-PLATFORM-001.
+Status: GeoNames Free Web Services integration for WEB-P1-LOCATION-002.
 
-Provider selection and production provider binding remain deferred to
-`EXT-LOCATION-001`. This document defines the Web contract and safety boundary;
-it is not a geocoder integration plan for a named vendor.
+The Web contract remains provider-neutral. GeoNames Free Web Services is the
+approved first provider binding behind that contract; future provider changes
+remain separately governed and must not leak vendor-shaped data into the
+browser or Engine boundary.
 
 ## 1. Product purpose
 
@@ -90,7 +91,7 @@ country-string timezone guesses cross the browser contract.
 
 ## 5. Search and selection UX
 
-The future Birth Location field exposes a typed query and can render the
+The Birth Location field exposes a typed query and can render the
 following provider-neutral states without pretending that a live provider is
 connected:
 
@@ -130,21 +131,25 @@ resolve(candidateId, locale) -> CanonicalResolvedLocation | null
 ```
 
 `LocationResolutionService` validates inputs and provider output, applies a
-deadline, clones/freeze-protects returned records, and keeps only transient
-resolved selections needed by the current composition. Invalid or unavailable
-provider output fails closed.
+deadline, clones/freeze-protects returned records, and keeps only bounded,
+short-lived candidate and resolved selections needed by the current
+composition. Invalid or unavailable provider output fails closed. The current
+GeoNames implementation is server-only and is not visible to the browser as a
+provider SDK or raw response.
 
 The service is the only application boundary that knows the provider interface.
-No named provider is selected or imported in this campaign.
+The runtime composition binds the approved GeoNames provider behind that
+interface; the named provider remains server-only and does not cross the
+browser or Engine boundary.
 
 ## 9. Timezone boundary authority
 
 Geocoding establishes a canonical place and coordinates. Timezone resolution is
-a separate authority boundary that consumes coordinates and returns an IANA zone.
+a separate authority boundary that consumes coordinates and returns an IANA zone;
+the current GeoNames binding performs that step through its timezone endpoint.
 The `ianaTimeZone` field in the canonical result is an identity, not a country
-label or fixed numeric offset. A future composition may place the timezone
-authority behind `LocationResolutionService`, but it must remain semantically
-separate from human-place matching.
+label or fixed numeric offset. It remains semantically separate from human-place
+matching.
 
 The contract therefore does not permit `UTC+8`, `UTC-7`, or a country string to
 stand in for an IANA timezone authority. No user-facing manual timezone override
@@ -182,9 +187,10 @@ The bounded BFF surfaces are `POST /api/location/search` and
 `@natalnode/contracts` and contain no vendor schema. The browser never calls a
 third-party geocoder directly and never receives provider credentials.
 
-The server dependency is optional until an approved provider is bound. The
-absence of that dependency is an explicit unavailable state, not a reason to
-activate the development resolver.
+The server dependency is optional when no approved provider account is
+configured. The absence of that dependency is an explicit unavailable state,
+not a reason to activate the development resolver. The browser posts only to
+the two same-origin BFF routes and cancels or ignores stale searches.
 
 ## 12. Development fixture behavior
 
@@ -230,24 +236,33 @@ not copied into response details or operational logs. Future non-sensitive
 events may distinguish statuses such as search success, no results, resolve
 success, and resolve error, but must not carry raw location or birth data.
 
-## 15. Future provider integration point
+## 15. GeoNames Free Web Services provider binding
 
-`EXT-LOCATION-001` is the next external-authority decision point. It may select
-and bind a provider behind `GeocodingProvider`, add the separately governed
-timezone authority, and establish production operational configuration. That
-work must preserve opaque authority metadata, the BFF boundary, rate limits,
-deadlines, privacy rules, and explicit selection semantics.
+`GeoNamesWebProvider` is the first concrete `GeocodingProvider`. It uses the
+official `searchJSON` endpoint with a natural query, the closed locale mapping,
+`featureClass=P`, `isNameRequired=true`, `style=FULL`, and a maximum of eight
+rows. Only populated-place records with valid provider coordinates are exposed
+as opaque candidates. Duplicate provider records are removed before the
+candidate list is returned.
 
-Until then, the provider status is `PROVIDER DECISION DEFERRED` and no vendor
-dependency, SDK, environment variable, credential, attribution, or logo is
-authorized by this foundation.
+An explicit candidate selection is resolved through the official GeoNames
+timezone endpoint. Only the provider's `timezoneId` is admitted as the IANA
+timezone field. Numeric offset fields are deliberately discarded because they
+are not a date-specific historical time authority. Every source-backed result
+includes a bounded GeoNames attribution link.
+
+The provider uses the server-only `GEONAMES_USERNAME` configuration value,
+native `fetch`, a bounded request deadline, no retry loop, and no logging of
+queries, coordinates, credentials, or provider payloads. Candidate and
+resolution authority is held in bounded process memory with a short TTL; it is
+not persistent search history.
 
 ## 16. Non-goals
 
 This campaign does not:
 
-- choose or integrate Google, Mapbox, HERE, GeoNames, Nominatim, or another
-  provider;
+- choose or integrate an additional paid or public geocoder beyond the
+  approved GeoNames Free Web Services binding;
 - implement astronomy or a timezone/history engine;
 - add manual timezone overrides;
 - infer, title-case, or guess places;
@@ -255,3 +270,16 @@ This campaign does not:
 - replace the development fixture with production behavior;
 - add a second time engine, chart renderer, Share, or unrelated product feature;
 - persist raw search text, birth input, or resolved coordinates in ordinary logs.
+
+## 17. Provider substitution and historical-time boundary
+
+`GEONAMES_FREE_V1` is the current provider decision. Any future substitution
+must implement the same provider-neutral interface and preserve the opaque
+authority, explicit selection, attribution, rate-limit, deadline, and privacy
+rules. No paid provider or provider-specific browser dependency is implied.
+
+GeoNames supplies a place identity, coordinates, and an IANA timezone ID. It
+does not by itself close the separate precise historical local-time authority
+boundary. Until an approved historical-time authority exists, that boundary
+remains an explicit product and production-readiness blocker rather than a
+reason to promote a fixed offset or current DST value.

@@ -16,9 +16,11 @@ import {
   type CalculationReadyBirthInputResolution,
   type HouseSystem
 } from './types';
-import type {
-  LocationCandidate,
-  LocationResolutionViewState
+import {
+  canSubmitProductionCalculation,
+  EMPTY_LOCATION_RESOLUTION_STATE,
+  type LocationCandidate,
+  type LocationResolutionViewState
 } from './location-resolution';
 import {
   EMPTY_BIRTH_DATE_PARTS,
@@ -46,16 +48,20 @@ const defaultResolver: BirthInputResolver = new DevelopmentBirthInputResolver();
 export interface BirthInputFormProps {
   isCalculationPending?: boolean;
   locale?: SupportedLocale;
-  /** Optional provider-neutral state supplied by a future BFF integration. */
+  /** Provider-neutral state supplied by the location BFF integration. */
   locationResolution?: LocationResolutionViewState;
   onLocationCandidateSelect?: (candidate: LocationCandidate) => void;
+  onLocationQueryChange?: (rawQuery: string) => void;
   onResolvedInput: (selection: ResolvedBirthInputSelection) => void;
+  /** Production compositions must opt into the explicit location gate. */
+  requireResolvedLocation?: boolean;
   resolver?: BirthInputResolver;
 }
 
 export interface ResolvedBirthInputSelection {
   resolution: CalculationReadyBirthInputResolution;
   houseSystem: HouseSystem;
+  locationResolutionId?: string;
 }
 
 function validateDraft(
@@ -146,7 +152,9 @@ export default function BirthInputForm({
   locale,
   locationResolution,
   onLocationCandidateSelect,
+  onLocationQueryChange,
   onResolvedInput,
+  requireResolvedLocation = false,
   resolver = defaultResolver
 }: BirthInputFormProps) {
   const [draft, setDraft] = useState<BirthInputDraft>(INITIAL_BIRTH_INPUT_STATE);
@@ -168,6 +176,10 @@ export default function BirthInputForm({
   const isDevelopmentFixtureResolver = resolver instanceof DevelopmentBirthInputResolver;
 
   const updateEditableDraft = (patch: Partial<EditableDraft>) => {
+    if (patch.locationLabel !== undefined) {
+      onLocationQueryChange?.(patch.locationLabel);
+    }
+
     setDraft((current) => ({
       ...current,
       ...patch,
@@ -270,6 +282,18 @@ export default function BirthInputForm({
     }
 
     const nextErrors = validateDraft(draft, unknownTime, birthDateParts, locale);
+
+    if (
+      requireResolvedLocation &&
+      (locationResolution === undefined ||
+        !canSubmitProductionCalculation(locationResolution))
+    ) {
+      nextErrors.locationLabel = chartUi(
+        locale,
+        'birthInput.location.resolutionRequired'
+      );
+    }
+
     setErrors(nextErrors);
     clearResolutionError();
 
@@ -283,9 +307,18 @@ export default function BirthInputForm({
     }
 
     const selectedHouseSystem = draft.houseSystem;
+    const locationResolutionId = canSubmitProductionCalculation(
+      locationResolution ?? EMPTY_LOCATION_RESOLUTION_STATE
+    )
+      ? locationResolution?.selectedLocation?.resolutionId
+      : undefined;
 
     if (resolution?.ambiguityStatus === 'EXACT') {
-      onResolvedInput({ resolution, houseSystem: selectedHouseSystem });
+      onResolvedInput({
+        resolution,
+        houseSystem: selectedHouseSystem,
+        ...(locationResolutionId === undefined ? {} : { locationResolutionId })
+      });
       return;
     }
 
@@ -301,7 +334,11 @@ export default function BirthInputForm({
         nextResolution.ambiguityStatus === 'EXACT' ||
         nextResolution.ambiguityStatus === 'UNKNOWN_TIME'
       ) {
-        onResolvedInput({ resolution: nextResolution, houseSystem: selectedHouseSystem });
+        onResolvedInput({
+          resolution: nextResolution,
+          houseSystem: selectedHouseSystem,
+          ...(locationResolutionId === undefined ? {} : { locationResolutionId })
+        });
       }
     });
   };

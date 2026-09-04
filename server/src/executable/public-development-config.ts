@@ -23,6 +23,8 @@ export const PUBLIC_DEVELOPMENT_CHART_RESULT_CACHE_IDENTITY = {
 
 export interface PublicDevelopmentEnvironment {
   readonly NODE_ENV?: string;
+  /** Optional server-side provider account for local location UI testing. */
+  readonly GEONAMES_USERNAME?: string;
 }
 
 export function assertPublicDevelopmentEnvironment(

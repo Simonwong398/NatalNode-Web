@@ -142,6 +142,19 @@ export {
   LOCATION_PROVIDER_TIMEOUT_MS,
   ProviderLocationResolutionService
 } from './location-resolution/location-resolution-service.js';
+export {
+  createGeoNamesLocationResolutionService,
+  formatCanonicalDisplayName,
+  GeoNamesWebProvider,
+  GEONAMES_API_ORIGIN,
+  GEONAMES_ATTRIBUTION,
+  GEONAMES_LOCALE_LANGUAGE,
+  GEONAMES_REQUEST_TIMEOUT_MS,
+  GEONAMES_SEARCH_MAX_ROWS,
+  GEONAMES_SOURCE_ID,
+  GEONAMES_USERNAME_MAXIMUM_CHARACTERS,
+  isValidGeoNamesUsername
+} from './location-resolution/geonames-web-provider.js';
 export type {
   GeocodingProvider,
   LocationResolutionService,

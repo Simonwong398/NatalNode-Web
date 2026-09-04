@@ -6,13 +6,15 @@ import type {
 
 export function toChartRequest(
   resolution: CalculationReadyBirthInputResolution,
-  houseSystem: HouseSystem
+  houseSystem: HouseSystem,
+  locationResolutionId?: string
 ): ChartRequest {
   return {
     birth: {
       localDate: resolution.localDate,
       localTime: resolution.localTime,
       locationLabel: resolution.locationLabel,
+      ...(locationResolutionId === undefined ? {} : { locationResolutionId }),
       latitude: resolution.latitude,
       longitude: resolution.longitude,
       ianaTimeZone: resolution.ianaTimeZone,

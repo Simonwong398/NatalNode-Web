@@ -1,5 +1,9 @@
 import { useEffect, useRef, useState } from 'react';
-import { BirthInputForm, type ResolvedBirthInputSelection } from '@/features/chart-input';
+import {
+  BirthInputForm,
+  type ResolvedBirthInputSelection,
+  useLocationResolution
+} from '@/features/chart-input';
 import { ChartWorkspace } from '@/features/chart-workspace';
 import { engineClient } from '@/lib/engine-client';
 import type { SupportedLocale } from '@/lib/localization';
@@ -9,9 +13,14 @@ import type { CalculatedChartSnapshot } from './types';
 
 interface ChartExperienceProps {
   readonly locale?: SupportedLocale;
+  /** Production compositions opt into the explicit location authority gate. */
+  readonly requireResolvedLocation?: boolean;
 }
 
-export default function ChartExperience({ locale }: ChartExperienceProps) {
+export default function ChartExperience({
+  locale,
+  requireResolvedLocation = false
+}: ChartExperienceProps) {
   const [snapshot, setSnapshot] = useState<CalculatedChartSnapshot | null>(null);
   const [isCalculating, setIsCalculating] = useState(false);
   const [calculationError, setCalculationError] = useState<string | null>(null);
@@ -19,6 +28,7 @@ export default function ChartExperience({ locale }: ChartExperienceProps) {
   const calculationInFlightRef = useRef(false);
   const handledResultTransitionRef = useRef(0);
   const resultTargetRef = useRef<HTMLElement>(null);
+  const locationResolution = useLocationResolution({ locale });
 
   // These canonical fixture identities remain explicit in the localized UI:
   // UI DEVELOPMENT ONLY, NOT SCIENTIFIC EVIDENCE, NOT PRODUCTION ASTRONOMY.
@@ -44,7 +54,8 @@ export default function ChartExperience({ locale }: ChartExperienceProps) {
 
   const handleResolvedInput = async ({
     resolution,
-    houseSystem
+    houseSystem,
+    locationResolutionId
   }: ResolvedBirthInputSelection) => {
     if (calculationInFlightRef.current) {
       return;
@@ -54,7 +65,11 @@ export default function ChartExperience({ locale }: ChartExperienceProps) {
     setIsCalculating(true);
     setCalculationError(null);
 
-    const request = toChartRequest(resolution, houseSystem);
+    const request = toChartRequest(
+      resolution,
+      houseSystem,
+      locationResolutionId
+    );
 
     try {
       const result = await engineClient.calculateChart(request);
@@ -75,6 +90,10 @@ export default function ChartExperience({ locale }: ChartExperienceProps) {
         isCalculationPending={isCalculating}
         onResolvedInput={handleResolvedInput}
         locale={locale}
+        locationResolution={locationResolution.resolution}
+        onLocationCandidateSelect={locationResolution.selectCandidate}
+        onLocationQueryChange={locationResolution.setRawQuery}
+        requireResolvedLocation={requireResolvedLocation}
       />
 
       <section

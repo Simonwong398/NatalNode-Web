@@ -223,9 +223,18 @@ test('location BFF routes enforce bounded payloads, provider-neutral success, an
     candidates: [candidate]
   });
 
-  const resolveResponse = await postJson(app, '/api/location/resolve', {
+  const mismatchedLocaleResponse = await postJson(app, '/api/location/resolve', {
     candidateId: candidate.candidateId,
     locale: 'en'
+  });
+  assert.equal(mismatchedLocaleResponse.status, 200);
+  assert.deepEqual(await mismatchedLocaleResponse.json(), {
+    state: 'UNRESOLVED'
+  });
+
+  const resolveResponse = await postJson(app, '/api/location/resolve', {
+    candidateId: candidate.candidateId,
+    locale: 'zh-Hant'
   });
   assert.equal(resolveResponse.status, 200);
   assert.deepEqual(await resolveResponse.json(), {

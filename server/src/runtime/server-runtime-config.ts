@@ -30,6 +30,10 @@ export interface ServerOperationalConfig {
 
 export interface ServerRuntimeConfig {
   readonly publicWebOrigin: string;
+  readonly locationResolution: {
+    /** Server-only GeoNames account name; null keeps the provider unavailable. */
+    readonly geonamesUsername: string | null;
+  };
   readonly operational: ServerOperationalConfig;
   readonly webPush: {
     readonly applicationServerKey: string | null;

@@ -36,10 +36,17 @@ export interface LocationAuthority {
   readonly recordId: string;
 }
 
+/** Human-readable provenance that may be shown when a source-backed result is used. */
+export interface LocationAttribution {
+  readonly label: string;
+  readonly url: string;
+}
+
 /** Versioned provenance for a canonical location record. */
 export interface LocationSourceMetadata {
   readonly sourceVersion: string | null;
   readonly datasetVersion: string | null;
+  readonly attribution?: LocationAttribution | null;
 }
 
 /** A search candidate is not authoritative until the user explicitly selects it. */

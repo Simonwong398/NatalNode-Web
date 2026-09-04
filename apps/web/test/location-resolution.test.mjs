@@ -6,6 +6,8 @@ import {
   applyLocationCandidates,
   beginLocationSearch,
   canSubmitProductionCalculation,
+  LOCATION_SEARCH_DEBOUNCE_MS,
+  LOCATION_SEARCH_MINIMUM_CHARACTERS,
   markLocationError,
   markLocationUnresolved,
   selectCanonicalLocation
@@ -63,6 +65,10 @@ test('raw location text stays separate from canonical authority', () => {
   assert.equal(candidates.candidates[0].canonicalDisplayName, candidate.canonicalDisplayName);
   assert.equal(candidates.candidates[0].canonicalDisplayName, 'Los Angeles, California, United States');
   assert.equal(canSubmitProductionCalculation(candidates), false);
+
+  const edited = beginLocationSearch('Los Angeles');
+  assert.equal(edited.selectedLocation, null);
+  assert.equal(canSubmitProductionCalculation(edited), false);
 });
 
 test('explicit selection produces RESOLVED and retains canonical identity fields', () => {
@@ -102,7 +108,9 @@ test('ambiguous, unresolved, error, and empty states cannot submit production ca
 test('location UI labels have exact seven-locale parity and no zh-Hans catalog', () => {
   const locationKeys = UI_MESSAGE_KEYS.filter((key) => key.startsWith('birthInput.location.'));
 
-  assert.equal(locationKeys.length, 13);
+  assert.equal(locationKeys.length, 17);
+  assert.equal(LOCATION_SEARCH_MINIMUM_CHARACTERS, 3);
+  assert.equal(LOCATION_SEARCH_DEBOUNCE_MS, 400);
   assert.deepEqual(Object.keys(UI_CATALOGS), LOCALES);
   assert.equal(Object.hasOwn(UI_CATALOGS, 'zh-Hans'), false);
 
