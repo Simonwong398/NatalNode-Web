@@ -61,67 +61,99 @@ function ResolvedLocationTelemetry({
           {chartUi(locale, 'birthInput.resolution.fixtureExplanation')}
         </p>
       ) : null}
-      <dl className="mt-3 grid min-w-0 gap-3 sm:grid-cols-3">
-        {resolution.locationLabel ? (
-          <div className="min-w-0">
-            <dt className="nn-type-metadata">
-              {isDevelopmentFixture
-                ? chartUi(locale, 'birthInput.resolution.locationInput')
-                : chartUi(locale, 'birthInput.resolution.location')}
-            </dt>
-            <dd className="nn-type-body-small mt-1 break-words">{resolution.locationLabel}</dd>
-          </div>
-        ) : null}
-        {isDevelopmentFixture ? (
-          fixtureCoordinates ? (
+      {isDevelopmentFixture ? (
+        <div
+          className="mt-3 grid min-w-0 gap-4 lg:grid-cols-2"
+          data-resolution-authority="development-fixture"
+        >
+          {resolution.locationLabel ? (
+            <section
+              className="min-w-0 border-t border-[color:var(--nn-border-subtle)] pt-3"
+              data-location-authority="user-entered"
+            >
+              <h4 className="nn-type-label">
+                {chartUi(locale, 'birthInput.resolution.userEnteredLocation')}
+              </h4>
+              <p className="nn-type-body-small mt-1 break-words">{resolution.locationLabel}</p>
+            </section>
+          ) : null}
+          <section
+            className="min-w-0 border-t border-[color:var(--nn-border-subtle)] pt-3"
+            data-location-authority="development-fixture"
+          >
+            <h4 className="nn-type-label">
+              {chartUi(locale, 'birthInput.resolution.developmentFixtureLocation')}
+            </h4>
+            <dl className="mt-3 grid min-w-0 gap-3 sm:grid-cols-2">
+              {fixtureCoordinates ? (
+                <div className="min-w-0">
+                  <dt className="nn-type-metadata">
+                    {chartUi(locale, 'birthInput.resolution.fixtureCoordinates')}
+                  </dt>
+                  <dd className="nn-type-numeric mt-1">{fixtureCoordinates}</dd>
+                </div>
+              ) : null}
+              {resolution.ianaTimeZone ? (
+                <div className="min-w-0">
+                  <dt className="nn-type-metadata">
+                    {chartUi(locale, 'birthInput.resolution.fixtureTimezone')}
+                  </dt>
+                  <dd className="nn-type-numeric mt-1 break-words">{resolution.ianaTimeZone}</dd>
+                </div>
+              ) : null}
+              {resolution.utcOffsetSeconds !== null ? (
+                <div className="min-w-0">
+                  <dt className="nn-type-metadata">
+                    {chartUi(locale, 'birthInput.resolution.fixtureUtcOffset')}
+                  </dt>
+                  <dd className="nn-type-numeric mt-1">{formatUtcOffset(resolution.utcOffsetSeconds)}</dd>
+                </div>
+              ) : null}
+            </dl>
+          </section>
+        </div>
+      ) : (
+        <dl className="mt-3 grid min-w-0 gap-3 sm:grid-cols-3">
+          {resolution.locationLabel ? (
+            <div className="min-w-0">
+              <dt className="nn-type-metadata">{chartUi(locale, 'birthInput.resolution.location')}</dt>
+              <dd className="nn-type-body-small mt-1 break-words">{resolution.locationLabel}</dd>
+            </div>
+          ) : null}
+          {latitude ? (
             <div className="min-w-0">
               <dt className="nn-type-metadata">
-                {chartUi(locale, 'birthInput.resolution.fixtureCoordinates')}
+                {chartUi(locale, 'birthInput.resolution.latitude')}
               </dt>
-              <dd className="nn-type-numeric mt-1">{fixtureCoordinates}</dd>
+              <dd className="nn-type-numeric mt-1">{latitude}</dd>
             </div>
-          ) : null
-        ) : (
-          <>
-            {latitude ? (
-              <div className="min-w-0">
-                <dt className="nn-type-metadata">
-                  {chartUi(locale, 'birthInput.resolution.latitude')}
-                </dt>
-                <dd className="nn-type-numeric mt-1">{latitude}</dd>
-              </div>
-            ) : null}
-            {longitude ? (
-              <div className="min-w-0">
-                <dt className="nn-type-metadata">
-                  {chartUi(locale, 'birthInput.resolution.longitude')}
-                </dt>
-                <dd className="nn-type-numeric mt-1">{longitude}</dd>
-              </div>
-            ) : null}
-          </>
-        )}
-        {resolution.ianaTimeZone ? (
-          <div className="min-w-0">
-            <dt className="nn-type-metadata">
-              {isDevelopmentFixture
-                ? chartUi(locale, 'birthInput.resolution.fixtureTimezone')
-                : chartUi(locale, 'birthInput.resolution.ianaTimezone')}
-            </dt>
-            <dd className="nn-type-numeric mt-1 break-words">{resolution.ianaTimeZone}</dd>
-          </div>
-        ) : null}
-        {resolution.utcOffsetSeconds !== null ? (
-          <div className="min-w-0">
-            <dt className="nn-type-metadata">
-              {isDevelopmentFixture
-                ? chartUi(locale, 'birthInput.resolution.fixtureUtcOffset')
-                : chartUi(locale, 'birthInput.resolution.utcOffset')}
-            </dt>
-            <dd className="nn-type-numeric mt-1">{formatUtcOffset(resolution.utcOffsetSeconds)}</dd>
-          </div>
-        ) : null}
-      </dl>
+          ) : null}
+          {longitude ? (
+            <div className="min-w-0">
+              <dt className="nn-type-metadata">
+                {chartUi(locale, 'birthInput.resolution.longitude')}
+              </dt>
+              <dd className="nn-type-numeric mt-1">{longitude}</dd>
+            </div>
+          ) : null}
+          {resolution.ianaTimeZone ? (
+            <div className="min-w-0">
+              <dt className="nn-type-metadata">
+                {chartUi(locale, 'birthInput.resolution.ianaTimezone')}
+              </dt>
+              <dd className="nn-type-numeric mt-1 break-words">{resolution.ianaTimeZone}</dd>
+            </div>
+          ) : null}
+          {resolution.utcOffsetSeconds !== null ? (
+            <div className="min-w-0">
+              <dt className="nn-type-metadata">
+                {chartUi(locale, 'birthInput.resolution.utcOffset')}
+              </dt>
+              <dd className="nn-type-numeric mt-1">{formatUtcOffset(resolution.utcOffsetSeconds)}</dd>
+            </div>
+          ) : null}
+        </dl>
+      )}
     </div>
   );
 }

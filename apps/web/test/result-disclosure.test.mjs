@@ -97,8 +97,11 @@ test('localizes workspace controls while preserving professional and provenance 
 
       await scope.click(scope.tab('詳細資料'));
       const detailsPanel = scope.panel('詳細資料');
-      assert.match(scope.text(detailsPanel), /Engine Version/u);
-      assert.match(scope.text(detailsPanel), /Research configuration/u);
+      assert.match(scope.text(detailsPanel), /開發來源/u);
+      assert.match(scope.text(detailsPanel), /測試資料識別碼/u);
+      assert.match(scope.text(detailsPanel), /研究設定/u);
+      assert.doesNotMatch(scope.text(detailsPanel), /Engine Version/u);
+      assert.doesNotMatch(scope.text(detailsPanel), /Research configuration/u);
       assert.equal(scope.text(detailsPanel.querySelector('h3')), '計算詳細資料');
       assert.equal(
         [...detailsPanel.querySelectorAll('h4')].find((heading) => scope.text(heading) === '警告') !== undefined,
@@ -170,7 +173,7 @@ test('mouse and keyboard mode navigation expose exactly one panel with stable re
     await scope.key(scope.tab('Interpretation'), 'ArrowRight');
     assertActiveMode(scope, 'Details');
     assert.strictEqual(scope.document.activeElement, scope.tab('Details'));
-    assert.match(scope.text(scope.panel('Details')), /Engine Version/u);
+    assert.match(scope.text(scope.panel('Details')), /Development source/u);
     assert.equal(scope.panel('Details').querySelector('details'), null);
     assert.equal(scope.panel('Details').querySelector('summary'), null);
 

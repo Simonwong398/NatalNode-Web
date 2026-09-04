@@ -7,7 +7,9 @@ import {
 import { resolveAstrologyDomainTerm } from '@/core/astrology-taxonomy/astrology-glossary';
 import {
   chartUi,
-  chartWarningMessage
+  chartCalculationStatus,
+  chartWarningMessage,
+  chartWarningSeverity
 } from '@/core/chart/chart-ui';
 import type { ChartPresentationPolicy } from '@/core/chart/chart-presentation-policy';
 
@@ -26,11 +28,13 @@ type DetailRowProps = {
 
 function DetailRow({ label, value, identifier = false }: DetailRowProps) {
   return (
-    <div className="grid min-w-0 gap-1 sm:grid-cols-[minmax(9rem,0.8fr)_minmax(0,1.2fr)] sm:items-baseline sm:gap-4">
+    <div className="grid min-w-0 gap-1 md:grid-cols-[minmax(9rem,0.8fr)_minmax(0,1.2fr)] md:items-baseline md:gap-4">
       <dt className="nn-type-metadata">{label}</dt>
       <dd
         className={`nn-type-numeric min-w-0 text-left sm:text-right ${
-          identifier ? 'break-all font-mono text-xs leading-5' : 'break-words'
+          identifier
+            ? 'nn-calculation-details__identifier font-mono text-xs leading-5'
+            : 'break-words'
         }`}
       >
         {value}
@@ -50,8 +54,10 @@ export default function CalculationDetails({
   const researchTitleId = `${detailsId}-research-title`;
   const warningsTitleId = `${detailsId}-warnings-title`;
   const isResearchConfiguration = chart.calculationStatus === 'INCOMPLETE_RESEARCH';
-  const astronomyConfiguration = chart.metadata.astronomyConfigurationId ?? 'Unavailable';
-  const provenanceEnvelope = chart.metadata.provenanceEnvelopeId ?? 'Unavailable';
+  const isUiFixture = chart.engineVersion === 'UI_FIXTURE_V1';
+  const unavailable = chartUi(locale, 'calculation.unavailable');
+  const astronomyConfiguration = chart.metadata.astronomyConfigurationId ?? unavailable;
+  const provenanceEnvelope = chart.metadata.provenanceEnvelopeId ?? unavailable;
   const houseSystemValue = presentationPolicy.showHouses
     ? chart.houses?.system
     : requestedHouseSystem;
@@ -59,10 +65,13 @@ export default function CalculationDetails({
     'house_system',
     houseSystemValue,
     locale ?? DEFAULT_LOCALE
-  )?.displayTerm ?? houseSystemValue ?? 'Unavailable';
+  )?.displayTerm ?? houseSystemValue ?? unavailable;
   const houseSystemLabel = presentationPolicy.showHouses
-    ? 'House System'
-    : 'Requested House System';
+    ? chartUi(locale, 'calculation.houseSystem')
+    : chartUi(locale, 'calculation.requestedHouseSystem');
+  const researchReason = chart.calculationStatus === 'INCOMPLETE_RESEARCH'
+    ? chart.metadata.reason
+    : null;
 
   return (
     <section
@@ -73,26 +82,47 @@ export default function CalculationDetails({
         {chartUi(locale, 'workspace.calculationDetails')}
       </h3>
 
-      <div className="mt-5 grid min-w-0 gap-5 border-t border-natal-border/50 px-5 pb-6 pt-5 sm:px-7 sm:grid-cols-2">
+      <div className="nn-calculation-details__grid mt-5 grid min-w-0 gap-5 border-t border-natal-border/50 px-5 pb-6 pt-5 sm:px-7 lg:grid-cols-2">
         <dl className="grid min-w-0 gap-3 text-sm">
-          <DetailRow label="Engine Version" value={chart.engineVersion} />
-          <DetailRow label="Chart Schema" value={chart.schemaVersion} />
+          {isUiFixture ? (
+            <>
+              <DetailRow
+                label={chartUi(locale, 'calculation.developmentSource')}
+                value={chartUi(locale, 'calculation.uiFixture')}
+              />
+              <DetailRow
+                identifier
+                label={chartUi(locale, 'calculation.fixtureId')}
+                value={chart.engineVersion}
+              />
+            </>
+          ) : (
+            <DetailRow
+              label={chartUi(locale, 'calculation.engineVersion')}
+              value={chart.engineVersion}
+            />
+          )}
           <DetailRow
-            label="Calculation Status"
-            value={isResearchConfiguration
-              ? 'Research configuration'
-              : chart.calculationStatus}
+            label={chartUi(locale, 'calculation.chartSchema')}
+            value={chart.schemaVersion}
           />
-          <DetailRow label="Configuration Status" value={chart.metadata.configurationStatus} />
           <DetailRow
-            label="Astronomy Configuration"
+            label={chartUi(locale, 'calculation.calculationStatus')}
+            value={chartCalculationStatus(locale, chart.calculationStatus)}
+          />
+          <DetailRow
+            label={chartUi(locale, 'calculation.configurationStatus')}
+            value={chartCalculationStatus(locale, chart.metadata.configurationStatus)}
+          />
+          <DetailRow
+            label={chartUi(locale, 'calculation.astronomyConfiguration')}
             value={astronomyConfiguration}
-            identifier={astronomyConfiguration !== 'Unavailable'}
+            identifier={chart.metadata.astronomyConfigurationId !== null}
           />
           <DetailRow
-            label="Provenance Envelope"
+            label={chartUi(locale, 'calculation.provenanceEnvelope')}
             value={provenanceEnvelope}
-            identifier={provenanceEnvelope !== 'Unavailable'}
+            identifier={chart.metadata.provenanceEnvelopeId !== null}
           />
           <DetailRow label={houseSystemLabel} value={houseSystem} />
         </dl>
@@ -100,15 +130,27 @@ export default function CalculationDetails({
         {isResearchConfiguration ? (
           <section
             aria-labelledby={researchTitleId}
-            className="nn-notice nn-notice--research min-w-0 flex-col"
+            className="nn-calculation-details__research nn-notice nn-notice--research min-w-0 flex-col"
+            data-calculation-research="true"
           >
             <h4 className="nn-type-label" id={researchTitleId}>
-              Research configuration
+              {chartUi(locale, 'workspace.researchConfiguration')}
             </h4>
             <dl className="mt-3 grid min-w-0 gap-2">
-              <DetailRow label="Calculation Status" value="Research configuration" />
-              <DetailRow label="Astronomy Configuration" value="Unavailable" />
-              <DetailRow label="Reason" value="Incomplete research configuration" />
+              <DetailRow
+                label={chartUi(locale, 'calculation.calculationStatus')}
+                value={chartCalculationStatus(locale, chart.calculationStatus)}
+              />
+              <DetailRow
+                label={chartUi(locale, 'calculation.astronomyConfiguration')}
+                value={unavailable}
+              />
+              <DetailRow
+                label={chartUi(locale, 'calculation.reason')}
+                value={researchReason
+                  ? chartCalculationStatus(locale, researchReason)
+                  : unavailable}
+              />
             </dl>
             <p className="mt-3">
               {chartUi(locale, 'calculation.scientificUnavailable')}
@@ -116,7 +158,10 @@ export default function CalculationDetails({
           </section>
         ) : null}
 
-        <section aria-labelledby={warningsTitleId} className="min-w-0 sm:col-span-2">
+        <section
+          aria-labelledby={warningsTitleId}
+          className="nn-calculation-details__warnings min-w-0 lg:col-span-2"
+        >
           <h4 className="nn-type-label" id={warningsTitleId}>
             {chartUi(locale, 'workspace.warnings')}
           </h4>
@@ -130,9 +175,11 @@ export default function CalculationDetails({
                   key={`${warning.code}-${index}`}
                 >
                   <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
-                    <span className="nn-type-metadata break-all font-mono font-semibold">{warning.code}</span>
+                    <span className="nn-calculation-details__identifier nn-type-metadata font-mono font-semibold">
+                      {warning.code}
+                    </span>
                     <span className="nn-type-metadata font-semibold uppercase tracking-[0.12em]">
-                      {warning.severity}
+                      {chartWarningSeverity(locale, warning.severity)}
                     </span>
                   </div>
                   <p className="nn-type-body-small mt-2 break-words">{chartWarningMessage(locale, warning)}</p>

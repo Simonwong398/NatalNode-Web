@@ -424,6 +424,17 @@
     overflow: visible;
   }
 
+  /* Keep production-facing chart contexts compact without changing SVG geometry. */
+  .nn-chart-workspace .nn-chart-renderer[data-presentation-mode='workspace'] .nn-chart-renderer__svg,
+  .nn-chart-renderer[data-chart-kind='sky'] .nn-chart-renderer__svg {
+    max-width: 36rem;
+  }
+
+  .nn-calculation-details__identifier {
+    overflow-wrap: anywhere;
+    word-break: normal;
+  }
+
   .nn-chart-focus-hint {
     margin-top: 0.75rem;
     color: var(--nn-text-muted);
@@ -743,6 +754,10 @@
 
   .nn-chart-focus-dialog__body .nn-chart-renderer__svg {
     max-width: 58rem;
+  }
+
+  .nn-chart-focus-dialog:not(.nn-chart-focus-dialog--educational) .nn-chart-renderer[data-presentation-mode='expanded'] .nn-chart-renderer__svg {
+    max-width: 52rem;
   }
 
   .nn-chart-focus-dialog__backdrop {
@@ -1645,7 +1660,7 @@
   }
 
   .nn-chart-renderer--showcase .nn-chart-renderer__svg {
-    max-width: none;
+    max-width: 36rem;
     filter: drop-shadow(0 0 1rem color-mix(in srgb, var(--nn-accent-secondary) 18%, transparent));
   }
 

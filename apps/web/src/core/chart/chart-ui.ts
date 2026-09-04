@@ -25,9 +25,27 @@ export function chartCalculationStatus(
   locale: SupportedLocale | undefined,
   status: string
 ): string {
-  return status === 'INCOMPLETE_RESEARCH'
-    ? chartUi(locale, 'workspace.researchConfiguration')
-    : status;
+  const keyByStatus: Partial<Record<string, UiMessageKey>> = {
+    COMPLETE: 'calculation.complete',
+    INCOMPLETE_RESEARCH: 'calculation.incompleteResearch'
+  };
+  const key = keyByStatus[status];
+
+  return key ? chartUi(locale, key) : status;
+}
+
+export function chartWarningSeverity(
+  locale: SupportedLocale | undefined,
+  severity: string
+): string {
+  const keyBySeverity: Partial<Record<string, UiMessageKey>> = {
+    INFO: 'calculation.severity.info',
+    WARNING: 'calculation.severity.warning',
+    ERROR: 'calculation.severity.error'
+  };
+  const key = keyBySeverity[severity];
+
+  return key ? chartUi(locale, key) : severity;
 }
 
 export function chartWarningMessage(
