@@ -586,16 +586,26 @@ function makePeriod(
 }
 
 function buildHero(
-  draft: WeeklyInterpretationDraft
+  draft: WeeklyInterpretationDraft,
+  timeline: WeeklyReadingTimelineModel | null
 ): WeeklyReadingHeroModel {
   if (draft.hero.text.trim().length === 0) {
     throw new Error('Weekly Reading Model cannot expose an empty Hero.');
   }
 
+  const timingCueEntry = timeline?.entries.find((entry) =>
+    entry.emphasis === 'BEST_WINDOW'
+  ) ?? null;
+
   return Object.freeze({
     text: draft.hero.text,
     visibility: 'VISIBLE_DEFAULT' as const,
-    timingCue: null,
+    timingCue: timingCueEntry === null
+      ? null
+      : Object.freeze({
+        label: timingCueEntry.label,
+        meaning: timingCueEntry.meaning
+      }),
     traceability: traceForBlock(draft.hero)
   });
 }
@@ -1407,7 +1417,6 @@ export function createWeeklyReadingModel(
 
   const signals = signalMap(draft);
   const period = makePeriod(draft);
-  const hero = buildHero(draft);
   const heroKey = semanticKey(draft.hero);
   const atAGlanceResult = buildAtAGlance(draft, heroKey, draft.locale);
   const domainsResult = buildDomains(
@@ -1421,6 +1430,7 @@ export function createWeeklyReadingModel(
     timelineResult.timeline,
     bestSignalId
   );
+  const hero = buildHero(draft, timeline);
   const timelineDecisions = [...timelineResult.decisions];
 
   if (draft.bestWindow === null) {

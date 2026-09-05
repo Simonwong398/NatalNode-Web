@@ -240,6 +240,42 @@ test('scenario D keeps the broad background theme dominant while preserving the 
   assert.equal(model.watchOut, null);
 });
 
+test('Hero timing cues are selected by ReadingModel ownership, not Timeline array position', () => {
+  for (const scenarioId of [
+    'SCENARIO_A_SUPPORTIVE_COMMUNICATION',
+    'SCENARIO_B_MIXED_RELATIONSHIP',
+    'SCENARIO_C_ACTION_EMOTIONAL_TENSION',
+    'SCENARIO_D_BACKGROUND_MOMENTARY'
+  ]) {
+    const model = modelFor(scenarioId);
+    const emphasizedEntry = model.timeline.entries.find((entry) =>
+      entry.emphasis === 'BEST_WINDOW'
+    );
+
+    assert.ok(emphasizedEntry, scenarioId);
+    assert.deepEqual(model.hero.timingCue, {
+      label: emphasizedEntry.label,
+      meaning: emphasizedEntry.meaning
+    });
+  }
+
+  const backgroundModel = modelFor('SCENARIO_D_BACKGROUND_MOMENTARY');
+  assert.notEqual(
+    backgroundModel.hero.timingCue?.label,
+    backgroundModel.timeline.entries[0].label
+  );
+
+  const firstDraft = createWeeklyInterpretationDraft(
+    getWeeklyPocScenario('SCENARIO_C_ACTION_EMOTIONAL_TENSION'),
+    'CLEAR',
+    'en'
+  );
+  assert.deepEqual(
+    createWeeklyReadingModel(firstDraft).hero.timingCue,
+    createWeeklyReadingModel(firstDraft).hero.timingCue
+  );
+});
+
 test('scenario E omits timing, preserves placement value, and discloses unknown birth time humanely', () => {
   const model = modelFor('SCENARIO_E_UNKNOWN_TIME');
 

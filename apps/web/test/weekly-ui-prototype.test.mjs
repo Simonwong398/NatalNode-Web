@@ -59,6 +59,8 @@ test('the prototype exposes all five existing scenarios through the accepted tra
 test('the reader component consumes the screen projection and has no raw Signal renderer path', () => {
   assert.match(componentSource, /model\.screen/u);
   assert.match(componentSource, /screen\.readingOrder/u);
+  assert.match(componentSource, /screen\.hero\.timingCue/u);
+  assert.doesNotMatch(componentSource, /firstTimelineEntry|timeline\.entries\[0\]|screen\.timeline\?\.entries/u);
   assert.doesNotMatch(componentSource, /InterpretationSignal|sourceFactRefs|signalId|\.signals/u);
 });
 

@@ -133,10 +133,7 @@ export default function WeeklyReadingPrototype({
 
   const model = selectedScenario.models[selectedStyle];
   const screen = model.screen;
-  const firstTimelineEntry = screen.timeline?.entries[0] ?? null;
-  const timingCue = screen.hero.timingCue ?? (firstTimelineEntry === null
-    ? null
-    : { label: firstTimelineEntry.label, meaning: firstTimelineEntry.meaning });
+  const timingCue = screen.hero.timingCue;
   const periodRange = formatPeriodRange(model);
   const availableActions = screen.actions.filter(
     (action) => action.status === 'AVAILABLE' && action.kind !== 'COLLECT'
