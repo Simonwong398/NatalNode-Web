@@ -2364,3 +2364,182 @@
     animation-iteration-count: 1 !important;
   }
 }
+
+[data-account-print-view] {
+  display: none;
+}
+
+@media print {
+  @page {
+    size: auto;
+    margin: 16mm;
+  }
+
+  body[data-account-print-active],
+  body[data-account-print-active] #main-content,
+  body[data-account-print-active] [data-account-main] {
+    color: #111827 !important;
+    background: #ffffff !important;
+  }
+
+  body[data-account-print-active] > .sr-only,
+  body[data-account-print-active] .nn-site-header,
+  body[data-account-print-active] > footer,
+  body[data-account-print-active] [data-account-main] > header,
+  body[data-account-print-active] [data-chatbot],
+  body[data-account-print-active] [data-chat-widget],
+  body[data-account-print-active] [data-floating-widget] {
+    display: none !important;
+  }
+
+  body[data-account-print-active] [data-account-main] {
+    width: 100% !important;
+    max-width: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  body[data-account-print-active] [data-account-page] {
+    margin: 0 !important;
+  }
+
+  body[data-account-print-active] [data-account-page] > :not([data-account-print-view]) {
+    display: none !important;
+  }
+
+  body[data-account-print-active] [data-account-print-view] {
+    display: block !important;
+    width: 100%;
+    max-width: 8.5in;
+    margin: 0 auto;
+    overflow-wrap: anywhere;
+  }
+
+  body[data-account-print-active] .account-print-document {
+    color: #111827;
+    background: #ffffff;
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 10.5pt;
+    line-height: 1.5;
+  }
+
+  body[data-account-print-active] .account-print-header {
+    padding-bottom: 1rem;
+    border-bottom: 2px solid #cbd5e1;
+  }
+
+  body[data-account-print-active] .account-print-eyebrow {
+    margin: 0;
+    color: #0369a1;
+    font-size: 8.5pt;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+
+  body[data-account-print-active] .account-print-title {
+    margin: 0.35rem 0 0;
+    color: #0f172a;
+    font-size: 23pt;
+    line-height: 1.15;
+  }
+
+  body[data-account-print-active] .account-print-meta {
+    margin: 0.35rem 0 0;
+    color: #475569;
+    font-size: 9pt;
+  }
+
+  body[data-account-print-active] .account-print-section {
+    margin-top: 1.35rem;
+  }
+
+  body[data-account-print-active] .account-print-section-title {
+    margin: 0;
+    padding-bottom: 0.35rem;
+    border-bottom: 1px solid #cbd5e1;
+    color: #0f172a;
+    font-size: 14pt;
+    line-height: 1.25;
+  }
+
+  body[data-account-print-active] .account-print-definition-list {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.8rem 1.5rem;
+    margin: 0.9rem 0 0;
+  }
+
+  body[data-account-print-active] .account-print-definition-item {
+    min-width: 0;
+    break-inside: avoid;
+  }
+
+  body[data-account-print-active] .account-print-label {
+    margin: 0;
+    color: #334155;
+    font-size: 8.5pt;
+    font-weight: 700;
+    line-height: 1.35;
+  }
+
+  body[data-account-print-active] .account-print-value {
+    margin: 0.15rem 0 0;
+    color: #111827;
+    overflow-wrap: anywhere;
+  }
+
+  body[data-account-print-active] .account-print-chart,
+  body[data-account-print-active] .account-print-feedback,
+  body[data-account-print-active] .account-print-subsection,
+  body[data-account-print-active] .account-print-note {
+    break-inside: avoid;
+  }
+
+  body[data-account-print-active] .account-print-chart,
+  body[data-account-print-active] .account-print-feedback {
+    margin-top: 1rem;
+    padding-top: 0.8rem;
+    border-top: 1px solid #e2e8f0;
+  }
+
+  body[data-account-print-active] .account-print-chart:first-of-type,
+  body[data-account-print-active] .account-print-feedback:first-of-type {
+    margin-top: 0.8rem;
+  }
+
+  body[data-account-print-active] .account-print-subsection-title {
+    margin: 0.9rem 0 0;
+    color: #0f172a;
+    font-size: 11pt;
+    line-height: 1.3;
+  }
+
+  body[data-account-print-active] .account-print-notes-title {
+    display: block;
+    margin-top: 1rem;
+  }
+
+  body[data-account-print-active] .account-print-note {
+    margin-top: 0.55rem;
+    padding: 0.55rem 0.7rem;
+    border-left: 3px solid #38bdf8;
+    background: #f8fafc;
+  }
+
+  body[data-account-print-active] .account-print-user-content {
+    margin: 0;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+  }
+
+  body[data-account-print-active] .account-print-revision {
+    margin-top: 0.7rem;
+  }
+}
+
+@media print and (max-width: 600px) {
+  body[data-account-print-active] .account-print-definition-list {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

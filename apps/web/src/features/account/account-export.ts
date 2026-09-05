@@ -8,7 +8,7 @@ function ui(key: UiMessageKey): string {
   return getDocumentUiMessage(key);
 }
 
-type AccountExportErrorCode =
+export type AccountExportErrorCode =
   | 'INVALID_REQUEST'
   | 'UNAUTHORIZED'
   | 'RECENT_AUTHENTICATION_REQUIRED'
@@ -30,7 +30,7 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value);
 }
 
-function isAccountExportErrorCode(value: unknown): value is AccountExportErrorCode {
+export function isAccountExportErrorCode(value: unknown): value is AccountExportErrorCode {
   return (
     value === 'INVALID_REQUEST' ||
     value === 'UNAUTHORIZED' ||
@@ -113,12 +113,12 @@ function handleErrorCode(
   showGenericFailure(elements);
 }
 
-interface PreparationResponse {
+export interface AccountExportPreparationResponse {
   readonly status: number;
   readonly code: AccountExportErrorCode | null;
 }
 
-async function prepareAccountExport(): Promise<PreparationResponse> {
+export async function prepareAccountExport(): Promise<AccountExportPreparationResponse> {
   const response = await fetch('/api/account/export/prepare', {
     method: 'POST',
     credentials: 'same-origin',
@@ -148,8 +148,8 @@ async function prepareAccountExport(): Promise<PreparationResponse> {
   };
 }
 
-function resolvePreparationErrorCode(
-  response: PreparationResponse
+export function resolvePreparationErrorCode(
+  response: AccountExportPreparationResponse
 ): AccountExportErrorCode | null {
   if (
     response.code !== null &&
@@ -174,6 +174,41 @@ function resolvePreparationErrorCode(
 
   if (response.status === 429) {
     return 'RATE_LIMITED';
+  }
+
+  return null;
+}
+
+/** Resolves a streamed export response without trusting a mismatched body code. */
+export function resolveAccountExportResponseCode(
+  status: number,
+  payload: unknown
+): AccountExportErrorCode | null {
+  const code =
+    isRecord(payload) && isAccountExportErrorCode(payload.code)
+      ? payload.code
+      : null;
+
+  if (status === 400) {
+    return 'INVALID_REQUEST';
+  }
+
+  if (status === 401) {
+    return 'UNAUTHORIZED';
+  }
+
+  if (status === 403) {
+    return code === 'RECENT_AUTHENTICATION_REQUIRED' || code === 'FORBIDDEN'
+      ? code
+      : null;
+  }
+
+  if (status === 429) {
+    return 'RATE_LIMITED';
+  }
+
+  if (status >= 500) {
+    return 'INTERNAL_ERROR';
   }
 
   return null;
