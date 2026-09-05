@@ -2365,8 +2365,166 @@
   }
 }
 
-[data-account-print-view] {
+[data-account-print-view],
+[data-account-share-view] {
   display: none;
+}
+
+body[data-account-share-active] [data-account-share-view] {
+  display: block;
+}
+
+.account-share-view {
+  width: min(100%, 32rem);
+  margin-top: 2rem;
+}
+
+.account-share-card {
+  aspect-ratio: 4 / 5;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  overflow: hidden;
+  padding: clamp(1.25rem, 5vw, 2.25rem);
+  border: 1px solid rgba(125, 211, 252, 0.38);
+  border-radius: 1.25rem;
+  color: #f8fafc;
+  background:
+    radial-gradient(circle at 84% 12%, rgba(34, 211, 238, 0.2), transparent 32%),
+    linear-gradient(145deg, #0f172a 0%, #111827 52%, #172554 100%);
+  box-shadow: 0 1.5rem 3rem rgba(15, 23, 42, 0.24);
+}
+
+.account-share-card-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.account-share-card-logo {
+  width: min(11rem, 48%);
+  height: auto;
+}
+
+.account-share-card-status,
+.account-share-card-eyebrow,
+.account-share-card-cta-label {
+  margin: 0;
+  color: #67e8f9;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  line-height: 1.4;
+  text-transform: uppercase;
+}
+
+.account-share-card-status {
+  max-width: 9rem;
+  color: #cbd5e1;
+  text-align: right;
+}
+
+.account-share-card-eyebrow {
+  margin-top: auto;
+}
+
+.account-share-card-title {
+  margin: 0.55rem 0 0;
+  color: #f8fafc;
+  font-size: clamp(1.75rem, 6vw, 3rem);
+  font-weight: 650;
+  letter-spacing: -0.04em;
+  line-height: 1.02;
+  overflow-wrap: anywhere;
+}
+
+.account-share-card-count,
+.account-share-card-statement {
+  margin: 0.75rem 0 0;
+  color: #cbd5e1;
+  font-size: 0.95rem;
+  line-height: 1.55;
+}
+
+.account-share-card-profiles {
+  min-height: 0;
+  margin-top: 1.5rem;
+  padding-top: 1rem;
+  border-top: 1px solid rgba(186, 230, 253, 0.22);
+  overflow: auto;
+}
+
+.account-share-card-section-title {
+  margin: 0;
+  color: #e0f2fe;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  line-height: 1.4;
+  text-transform: uppercase;
+}
+
+.account-share-card-profile-list {
+  display: grid;
+  gap: 0.75rem;
+  margin: 0.9rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.account-share-card-profile {
+  display: grid;
+  gap: 0.15rem;
+  padding-left: 0.85rem;
+  border-left: 2px solid #22d3ee;
+}
+
+.account-share-card-profile-name {
+  color: #f8fafc;
+  font-size: 1rem;
+  overflow-wrap: anywhere;
+}
+
+.account-share-card-profile-category,
+.account-share-card-profile-state {
+  color: #cbd5e1;
+  font-size: 0.78rem;
+  line-height: 1.4;
+}
+
+.account-share-card-cta {
+  display: grid;
+  gap: 0.4rem;
+  margin-top: auto;
+  padding-top: 1.5rem;
+}
+
+.account-share-card-link {
+  width: fit-content;
+  color: #a5f3fc;
+  font-size: 0.9rem;
+  font-weight: 650;
+  text-decoration: underline;
+  text-decoration-color: rgba(165, 243, 252, 0.62);
+  text-underline-offset: 0.25em;
+}
+
+.account-share-card-close {
+  align-self: flex-start;
+  margin-top: 1.25rem;
+  padding: 0.45rem 0.7rem;
+  border: 1px solid rgba(186, 230, 253, 0.3);
+  border-radius: 0.45rem;
+  color: #e0f2fe;
+  background: transparent;
+  font: inherit;
+  font-size: 0.8rem;
+}
+
+.account-share-card-close:hover {
+  border-color: rgba(103, 232, 249, 0.75);
+  background: rgba(14, 116, 144, 0.22);
 }
 
 @media print {
@@ -2423,9 +2581,20 @@
     line-height: 1.5;
   }
 
+  body[data-account-print-active] .account-print-cover {
+    min-height: 8.5in;
+  }
+
   body[data-account-print-active] .account-print-header {
     padding-bottom: 1rem;
     border-bottom: 2px solid #cbd5e1;
+  }
+
+  body[data-account-print-active] .account-print-logo {
+    display: block;
+    width: 180px;
+    height: 40px;
+    margin-bottom: 1.4rem;
   }
 
   body[data-account-print-active] .account-print-eyebrow {
@@ -2444,14 +2613,121 @@
     line-height: 1.15;
   }
 
-  body[data-account-print-active] .account-print-meta {
+  body[data-account-print-active] .account-print-display-name {
+    margin: 1.5rem 0 0;
+    color: #0f172a;
+    font-size: 17pt;
+    font-weight: 650;
+    line-height: 1.2;
+  }
+
+  body[data-account-print-active] .account-print-meta,
+  body[data-account-print-active] .account-print-export-meta {
     margin: 0.35rem 0 0;
     color: #475569;
     font-size: 9pt;
   }
 
+  body[data-account-print-active] .account-print-summary {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.75rem;
+    margin: 2rem 0 0;
+    padding: 0.85rem 0;
+    border-top: 1px solid #cbd5e1;
+    border-bottom: 1px solid #cbd5e1;
+  }
+
+  body[data-account-print-active] .account-print-metric {
+    min-width: 0;
+  }
+
+  body[data-account-print-active] .account-print-metric-value {
+    margin: 0.2rem 0 0;
+    color: #0f172a;
+    font-size: 11pt;
+    font-weight: 650;
+    overflow-wrap: anywhere;
+  }
+
+  body[data-account-print-active] .account-print-story {
+    max-width: 35rem;
+    margin-top: 2.25rem;
+  }
+
+  body[data-account-print-active] .account-print-story-lead {
+    margin: 0;
+    color: #0f172a;
+    font-size: 14pt;
+    font-weight: 650;
+    line-height: 1.3;
+  }
+
+  body[data-account-print-active] .account-print-story-body {
+    margin: 0.65rem 0 0;
+    color: #334155;
+  }
+
+  body[data-account-print-active] .account-print-cta {
+    max-width: 35rem;
+    margin-top: 2.25rem;
+    padding-top: 1rem;
+    border-top: 2px solid #0f172a;
+    break-inside: avoid;
+  }
+
+  body[data-account-print-active] .account-print-cta-title {
+    margin: 0.35rem 0 0;
+    color: #0f172a;
+    font-size: 14pt;
+    line-height: 1.3;
+  }
+
+  body[data-account-print-active] .account-print-cta-url {
+    margin: 0.55rem 0 0;
+    color: #0369a1;
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 12pt;
+    font-weight: 700;
+  }
+
+  body[data-account-print-active] .account-print-cta-link,
+  body[data-account-print-active] .account-print-destinations a {
+    color: #0369a1;
+    font-weight: 650;
+    text-decoration: underline;
+    text-underline-offset: 0.2em;
+  }
+
+  body[data-account-print-active] .account-print-destinations {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.3rem 1rem;
+    margin-top: 0.85rem;
+  }
+
+  body[data-account-print-active] .account-print-detail-page {
+    margin-top: 1rem;
+    padding-top: 1.25rem;
+    border-top: 2px solid #0f172a;
+    break-before: page;
+  }
+
+  body[data-account-print-active] .account-print-detail-header {
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid #cbd5e1;
+  }
+
+  body[data-account-print-active] .account-print-detail-title {
+    margin: 0.35rem 0 0;
+    color: #0f172a;
+    font-size: 18pt;
+    line-height: 1.2;
+  }
+
   body[data-account-print-active] .account-print-section {
     margin-top: 1.35rem;
+    break-inside: avoid;
   }
 
   body[data-account-print-active] .account-print-section-title {
@@ -2489,23 +2765,51 @@
     overflow-wrap: anywhere;
   }
 
-  body[data-account-print-active] .account-print-chart,
+  body[data-account-print-active] .account-print-profile,
   body[data-account-print-active] .account-print-feedback,
   body[data-account-print-active] .account-print-subsection,
   body[data-account-print-active] .account-print-note {
     break-inside: avoid;
   }
 
-  body[data-account-print-active] .account-print-chart,
+  body[data-account-print-active] .account-print-profile,
   body[data-account-print-active] .account-print-feedback {
     margin-top: 1rem;
     padding-top: 0.8rem;
     border-top: 1px solid #e2e8f0;
   }
 
-  body[data-account-print-active] .account-print-chart:first-of-type,
+  body[data-account-print-active] .account-print-profile:first-of-type,
   body[data-account-print-active] .account-print-feedback:first-of-type {
     margin-top: 0.8rem;
+  }
+
+  body[data-account-print-active] .account-print-profile-title {
+    margin: 0;
+    color: #0f172a;
+    font-size: 13pt;
+    line-height: 1.3;
+  }
+
+  body[data-account-print-active] .account-print-profile-category,
+  body[data-account-print-active] .account-print-state-description {
+    margin: 0.25rem 0 0;
+    color: #475569;
+    font-size: 9pt;
+  }
+
+  body[data-account-print-active] .account-print-state {
+    margin-top: 0.85rem;
+    padding: 0.65rem 0.75rem;
+    border-left: 3px solid #0284c7;
+    background: #f8fafc;
+    break-inside: avoid;
+  }
+
+  body[data-account-print-active] .account-print-state-value {
+    margin: 0.15rem 0 0;
+    color: #0f172a;
+    font-weight: 700;
   }
 
   body[data-account-print-active] .account-print-subsection-title {
@@ -2536,10 +2840,52 @@
   body[data-account-print-active] .account-print-revision {
     margin-top: 0.7rem;
   }
+
+  body[data-account-print-active] .account-print-footer {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-top: 2rem;
+    padding-top: 0.75rem;
+    border-top: 1px solid #cbd5e1;
+    color: #475569;
+    font-size: 8.5pt;
+    break-inside: avoid;
+  }
+
+  body[data-account-print-active] .account-print-footer-brand {
+    display: grid;
+    gap: 0.15rem;
+  }
+
+  body[data-account-print-active] .account-print-footer-wordmark {
+    color: #0f172a;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+  }
+
+  body[data-account-print-active] .account-print-footer-site {
+    color: #0369a1;
+  }
 }
 
 @media print and (max-width: 600px) {
+  body[data-account-print-active] .account-print-summary,
   body[data-account-print-active] .account-print-definition-list {
     grid-template-columns: minmax(0, 1fr);
+  }
+
+  body[data-account-print-active] .account-print-footer {
+    display: block;
+  }
+}
+
+@media (max-width: 767px) {
+  .account-share-view {
+    width: 100%;
+  }
+
+  .account-share-card {
+    min-height: min(125vw, 36rem);
   }
 }

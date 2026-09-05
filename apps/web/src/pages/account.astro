@@ -306,7 +306,7 @@ const t = (key: UiMessageKey): string => getUiMessage(locale, key);
             {t('account.data.description')}
           </p>
 
-          <div class="mt-6 grid gap-6 sm:grid-cols-2" data-account-export-actions>
+          <div class="mt-6 grid gap-6 sm:grid-cols-3" data-account-export-actions>
             <div>
               <form
                 data-account-export-form
@@ -370,6 +370,9 @@ const t = (key: UiMessageKey): string => getUiMessage(locale, key);
               <p class="nn-type-body-small mt-4">
                 {t('account.data.printDescription')}
               </p>
+              <p class="nn-type-metadata mt-3">
+                {t('account.data.printHint')}
+              </p>
               <p
                 class="nn-status mt-4"
                 data-account-print-status
@@ -395,6 +398,52 @@ const t = (key: UiMessageKey): string => getUiMessage(locale, key);
                 hidden
               >
                 <h3 class="font-semibold text-[var(--nn-text-primary)]" id="account-print-reauth-title">
+                  {t('account.reauth.title')}
+                </h3>
+                <p>{t('account.export.reauthDescription')}</p>
+                <a class="nn-button nn-button--secondary self-start" href={localize('/auth/sign-in')}>
+                  {t('auth.signInAgain')}
+                </a>
+              </section>
+            </div>
+
+            <div data-account-share-action>
+              <button
+                class="nn-button nn-button--secondary"
+                data-account-share-submit
+                type="button"
+                aria-describedby="account-export-description account-share-status account-share-error"
+              >
+                {t('account.data.shareSummary')}
+              </button>
+              <p class="nn-type-body-small mt-4">
+                {t('account.data.shareDescription')}
+              </p>
+              <p
+                class="nn-status mt-4"
+                data-account-share-status
+                id="account-share-status"
+                role="status"
+                aria-live="polite"
+                hidden
+              ></p>
+              <p
+                class="nn-notice nn-notice--error mt-4"
+                data-account-share-error
+                id="account-share-error"
+                role="alert"
+                tabindex="-1"
+                hidden
+              ></p>
+              <section
+                class="nn-notice nn-notice--error mt-4 flex-col"
+                data-account-share-reauth
+                role="alert"
+                aria-labelledby="account-share-reauth-title"
+                tabindex="-1"
+                hidden
+              >
+                <h3 class="font-semibold text-[var(--nn-text-primary)]" id="account-share-reauth-title">
                   {t('account.reauth.title')}
                 </h3>
                 <p>{t('account.export.reauthDescription')}</p>
@@ -536,6 +585,14 @@ const t = (key: UiMessageKey): string => getUiMessage(locale, key);
         aria-label={t('account.print.title')}
         aria-hidden="true"
       ></article>
+
+      <aside
+        class="account-share-view"
+        data-account-share-view
+        aria-label={t('account.share.title')}
+        aria-hidden="true"
+        hidden
+      ></aside>
     </section>
   </main>
 </SiteLayout>
@@ -544,6 +601,7 @@ const t = (key: UiMessageKey): string => getUiMessage(locale, key);
   import type { NotificationCategory } from '@natalnode/contracts';
   import { initializeAccountExport } from '@/features/account/account-export';
   import { initializeAccountPrint } from '@/features/account/account-print';
+  import { initializeAccountShare } from '@/features/account/account-share';
   import { initializeAccountOverview } from '@/features/account/account-overview';
   import { initializeAccountDeletion } from '@/features/account/account-deletion';
   import { initializeCommunityProfile } from '@/features/community/community';
@@ -582,6 +640,11 @@ const t = (key: UiMessageKey): string => getUiMessage(locale, key);
   const printStatus = root?.querySelector<HTMLElement>('[data-account-print-status]');
   const printError = root?.querySelector<HTMLElement>('[data-account-print-error]');
   const printReauthStatus = root?.querySelector<HTMLElement>('[data-account-print-reauth]');
+  const shareButton = root?.querySelector<HTMLButtonElement>('[data-account-share-submit]');
+  const shareView = root?.querySelector<HTMLElement>('[data-account-share-view]');
+  const shareStatus = root?.querySelector<HTMLElement>('[data-account-share-status]');
+  const shareError = root?.querySelector<HTMLElement>('[data-account-share-error]');
+  const shareReauthStatus = root?.querySelector<HTMLElement>('[data-account-share-reauth]');
   const notificationsRoot = root?.querySelector<HTMLElement>('[data-account-notifications]');
   const communityProfileRoot = root?.querySelector<HTMLElement>('[data-community-profile]');
   const notificationsLoading = notificationsRoot?.querySelector<HTMLElement>('[data-notifications-loading]');
@@ -686,6 +749,21 @@ const t = (key: UiMessageKey): string => getUiMessage(locale, key);
       status: printStatus,
       error: printError,
       reauthStatus: printReauthStatus
+    });
+  }
+
+  if (
+    root && accountContent && shareButton && shareView && shareStatus &&
+    shareError && shareReauthStatus
+  ) {
+    initializeAccountShare({
+      accountPage: root,
+      accountContent,
+      button: shareButton,
+      view: shareView,
+      status: shareStatus,
+      error: shareError,
+      reauthStatus: shareReauthStatus
     });
   }
 

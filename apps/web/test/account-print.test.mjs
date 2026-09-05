@@ -17,13 +17,28 @@ const LOCALES = ['en', 'es', 'fr', 'de', 'ja', 'ko', 'zh-Hant'];
 const PRINT_MESSAGE_KEYS = [
   'account.data.print',
   'account.data.printDescription',
+  'account.data.printHint',
   'account.data.printPreparing',
   'account.data.printError',
   'account.print.title',
   'account.print.exportedAt',
   'account.print.notificationChannel',
   'account.print.notAvailable',
-  'account.print.practitioner'
+  'account.print.practitioner',
+  'account.print.dossierLabel',
+  'account.print.profileDescriptor',
+  'account.print.savedProfiles',
+  'account.print.savedInputCount',
+  'account.print.recordState',
+  'account.print.savedInput',
+  'account.print.awaitingCalculation',
+  'account.print.privateRecord',
+  'account.print.detailAppendix',
+  'account.print.storyLead',
+  'account.print.storyBody',
+  'account.print.buildProfile',
+  'account.print.browserPrintHint',
+  'account.print.footerPrivate'
 ];
 const GLOBAL_NAMES = ['window', 'document', 'HTMLElement', 'HTMLButtonElement', 'Event', 'fetch'];
 const ORIGINAL_GLOBALS = new Map(
@@ -239,7 +254,8 @@ describe('Account printable projection', { concurrency: false }, () => {
     assert.match(text, /Private <Chart>/u);
     assert.match(text, /Shanghai, China/u);
     assert.match(text, /Unknown birth time/u);
-    assert.match(text, /Input saved; authoritative chart calculation is not available for this record\./u);
+    assert.match(text, /Saved input/u);
+    assert.match(text, /Awaiting authoritative chart calculation/u);
     assert.match(text, /Private note <unsafe>/u);
     assert.match(text, /Private feedback <unsafe>/u);
     assert.doesNotMatch(text, /internal-location-resolution-id|internal-timezone-database|internal-provider/u);
@@ -333,7 +349,7 @@ describe('Account printable boundary', { concurrency: false }, () => {
       assert.equal('body' in fetchCalls[1][1], false);
       assert.equal(printCalls, 1);
       assert.equal(elements.accountPage.getAttribute('data-account-print-active'), 'true');
-      assert.match(elements.view.textContent, /Input saved/u);
+      assert.match(elements.view.textContent, /Saved input/u);
 
       window.dispatchEvent(new Event('afterprint'));
       assert.equal(elements.accountPage.hasAttribute('data-account-print-active'), false);

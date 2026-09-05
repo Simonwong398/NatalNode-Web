@@ -1,4 +1,5 @@
 import {
+  getLocalizedPath,
   getLocalizedCurrentPath,
   getPresentationLocale,
   type SupportedLocale
@@ -14,6 +15,7 @@ import {
   resolvePreparationErrorCode,
   type AccountExportErrorCode
 } from './account-export.js';
+import { SITE_ORIGIN } from '../../lib/seo.js';
 
 const ACCOUNT_EXPORT_SCHEMA_VERSION = '1.2';
 const SIGN_IN_PATH = '/auth/sign-in';
@@ -127,6 +129,43 @@ export interface AccountPrintElements {
   readonly reauthStatus: HTMLElement;
 }
 
+export class AccountExportPayloadError extends Error {
+  readonly code: AccountExportErrorCode;
+
+  constructor(code: AccountExportErrorCode) {
+    super(`Account export failed with ${code}.`);
+    this.name = 'AccountExportPayloadError';
+    this.code = code;
+  }
+}
+
+/** Reads the existing account export endpoint; it does not perform aggregation. */
+export async function fetchAccountExportPayload(): Promise<unknown> {
+  const response = await fetch('/api/account/export', {
+    method: 'POST',
+    credentials: 'same-origin',
+    cache: 'no-store',
+    headers: {
+      Accept: 'application/json'
+    }
+  });
+
+  if (!response.ok) {
+    let payload: unknown = null;
+    try {
+      payload = await response.json();
+    } catch (_error) {
+      payload = null;
+    }
+
+    throw new AccountExportPayloadError(
+      resolveAccountExportResponseCode(response.status, payload) ?? 'INTERNAL_ERROR'
+    );
+  }
+
+  return response.json();
+}
+
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value);
 }
@@ -156,6 +195,30 @@ function readNullableText(value: unknown, maximumCharacters = 10_000): string | 
   return value === null || value === undefined
     ? null
     : readText(value, maximumCharacters);
+}
+
+function readSafeWebsiteUrl(value: unknown): string | null {
+  const candidate = readNullableText(value, 2_000);
+  if (candidate === null) {
+    return null;
+  }
+
+  try {
+    const url = new URL(candidate);
+    const hostname = url.hostname.replace(/^\[|\]$/gu, '');
+    if (
+      (url.protocol !== 'https:' && url.protocol !== 'http:') ||
+      hostname === 'localhost' ||
+      hostname === '127.0.0.1' ||
+      hostname === '::1'
+    ) {
+      return null;
+    }
+  } catch (_error) {
+    return null;
+  }
+
+  return candidate;
 }
 
 function readBoolean(value: unknown): boolean | null {
@@ -398,7 +461,7 @@ function parsePractitionerApplication(
     practiceAreas,
     languages,
     countryOrRegion,
-    websiteUrl: readNullableText(value.websiteUrl, 2_000),
+    websiteUrl: readSafeWebsiteUrl(value.websiteUrl),
     practiceStatement,
     submittedAt: readNullableText(value.submittedAt, 100),
     status
@@ -443,7 +506,7 @@ function parsePractitionerProfile(
     practiceAreas,
     languages,
     countryOrRegion,
-    websiteUrl: readNullableText(value.websiteUrl, 2_000),
+    websiteUrl: readSafeWebsiteUrl(value.websiteUrl),
     approvedAt: readNullableText(value.approvedAt, 100),
     profileStatus
   };
@@ -927,30 +990,119 @@ function appendPractitionerDetails(
   }
 }
 
-/** Renders only user-meaningful, non-secret fields from the export model. */
-export function renderAccountPrintView(
-  view: HTMLElement,
+function siteUrl(locale: SupportedLocale, path = '/'): string {
+  return `${SITE_ORIGIN}${getLocalizedPath(locale, path)}`;
+}
+
+function siteLabel(): string {
+  return SITE_ORIGIN.replace(/^https?:\/\//u, '').replace(/\/$/u, '');
+}
+
+function appendBrandLogo(document: Document, parent: HTMLElement): void {
+  const logo = createElement(document, 'img', 'account-print-logo');
+  logo.src = '/brand/natalnode-lockup-horizontal-light.svg';
+  logo.alt = 'NatalNode';
+  logo.width = 180;
+  logo.height = 40;
+  logo.decoding = 'sync';
+  parent.append(logo);
+}
+
+function appendSiteLink(
+  document: Document,
+  parent: HTMLElement,
+  locale: SupportedLocale,
+  path: string,
+  label: string,
+  className = 'account-print-link'
+): void {
+  const link = createElement(document, 'a', className, label);
+  link.href = siteUrl(locale, path);
+  parent.append(link);
+}
+
+function appendMetric(
+  document: Document,
+  parent: HTMLElement,
+  label: string,
+  value: string
+): void {
+  const metric = createElement(document, 'div', 'account-print-metric');
+  metric.append(
+    createElement(document, 'dt', 'account-print-label', label),
+    createElement(document, 'dd', 'account-print-metric-value', value)
+  );
+  parent.append(metric);
+}
+
+function formatCount(locale: SupportedLocale, value: number): string {
+  return new Intl.NumberFormat(locale).format(value);
+}
+
+function recordStateLabel(
+  locale: SupportedLocale,
+  authority: AccountPrintAuthority
+): string {
+  if (authority === 'input-only') {
+    return ui(locale, 'account.print.savedInput');
+  }
+
+  return authorityLabel(locale, authority);
+}
+
+function recordStateDescription(
+  locale: SupportedLocale,
+  authority: AccountPrintAuthority
+): string {
+  if (authority === 'input-only') {
+    return ui(locale, 'account.print.awaitingCalculation');
+  }
+
+  return authorityDescription(locale, authority);
+}
+
+function appendStory(
+  document: Document,
+  parent: HTMLElement,
+  locale: SupportedLocale
+): void {
+  const story = createElement(document, 'section', 'account-print-story');
+  story.append(
+    createElement(document, 'p', 'account-print-story-lead', ui(locale, 'account.print.storyLead')),
+    createElement(document, 'p', 'account-print-story-body', ui(locale, 'account.print.storyBody'))
+  );
+  parent.append(story);
+}
+
+function appendDiscoverability(
+  document: Document,
+  parent: HTMLElement,
+  locale: SupportedLocale
+): void {
+  const cta = createElement(document, 'section', 'account-print-cta');
+  cta.append(
+    createElement(document, 'p', 'account-print-eyebrow', ui(locale, 'account.print.buildProfile')),
+    createElement(document, 'h3', 'account-print-cta-title', ui(locale, 'account.share.cta')),
+    createElement(document, 'p', 'account-print-cta-url', siteLabel())
+  );
+  appendSiteLink(document, cta, locale, '/', siteLabel(), 'account-print-cta-link');
+
+  const destinations = createElement(document, 'nav', 'account-print-destinations');
+  destinations.setAttribute('aria-label', ui(locale, 'account.print.buildProfile'));
+  appendSiteLink(document, destinations, locale, '/learn/', ui(locale, 'nav.learn'));
+  appendSiteLink(document, destinations, locale, '/tools/', ui(locale, 'nav.tools'));
+  appendSiteLink(document, destinations, locale, '/', ui(locale, 'nav.calculate'));
+  cta.append(destinations);
+  parent.append(cta);
+}
+
+function appendAccountDetails(
+  document: Document,
+  parent: HTMLElement,
   model: AccountPrintModel,
   locale: SupportedLocale
 ): void {
-  const document = view.ownerDocument;
-  view.replaceChildren();
-
-  const article = createElement(document, 'article', 'account-print-document');
-  const header = createElement(document, 'header', 'account-print-header');
-  header.append(
-    createElement(document, 'p', 'account-print-eyebrow', ui(locale, 'account.data.eyebrow')),
-    createElement(document, 'h2', 'account-print-title', ui(locale, 'account.print.title')),
-    createElement(
-      document,
-      'p',
-      'account-print-meta',
-      `${ui(locale, 'account.print.exportedAt')}: ${formatInstant(locale, model.exportedAt)}`
-    )
-  );
-  article.append(header);
-
-  const accountSection = appendSection(document, article, ui(locale, 'account.overview.title'));
+  const accountSection = appendSection(document, parent, ui(locale, 'account.overview.title'));
   const identityValues = model.account.identities.map((identity) =>
     identity.email ?? ui(locale, 'account.overview.identity.google')
   );
@@ -976,105 +1128,229 @@ export function renderAccountPrintView(
       value: formatInstant(locale, model.account.createdAt)
     }
   ]);
+}
 
-  if (model.charts.length > 0) {
-    const chartsSection = appendSection(document, article, ui(locale, 'vault.listTitle'));
+function appendSavedProfiles(
+  document: Document,
+  parent: HTMLElement,
+  model: AccountPrintModel,
+  locale: SupportedLocale
+): void {
+  if (model.charts.length === 0) {
+    return;
+  }
 
-    for (const chart of model.charts) {
-      const chartItem = createElement(document, 'article', 'account-print-chart');
-      chartItem.append(
-        createElement(document, 'h4', 'account-print-subsection-title', chart.displayName)
+  const profilesSection = appendSection(document, parent, ui(locale, 'account.print.savedProfiles'));
+
+  for (const chart of model.charts) {
+    const profile = createElement(document, 'article', 'account-print-profile');
+    const profileHeader = createElement(document, 'header', 'account-print-profile-header');
+    profileHeader.append(
+      createElement(document, 'h4', 'account-print-profile-title', chart.displayName),
+      createElement(document, 'p', 'account-print-profile-category', categoryLabel(locale, chart.category))
+    );
+    profile.append(profileHeader);
+
+    const timeValue = chart.timeState === 'unknown'
+      ? timeStateLabel(locale, chart.timeState)
+      : `${timeStateLabel(locale, chart.timeState)}${chart.birthTime === null ? '' : ` · ${chart.birthTime}`}`;
+    appendDefinitionList(document, profile, [
+      { label: ui(locale, 'vault.birthDate'), value: formatLocalDate(locale, chart.birthDate) },
+      { label: ui(locale, 'vault.birthTimeState'), value: timeValue },
+      {
+        label: ui(locale, 'vault.canonicalPlace'),
+        value: chart.locationLabel ?? ui(locale, 'account.print.notAvailable')
+      },
+      {
+        label: ui(locale, 'vault.timezone'),
+        value: chart.timezone ?? ui(locale, 'account.print.notAvailable')
+      },
+      {
+        label: ui(locale, 'birthInput.advancedSettings'),
+        value: chart.houseSystem ?? ui(locale, 'account.print.notAvailable')
+      },
+      { label: ui(locale, 'vault.savedAt'), value: formatInstant(locale, chart.savedAt) }
+    ]);
+
+    const state = createElement(document, 'div', 'account-print-state');
+    state.append(
+      createElement(document, 'p', 'account-print-label', ui(locale, 'account.print.recordState')),
+      createElement(document, 'p', 'account-print-state-value', recordStateLabel(locale, chart.authority)),
+      createElement(document, 'p', 'account-print-state-description', recordStateDescription(locale, chart.authority))
+    );
+    profile.append(state);
+
+    if (chart.notes.length > 0) {
+      profile.append(
+        createElement(document, 'h5', 'account-print-label account-print-notes-title', ui(locale, 'vault.notesTitle'))
       );
-
-      const timeValue = chart.timeState === 'unknown'
-        ? timeStateLabel(locale, chart.timeState)
-        : `${timeStateLabel(locale, chart.timeState)}${chart.birthTime === null ? '' : ` · ${chart.birthTime}`}`;
-      appendDefinitionList(document, chartItem, [
-        { label: ui(locale, 'vault.recordName'), value: chart.displayName },
-        { label: ui(locale, 'vault.category'), value: categoryLabel(locale, chart.category) },
-        { label: ui(locale, 'vault.birthDate'), value: formatLocalDate(locale, chart.birthDate) },
-        { label: ui(locale, 'vault.birthTimeState'), value: timeValue },
-        {
-          label: ui(locale, 'vault.canonicalPlace'),
-          value: chart.locationLabel ?? ui(locale, 'account.print.notAvailable')
-        },
-        {
-          label: ui(locale, 'vault.timezone'),
-          value: chart.timezone ?? ui(locale, 'account.print.notAvailable')
-        },
-        {
-          label: ui(locale, 'birthInput.advancedSettings'),
-          value: chart.houseSystem ?? ui(locale, 'account.print.notAvailable')
-        },
-        { label: ui(locale, 'vault.savedAt'), value: formatInstant(locale, chart.savedAt) },
-        { label: ui(locale, 'vault.provenance'), value: authorityLabel(locale, chart.authority) },
-        {
-          label: ui(locale, 'vault.provenance'),
-          value: authorityDescription(locale, chart.authority)
+      for (const note of chart.notes) {
+        const noteItem = createElement(document, 'div', 'account-print-note');
+        noteItem.append(createElement(document, 'p', 'account-print-user-content', note.content));
+        if (note.createdAt !== null) {
+          noteItem.append(
+            createElement(
+              document,
+              'p',
+              'account-print-meta',
+              formatUiMessage(locale, 'vault.noteCreated', {
+                date: formatInstant(locale, note.createdAt)
+              })
+            )
+          );
         }
-      ]);
-
-      if (chart.notes.length > 0) {
-        chartItem.append(
-          createElement(document, 'h5', 'account-print-label account-print-notes-title', ui(locale, 'vault.notesTitle'))
-        );
-        for (const note of chart.notes) {
-          const noteItem = createElement(document, 'div', 'account-print-note');
-          noteItem.append(createElement(document, 'p', 'account-print-user-content', note.content));
-          if (note.createdAt !== null) {
-            noteItem.append(
-              createElement(
-                document,
-                'p',
-                'account-print-meta',
-                formatUiMessage(locale, 'vault.noteCreated', {
-                  date: formatInstant(locale, note.createdAt)
-                })
-              )
-            );
-          }
-          chartItem.append(noteItem);
-        }
+        profile.append(noteItem);
       }
-
-      chartsSection.append(chartItem);
     }
-  }
 
+    profilesSection.append(profile);
+  }
+}
+
+function appendNotifications(
+  document: Document,
+  parent: HTMLElement,
+  model: AccountPrintModel,
+  locale: SupportedLocale
+): void {
   if (
-    model.notifications.channelPreferences.length > 0 ||
-    model.notifications.categoryPreferences.length > 0
+    model.notifications.channelPreferences.length === 0 &&
+    model.notifications.categoryPreferences.length === 0
   ) {
-    const notificationsSection = appendSection(
-      document,
-      article,
-      ui(locale, 'account.notifications.title')
-    );
-    const entries: PrintEntry[] = model.notifications.channelPreferences.map((preference) => ({
-      label: ui(locale, 'account.print.notificationChannel'),
-      value: enabledLabel(locale, preference.enabled)
-    }));
-    entries.push(
-      ...model.notifications.categoryPreferences.map((preference) => ({
-        label: notificationCategoryLabel(locale, preference.category),
-        value: enabledLabel(locale, preference.enabled)
-      }))
-    );
-    appendDefinitionList(document, notificationsSection, entries);
+    return;
   }
 
-  if (model.feedback.length > 0) {
-    const feedbackSection = appendSection(document, article, ui(locale, 'auth.feedback'));
-    for (const feedback of model.feedback) {
-      const feedbackItem = createElement(document, 'article', 'account-print-feedback');
-      appendDefinitionList(document, feedbackItem, [
-        { label: ui(locale, 'feedback.category'), value: feedback.category },
-        { label: ui(locale, 'feedback.message'), value: feedback.message },
-        { label: ui(locale, 'vault.savedAt'), value: formatInstant(locale, feedback.createdAt) }
-      ]);
-      feedbackSection.append(feedbackItem);
-    }
+  const notificationsSection = appendSection(
+    document,
+    parent,
+    ui(locale, 'account.notifications.title')
+  );
+  const entries: PrintEntry[] = model.notifications.channelPreferences.map((preference) => ({
+    label: ui(locale, 'account.print.notificationChannel'),
+    value: enabledLabel(locale, preference.enabled)
+  }));
+  entries.push(
+    ...model.notifications.categoryPreferences.map((preference) => ({
+      label: notificationCategoryLabel(locale, preference.category),
+      value: enabledLabel(locale, preference.enabled)
+    }))
+  );
+  appendDefinitionList(document, notificationsSection, entries);
+}
+
+function appendFeedback(
+  document: Document,
+  parent: HTMLElement,
+  model: AccountPrintModel,
+  locale: SupportedLocale
+): void {
+  if (model.feedback.length === 0) {
+    return;
   }
+
+  const feedbackSection = appendSection(document, parent, ui(locale, 'auth.feedback'));
+  for (const feedback of model.feedback) {
+    const feedbackItem = createElement(document, 'article', 'account-print-feedback');
+    appendDefinitionList(document, feedbackItem, [
+      { label: ui(locale, 'feedback.category'), value: feedback.category },
+      { label: ui(locale, 'feedback.message'), value: feedback.message },
+      { label: ui(locale, 'vault.savedAt'), value: formatInstant(locale, feedback.createdAt) }
+    ]);
+    feedbackSection.append(feedbackItem);
+  }
+}
+
+function appendPrintFooter(
+  document: Document,
+  parent: HTMLElement,
+  model: AccountPrintModel,
+  locale: SupportedLocale
+): void {
+  const footer = createElement(document, 'footer', 'account-print-footer');
+  const footerBrand = createElement(document, 'div', 'account-print-footer-brand');
+  footerBrand.append(
+    createElement(document, 'span', 'account-print-footer-wordmark', 'NATALNODE'),
+    createElement(document, 'span', 'account-print-footer-site', siteLabel())
+  );
+  footer.append(
+    footerBrand,
+    createElement(
+      document,
+      'p',
+      'account-print-meta',
+      `${ui(locale, 'account.print.footerPrivate')} · ${ui(locale, 'account.print.exportedAt').toLowerCase()} ${formatInstant(locale, model.exportedAt)}`
+    )
+  );
+  parent.append(footer);
+}
+
+/** Renders a premium, user-meaningful, non-secret projection from the export model. */
+export function renderAccountPrintView(
+  view: HTMLElement,
+  model: AccountPrintModel,
+  locale: SupportedLocale
+): void {
+  const document = view.ownerDocument;
+  view.replaceChildren();
+
+  const article = createElement(document, 'article', 'account-print-document');
+  const cover = createElement(document, 'section', 'account-print-cover');
+  const brandHeader = createElement(document, 'header', 'account-print-header');
+  appendBrandLogo(document, brandHeader);
+  brandHeader.append(
+    createElement(document, 'p', 'account-print-eyebrow', ui(locale, 'account.print.dossierLabel')),
+    createElement(document, 'h2', 'account-print-title', ui(locale, 'account.print.title')),
+    createElement(
+      document,
+      'p',
+      'account-print-display-name',
+      model.charts[0]?.displayName ?? ui(locale, 'account.print.profileDescriptor')
+    ),
+    createElement(document, 'p', 'account-print-meta', ui(locale, 'account.print.profileDescriptor')),
+    createElement(
+      document,
+      'p',
+      'account-print-export-meta',
+      `${ui(locale, 'account.print.exportedAt')}: ${formatInstant(locale, model.exportedAt)}`
+    )
+  );
+  cover.append(brandHeader);
+
+  const summary = createElement(document, 'dl', 'account-print-summary');
+  const savedInputCount = model.charts.filter((chart) => chart.authority === 'input-only').length;
+  appendMetric(document, summary, ui(locale, 'account.print.savedProfiles'), formatCount(locale, model.charts.length));
+  appendMetric(
+    document,
+    summary,
+    ui(locale, 'account.print.privateRecord'),
+    formatUiMessage(locale, 'account.print.savedInputCount', { count: savedInputCount })
+  );
+  appendMetric(
+    document,
+    summary,
+    ui(locale, 'account.overview.method'),
+    model.account.identities
+      .map((identity) => ui(locale, identity.method === 'EMAIL_MAGIC_LINK'
+        ? 'account.overview.method.emailMagicLink'
+        : 'account.overview.method.google'))
+      .join(' · ') || ui(locale, 'account.print.notAvailable')
+  );
+  cover.append(summary);
+  appendStory(document, cover, locale);
+  appendDiscoverability(document, cover, locale);
+  article.append(cover);
+
+  const detailPage = createElement(document, 'section', 'account-print-detail-page');
+  const detailHeader = createElement(document, 'header', 'account-print-detail-header');
+  detailHeader.append(
+    createElement(document, 'p', 'account-print-eyebrow', ui(locale, 'account.print.privateRecord')),
+    createElement(document, 'h3', 'account-print-detail-title', ui(locale, 'account.print.detailAppendix'))
+  );
+  detailPage.append(detailHeader);
+  appendAccountDetails(document, detailPage, model, locale);
+  appendSavedProfiles(document, detailPage, model, locale);
+  appendNotifications(document, detailPage, model, locale);
+  appendFeedback(document, detailPage, model, locale);
 
   if (
     model.practitioner.application !== null ||
@@ -1083,12 +1359,14 @@ export function renderAccountPrintView(
   ) {
     const practitionerSection = appendSection(
       document,
-      article,
+      detailPage,
       ui(locale, 'account.print.practitioner')
     );
     appendPractitionerDetails(document, practitionerSection, locale, model.practitioner);
   }
 
+  article.append(detailPage);
+  appendPrintFooter(document, article, model, locale);
   view.append(article);
 }
 
@@ -1196,33 +1474,7 @@ export function initializeAccountPrint(elements: AccountPrintElements): void {
           return;
         }
 
-        const response = await fetch('/api/account/export', {
-          method: 'POST',
-          credentials: 'same-origin',
-          cache: 'no-store',
-          headers: {
-            Accept: 'application/json'
-          }
-        });
-
-        if (!response.ok) {
-          let payload: unknown = null;
-          try {
-            payload = await response.json();
-          } catch (_error) {
-            payload = null;
-          }
-
-          const code = resolveAccountExportResponseCode(response.status, payload);
-          if (code === null) {
-            showPrintError(elements, locale);
-          } else {
-            handlePrintError(elements, locale, code);
-          }
-          return;
-        }
-
-        const payload: unknown = await response.json();
+        const payload = await fetchAccountExportPayload();
         const model = buildAccountPrintModel(payload);
         if (model === null) {
           showPrintError(elements, locale);
@@ -1237,10 +1489,14 @@ export function initializeAccountPrint(elements: AccountPrintElements): void {
         elements.status.textContent = '';
         isPrintActive = true;
         window.print();
-      } catch (_error) {
+      } catch (error) {
         isPrintActive = false;
         clearPrintView(elements);
-        showPrintError(elements, locale);
+        if (error instanceof AccountExportPayloadError) {
+          handlePrintError(elements, locale, error.code);
+        } else {
+          showPrintError(elements, locale);
+        }
       } finally {
         isPreparing = false;
         setPrintPending(elements, false, locale);
