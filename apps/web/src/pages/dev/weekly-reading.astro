@@ -1,0 +1,31 @@
+---
+import SiteLayout from '@/layouts/SiteLayout.astro';
+import WeeklyReadingPrototype from '@/features/interpretation/WeeklyReadingPrototype';
+import { createWeeklyReadingPrototypeScenarios } from '@/features/interpretation/weekly-reading-prototype';
+import type { SeoMetadata } from '@/lib/seo';
+
+const isWeeklyPrototypeAvailable =
+  import.meta.env.DEV || process.env.NATALNODE_LOCAL_DEV_PREVIEW === 'true';
+const scenarios = createWeeklyReadingPrototypeScenarios();
+
+const seo: SeoMetadata = {
+  title: 'Weekly Sky Portrait Prototype | NatalNode',
+  description: 'Development-only preview for the Weekly Sky Portrait reading model.',
+  canonical: '/dev/weekly-reading',
+  robots: 'noindex,nofollow'
+};
+---
+
+<SiteLayout seo={seo} mode="editorial">
+  <main class="nn-container max-w-[78rem] pb-16 pt-8 sm:pb-24 sm:pt-12">
+    {isWeeklyPrototypeAvailable ? (
+      <WeeklyReadingPrototype scenarios={scenarios} client:load />
+    ) : (
+      <section class="mx-auto max-w-2xl" aria-labelledby="weekly-prototype-unavailable-title">
+        <p class="nn-eyebrow">Development only</p>
+        <h1 class="nn-type-page-title mt-3" id="weekly-prototype-unavailable-title">Weekly Sky Portrait prototype</h1>
+        <p class="nn-type-body mt-4">This development preview is unavailable in production builds.</p>
+      </section>
+    )}
+  </main>
+</SiteLayout>
