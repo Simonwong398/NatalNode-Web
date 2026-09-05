@@ -229,6 +229,39 @@ test('Vault eligibility fails closed for malformed time, unselected location, mi
   );
 });
 
+test('development-only input metadata does not bypass canonical location authority', () => {
+  const developmentInput = createChartRequest({
+    birth: {
+      timezoneDatabaseVersion: 'UI_DEVELOPMENT_ONLY',
+      timezoneResolutionMethod: 'UI_DEVELOPMENT_ONLY'
+    }
+  });
+  const record = createVaultRecord(
+    createRecordInput({
+      chart: developmentInput,
+      saveMode: 'INPUT_ONLY',
+      allowDevelopmentOnlyMetadata: true
+    })
+  );
+
+  assert.equal(record.scientificStatus, 'INPUT_ONLY');
+  assert.equal(record.recordOrigin, 'USER_INPUT');
+  assert.deepEqual(record.normalizedChartRequest, developmentInput);
+
+  assertEligibilityError(
+    () =>
+      createVaultRecord(
+        createRecordInput({
+          chart: developmentInput,
+          saveMode: 'INPUT_ONLY',
+          locationResolutionService: undefined,
+          allowDevelopmentOnlyMetadata: true
+        })
+      ),
+    'INVALID_INPUT'
+  );
+});
+
 test('UNKNOWN_TIME remains an explicit input state and never gains derived time authority', () => {
   const record = createVaultRecord(
     createRecordInput({
@@ -447,7 +480,12 @@ test('Vault API saves input-only records without calculation, enforces capacity,
   let calculatedResult = createCompleteChartResult();
 
   const requestBody = {
-    chart: createChartRequest(),
+    chart: createChartRequest({
+      birth: {
+        timezoneDatabaseVersion: 'UI_DEVELOPMENT_ONLY',
+        timezoneResolutionMethod: 'UI_DEVELOPMENT_ONLY'
+      }
+    }),
     displayName: 'Input snapshot',
     category: 'SELF',
     tags: [],
@@ -488,10 +526,11 @@ test('Vault API saves input-only records without calculation, enforces capacity,
       'X-Test-User': 'owner-1',
       'Content-Type': 'application/json'
     },
-    body: JSON.stringify({
-      ...requestBody,
-      saveMode: 'CHART_RESULT_AVAILABLE'
-    })
+      body: JSON.stringify({
+        ...requestBody,
+        chart: createChartRequest(),
+        saveMode: 'CHART_RESULT_AVAILABLE'
+      })
   });
   assert.equal(contradictoryFixtureResponse.status, 409);
   assert.equal((await contradictoryFixtureResponse.json()).code, 'INVALID_STATE');

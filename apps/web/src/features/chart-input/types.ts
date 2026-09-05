@@ -99,5 +99,5 @@ export const INITIAL_BIRTH_INPUT_STATE: BirthInputState = {
   timezoneDatabaseVersion: null,
   timezoneResolutionMethod: null,
   ambiguityStatus: 'UNRESOLVED',
-  houseSystem: ''
+  houseSystem: 'Placidus'
 };

@@ -71,7 +71,7 @@ export function useBirthInputResolution(
   const resolveDraft = async (
     draft: BirthInputDraft,
     onResolutionAccepted: (resolution: BirthInputResolution) => void
-  ): Promise<void> => {
+  ): Promise<BirthInputResolution | null> => {
     const requestId = latestRequestRef.current + 1;
     latestRequestRef.current = requestId;
     setIsResolving(true);
@@ -80,18 +80,20 @@ export function useBirthInputResolution(
       const nextResolution = await resolver.resolve({ ...draft });
 
       if (latestRequestRef.current !== requestId) {
-        return;
+        return null;
       }
 
       setResolution(nextResolution);
       onResolutionAccepted(nextResolution);
+      return nextResolution;
     } catch {
       if (latestRequestRef.current !== requestId) {
-        return;
+        return null;
       }
 
       setResolution(null);
       setResolutionError(RESOLUTION_ERROR);
+      return null;
     } finally {
       if (latestRequestRef.current === requestId) {
         setIsResolving(false);

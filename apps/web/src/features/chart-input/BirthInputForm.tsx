@@ -35,6 +35,11 @@ import {
 } from './birth-date-input';
 import { useBirthInputResolution } from './useBirthInputResolution';
 import { chartUi } from '@/core/chart/chart-ui';
+import SaveChartPanel from '@/features/vault/SaveChartPanel';
+import {
+  canAttemptVaultInputSave,
+  resolveVaultInputSaveEligibility
+} from '@/features/vault/vault-input-authority';
 
 type ValidationField = 'localDate' | 'localTime' | 'locationLabel' | 'houseSystem';
 
@@ -139,7 +144,11 @@ export interface BirthInputFormProps {
   onLocationCandidateSelect?: (candidate: LocationCandidate) => void;
   onLocationPanelMounted?: (mounted: boolean) => void;
   onLocationQueryChange?: (rawQuery: string) => void;
+  /** Invalidates any calculated snapshot when the live form input changes. */
+  onInputChanged?: () => void;
   onResolvedInput: (selection: ResolvedBirthInputSelection) => void;
+  /** Keeps the current-input save path singular when a result workspace is present. */
+  showInputSavePanel?: boolean;
   /** Production compositions must opt into the explicit location gate. */
   requireResolvedLocation?: boolean;
   resolver?: BirthInputResolver;
@@ -244,10 +253,12 @@ export default function BirthInputForm({
   onLocationCandidateSelect,
   onLocationPanelMounted,
   onLocationQueryChange,
+  onInputChanged,
   onResolvedInput,
   requireResolvedLocation = false,
   resolver = defaultResolver,
-  showDevelopmentDiagnostics = false
+  showDevelopmentDiagnostics = false,
+  showInputSavePanel = true
 }: BirthInputFormProps) {
   const [draft, setDraft] = useState<BirthInputDraft>(() =>
     draftFromChartRequest(initialChartRequest)
@@ -276,7 +287,18 @@ export default function BirthInputForm({
   const isInteractionDisabled = isResolving || isCalculationPending;
   const isDevelopmentFixtureResolver = resolver instanceof DevelopmentBirthInputResolver;
 
+  const applyAcceptedResolution = (nextResolution: BirthInputResolution) => {
+    const nextBirthDateParts = toBirthDateParts(nextResolution.localDate);
+
+    if (nextBirthDateParts) {
+      setBirthDateParts(nextBirthDateParts);
+    }
+    setDraft((current) => applyResolutionToDraft(current, nextResolution));
+  };
+
   const updateEditableDraft = (patch: Partial<EditableDraft>) => {
+    onInputChanged?.();
+
     if (patch.locationLabel !== undefined) {
       onLocationQueryChange?.(patch.locationLabel);
     }
@@ -297,6 +319,8 @@ export default function BirthInputForm({
   };
 
   const handleBirthDatePartChange = (part: BirthDatePart, value: string) => {
+    onInputChanged?.();
+
     const nextParts = {
       ...birthDateParts,
       [part]: sanitizeBirthDatePart(value, part === 'year' ? 4 : 2)
@@ -329,6 +353,8 @@ export default function BirthInputForm({
   };
 
   const handleUnknownTimeChange = (checked: boolean) => {
+    onInputChanged?.();
+
     setDraft((current) => ({
       ...current,
       localTime: checked ? null : '',
@@ -367,12 +393,70 @@ export default function BirthInputForm({
       return;
     }
 
+    onInputChanged?.();
+
     const nextBirthDateParts = toBirthDateParts(exactResolution.localDate);
 
     if (nextBirthDateParts) {
       setBirthDateParts(nextBirthDateParts);
     }
     setDraft((current) => applyResolutionToDraft(current, exactResolution));
+  };
+
+  const inputSaveCandidate = canAttemptVaultInputSave({
+    draft,
+    resolution,
+    locationResolution
+  });
+
+  const prepareCurrentInputSave = async (): Promise<ChartRequest | null> => {
+    const nextErrors = validateDraft(draft, unknownTime, birthDateParts, locale);
+
+    if (
+      locationResolution === undefined ||
+      !canSubmitProductionCalculation(locationResolution)
+    ) {
+      nextErrors.locationLabel = chartUi(
+        locale,
+        'birthInput.location.resolutionRequired'
+      );
+    }
+
+    setErrors(nextErrors);
+
+    if (nextErrors.houseSystem) {
+      setIsAdvancedSettingsOpen(true);
+    }
+
+    if (Object.keys(nextErrors).length > 0 || !draft.houseSystem) {
+      invalidateResolution();
+      return null;
+    }
+
+    let currentResolution = resolution;
+
+    if (
+      currentResolution === null ||
+      !resolveVaultInputSaveEligibility({
+        draft,
+        resolution: currentResolution,
+        locationResolution
+      }).eligible
+    ) {
+      currentResolution = await resolveDraft(draft, applyAcceptedResolution);
+    }
+
+    if (currentResolution === null) {
+      return null;
+    }
+
+    const eligibility = resolveVaultInputSaveEligibility({
+      draft,
+      resolution: currentResolution,
+      locationResolution
+    });
+
+    return eligibility.eligible ? eligibility.chartRequest : null;
   };
 
   const handleSubmit = async (event: { preventDefault: () => void }) => {
@@ -424,12 +508,7 @@ export default function BirthInputForm({
     }
 
     await resolveDraft(draft, (nextResolution) => {
-      const nextBirthDateParts = toBirthDateParts(nextResolution.localDate);
-
-      if (nextBirthDateParts) {
-        setBirthDateParts(nextBirthDateParts);
-      }
-      setDraft((current) => applyResolutionToDraft(current, nextResolution));
+      applyAcceptedResolution(nextResolution);
 
       if (
         nextResolution.ambiguityStatus === 'EXACT' ||
@@ -534,6 +613,17 @@ export default function BirthInputForm({
           />
         </form>
       </section>
+
+      {showInputSavePanel && inputSaveCandidate ? (
+        <div className="mt-6">
+          <SaveChartPanel
+            chartRequest={null}
+            isSaveEligible
+            locale={locale}
+            onPrepareSave={prepareCurrentInputSave}
+          />
+        </div>
+      ) : null}
 
       <BirthDataTrustSection locale={locale} />
 

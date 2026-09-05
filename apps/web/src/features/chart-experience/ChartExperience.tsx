@@ -12,6 +12,7 @@ import { getLocalizedCurrentPath, type SupportedLocale } from '@/lib/localizatio
 import { IS_DEVELOPMENT_RUNTIME } from '@/lib/runtime';
 import { toChartRequest } from './chart-request';
 import { chartUi } from '@/core/chart/chart-ui';
+import { resolveVaultSaveIntent } from '@/features/vault/vault-save-intent';
 import type { CalculatedChartSnapshot } from './types';
 
 interface ChartExperienceProps {
@@ -245,6 +246,24 @@ export default function ChartExperience({
     }
   };
 
+  const handleInputChanged = () => {
+    setSnapshot(null);
+    setCalculationError(null);
+  };
+
+  const handleLocationQueryChange = (rawQuery: string) => {
+    handleInputChanged();
+    locationResolution.setRawQuery(rawQuery);
+  };
+
+  const handleLocationCandidateSelect = (candidate: Parameters<typeof locationResolution.selectCandidate>[0]) => {
+    handleInputChanged();
+    locationResolution.selectCandidate(candidate);
+  };
+
+  const showInputSavePanel =
+    snapshot === null || resolveVaultSaveIntent(snapshot.result) === 'INPUT_ONLY';
+
   return (
     <>
       <BirthInputForm
@@ -255,14 +274,16 @@ export default function ChartExperience({
         }
         initialChartRequest={reopenedChartRequest ?? undefined}
         isCalculationPending={isCalculating}
+        onInputChanged={handleInputChanged}
         onResolvedInput={handleResolvedInput}
         locale={locale}
         locationDiagnostics={locationResolution.diagnostics}
         locationResolution={locationResolution.resolution}
-        onLocationCandidateSelect={locationResolution.selectCandidate}
+        onLocationCandidateSelect={handleLocationCandidateSelect}
         onLocationPanelMounted={locationResolution.setPanelMounted}
-        onLocationQueryChange={locationResolution.setRawQuery}
+        onLocationQueryChange={handleLocationQueryChange}
         requireResolvedLocation={requireResolvedLocation}
+        showInputSavePanel={showInputSavePanel}
         showDevelopmentDiagnostics={IS_DEVELOPMENT_RUNTIME}
       />
 

@@ -44,8 +44,10 @@ export interface CreateVaultRecordInput {
   readonly locationResolutionService?: LocationResolutionService;
   readonly saveMode: VaultRecordSaveMode;
   readonly canonicalChartResult?: ChartResult | null;
-  /** Compatibility path for the existing development-only fixture UI. */
+  /** Non-production compatibility path for development-only UI metadata. */
   readonly allowDevelopmentFixtureSnapshot?: boolean;
+  /** Allows the non-production input form to retain its explicit fixture metadata. */
+  readonly allowDevelopmentOnlyMetadata?: boolean;
 }
 
 const DEVELOPMENT_ONLY_MARKER = 'DEVELOPMENT_ONLY';
@@ -181,7 +183,10 @@ function assertCanonicalLocation(
 export function assertEligibleVaultRecordInput(
   chart: ChartRequest,
   locationResolutionService?: LocationResolutionService,
-  options: { readonly allowDevelopmentFixture?: boolean } = {}
+  options: {
+    readonly allowDevelopmentFixture?: boolean;
+    readonly allowDevelopmentOnlyMetadata?: boolean;
+  } = {}
 ): CanonicalResolvedLocation | null {
   if (!isRecord(chart) || !isRecord(chart.birth)) {
     throw new VaultRecordEligibilityError('INVALID_INPUT');
@@ -264,7 +269,11 @@ export function assertEligibleVaultRecordInput(
     birth.timezoneDatabaseVersion.includes(DEVELOPMENT_ONLY_MARKER) ||
     birth.timezoneResolutionMethod.includes(DEVELOPMENT_ONLY_MARKER);
 
-  if (hasDevelopmentMarker && !options.allowDevelopmentFixture) {
+  if (
+    hasDevelopmentMarker &&
+    !options.allowDevelopmentFixture &&
+    !options.allowDevelopmentOnlyMetadata
+  ) {
     throw new VaultRecordEligibilityError('INVALID_STATE');
   }
 
@@ -344,7 +353,10 @@ export function createVaultRecord(input: CreateVaultRecordInput): VaultChartReco
   const location = assertEligibleVaultRecordInput(
     input.chart,
     input.locationResolutionService,
-    { allowDevelopmentFixture }
+    {
+      allowDevelopmentFixture,
+      allowDevelopmentOnlyMetadata: input.allowDevelopmentOnlyMetadata
+    }
   );
   const timeState = timeAuthorityState(input.chart);
 

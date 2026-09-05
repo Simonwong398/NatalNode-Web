@@ -64,6 +64,17 @@ test('development fixture results produce an explicit input-only request', () =>
   assert.deepEqual(input, before);
 });
 
+test('an input-only save can be built without any calculation result', () => {
+  const request = createSaveVaultChartRequest({
+    ...createInput(null),
+    chartResult: null
+  });
+
+  assert.equal(resolveVaultSaveIntent(null), 'INPUT_ONLY');
+  assert.equal(request.saveMode, 'INPUT_ONLY');
+  assert.deepEqual(request.chart, chartRequest);
+});
+
 test('complete non-fixture results produce a distinct result-save request', () => {
   const request = createSaveVaultChartRequest(createInput(completeResult));
 

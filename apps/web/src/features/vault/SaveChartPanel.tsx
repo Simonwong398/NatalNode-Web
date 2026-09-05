@@ -33,9 +33,19 @@ type SaveState =
   | 'failed';
 
 export interface SaveChartPanelProps {
-  chartRequest: ChartRequest;
-  chartResult: ChartResult;
+  /** Current request when already resolved, or null for a prepare-on-save flow. */
+  chartRequest: ChartRequest | null;
+  chartResult?: ChartResult | null;
   locale?: SupportedLocale;
+  /** Lets the owning input flow resolve and return its current request at submit time. */
+  onPrepareSave?: () => Promise<ChartRequest | null>;
+  /** Presentation-only gate; the server remains authoritative. */
+  isSaveEligible?: boolean;
+  disabledReason?: string;
+}
+
+function chartRequestKey(chartRequest: ChartRequest | null): string | null {
+  return chartRequest === null ? null : JSON.stringify(chartRequest);
 }
 
 function toSaveState(result: SaveVaultChartResult): SaveState {
@@ -58,14 +68,18 @@ function toSaveState(result: SaveVaultChartResult): SaveState {
 export default function SaveChartPanel({
   chartRequest,
   chartResult,
-  locale
+  locale,
+  onPrepareSave,
+  isSaveEligible = chartRequest !== null,
+  disabledReason
 }: SaveChartPanelProps) {
   const [displayName, setDisplayName] = useState('');
   const [category, setCategory] = useState<VaultChartCategory>('SELF');
   const [nameError, setNameError] = useState<string | null>(null);
   const [saveState, setSaveState] = useState<SaveState>('idle');
   const saveInFlightRef = useRef(false);
-  const currentChartRequestRef = useRef(chartRequest);
+  const currentChartRequestKeyRef = useRef(chartRequestKey(chartRequest));
+  const preparedChartRequestKeyRef = useRef<string | null>(null);
   const panelId = useId();
   const titleId = `${panelId}-title`;
   const displayNameId = `${panelId}-display-name`;
@@ -73,12 +87,21 @@ export default function SaveChartPanel({
   const categoryId = `${panelId}-category`;
   const vaultPath = getLocalizedPath(locale ?? DEFAULT_LOCALE, '/vault');
   const saveIntent = resolveVaultSaveIntent(chartResult);
-  currentChartRequestRef.current = chartRequest;
+  const isCurrentInputSave =
+    saveIntent === 'INPUT_ONLY' &&
+    (chartResult === null || chartResult === undefined);
+  const currentChartRequestKey = chartRequestKey(chartRequest);
+  currentChartRequestKeyRef.current = currentChartRequestKey;
 
   useEffect(() => {
+    if (preparedChartRequestKeyRef.current === currentChartRequestKey) {
+      return;
+    }
+
+    preparedChartRequestKeyRef.current = null;
     setNameError(null);
     setSaveState(saveInFlightRef.current ? 'saving' : 'idle');
-  }, [chartRequest]);
+  }, [currentChartRequestKey]);
 
   const resetFeedback = () => {
     setNameError(null);
@@ -89,6 +112,11 @@ export default function SaveChartPanel({
     event.preventDefault();
 
     if (saveInFlightRef.current) {
+      return;
+    }
+
+    if (!isSaveEligible) {
+      setSaveState('invalid-state');
       return;
     }
 
@@ -110,30 +138,42 @@ export default function SaveChartPanel({
       return;
     }
 
-    const submittedChartRequest = chartRequest;
-    const request = createSaveVaultChartRequest({
-      chart: submittedChartRequest,
-      chartResult,
-      displayName: trimmedDisplayName,
-      category,
-      tags: [],
-      favorite: false
-    });
-
     saveInFlightRef.current = true;
     setNameError(null);
     setSaveState('saving');
+    let submittedChartRequestKey = currentChartRequestKey;
 
     try {
+      const submittedChartRequest =
+        onPrepareSave === undefined
+          ? chartRequest
+          : await onPrepareSave();
+
+      if (submittedChartRequest === null) {
+        setSaveState('invalid-state');
+        return;
+      }
+
+      const request = createSaveVaultChartRequest({
+        chart: submittedChartRequest,
+        chartResult,
+        displayName: trimmedDisplayName,
+        category,
+        tags: [],
+        favorite: false
+      });
+      submittedChartRequestKey = chartRequestKey(submittedChartRequest);
+      preparedChartRequestKeyRef.current = submittedChartRequestKey;
+      currentChartRequestKeyRef.current = submittedChartRequestKey;
       const result = await saveVaultChart(request);
 
-      if (currentChartRequestRef.current === submittedChartRequest) {
+      if (currentChartRequestKeyRef.current === submittedChartRequestKey) {
         setSaveState(toSaveState(result));
       }
     } finally {
       saveInFlightRef.current = false;
 
-      if (currentChartRequestRef.current !== submittedChartRequest) {
+      if (currentChartRequestKeyRef.current !== submittedChartRequestKey) {
         setSaveState('idle');
       }
     }
@@ -143,19 +183,32 @@ export default function SaveChartPanel({
     <section
       aria-labelledby={titleId}
       className="nn-surface nn-surface--elevated min-w-0 px-5 py-5 sm:px-7"
+      data-vault-save-mode={saveIntent}
     >
       <div className="max-w-3xl">
         <p className="nn-eyebrow">
           {vaultUi(locale, 'workspace.chartVault')}
         </p>
         <h3 className="nn-type-section-title mt-2" id={titleId}>
-          {vaultUi(locale, 'workspace.saveChartTitle')}
+          {vaultUi(
+            locale,
+            isCurrentInputSave
+              ? 'vault.saveInputTitle'
+              : 'workspace.saveChartTitle'
+          )}
         </h3>
         <p className="nn-type-body-small mt-2">
-          {saveIntent === 'INPUT_ONLY'
-            ? vaultUi(locale, 'vault.provenanceInputOnly')
-            : vaultUi(locale, 'workspace.saveChartDescription')}
+          {isCurrentInputSave
+            ? vaultUi(locale, 'vault.inputOnlySaveDescription')
+            : saveIntent === 'INPUT_ONLY'
+              ? vaultUi(locale, 'vault.provenanceInputOnly')
+              : vaultUi(locale, 'workspace.saveChartDescription')}
         </p>
+        {!isSaveEligible && disabledReason ? (
+          <p className="nn-status nn-status--info mt-3" role="status">
+            {disabledReason}
+          </p>
+        ) : null}
 
         <form
           className="mt-4 grid gap-4 sm:grid-cols-[minmax(0,1fr)_12rem_auto] sm:items-end"
@@ -216,12 +269,17 @@ export default function SaveChartPanel({
 
           <button
             className="nn-button nn-button--primary"
-            disabled={saveState === 'saving'}
+            disabled={saveState === 'saving' || !isSaveEligible}
             type="submit"
           >
             {saveState === 'saving'
               ? vaultUi(locale, 'vault.saving')
-              : vaultUi(locale, 'workspace.saveChartAction')}
+              : vaultUi(
+                  locale,
+                  isCurrentInputSave
+                    ? 'vault.saveInputAction'
+                    : 'workspace.saveChartAction'
+                )}
           </button>
         </form>
 

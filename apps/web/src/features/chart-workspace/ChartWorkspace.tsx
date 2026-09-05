@@ -2,6 +2,7 @@ import type { Ref } from 'react';
 import type { CalculatedChartSnapshot } from '@/features/chart-experience/types';
 import type { SupportedLocale } from '@/lib/localization';
 import SaveChartPanel from '@/features/vault/SaveChartPanel';
+import { resolveVaultSaveIntent } from '@/features/vault/vault-save-intent';
 import { createChartPresentationPolicy } from '@/core/chart/chart-presentation-policy';
 import ChartWorkspaceView from './ChartWorkspaceView';
 
@@ -13,6 +14,8 @@ export type ChartWorkspaceProps = {
 
 export default function ChartWorkspace({ locale, resultTargetRef, snapshot }: ChartWorkspaceProps) {
   const presentationPolicy = createChartPresentationPolicy(snapshot.request);
+  const showChartResultSavePanel =
+    resolveVaultSaveIntent(snapshot.result) === 'CHART_RESULT_AVAILABLE';
 
   return (
     <ChartWorkspaceView
@@ -22,11 +25,13 @@ export default function ChartWorkspace({ locale, resultTargetRef, snapshot }: Ch
       requestedHouseSystem={snapshot.request.houseSystem}
       resultTargetRef={resultTargetRef}
     >
-      <SaveChartPanel
-        chartRequest={snapshot.request}
-        chartResult={snapshot.result}
-        locale={locale}
-      />
+      {showChartResultSavePanel ? (
+        <SaveChartPanel
+          chartRequest={snapshot.request}
+          chartResult={snapshot.result}
+          locale={locale}
+        />
+      ) : null}
     </ChartWorkspaceView>
   );
 }

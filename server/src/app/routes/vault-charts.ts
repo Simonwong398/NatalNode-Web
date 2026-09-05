@@ -146,17 +146,25 @@ export function registerVaultChartRoutes(
       let canonicalChartResult: ChartResult | null = null;
       const saveMode = request.saveMode ?? 'CHART_RESULT_AVAILABLE';
       const allowDevelopmentFixtureRequest =
-        request.saveMode === undefined &&
-        dependencies.operationalConfig?.runtimeMode !== 'production';
+        dependencies.operationalConfig?.runtimeMode !== 'production' &&
+        request.saveMode === undefined;
+      const allowDevelopmentOnlyMetadata =
+        dependencies.operationalConfig?.runtimeMode !== 'production' &&
+        request.saveMode === 'INPUT_ONLY';
 
       try {
         /* Reject malformed or non-authoritative input before invoking the
-         * calculation boundary. Development's legacy fixture path is the
-         * only exception, and it is still classified explicitly below. */
+         * calculation boundary. Development-only input metadata is accepted
+         * only for the development UI or explicit input-only mode in a
+         * non-production runtime; input-only still requires canonical
+         * location authority and is never promoted to scientific authority. */
         assertEligibleVaultRecordInput(
           request.chart,
           dependencies.locationResolutionService,
-          { allowDevelopmentFixture: allowDevelopmentFixtureRequest }
+          {
+            allowDevelopmentFixture: allowDevelopmentFixtureRequest,
+            allowDevelopmentOnlyMetadata
+          }
         );
       } catch (error) {
         if (error instanceof VaultRecordEligibilityError) {
@@ -202,10 +210,10 @@ export function registerVaultChartRoutes(
           saveMode,
           canonicalChartResult,
           allowDevelopmentFixtureSnapshot:
-            request.saveMode === undefined &&
-            dependencies.operationalConfig?.runtimeMode !== 'production' &&
-            canonicalChartResult !== null &&
-            isDevelopmentVaultFixtureResult(canonicalChartResult)
+            allowDevelopmentFixtureRequest &&
+            (canonicalChartResult === null ||
+              isDevelopmentVaultFixtureResult(canonicalChartResult)),
+          allowDevelopmentOnlyMetadata
         });
       } catch (error) {
         if (error instanceof VaultRecordEligibilityError) {

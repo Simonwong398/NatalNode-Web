@@ -14,7 +14,7 @@ export type VaultSaveIntent =
 
 export interface CreateSaveVaultChartRequestInput {
   readonly chart: ChartRequest;
-  readonly chartResult: ChartResult;
+  readonly chartResult?: ChartResult | null;
   readonly displayName: string;
   readonly category: VaultChartCategory;
   readonly tags: readonly string[];
@@ -26,8 +26,12 @@ export interface CreateSaveVaultChartRequestInput {
  * data. The server remains the authority for the persisted calculation.
  */
 export function resolveVaultSaveIntent(
-  chartResult: ChartResult
+  chartResult: ChartResult | null | undefined
 ): VaultSaveIntent {
+  if (chartResult === null || chartResult === undefined) {
+    return 'INPUT_ONLY';
+  }
+
   if (
     chartResult.calculationStatus === 'COMPLETE' &&
     chartResult.metadata.configurationStatus === 'COMPLETE' &&

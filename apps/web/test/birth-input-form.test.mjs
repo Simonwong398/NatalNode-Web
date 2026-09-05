@@ -93,7 +93,7 @@ describe('initial render, validation, and configuration', () => {
 
       assert.deepEqual(
         [day.value, month.value, year.value, time.value, place.value, houseSystem.value],
-        ['', '', '', '', '', '']
+        ['', '', '', '', '', 'Placidus']
       );
       assert.equal(unknownTime.checked, false);
       assert.equal(time.disabled, false);
@@ -141,8 +141,7 @@ describe('initial render, validation, and configuration', () => {
         errors: [
           'Enter a birth date.',
           'Enter a birth time or choose the unknown-time option.',
-          'Enter a birth place.',
-          'Choose a house system.'
+          'Enter a birth place.'
         ]
       },
       {
@@ -162,8 +161,7 @@ describe('initial render, validation, and configuration', () => {
         errors: [
           'Introduce una fecha de nacimiento.',
           'Introduce una hora de nacimiento o elige la opción de hora desconocida.',
-          'Introduce un lugar de nacimiento.',
-          'Elige un sistema de casas.'
+          'Introduce un lugar de nacimiento.'
         ]
       },
       {
@@ -183,8 +181,7 @@ describe('initial render, validation, and configuration', () => {
         errors: [
           '出生日を入力してください。',
           '出生時刻を入力するか、不明な時刻を選択してください。',
-          '出生地を入力してください。',
-          'ハウスシステムを選択してください。'
+          '出生地を入力してください。'
         ]
       },
       {
@@ -204,8 +201,7 @@ describe('initial render, validation, and configuration', () => {
         errors: [
           '請輸入出生日期。',
           '請輸入出生時間，或選擇時間未知選項。',
-          '請輸入出生地。',
-          '請選擇宮位系統。'
+          '請輸入出生地。'
         ]
       }
     ];
@@ -255,7 +251,7 @@ describe('initial render, validation, and configuration', () => {
     }
   });
 
-  test('invalid submit reports all four current errors, opens advanced settings, and does not move focus', async () => {
+  test('invalid submit reports current errors and does not move focus', async () => {
     const resolver = capturingResolver((input) => exactFrom(input));
     await withBirthInputForm({ resolver }, async (scope) => {
       await scope.mount();
@@ -268,11 +264,10 @@ describe('initial render, validation, and configuration', () => {
         [
           'Enter a birth date.',
           'Enter a birth time or choose the unknown-time option.',
-          'Enter a birth place.',
-          'Choose a house system.'
+          'Enter a birth place.'
         ]
       );
-      assert.equal(scope.container.querySelector('details').open, true);
+      assert.equal(scope.container.querySelector('details').open, false);
       assert.equal(calculate.disabled, false);
       assert.strictEqual(scope.document.activeElement, calculate);
       assert.equal(resolver.calls.length, 0);
@@ -282,7 +277,7 @@ describe('initial render, validation, and configuration', () => {
       }
       assert.equal(scope.id('birth-time').getAttribute('aria-describedby'), 'birth-time-error');
       assert.equal(scope.id('birth-place').getAttribute('aria-describedby'), 'birth-place-error');
-      assert.equal(scope.id('house-system').getAttribute('aria-describedby'), 'house-system-error');
+      assert.equal(scope.id('house-system').getAttribute('aria-describedby'), null);
     });
   });
 
@@ -487,7 +482,7 @@ describe('known and unknown birth-time behavior', () => {
     });
   });
 
-  test('unknown time still requires a house system and forwards the selected configuration only', async () => {
+  test('unknown time uses the default house system and forwards the selected configuration only', async () => {
     const resolver = capturingResolver((input) => unknownFrom(input));
     await withBirthInputForm({ resolver }, async (scope) => {
       await scope.mount();
@@ -497,13 +492,15 @@ describe('known and unknown birth-time behavior', () => {
       await scope.change(scope.control('Birth place'), 'Unknown House Place');
       await scope.click(scope.id('unknown-time'));
       await scope.submit();
-      scope.role('alert', 'Choose a house system.');
-      assert.equal(resolver.calls.length, 0);
+      assert.equal(resolver.calls.length, 1);
+      assert.equal(scope.onResolvedInputCalls[0].houseSystem, 'Placidus');
+      assert.equal(scope.onResolvedInputCalls[0].resolution.localTime, null);
 
       await scope.change(scope.control('House system'), 'Whole Sign');
       await scope.submit();
-      assert.equal(scope.onResolvedInputCalls[0].houseSystem, 'Whole Sign');
-      assert.equal(scope.onResolvedInputCalls[0].resolution.localTime, null);
+      assert.equal(resolver.calls.length, 2);
+      assert.equal(scope.onResolvedInputCalls[1].houseSystem, 'Whole Sign');
+      assert.equal(scope.onResolvedInputCalls[1].resolution.localTime, null);
     });
   });
 });
