@@ -4,6 +4,15 @@
 
 **Source of truth**: `docs/PRD.md` is the product source of truth. This document records the implementation boundary and module-growth policy for the website repository. It is not a repository audit or a broad architecture rewrite.
 
+## Adaptive experience architecture
+
+The current product and presentation architecture baseline is
+[`docs/product/NATALNODE_ADAPTIVE_EXPERIENCE_ARCHITECTURE_V1.md`](product/NATALNODE_ADAPTIVE_EXPERIENCE_ARCHITECTURE_V1.md).
+It freezes Progressive Depth as the user-facing model and keeps Editorial,
+Observatory, and Starlight as internal presentation directions rather than
+separate products or runtime modes. It does not authorize runtime
+implementation or change the Engine/BFF boundary.
+
 ## Fixed System Boundary
 
 The website boundary is fixed:
