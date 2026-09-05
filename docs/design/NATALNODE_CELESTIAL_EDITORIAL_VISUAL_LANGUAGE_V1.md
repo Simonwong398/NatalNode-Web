@@ -80,7 +80,7 @@ surfaces.
 | Reading hierarchy | Lead with a clear human point, then evidence, context, timing, and optional technical depth |
 | Interaction grammar | Shared focus, selected, hover, disclosure, error, loading, success, and disabled behavior across surfaces |
 | Accessibility | Visible focus, semantic labels, non-color meaning, readable metadata, reduced motion, and 320px support remain non-negotiable |
-| Celestial integrity | Type A visuals are fact-bound; Type B motifs are visibly decorative; Type C pseudo-data is forbidden |
+| Celestial integrity | Type A visuals are fact-bound; Type B1/B2 motifs are visibly decorative; Type C pseudo-data is forbidden |
 | Typography | One system-first type family with role-based scale; no separate “mystical” and “technical” type systems |
 | Navigation | One shared shell and one IA; presentation direction never changes route identity |
 | Content-first behavior | A person can understand the useful point before encountering technical terminology |
@@ -122,7 +122,7 @@ stars to every surface.
 
 ## 3. Celestial Semiotics
 
-### Type A — Factual celestial
+### TYPE A — FACTUAL CELESTIAL
 
 Type A is factual and must be authoritative, traceable, and semantically owned.
 
@@ -147,33 +147,58 @@ Rules:
 5. Type A visual treatment must not be downgraded to decorative status merely
    because the surface is editorial or shareable.
 
-### Type B — Brand celestial motif
+### TYPE B — BRAND CELESTIAL MOTIF
 
-Type B is decorative brand language. It may support mood, recognition, and
-composition on public/editorial surfaces.
+Type B is non-factual brand language. It may support mood, recognition, and
+composition on public/editorial surfaces, but it is never a source of
+personalized or current-sky truth. Type B has two bounded subtypes:
+
+#### B1 — DOMAIN-SIGNALING STRUCTURE
+
+B1 establishes astrology-domain recognition and an observational/celestial
+structure without supplying factual chart data.
 
 Examples:
 
-- abstract orbital arcs;
+- abstract orbital arcs and open rings;
 - node geometry;
-- restrained star fields;
-- a non-data celestial grid;
-- abstract aspect-inspired line work;
-- open rings or constellation-like geometry with no personal values.
+- non-data aspect-inspired line work;
+- a celestial grid;
+- structured timing motifs with no factual dates or event claims.
 
-Rules:
+B1 may communicate astrology domain, celestial structure, or observatory
+language. It must not encode a hidden planet position, sign, aspect, house, or
+timing claim.
+
+#### B2 — DECORATIVE ATMOSPHERE
+
+B2 is purely atmospheric and must remain clearly decorative.
+
+Examples:
+
+- a generic star field;
+- abstract constellation-like texture;
+- subtle celestial atmosphere;
+- non-data editorial ornament.
+
+B2 may support mood and composition, but it must not resemble a personalized
+natal chart or current-sky snapshot.
+
+Type B rules:
 
 1. Type B must be clearly decorative in composition, labeling, semantics, or
    all three.
-2. It must not resemble a personalized natal chart or current sky snapshot.
-3. It must not encode a hidden planet position, sign, aspect, house, or timing
-   claim.
-4. It may support a Starlight-inspired editorial treatment, but it cannot
+2. B1 and B2 must not be used to supply factual astrology or to replace Type A
+   when a factual claim is being made.
+3. If a B1/B2 treatment is sufficiently data-like that the distinction becomes
+   ambiguous, it fails review and must be simplified or bound to Type A facts.
+4. Type B may support a Starlight-inspired editorial treatment, but it cannot
    replace Type A when a factual claim is being made.
 
-### Type C — Forbidden pseudo-data
+### TYPE C — FORBIDDEN PSEUDO-DATA
 
-The following are never acceptable as “just visual polish”:
+Type C is never a presentation option. The following are never acceptable as
+“just visual polish”:
 
 - a fake natal wheel;
 - random zodiac positions;
@@ -201,8 +226,8 @@ it cannot be mistaken for a chart or current sky.
 | Review result | Example | Why |
 | --- | --- | --- |
 | PASS | A real `ChartResult` crop showing the supplied Sun and Moon positions, with labels and an accessible description | The geometry is fact-bound, traceable, and semantically labeled |
-| PASS | A clearly decorative open orbit/node motif beside editorial copy, with no planet labels, degrees, aspect claims, or chart-like axes | It supports brand atmosphere without pretending to be data |
-| AMBIGUOUS | A star field with three bright points placed like planets and a circular grid, but no label explaining whether it is a chart | A reader could infer personal/current-sky meaning; simplify it or bind it to facts |
+| PASS | A clearly decorative B1 open orbit/node motif beside editorial copy, with no planet labels, degrees, aspect claims, or chart-like axes | It supports brand structure without pretending to be data |
+| AMBIGUOUS | A B2 star field with three bright points placed like planets and a circular grid, but no label explaining whether it is a chart | A reader could infer personal/current-sky meaning; simplify it or bind it to Type A facts |
 | AMBIGUOUS | A Moon-shaped icon in a timing card when current lunar authority is unavailable | Even if intended as decoration, placement and context imply a Moon phase |
 | FAIL | A random zodiac wheel in a Weekly hero to make the page “feel astrological” | It resembles a personal chart but has no authoritative source |
 | FAIL | Fake transit arcs or aspect lines behind a share card | Decorative geometry is presented where a reader can infer a real sky claim |
@@ -218,9 +243,9 @@ amount of decorative stars.
 
 | Dosage | Reader experience | Acceptable cues | Not acceptable |
 | --- | --- | --- | --- |
-| LIGHT | “This is clearly astrology, even if I do not know the terminology.” | One fact-backed glyph/label, a human life-domain label, one restrained celestial motif, a truthful period cue | Symbol walls, unexplained houses, random zodiac wallpaper |
-| MODERATE | “There is real planetary/timing context underneath this reading.” | Multiple fact-backed body/sign cues, a labeled timing window, a concise Why section, a real chart fragment where available | Dense technical metadata in the first viewport, unlabeled geometry |
-| DEEP | “I can inspect the astrological method and evidence.” | Aspect type/orb/phase, house/angle detail where valid, technical chart context, source-backed disclosures | Unsupported precision, fake Moon/Transit detail, telemetry styling |
+| LIGHT | “This is clearly astrology, even if I do not know the terminology.” | One fact-backed glyph/label, a human life-domain label, one restrained B1/B2 motif, a truthful period cue | Symbol walls, unexplained houses, random zodiac wallpaper |
+| MODERATE | “There is real planetary/timing context underneath this reading.” | Multiple fact-backed body/sign cues, a labeled timing window, a concise Why section, a real chart fragment where available, or a restrained B1 structure | Dense technical metadata in the first viewport, unlabeled geometry |
+| DEEP | “I can inspect the astrological method and evidence.” | Aspect type/orb/phase, house/angle detail where valid, technical chart context, source-backed disclosures | Unsupported precision, Type C Moon/transit detail, telemetry styling |
 
 Dosage is a presentation decision inside Progressive Depth, not a user setting.
 
@@ -238,7 +263,7 @@ Characteristics:
 - readable life-domain language;
 - generous rhythm around the main point;
 - social-readable share composition;
-- illustrative framing that remains obviously Type B when decorative;
+- illustrative framing that remains obviously B1 or B2 when decorative;
 - enough celestial identity to avoid generic premium-report styling.
 
 Editorial expression must remain premium, calm, non-childish, non-generic, and
@@ -307,7 +332,7 @@ Shared invariants:
 - core typography roles;
 - button, field, disclosure, focus, and status grammar;
 - semantic color roles and state families;
-- Type A/B/C celestial rules;
+- Type A factual, Type B1/B2 brand-motif, and Type C forbidden-pseudo-data rules;
 - content-first hierarchy;
 - the Progressive Depth sequence;
 - accessibility thresholds and reduced-motion behavior;
@@ -353,7 +378,7 @@ their presentation roles; it does not introduce a new palette.
 | Editorial expression | `--nn-accent-primary`, `--nn-accent-supporting`, `--nn-ambient-*` | Selective editorial emphasis, calm atmospheric depth, links/focus |
 | Technical expression | `--nn-chart-*` | Real chart facts, aspects, bodies, zodiac, houses, angles, selection |
 | State | `--nn-status-success`, `--nn-status-warning`, `--nn-status-error`, `--nn-status-research`, `--nn-status-info` | Trust, workflow, authority, and operational state |
-| Decorative celestial | Low-opacity `--nn-ambient-*` and approved brand cyan/silver | Type B motifs only; never a hidden data channel |
+| Decorative celestial | Low-opacity `--nn-ambient-*` and approved brand cyan/silver | B1/B2 motifs only; never a hidden data channel |
 
 Rules:
 
@@ -420,7 +445,7 @@ Current production Moon authority is incomplete. Therefore:
 - do not use a crescent/full-disc icon in a context that implies the current
   phase when authority is unavailable;
 - do not create a random lunar phase for decorative balance;
-- a generic Type B circle may only be used when it is clearly not a phase and
+- a generic B1 circle may only be used when it is clearly not a phase and
   not placed as a current-sky fact.
 
 ## 13. Chart geometry policy
@@ -433,7 +458,7 @@ clear.
 | Full natal chart | Real authoritative chart facts and supported time authority |
 | Cropped chart fragment | Derived from the same real chart geometry; crop cannot imply missing facts |
 | Aspect geometry | Supplied endpoints, type, orb, and phase are available |
-| Orbital arc | Type B brand motif only, or Type A when it is a real supplied geometry |
+| Orbital arc | B1 brand motif only, or Type A when it is a real supplied geometry |
 | Technical thumbnail | Real chart/sky snapshot with appropriate labeling and accessibility |
 | Background abstraction derived from real chart | Explicitly labeled and traceable; no loss of authority through decorative treatment |
 
@@ -538,7 +563,7 @@ Required invariants:
 - one semantic identity and one source ReadingModel;
 - a concise hook plus one or two bounded insights;
 - one meaningful astrology cue when fact-backed, otherwise a clearly decorative
-  Type B motif;
+  B1 or B2 motif;
 - no private birth date, birth time, location, account identity, or raw input;
 - no fake zodiac, Moon, planet, aspect, transit, or chart geometry;
 - canonical NatalNode identity and privacy-safe CTA;
@@ -562,9 +587,9 @@ Print must preserve:
 - privacy and redaction rules;
 - reader hierarchy and readable body text;
 - unknown-time and incomplete-authority disclosures;
-- Type A traceability and Type B/C separation.
+- Type A traceability, Type B1/B2 separation, and Type C exclusion.
 
-A cover may use a restrained Type B celestial motif or a real chart-derived
+A cover may use a restrained B1/B2 celestial motif or a real chart-derived
 thumbnail. It may not introduce a fake chart simply because it is printed. No
 Print UI or export implementation is authorized here.
 
@@ -601,7 +626,7 @@ remaining trustworthy.
 Allowed tendencies:
 
 - zodiac culture and plain-language astrology vocabulary;
-- editorial illustration and restrained Type B celestial framing;
+- editorial illustration and restrained B1/B2 celestial framing;
 - short personal-insight examples that are clearly generalized or clearly
   based on supplied personal data;
 - Moon/current-sky framing only when the corresponding authority exists;
@@ -776,7 +801,7 @@ production Weekly product.
 1. Add one meaningful celestial anchor at Notice/Use depth when a supplied fact
    exists: a glyph + plain-language term, a labeled timing cue, or a real
    chart-derived fragment.
-2. If no authoritative cue exists, use a clearly decorative Type B motif or
+2. If no authoritative cue exists, use a clearly decorative B1/B2 motif or
    omit the cue; never fill the gap with pseudo-data.
 3. Give Timeline a distinctive astrology-aware structure through truthful
    timing categories, source-backed planet labels, and non-color markers.
@@ -818,8 +843,8 @@ A first-time user should be able to say:
 Engineering review must additionally confirm:
 
 - every personal/current-sky visual cue is Type A and traceable;
-- Type B motifs cannot be mistaken for a chart;
-- Type C pseudo-data is absent;
+- B1/B2 motifs cannot be mistaken for a chart;
+- Type C forbidden pseudo-data is absent;
 - Timeline meaning does not depend only on color;
 - unknown-time and incomplete-authority behavior is unchanged;
 - mobile remains readable at 320 CSS px;
