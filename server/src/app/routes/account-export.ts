@@ -59,7 +59,7 @@ function responseHeaders(exportedAt: string): Record<string, string> {
 
 function isSafeConnectionTimeout(value: number | undefined): boolean {
   return (
-    value !== undefined && Number.isSafeInteger(value) && value > 0
+    value === undefined || (Number.isSafeInteger(value) && value > 0)
   );
 }
 

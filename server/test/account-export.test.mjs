@@ -866,15 +866,12 @@ test('account export accepts a bodyless request without Content-Type and uses th
   const missingTimeoutResponse = await postExport(missingTimeoutHarness.app, {
     edgeIp: '203.0.113.15'
   });
-  assert.equal(missingTimeoutResponse.status, 500);
-  assert.deepEqual(await missingTimeoutResponse.json(), {
-    type: 'about:blank',
-    title: 'Internal Server Error',
-    status: 500,
-    code: 'INTERNAL_ERROR',
-    detail: 'An unexpected server error occurred.'
-  });
-  assert.equal(missingTimeoutHarness.openCalls.length, 0);
+  assert.equal(missingTimeoutResponse.status, 200);
+  assert.deepEqual(
+    JSON.parse(await missingTimeoutResponse.text()).account.identities,
+    [defaultIdentity()]
+  );
+  assert.equal(missingTimeoutHarness.openCalls.length, 1);
 });
 
 test('unsupported identity representation and missing account fail before attachment headers', async () => {
