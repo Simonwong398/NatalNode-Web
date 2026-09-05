@@ -13,7 +13,6 @@ const PRESENTATION_PAGE_ROUTE_PATTERNS = new Set([
   '/community/ask',
   '/community/moderation',
   '/community/question',
-  '/auth/complete',
   '/auth/sign-in',
   '/dev/current-sky',
   '/feedback',
@@ -37,8 +36,9 @@ const PRESENTATION_PAGE_ROUTE_PATTERNS = new Set([
 /**
  * Resolves locale before presentation rendering and keeps legacy page URLs as
  * redirects. The root page renders its static negotiation shell instead of
- * redirecting here. Endpoint, asset, and reserved error routes are not
- * localized.
+ * redirecting here. The fragment-bearing authentication completion route
+ * stays stable and unlocalized so its token survives static delivery.
+ * Endpoint, asset, and reserved error routes are not localized.
  */
 export const onRequest = defineMiddleware((context, next) => {
   const resolution = resolveRequestLocale({
