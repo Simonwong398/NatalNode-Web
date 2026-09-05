@@ -160,8 +160,11 @@ Every future interpretation flow MUST keep these layers separate:
 | **INTERPRETATION** | Future content/interpretation renderer | A bounded language transformation of an approved Signal set and approved fact excerpts. | New facts, new Signals, changed direction/confidence, or authority substitution. |
 | **PRESENTATION** | Product feature and route | Daily, Weekly, Monthly, Share, Print, Collections, or Notifications composition. | Becoming the source of truth, silently changing authority, or treating cache/UI state as fact. |
 
-The only currently implemented layer in this task is the reusable Signal
-foundation. No layer below or above it is expanded into a product route.
+The reusable Signal foundation and the bounded WeeklyReadingModel presentation
+contract are implemented without expanding any layer into a product route. The
+Reading Model is documented separately in
+`NATALNODE_WEEKLY_READING_MODEL_V1.md`; it remains development-only and does
+not replace the Signal or current Chart Result authority.
 
 ## 5. Signal vocabulary and contract
 

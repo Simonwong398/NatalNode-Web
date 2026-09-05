@@ -90,6 +90,7 @@ export interface WeeklyInterpretationDraft {
   readonly locale: WeeklyEditorialLocale;
   readonly style: WeeklyEditorialStyle;
   readonly authority: 'DEVELOPMENT_ONLY';
+  readonly birthTimeAuthority: WeeklyPocScenario['birthTimeAuthority'];
   readonly editorialVersion: typeof WEEKLY_EDITORIAL_VERSION;
   readonly rulesVersion: InterpretationRulesVersion;
   readonly period: WeeklyPocScenario['signalSet']['period'];
@@ -1039,6 +1040,7 @@ export function createWeeklyInterpretationDraft(
     locale,
     style,
     authority: 'DEVELOPMENT_ONLY',
+    birthTimeAuthority: scenario.birthTimeAuthority,
     editorialVersion: WEEKLY_EDITORIAL_VERSION,
     rulesVersion: INTERPRETATION_RULES_VERSION,
     period: scenario.signalSet.period,
