@@ -1,10 +1,15 @@
 import type { Context, Hono } from 'hono';
+import type {
+  AccountOverviewApiResponse,
+  AuthProvider
+} from '@natalnode/contracts';
 import { isRecentAuthentication } from '../../account/account-deletion-policy.js';
 import { serializeClearedSessionCookie } from '../../auth-runtime/index.js';
 import { requireAuthentication } from '../auth/index.js';
 import type { ServerDependencies } from '../dependencies.js';
 import { createProblemDetailsContextResponse } from '../problem-details/context-response.js';
 import { isAccountDeletionApiRequest } from '../validation/account-deletion.js';
+import { VAULT_FREE_RECORD_LIMIT } from '../../vault/vault-record-domain.js';
 
 export const ACCOUNT_DELETION_REQUEST_MAXIMUM_BYTES = 1_024;
 
@@ -12,6 +17,83 @@ type BoundedBodyReadResult =
   | { readonly outcome: 'read'; readonly bytes: Uint8Array }
   | { readonly outcome: 'too-large' }
   | { readonly outcome: 'invalid' };
+
+const ACCOUNT_AUTH_PROVIDERS: readonly AuthProvider[] = [
+  'EMAIL_MAGIC_LINK',
+  'GOOGLE'
+];
+
+function isAuthProvider(value: unknown): value is AuthProvider {
+  return ACCOUNT_AUTH_PROVIDERS.includes(value as AuthProvider);
+}
+
+function accountVaultCapacity(used: number) {
+  if (!Number.isSafeInteger(used) || used < 0) {
+    throw new Error('Account Vault record count is invalid.');
+  }
+
+  return {
+    used,
+    limit: VAULT_FREE_RECORD_LIMIT,
+    tier: 'FREE' as const,
+    proExpansionAvailable: false as const
+  };
+}
+
+async function readAccountVaultCapacity(
+  repository: ServerDependencies['persistence']['vaultCharts'],
+  userId: string
+): Promise<AccountOverviewApiResponse['vaultCapacity']> {
+  const used = repository.countForUser === undefined
+    ? (await repository.listForUser(userId)).length
+    : await repository.countForUser(userId);
+
+  return accountVaultCapacity(used);
+}
+
+function createAccountOverviewResponse(
+  user: NonNullable<Awaited<ReturnType<ServerDependencies['persistence']['users']['findById']>>>,
+  identities: Awaited<ReturnType<ServerDependencies['persistence']['authIdentities']['listForUser']>>,
+  vaultCapacity: AccountOverviewApiResponse['vaultCapacity']
+): AccountOverviewApiResponse {
+  const methods: AuthProvider[] = [];
+  const emailAddresses: string[] = [];
+
+  for (const identity of identities) {
+    if (!isAuthProvider(identity.provider)) {
+      throw new Error('Account identity provider is invalid.');
+    }
+
+    if (!methods.includes(identity.provider)) {
+      methods.push(identity.provider);
+    }
+
+    if (identity.provider === 'EMAIL_MAGIC_LINK') {
+      if (identity.providerSubject.trim() === '') {
+        throw new Error('Account email identity is empty.');
+      }
+
+      if (!emailAddresses.includes(identity.providerSubject)) {
+        emailAddresses.push(identity.providerSubject);
+      }
+    }
+  }
+
+  if (methods.length === 0) {
+    throw new Error('Account has no authenticated identity.');
+  }
+
+  return {
+    authentication: {
+      methods,
+      emailAddresses
+    },
+    account: {
+      createdAt: user.createdAt
+    },
+    vaultCapacity
+  };
+}
 
 function isApplicationJson(request: Request): boolean {
   const contentType = request.headers.get('content-type');
@@ -131,6 +213,49 @@ export function registerAccountRoutes(
   app: Hono,
   dependencies: ServerDependencies
 ): void {
+  app.get(
+    '/api/account',
+    requireAuthentication(
+      dependencies.authenticator,
+      (context) =>
+        createProblemDetailsContextResponse(context, {
+          code: 'UNAUTHORIZED'
+        })
+    ),
+    async (context) => {
+      context.header('Cache-Control', 'no-store');
+
+      try {
+        const principal = context.get('authenticatedPrincipal');
+        const [user, identities] = await Promise.all([
+          dependencies.persistence.users.findById(principal.userId),
+          dependencies.persistence.authIdentities.listForUser(principal.userId)
+        ]);
+
+        if (user === null) {
+          return createProblemDetailsContextResponse(context, {
+            code: 'UNAUTHORIZED'
+          });
+        }
+
+        const response = createAccountOverviewResponse(
+          user,
+          identities,
+          await readAccountVaultCapacity(
+            dependencies.persistence.vaultCharts,
+            principal.userId
+          )
+        );
+
+        return context.json(response);
+      } catch (_error) {
+        return createProblemDetailsContextResponse(context, {
+          code: 'INTERNAL_ERROR'
+        });
+      }
+    }
+  );
+
   app.delete(
     '/api/account',
     requireAuthentication(

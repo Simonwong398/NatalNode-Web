@@ -1,4 +1,5 @@
 export * from './chart-calculation.js';
+export * from './account.js';
 export * from './auth.js';
 export * from './feedback.js';
 export * from './notifications.js';

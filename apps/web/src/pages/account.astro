@@ -50,6 +50,56 @@ const t = (key: UiMessageKey): string => getUiMessage(locale, key);
       <div class="max-w-2xl" data-account-content hidden>
         <section
           class="nn-surface nn-surface--elevated p-6 sm:p-8"
+          data-account-overview
+          aria-labelledby="account-overview-title"
+          aria-busy="true"
+        >
+          <p class="nn-eyebrow">{t('account.overview.eyebrow')}</p>
+          <h2 class="nn-type-section-title mt-3" id="account-overview-title">
+            {t('account.overview.title')}
+          </h2>
+          <p class="nn-type-body-small mt-3 max-w-xl">
+            {t('account.overview.description')}
+          </p>
+
+          <p class="nn-async-state mt-6" data-account-overview-loading role="status" aria-live="polite">
+            {t('account.overview.loading')}
+          </p>
+          <p
+            class="nn-async-state nn-async-state--error mt-6"
+            data-account-overview-error
+            role="alert"
+            tabindex="-1"
+            hidden
+          >
+            {t('account.overview.error')}
+          </p>
+
+          <dl class="mt-6 grid gap-5 border-t border-[var(--nn-border-subtle)] pt-6 sm:grid-cols-2" data-account-overview-content hidden>
+            <div>
+              <dt class="nn-type-label">{t('account.overview.identity')}</dt>
+              <dd class="nn-type-body-small mt-2 break-words" data-account-overview-identity></dd>
+            </div>
+            <div>
+              <dt class="nn-type-label">{t('account.overview.method')}</dt>
+              <dd class="nn-type-body-small mt-2" data-account-overview-methods></dd>
+            </div>
+            <div>
+              <dt class="nn-type-label">{t('account.overview.created')}</dt>
+              <dd class="nn-type-body-small mt-2" data-account-overview-created></dd>
+            </div>
+            <div>
+              <dt class="nn-type-label">{t('account.overview.vault')}</dt>
+              <dd class="nn-type-body-small mt-2" data-account-overview-vault-usage></dd>
+              <p class="nn-type-metadata mt-1" data-account-overview-vault-help>
+                {t('account.overview.vaultHelp')}
+              </p>
+            </div>
+          </dl>
+        </section>
+
+        <section
+          class="nn-surface nn-surface--elevated p-6 sm:p-8"
           data-account-notifications
           aria-labelledby="account-notifications-title"
           aria-busy="true"
@@ -414,6 +464,10 @@ const t = (key: UiMessageKey): string => getUiMessage(locale, key);
                 </a>
               </section>
             </form>
+            <div class="mt-6 flex flex-wrap gap-x-5 gap-y-2 border-t border-[var(--nn-border-subtle)] pt-5">
+              <a class="nn-link" href={localize('/privacy')}>{t('nav.privacy')}</a>
+              <a class="nn-link" href={localize('/terms')}>{t('nav.terms')}</a>
+            </div>
           </section>
         </section>
       </div>
@@ -433,6 +487,7 @@ const t = (key: UiMessageKey): string => getUiMessage(locale, key);
 <script>
   import type { NotificationCategory } from '@natalnode/contracts';
   import { initializeAccountExport } from '@/features/account/account-export';
+  import { initializeAccountOverview } from '@/features/account/account-overview';
   import { initializeAccountDeletion } from '@/features/account/account-deletion';
   import { initializeCommunityProfile } from '@/features/community/community';
   import { initializeNotificationSettings } from '@/features/notifications/notification-settings';
@@ -442,6 +497,14 @@ const t = (key: UiMessageKey): string => getUiMessage(locale, key);
   const loading = root?.querySelector<HTMLElement>('[data-account-loading]');
   const sessionError = root?.querySelector<HTMLElement>('[data-account-session-error]');
   const accountContent = root?.querySelector<HTMLElement>('[data-account-content]');
+  const accountOverviewRoot = root?.querySelector<HTMLElement>('[data-account-overview]');
+  const accountOverviewLoading = accountOverviewRoot?.querySelector<HTMLElement>('[data-account-overview-loading]');
+  const accountOverviewContent = accountOverviewRoot?.querySelector<HTMLElement>('[data-account-overview-content]');
+  const accountOverviewError = accountOverviewRoot?.querySelector<HTMLElement>('[data-account-overview-error]');
+  const accountOverviewIdentity = accountOverviewRoot?.querySelector<HTMLElement>('[data-account-overview-identity]');
+  const accountOverviewMethods = accountOverviewRoot?.querySelector<HTMLElement>('[data-account-overview-methods]');
+  const accountOverviewCreated = accountOverviewRoot?.querySelector<HTMLElement>('[data-account-overview-created]');
+  const accountOverviewVaultUsage = accountOverviewRoot?.querySelector<HTMLElement>('[data-account-overview-vault-usage]');
   const openButton = root?.querySelector<HTMLButtonElement>('[data-account-delete-open]');
   const confirmationRegion = root?.querySelector<HTMLElement>('[data-account-delete-confirmation]');
   const form = root?.querySelector<HTMLFormElement>('[data-account-delete-form]');
@@ -514,6 +577,23 @@ const t = (key: UiMessageKey): string => getUiMessage(locale, key);
     initializeCommunityProfile({
       root,
       locale: getPresentationLocale(document.documentElement.lang)
+    });
+  }
+
+  if (
+    accountOverviewRoot && accountOverviewLoading && accountOverviewContent &&
+    accountOverviewError && accountOverviewIdentity && accountOverviewMethods &&
+    accountOverviewCreated && accountOverviewVaultUsage
+  ) {
+    initializeAccountOverview({
+      root: accountOverviewRoot,
+      loading: accountOverviewLoading,
+      content: accountOverviewContent,
+      error: accountOverviewError,
+      identity: accountOverviewIdentity,
+      methods: accountOverviewMethods,
+      createdAt: accountOverviewCreated,
+      vaultUsage: accountOverviewVaultUsage
     });
   }
 
