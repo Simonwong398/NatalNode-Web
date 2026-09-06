@@ -13,6 +13,13 @@ Observatory, and Starlight as internal presentation directions rather than
 separate products or runtime modes. It does not authorize runtime
 implementation or change the Engine/BFF boundary.
 
+The admitted content-value model is
+[`docs/product/NATALNODE_CONTENT_VALUE_ARCHITECTURE_V1.md`](product/NATALNODE_CONTENT_VALUE_ARCHITECTURE_V1.md).
+It defines user motivations, content jobs, evidence-to-meaning composition,
+progressive depth, domain eligibility, learning context, recurring value, and
+current content/authority gaps. It is documentation-only and does not
+authorize new routes, UI, Engine facts, or production content.
+
 ## Fixed System Boundary
 
 The website boundary is fixed:
