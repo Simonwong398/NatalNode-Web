@@ -1,0 +1,260 @@
+{
+  "packageId": "sun-taurus-v1-research",
+  "taskId": "WEB-P2-ASTROLOGY-KNOWLEDGE-RESEARCH-001",
+  "status": "RESEARCH_COMPLETE_WITH_UNRESOLVED_POLICY",
+  "runtimeAdmission": "NONE",
+  "scope": {
+    "zodiac": "Western tropical",
+    "lenses": [
+      "classical/traditional Western astrology",
+      "early-modern and modernizing sign-based astrology",
+      "modern/psychological Western astrology"
+    ],
+    "excluded": [
+      "Vedic/Jyotish",
+      "Chinese astrology",
+      "sidereal personal doctrine",
+      "Human Design",
+      "tarot",
+      "numerology"
+    ]
+  },
+  "sourceRefs": [
+    {
+      "id": "S1",
+      "title": "Tetrabiblos, Book I chapter 11",
+      "author": "Ptolemy",
+      "dateOrEdition": "Robbins, Loeb Classical Library, 1940 transcription",
+      "sourceClass": "PRIMARY_OR_HISTORICAL_SOURCE",
+      "tradition": "Classical Hellenistic/Ptolemaic",
+      "url": "https://penelope.uchicago.edu/thayer/e/roman/texts/ptolemy/tetrabiblos/1b%2A.html"
+    },
+    {
+      "id": "S2",
+      "title": "Tetrabiblos, Book II chapter 3",
+      "author": "Ptolemy",
+      "dateOrEdition": "Robbins, Loeb Classical Library, 1940 transcription",
+      "sourceClass": "PRIMARY_OR_HISTORICAL_SOURCE",
+      "tradition": "Classical Hellenistic/Ptolemaic",
+      "url": "https://penelope.uchicago.edu/thayer/e/roman/texts/ptolemy/tetrabiblos/2a%2A.html"
+    },
+    {
+      "id": "S4",
+      "title": "Christian Astrology Sun and Venus access pages",
+      "author": "William Lilly; annotated access aid by Deborah Houlding",
+      "dateOrEdition": "1647 work; access pages consulted 2026-09-06",
+      "sourceClass": "PRIMARY_OR_HISTORICAL_SOURCE",
+      "tradition": "Early modern traditional astrology",
+      "url": "https://www.skyscript.co.uk/sun_att.html"
+    },
+    {
+      "id": "S5",
+      "title": "Astrology for All",
+      "author": "Alan Leo",
+      "dateOrEdition": "Historical public-domain scan; exact scan edition not asserted",
+      "sourceClass": "PRIMARY_OR_HISTORICAL_SOURCE",
+      "tradition": "Early modern/modernizing astrology",
+      "url": "https://iapsop.com/ssoc/1899__leo___astrology_for_all.pdf"
+    },
+    {
+      "id": "S7",
+      "title": "AstroWiki: Taurus",
+      "author": "Astro.com",
+      "dateOrEdition": "Consulted 2026-09-06",
+      "sourceClass": "ESTABLISHED_REFERENCE",
+      "tradition": "Modern Western astrology reference",
+      "url": "https://www.astro.com/astrowiki/en/Taurus"
+    },
+    {
+      "id": "S8",
+      "title": "AstroWiki: Sun",
+      "author": "Astro.com",
+      "dateOrEdition": "Consulted 2026-09-06",
+      "sourceClass": "ESTABLISHED_REFERENCE",
+      "tradition": "Modern Western/psychological reference",
+      "url": "https://www.astro.com/astrowiki/en/Sun"
+    },
+    {
+      "id": "S9",
+      "title": "NatalNode Astrology Knowledge + Interpretation Canon V1",
+      "author": "NatalNode",
+      "dateOrEdition": "Repository policy",
+      "sourceClass": "INTERNAL_POLICY",
+      "tradition": "NatalNode governance",
+      "path": "docs/content/NATALNODE_ASTROLOGY_KNOWLEDGE_CANON_V1.md"
+    }
+  ],
+  "claims": [
+    {
+      "id": "AST-001",
+      "claim": "Taurus is one of Ptolemy's solid signs.",
+      "sourceRefs": ["S1"],
+      "directness": "DIRECT",
+      "agreement": "HISTORICAL_SOURCE_SUPPORTED",
+      "researchStatus": "SOURCE_SUPPORTED",
+      "policyState": "EDUCATIONAL_ONLY",
+      "contentEligibility": "HISTORICAL_AND_LEARNER_CONTEXT"
+    },
+    {
+      "id": "AST-003",
+      "claim": "Ptolemy gives the Taurus/Virgo/Capricorn triplicity a Venus and Saturn governance context.",
+      "sourceRefs": ["S2"],
+      "directness": "DIRECT",
+      "agreement": "HISTORICAL_SOURCE_SUPPORTED",
+      "researchStatus": "SOURCE_SUPPORTED_WITH_CONDITIONS",
+      "policyState": "EDUCATIONAL_ONLY",
+      "contentEligibility": "HISTORICAL_TECHNICAL_COMPARISON"
+    },
+    {
+      "id": "AST-004",
+      "claim": "Venus rules Taurus in the Lilly-attributed traditional rulership scheme.",
+      "sourceRefs": ["S4"],
+      "directness": "DIRECT",
+      "agreement": "SOURCE_SUPPORTED_WITH_METHOD_NUANCE",
+      "researchStatus": "SOURCE_SUPPORTED_WITH_CONDITIONS",
+      "policyState": "ADOPTED_WITH_CONDITIONS",
+      "contentEligibility": "NAMED_TRADITIONAL_OR_MODERN_STRUCTURE"
+    },
+    {
+      "id": "AST-005",
+      "claim": "Modern Western reference material labels Taurus Earth, Fixed, and Venus-ruled.",
+      "sourceRefs": ["S7"],
+      "directness": "DIRECT",
+      "agreement": "MODERN_REFERENCE_SUPPORTED",
+      "researchStatus": "SOURCE_SUPPORTED_WITH_CONDITIONS",
+      "policyState": "ADOPTED_WITH_CONDITIONS",
+      "contentEligibility": "NAMED_MODERN_STRUCTURAL_VOCABULARY"
+    },
+    {
+      "id": "AST-007",
+      "claim": "Fixed/Solid can support a bounded bridge to continuation, consolidation, or maintenance.",
+      "sourceRefs": ["S1", "S7", "S9"],
+      "directness": "INFERRED",
+      "agreement": "CONDITIONAL_BRIDGE",
+      "researchStatus": "SOURCE_SUPPORTED_WITH_CONDITIONS",
+      "policyState": "ADOPTED_WITH_CONDITIONS",
+      "contentEligibility": "EDITORIAL_SYNTHESIS_ONLY"
+    },
+    {
+      "id": "AST-011",
+      "claim": "The Lilly-attributed Sun material includes authority, honour, office, and preferment.",
+      "sourceRefs": ["S4"],
+      "directness": "DIRECT",
+      "agreement": "HISTORICAL_SOURCE_SUPPORTED",
+      "researchStatus": "SOURCE_SUPPORTED_WITH_CONDITIONS",
+      "policyState": "EDUCATIONAL_ONLY",
+      "contentEligibility": "HISTORY_OR_NAMED_TRADITIONAL_COMPARISON"
+    },
+    {
+      "id": "AST-013",
+      "claim": "A modern Western reference describes the Sun through life force and central personality.",
+      "sourceRefs": ["S8"],
+      "directness": "DIRECT",
+      "agreement": "MODERN_REFERENCE_SUPPORTED",
+      "researchStatus": "SOURCE_SUPPORTED_WITH_CONDITIONS",
+      "policyState": "ADOPTED_WITH_CONDITIONS",
+      "contentEligibility": "NAMED_MODERN_REFLECTIVE_LENS"
+    },
+    {
+      "id": "AST-014",
+      "claim": "A modern Western reference connects the Sun with identity, self-development, active/creative expression, and integration.",
+      "sourceRefs": ["S8"],
+      "directness": "DIRECT",
+      "agreement": "MODERN_REFERENCE_SUPPORTED",
+      "researchStatus": "SOURCE_SUPPORTED_WITH_CONDITIONS",
+      "policyState": "ADOPTED_WITH_CONDITIONS",
+      "contentEligibility": "NAMED_MODERN_REFLECTIVE_LENS_WITH_WHOLE_CHART_LIMIT"
+    },
+    {
+      "id": "AST-017",
+      "claim": "Alan Leo's Sun-in-Taurus passage uses firmness, endurance, determination, and slower/cautious/practical tendencies.",
+      "sourceRefs": ["S5"],
+      "directness": "DIRECT_HISTORICAL",
+      "agreement": "NAMED_SCHOOL_SUPPORTED",
+      "researchStatus": "SOURCE_SUPPORTED_WITH_CONDITIONS",
+      "policyState": "SUPPORTED_AS_ALTERNATIVE",
+      "contentEligibility": "HISTORICAL_OR_NAMED_SCHOOL_COMPARISON"
+    },
+    {
+      "id": "AST-019",
+      "claim": "A solar function may be explored through Taurus continuity, tangible values, embodiment, and sustained expression.",
+      "sourceRefs": ["S5", "S7", "S8", "S9"],
+      "directness": "INFERRED_EDITORIAL_COMPOSITION",
+      "agreement": "COHERENT_CONDITIONAL_SYNTHESIS",
+      "researchStatus": "SOURCE_SUPPORTED_WITH_CONDITIONS",
+      "policyState": "UNRESOLVED_PENDING_PRODUCT_OWNER",
+      "contentEligibility": "RESEARCH_PROJECTION_ONLY"
+    },
+    {
+      "id": "AST-020",
+      "claim": "Fixed continuity may raise a question about revision or attachment to established conditions.",
+      "sourceRefs": ["S1", "S5", "S7", "S9"],
+      "directness": "INFERRED",
+      "agreement": "CONTESTED_AS_PERSONAL_DEFAULT",
+      "researchStatus": "CONTESTED",
+      "policyState": "UNRESOLVED",
+      "contentEligibility": "TENSION_QUESTION_ONLY_IF_ADMITTED"
+    },
+    {
+      "id": "AST-021",
+      "claim": "Venus rulership automatically means romance, luxury, money, or relationship behavior.",
+      "sourceRefs": ["S4", "S7", "S9"],
+      "directness": "INFERRED_OVERREACH",
+      "agreement": "NOT_SUPPORTED",
+      "researchStatus": "REJECTED",
+      "policyState": "REJECTED",
+      "contentEligibility": "NONE"
+    },
+    {
+      "id": "AST-023",
+      "claim": "House, aspects, angularity, Venus/dispositor, and birth-time authority can modify a sign-only projection.",
+      "sourceRefs": ["S9"],
+      "directness": "DIRECT_PRODUCT_POLICY",
+      "agreement": "NATALNODE_REQUIRED_BOUNDARY",
+      "researchStatus": "SOURCE_SUPPORTED",
+      "policyState": "ADOPTED",
+      "contentEligibility": "PREREQUISITE_AND_LIMITATION"
+    },
+    {
+      "id": "AST-025",
+      "claim": "Sun in Taurus proves wealth, luxury, professional success, relationship loyalty, or fixed personality.",
+      "sourceRefs": ["S5", "S7", "S9"],
+      "directness": "INFERRED_OVERREACH",
+      "agreement": "NOT_SUPPORTED",
+      "researchStatus": "REJECTED",
+      "policyState": "REJECTED",
+      "contentEligibility": "NONE"
+    },
+    {
+      "id": "AST-028",
+      "claim": "The research package is ready for production personal interpretation without Product Owner policy decisions.",
+      "sourceRefs": ["S1", "S2", "S4", "S5", "S7", "S8", "S9"],
+      "directness": "INFERRED_ADMISSION_DECISION",
+      "agreement": "NOT_ESTABLISHED",
+      "researchStatus": "SOURCE_RESEARCH_REQUIRED",
+      "policyState": "UNRESOLVED",
+      "contentEligibility": "NONE"
+    }
+  ],
+  "composition": {
+    "id": "body.sun_x_sign.taurus",
+    "status": "SOURCE_SUPPORTED_WITH_CONDITIONS",
+    "policyState": "UNRESOLVED",
+    "requiredModifiers": [
+      "house",
+      "aspects",
+      "angularity",
+      "Venus/dispositor",
+      "method",
+      "birth-time authority",
+      "whole-chart context"
+    ],
+    "negativeBoundary": [
+      "not a complete personality description",
+      "not a scientific prediction",
+      "not automatic wealth or luxury",
+      "not inevitable stubbornness or resistance",
+      "not a career, relationship, status, or destiny guarantee"
+    ]
+  }
+}

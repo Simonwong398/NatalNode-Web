@@ -584,7 +584,7 @@ The audit classifies existing material by its safe role in this canon:
 | apps/web/src/features/learn/educational-chart-source.ts | EDITORIAL_ONLY | Educational fixture boundary; never a source of personal chart facts |
 | apps/web/src/features/my-chart/my-chart-evidence-projection.ts and Stage A UI | EDITORIAL_ONLY; NEEDS_POLICY_REVIEW for future admission | Explicit development/research disclosure and bounded existing language; unchanged by this task |
 | Weekly POC documents and runtime | EDITORIAL_ONLY; TOO_SHALLOW for this canon | Useful for audience/style comparison only; no weekly prose is promoted into natal knowledge |
-| Detailed Sun/Taurus doctrine, school comparison, and rulership material | NEEDS_SOURCE_RESEARCH | No source-complete record is currently admitted by this task |
+| Detailed Sun/Taurus doctrine, school comparison, and rulership material | NEEDS_POLICY_REVIEW | Source-backed research package exists; no production personal-interpretation record is admitted by this task |
 
 This audit is a classification, not a migration. No existing runtime content is
 changed or promoted.
@@ -592,7 +592,10 @@ changed or promoted.
 ## 33. SUN exemplar
 
 This exemplar is a research-only package inside the canon document. It freezes
-the shape of a future record without claiming source-complete doctrine.
+the shape of a future record without claiming source-complete doctrine. The
+source-backed research dossier is maintained at
+docs/research/astrology-knowledge-canon/sun-taurus/ and remains outside
+production runtime.
 
 | Field | Exemplar value | State |
 | --- | --- | --- |
@@ -600,18 +603,18 @@ the shape of a future record without claiming source-complete doctrine.
 | canonical identity | Sun, glyph and glossary identity | REUSABLE_CANON_INPUT |
 | current repository focus | Identity and vitality | REUSABLE_CANON_INPUT from interpretation-content.ts |
 | current repository expression | Developing confidence through purposeful self-expression | EDITORIAL_ONLY; bounded input |
-| traditional/common symbolic role | Candidate luminary/organizing-principle language | SOURCE_RESEARCH_REQUIRED |
-| modern-school readings | Candidate identity, agency, vitality, or self-expression variants | SOURCE_RESEARCH_REQUIRED and school-specific |
+| traditional/common symbolic role | Historical solar function, authority, honour, and vitality language, with identity kept school-scoped | SOURCE_SUPPORTED_WITH_CONDITIONS; historical or named-tradition use |
+| modern-school readings | Identity, agency, vitality, self-development, integration, or self-expression variants | SOURCE_SUPPORTED_WITH_CONDITIONS and school-specific |
 | constructive possibilities | Purposeful self-expression, sustained agency, or vitality as a reflective question | EDITORIAL_SYNTHESIS; not admitted for personal runtime use |
-| tensions | Overidentification, visibility pressure, or narrowed self-definition | SOURCE_RESEARCH_REQUIRED |
+| tensions | Overidentification, visibility pressure, or narrowed self-definition | SOURCE_RESEARCH_REQUIRED; requires policy and modifier review |
 | misconceptions | One placement is not the whole personality, destiny, or scientific trait | NATALNODE_POLICY; admitted boundary |
 | prerequisites | Chart body fact, chosen zodiac/model, method, and wider chart context | NATALNODE_POLICY |
-| policy | UNRESOLVED for a production school default; EDUCATIONAL_ONLY for current teaching use | ADMITTED_WITH_SOURCE_RESEARCH_REQUIRED |
+| policy | UNRESOLVED for a production school default; modern language may be considered with conditions; historical language remains educational or alternative | ADMITTED_WITH_SOURCE_RESEARCH_REQUIRED |
 
-No external citation is invented here. The existing Foundations sources support
-the distinction between chart structure and interpretation, but this exemplar
-does not claim that those sources have completed the Sun-specific doctrine
-review required for personal interpretation.
+The consulted sources, claim-level statuses, and policy limits are recorded in
+the linked research package. No external citation is invented here. Source
+research is sufficient for bundled Product Owner review, but it does not
+complete the policy decision required for personal interpretation.
 
 ## 34. TAURUS exemplar
 
@@ -621,20 +624,21 @@ review required for personal interpretation.
 | canonical identity | Taurus, glyph, zodiac-sign glossary family | REUSABLE_CANON_INPUT |
 | current repository style | Steady and sensory | REUSABLE_CANON_INPUT from interpretation-content.ts |
 | current repository expression | Prioritizing patience, consistency, and tangible values | EDITORIAL_ONLY; bounded input |
-| element relationship | Taurus is listed with Earth in the Foundations structural table | EDUCATIONAL_ONLY pending canon-level source review |
-| modality relationship | Taurus is listed with Fixed in the Foundations structural table | EDUCATIONAL_ONLY pending canon-level source review |
-| rulership | Venus association is a candidate tradition-specific field | SOURCE_RESEARCH_REQUIRED |
-| operating style | Candidate continuity, embodiment, value, or tangible-result language | SOURCE_RESEARCH_REQUIRED and school-specific |
+| element relationship | Taurus is a modern Earth convention; the semantics must remain broader than practical or material | SOURCE_SUPPORTED_WITH_CONDITIONS; modern-lens and school-scoped |
+| modality relationship | Modern Fixed vocabulary can be bridged to historical Solid only with an explicit qualification | SOURCE_SUPPORTED_WITH_CONDITIONS; not unchanged doctrine |
+| rulership | Venus is supported as a named traditional and modern structural relation | SOURCE_SUPPORTED_WITH_CONDITIONS; method and dignity details remain scoped |
+| operating style | Candidate continuity, embodiment, value, or tangible-result language | SOURCE_SUPPORTED_WITH_CONDITIONS and school-specific |
 | constructive possibilities | Patience, consistency, and tangible value as questions, not traits | EDITORIAL_SYNTHESIS; not runtime-admitted |
 | tensions / stereotypes | Inertia, possessiveness, or stubbornness must not be asserted from the sign alone | SOURCE_RESEARCH_REQUIRED plus NATALNODE_POLICY |
 | limitations | Other bodies, house, aspects, method, context, and agency can redirect the reading | NATALNODE_POLICY |
 | prerequisites | Sign fact, zodiac model, source tradition, and context | NATALNODE_POLICY |
-| policy | EDUCATIONAL_ONLY for the existing structure; UNRESOLVED for a personal-reading default | ADMITTED_WITH_SOURCE_RESEARCH_REQUIRED |
+| policy | Structural Earth/Fixed/Venus vocabulary may be considered with conditions; personal-reading default remains unresolved | ADMITTED_WITH_SOURCE_RESEARCH_REQUIRED |
 
 The Foundations material is a useful educational input and already warns that
-element and mode are not deterministic personality categories. This canon does
-not treat that existing lesson as a completed historical or school-comparison
-review of Taurus.
+element and mode are not deterministic personality categories. The source
+comparison and claim matrix for Taurus are recorded in the research package;
+this canon still does not treat any derivative personality wording as a
+completed production doctrine.
 
 ## 35. SUN x TAURUS exemplar
 
@@ -655,8 +659,8 @@ The exemplar is intentionally bounded:
 | ordinary projection | “What part of identity or vitality might be explored through this sign’s steady, sensory vocabulary?” |
 | learner projection | “Separate the Sun’s function from Taurus’s sign-style vocabulary, then ask what other chart layers could reinforce or complicate the pairing.” |
 | professional projection | “Do not issue a personal conclusion until tradition, house, aspects, rulership, required technical data, and counterevidence are admitted.” |
-| quality result | REVISE; the structure is coherent, but source-complete doctrine and school policy are missing |
-| source state | SOURCE_RESEARCH_REQUIRED |
+| quality result | REVISE; source-backed research is complete enough for review, but policy, modifier, and technical admission remain open |
+| source state | SOURCE_SUPPORTED_WITH_CONDITIONS for the bounded research projection; production admission remains pending |
 | policy state | UNRESOLVED for production personal interpretation; EDUCATIONAL_ONLY for architecture review |
 
 The sample projection sentences are editorial shape examples, not current
@@ -665,23 +669,27 @@ Stage A content expansion and do not modify that UI or runtime.
 
 ## 36. Source/research gaps
 
-The following gaps block source-complete admission:
+The initial P0 source-research gap is closed for the named sources and bounded
+Sun/Taurus composition. The claim-level matrix, provenance, counterevidence,
+and proposed policy are recorded in
+docs/research/astrology-knowledge-canon/sun-taurus/.
 
-- a claim-level source record for the Sun’s traditional and modern functions;
-- a source comparison for Taurus, Earth, Fixed, and their relationship;
-- a source comparison for Taurus rulership, including traditional and modern
-  variants;
-- explicit school profiles and conflict-resolution rules;
-- source-backed treatment of constructive and tension language;
-- evidence requirements for degrees, dignity, phase, and other modifiers;
-- a reviewed policy decision on which school(s) may support personal readings;
-- claim-level review of existing Foundations references before reusing them as
-  canon provenance;
-- a content review process that includes astrology expertise and NatalNode
-  trust/product review.
+The following gaps still block production personal-interpretation admission:
 
-Until these gaps close, the exemplar remains research-only and no new
-interpretation runtime is authorized.
+- a Product Owner decision on the default lens and the conditional modern
+  structural vocabulary;
+- explicit conflict-resolution rules for a future multi-school product mode;
+- evidence requirements for degrees, dignity, phase, and other technical
+  modifiers;
+- source-backed treatment of tension language beyond bounded research
+  questions;
+- reviewed policy for historical authority, father, masculine, medical, status,
+  financial, relationship, career, and destiny language;
+- a professional content review before canonical English wording is frozen;
+- localization and runtime admission after canonical English approval.
+
+Until these policy and technical gaps close, the exemplar remains research-only
+and no new interpretation runtime is authorized.
 
 ## 37. Expansion roadmap
 
@@ -690,11 +698,12 @@ The bounded expansion sequence is:
 1. research and register source records for the Sun and Taurus primitives;
 2. compare named traditions and record differences rather than flattening them;
 3. review the Planet × Sign exemplar against the quality gate;
-4. admit only the source-backed subset into a structured research registry;
-5. define a small professional editorial package;
-6. localize after canonical English approval;
-7. connect a future runtime only after authority and acceptance gates are met;
-8. expand to Planet × House and Planet × Planet Aspect with their own evidence.
+4. obtain bundled Product Owner policy admission for the source-backed subset;
+5. admit only the approved subset into a structured research registry;
+6. define a small professional editorial package;
+7. localize after canonical English approval;
+8. connect a future runtime only after authority and acceptance gates are met;
+9. expand to Planet × House and Planet × Planet Aspect with their own evidence.
 
 This roadmap does not authorize UI work, Engine work, provider selection, AI
 generation, or a full chart knowledge matrix.
@@ -703,9 +712,9 @@ generation, or a full chart knowledge matrix.
 
 | Priority | Research item | Exit evidence |
 | --- | --- | --- |
-| P0 | Sun symbolic functions across at least two reputable references and named schools | Claim matrix with source locators, conflicts, and policy recommendation |
-| P0 | Taurus element, modality, and rulership across traditional and modern sources | Claim matrix with school tags and non-deterministic wording |
-| P0 | Sun × Taurus composition review | Quality-gate record and approved/alternative/unresolved decisions |
+| P0 | Sun symbolic functions across at least two reputable references and named schools | CLOSED FOR RESEARCH; claim matrix with source locators, conflicts, and policy recommendation |
+| P0 | Taurus element, modality, and rulership across traditional and modern sources | CLOSED FOR RESEARCH; claim matrix with school tags and non-deterministic wording |
+| P0 | Sun × Taurus composition review | READY FOR PRODUCT OWNER POLICY DECISION; quality-gate record and unresolved decisions |
 | P1 | Modifier rules for house, aspects, orb, phase, and birth-time authority | Technical schema examples and eligibility tests |
 | P1 | Counterevidence and domain-language review | Review checklist with rejected overclaims |
 | P1 | Professional content and localization review | Canonical English package plus reviewed locale plan |
@@ -769,13 +778,13 @@ production runtime modules.
 
 ## 42. Exact next task
 
-WEB-P2-ASTROLOGY-KNOWLEDGE-RESEARCH-001 — Research and admit source-backed
-Sun/Taurus primitives and one Planet × Sign composition package
+WEB-P2-ASTROLOGY-KNOWLEDGE-POLICY-ADMISSION-001 — Product Owner admission of
+the bounded Sun/Taurus source-backed research package
 
-The next task should create claim-level provenance from actually consulted
-sources, record traditional and modern differences, make an explicit
-Product-Owner policy recommendation, and rerun the quality gate for the
-Sun × Taurus exemplar. It must preserve the same scientific boundary,
-provider-neutral Engine boundary, and PROVIDER DECISION DEFERRED policy. Do
-not begin UI integration, interpretation runtime migration, AI generation,
-provider selection, or the full knowledge matrix until that task is admitted.
+The next task should decide the default lens, conditional structural
+vocabulary, historical comparison boundary, and Sun × Taurus composition
+eligibility. It must preserve the same scientific boundary, provider-neutral
+Engine boundary, and PROVIDER DECISION DEFERRED policy. Do not begin UI
+integration, interpretation runtime migration, AI generation, provider
+selection, localization, or the full knowledge matrix until that policy task
+is explicitly admitted.
