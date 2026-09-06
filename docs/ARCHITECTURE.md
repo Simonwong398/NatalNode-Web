@@ -20,6 +20,11 @@ progressive depth, domain eligibility, learning context, recurring value, and
 current content/authority gaps. It is documentation-only and does not
 authorize new routes, UI, Engine facts, or production content.
 
+The corresponding evidence reconciliation is
+[`docs/architecture/NATALNODE_CONTENT_EVIDENCE_GAP_V1.md`](architecture/NATALNODE_CONTENT_EVIDENCE_GAP_V1.md).
+It records the current Engine, public-contract, BFF, Signal, ReadingModel, and
+presentation evidence without selecting a provider or adding runtime behavior.
+
 ## Fixed System Boundary
 
 The website boundary is fixed:
