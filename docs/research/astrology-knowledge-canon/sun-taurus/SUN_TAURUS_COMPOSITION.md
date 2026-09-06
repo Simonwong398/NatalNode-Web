@@ -1,6 +1,10 @@
 # Sun x Taurus Composition Review
 
-Status: RESEARCH_ONLY
+Source status: SOURCE_RESEARCH_COMPLETE_FOR_BOUNDED_V1_POLICY
+
+NatalNode policy status: SUN_TAURUS_COMPOSITION_ADOPTED_WITH_CONDITIONS
+
+Runtime / production eligibility: PRODUCTION_PERSONAL_INTERPRETATION_NOT_ADMITTED
 
 Research package: WEB-P2-ASTROLOGY-KNOWLEDGE-RESEARCH-001
 
@@ -79,7 +83,11 @@ conditions makes revision harder. House, aspects, Venus/dispositor, chart
 emphasis, birth-time authority, and the rest of the chart are required before
 the question can be made more specific.
 
-State: SOURCE_SUPPORTED_WITH_CONDITIONS
+Source state: SOURCE_SUPPORTED_WITH_CONDITIONS
+
+Policy state: ADOPTED_WITH_CONDITIONS
+
+Runtime eligibility: NONE
 
 Reason: the sentence is an editorial composition of individually sourced
 inputs; no consulted source states this exact cross-source sentence.
@@ -107,9 +115,10 @@ These are bounded questions, not diagnoses:
 - Does a need for tangible confirmation narrow the available options?
 - Could a slower consolidation rhythm conflict with a time-sensitive context?
 
-The tension layer is CONTESTED for default personal use. It requires chart
-modifiers and user context, and must not be rendered as stubbornness or
-inflexibility.
+The source status of the tension layer remains CONTESTED. The Product Owner
+approved it only as an ADOPTED_WITH_CONDITIONS question when source, method,
+modifier context, and user context permit. It must not be rendered as
+stubbornness or inflexibility.
 
 ## 7. Modifiers and missing authority
 
@@ -147,7 +156,7 @@ runtime content.
 
 ### QUICK
 
-Status: READY_FOR_POLICY_REVIEW; not production-admitted.
+Status: SEMANTIC_READY_FOR_BOUNDED_CANON; runtime not admitted.
 
 Modern-lens version:
 
@@ -160,7 +169,7 @@ description or scientific finding.
 
 ### PLAIN
 
-Status: READY_FOR_POLICY_REVIEW; not production-admitted.
+Status: SEMANTIC_READY_FOR_BOUNDED_CANON; runtime not admitted.
 
 The Sun is a central solar function in the chosen modern lens. Taurus adds a
 structural vocabulary of Earth, Fixed, and Venus. Together they can prompt
@@ -170,7 +179,7 @@ emphasis.
 
 ### LEARNER
 
-Status: READY_FOR_POLICY_REVIEW; not production-admitted.
+Status: SEMANTIC_READY_FOR_BOUNDED_CANON; runtime not admitted.
 
 First separate the layers. The Sun is the object being described. Taurus is
 the sign framework. In the modern convention researched here, Taurus is
@@ -182,7 +191,7 @@ birth-time authority before making a more specific reading.
 
 ### ASTROLOGER
 
-Status: INCOMPLETE_FOR_TECHNICAL_ADMISSION.
+Status: CONDITIONAL_TECHNICAL_REVIEW; runtime not admitted.
 
 Do not collapse the historical and modern layers. The classical material
 requires a labelled technical comparison of solid classification,
@@ -195,7 +204,8 @@ authoritative.
 
 ### TECHNICAL
 
-Status: SOURCE_RESEARCH_COMPLETE; POLICY_UNRESOLVED.
+Status: SOURCE_RESEARCH_COMPLETE_FOR_BOUNDED_V1_POLICY;
+POLICY_ADMITTED_WITH_CONDITIONS; runtime not admitted.
 
 Object: body.sun_x_sign.taurus
 
@@ -229,17 +239,19 @@ highly reusable across signs and people. They fail a Barnum check when stated
 as facts without a source lens, modifier, counter-condition, and a question
 that could be answered differently.
 
-The package passes the structural checks for object separation, source
-traceability, tradition labels, and negative boundaries. It does not pass the
-final production quality gate because Product Owner policy decisions remain
-unresolved and the tension vocabulary is not source-complete for personal
-interpretation.
+The package passes the bounded V1 quality gate for specificity, traceability,
+compositionality, boundedness, learnability, non-repetition, school/policy
+clarity, authority safety, human value, professional inspectability, and
+Barnum defense. The PASS is scoped to policy/canon admission. It does not
+authorize production personal interpretation. ASTROLOGER and TECHNICAL remain
+conditional because modifier, dignity, phase, and technical contracts are not
+complete.
 
-Quality result: REVISE.
+Quality result: PASS for bounded V1 policy package.
 
-## 11. Admission recommendation
+## 11. Approved admission boundary
 
-Recommend a later Product Owner admission of:
+The Product Owner approved:
 
 - modern Earth, Fixed, and Venus as clearly labelled structural conventions;
 - a conditional modern Sun vocabulary of vitality, central organization,
@@ -250,4 +262,8 @@ Recommend a later Product Owner admission of:
 - explicit suppression of deterministic, wealth, luxury, relationship, career,
   gender, medical, and destiny claims.
 
-Until that decision is recorded, this package remains research-only.
+Policy result: SUN_TAURUS_COMPOSITION_ADOPTED_WITH_CONDITIONS.
+
+The package remains outside production interpretation runtime, automatic My
+Chart personalization, localization, and provider authority until separate
+tasks admit those boundaries.

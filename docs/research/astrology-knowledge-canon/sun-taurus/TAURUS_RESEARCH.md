@@ -1,6 +1,10 @@
 # Taurus Research
 
-Status: RESEARCH_ONLY
+Source status: SOURCE_RESEARCH_COMPLETE_FOR_BOUNDED_V1_POLICY
+
+NatalNode policy status: TAURUS_POLICY_ADOPTED_WITH_CONDITIONS
+
+Runtime / production eligibility: PRODUCTION_PERSONAL_INTERPRETATION_NOT_ADMITTED
 
 Research package: WEB-P2-ASTROLOGY-KNOWLEDGE-RESEARCH-001
 
@@ -119,39 +123,43 @@ and avoid treating it as a universal personal label.
 
 ## 6. Candidate vocabulary review
 
-| Candidate | Evidence state | Safe use |
+| Candidate | Evidence state | Approved bounded use |
 | --- | --- | --- |
 | tangible / embodied | SOURCE_SUPPORTED_WITH_CONDITIONS | Modern educational vocabulary, framed as a question |
 | practical | SOURCE_SUPPORTED_WITH_CONDITIONS | Named modern or early-modern school; not universal |
 | continuity / maintenance | SOURCE_SUPPORTED_WITH_CONDITIONS | Editorial bridge from Fixed/Solid; label as synthesis |
 | persistence / sustained effort | SOURCE_SUPPORTED_WITH_CONDITIONS | Conditional constructive expression with modifiers |
 | stability / security | SOURCE_SUPPORTED_WITH_CONDITIONS | Conditional value or context question, not a promise |
-| caution / slower pace | SOURCE_SUPPORTED_WITH_CONDITIONS | Historical school comparison only unless separately admitted |
-| resistance to revision / inertia | CONTESTED | Tension question only; never a diagnosis |
-| stubbornness | CONTESTED or REJECTED as default | May be discussed as a bounded stereotype to challenge, not asserted |
-| possessiveness | SOURCE_RESEARCH_REQUIRED | No default production use from this package |
+| caution / slower pace | SOURCE_SUPPORTED_WITH_CONDITIONS | Named historical school comparison; not a default trait |
+| resistance to revision / inertia | CONTESTED | Conditional tension question only; never a diagnosis |
+| stubbornness | CONTESTED or REJECTED as default | May be challenged as a stereotype; never asserted as fact |
+| possessiveness | SOURCE_RESEARCH_REQUIRED | No default personal use from this package |
 | luxury / wealth / money | REJECTED as an automatic result | Requires separate evidence and cannot follow from Venus alone |
 | romance / relationship loyalty | SOURCE_RESEARCH_REQUIRED | Do not derive from rulership alone |
 
-## 7. Proposed NatalNode Taurus policy
+## 7. Approved NatalNode Taurus policy
 
-| Taurus layer | Proposed policy state | Eligibility |
+| Taurus layer | Approved policy state | Eligibility |
 | --- | --- | --- |
 | Earth, Fixed, Venus as modern structural labels | ADOPTED_WITH_CONDITIONS | Learner and conditional personal language with lens label |
 | Ptolemaic solid and triplicity | EDUCATIONAL_ONLY or SUPPORTED_AS_ALTERNATIVE | Historical comparison, never silently modernized |
 | Embodiment, tangible value, continuity | ADOPTED_WITH_CONDITIONS | Editorial synthesis with source references and limits |
 | Persistence, stability, practical follow-through | ADOPTED_WITH_CONDITIONS | Constructive possibility, not deterministic trait |
-| Inertia, resistance, possessiveness, stubbornness | UNRESOLVED / CONTESTED | Tension questions only after policy review |
+| Difficulty revising established conditions | ADOPTED_WITH_CONDITIONS with CONTESTED source status | Conditional tension question only when source, method, and modifiers permit |
+| Inertia, resistance, possessiveness, stubbornness as fixed facts | REJECTED or NOT_USED_FOR_PERSONAL_INTERPRETATION | Never an unconditional personality label |
 | Luxury, wealth, material success, automatic loyalty | REJECTED | Not eligible as a sign-only claim |
 
-The recommended policy is to admit the structural vocabulary before admitting
-the more psychologically loaded vocabulary. The user should be able to see
-which layer is a modern convention, which is historical comparison, and which
-is a NatalNode wording choice.
+The approved policy admits the structural vocabulary with conditions and keeps
+psychologically loaded vocabulary bounded. The user must be able to see which
+layer is a modern convention, which is historical comparison, and which is a
+NatalNode wording choice.
 
 ## 8. Taurus research state
 
 The P0 source gap for Earth, Fixed/Solid, and Venus-rulership structure is
-closed sufficiently for bundled Product Owner review. The personal meaning
-layer is intentionally conditional. The package does not authorize a Taurus
-runtime record, a Sun-in-Taurus interpretation, or a localized version.
+closed for this bounded V1 policy decision. The personal meaning layer remains
+conditional and non-deterministic. The package does not authorize a Taurus
+runtime record, a production Sun-in-Taurus interpretation, or a localized
+version.
+
+Policy result: TAURUS_POLICY_ADOPTED_WITH_CONDITIONS.

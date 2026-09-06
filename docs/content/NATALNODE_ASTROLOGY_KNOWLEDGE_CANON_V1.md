@@ -1,17 +1,20 @@
 # NatalNode Astrology Knowledge + Interpretation Canon V1
 
-**Status:** ADMITTED_WITH_SOURCE_RESEARCH_REQUIRED
+**Status:** SUN_TAURUS_POLICY_ADMITTED
+**Source status:** SOURCE_RESEARCH_COMPLETE_FOR_BOUNDED_V1_POLICY
+**NatalNode policy status:** BOUNDED_PLURAL_LENS_APPROVED
 **Scope:** documentation-only knowledge architecture and content governance
 **Canonical source locale:** English (en)
+**Runtime / production eligibility:** PRODUCTION_PERSONAL_INTERPRETATION_NOT_ADMITTED
 **Runtime admission:** none in this task
 **Provider policy:** PROVIDER DECISION DEFERRED
 
 This document defines the first reviewable boundary for NatalNode astrology
 knowledge and interpretation content. It is a policy and schema freeze, not a
-claim that the repository currently contains a complete astrology knowledge
-corpus. The accompanying Sun, Taurus, and Sun × Taurus material is an
-explicitly bounded exemplar. It is not production runtime content and is not a
-scientific claim.
+claim that the repository contains exhaustive scholarship across Western
+astrology literature. The accompanying Sun, Taurus, and Sun × Taurus material
+is a bounded V1 policy-admitted package. It is not production runtime content
+and is not a scientific claim.
 
 ## 1. Executive thesis
 
@@ -101,9 +104,14 @@ Each school-specific contribution uses one of these policy states:
 | NOT_USED_FOR_PERSONAL_INTERPRETATION | Retained for reference/history only |
 | UNRESOLVED | Review has not selected or admitted a policy |
 
-V1 does not silently choose a single universal doctrine for Sun, Taurus, or
-their combination. No school is a production default merely because it is
-familiar.
+V1 does not claim a single universal doctrine for Sun, Taurus, or their
+combination. For this bounded package, modern/psychological Western natal
+astrology is the default personal interpretation lens as a NatalNode product
+policy, not as a claim that it is the only legitimate tradition or that it is
+scientifically validated. Traditional/classical material remains available
+for historical context, education, astrologer view, and technical/school
+comparison; early-modern material remains named historical interpretive
+evidence.
 
 ## 5. NatalNode doctrine policy
 
@@ -584,16 +592,16 @@ The audit classifies existing material by its safe role in this canon:
 | apps/web/src/features/learn/educational-chart-source.ts | EDITORIAL_ONLY | Educational fixture boundary; never a source of personal chart facts |
 | apps/web/src/features/my-chart/my-chart-evidence-projection.ts and Stage A UI | EDITORIAL_ONLY; NEEDS_POLICY_REVIEW for future admission | Explicit development/research disclosure and bounded existing language; unchanged by this task |
 | Weekly POC documents and runtime | EDITORIAL_ONLY; TOO_SHALLOW for this canon | Useful for audience/style comparison only; no weekly prose is promoted into natal knowledge |
-| Detailed Sun/Taurus doctrine, school comparison, and rulership material | NEEDS_POLICY_REVIEW | Source-backed research package exists; no production personal-interpretation record is admitted by this task |
+| Detailed Sun/Taurus doctrine, school comparison, and rulership material | POLICY_ADMITTED_BOUNDED; RUNTIME_NOT_ADMITTED | Package A is approved with conditions; no production personal-interpretation record is admitted by this task |
 
 This audit is a classification, not a migration. No existing runtime content is
 changed or promoted.
 
 ## 33. SUN exemplar
 
-This exemplar is a research-only package inside the canon document. It freezes
-the shape of a future record without claiming source-complete doctrine. The
-source-backed research dossier is maintained at
+This exemplar is a bounded, policy-admitted package inside the canon document.
+It freezes the shape of a future record without claiming exhaustive doctrine.
+The source-backed research dossier is maintained at
 docs/research/astrology-knowledge-canon/sun-taurus/ and remains outside
 production runtime.
 
@@ -603,18 +611,18 @@ production runtime.
 | canonical identity | Sun, glyph and glossary identity | REUSABLE_CANON_INPUT |
 | current repository focus | Identity and vitality | REUSABLE_CANON_INPUT from interpretation-content.ts |
 | current repository expression | Developing confidence through purposeful self-expression | EDITORIAL_ONLY; bounded input |
-| traditional/common symbolic role | Historical solar function, authority, honour, and vitality language, with identity kept school-scoped | SOURCE_SUPPORTED_WITH_CONDITIONS; historical or named-tradition use |
-| modern-school readings | Identity, agency, vitality, self-development, integration, or self-expression variants | SOURCE_SUPPORTED_WITH_CONDITIONS and school-specific |
-| constructive possibilities | Purposeful self-expression, sustained agency, or vitality as a reflective question | EDITORIAL_SYNTHESIS; not admitted for personal runtime use |
-| tensions | Overidentification, visibility pressure, or narrowed self-definition | SOURCE_RESEARCH_REQUIRED; requires policy and modifier review |
+| traditional/common symbolic role | Historical solar function, authority, honour, and vitality language, with identity kept school-scoped | SOURCE_SUPPORTED_WITH_CONDITIONS; policy SUPPORTED_AS_ALTERNATIVE or EDUCATIONAL_ONLY |
+| modern-school readings | Identity, agency, vitality, self-development, integration, or self-expression variants | SOURCE_SUPPORTED_WITH_CONDITIONS; policy ADOPTED_WITH_CONDITIONS for the default modern lens |
+| constructive possibilities | Purposeful self-expression, sustained agency, or vitality as a reflective question | EDITORIAL_SYNTHESIS; ADOPTED_WITH_CONDITIONS; runtime not admitted |
+| tensions | Overidentification, visibility pressure, or narrowed self-definition | SOURCE_RESEARCH_REQUIRED; not admitted by this bounded policy |
 | misconceptions | One placement is not the whole personality, destiny, or scientific trait | NATALNODE_POLICY; admitted boundary |
 | prerequisites | Chart body fact, chosen zodiac/model, method, and wider chart context | NATALNODE_POLICY |
-| policy | UNRESOLVED for a production school default; modern language may be considered with conditions; historical language remains educational or alternative | ADMITTED_WITH_SOURCE_RESEARCH_REQUIRED |
+| policy | Default personal lens is modern/psychological Western natal astrology; historical language remains educational or alternative | SUN_TAURUS_POLICY_ADMITTED |
 
 The consulted sources, claim-level statuses, and policy limits are recorded in
 the linked research package. No external citation is invented here. Source
-research is sufficient for bundled Product Owner review, but it does not
-complete the policy decision required for personal interpretation.
+research is complete for this bounded V1 policy decision. It does not
+authorize production personal interpretation or claim exhaustive scholarship.
 
 ## 34. TAURUS exemplar
 
@@ -624,15 +632,15 @@ complete the policy decision required for personal interpretation.
 | canonical identity | Taurus, glyph, zodiac-sign glossary family | REUSABLE_CANON_INPUT |
 | current repository style | Steady and sensory | REUSABLE_CANON_INPUT from interpretation-content.ts |
 | current repository expression | Prioritizing patience, consistency, and tangible values | EDITORIAL_ONLY; bounded input |
-| element relationship | Taurus is a modern Earth convention; the semantics must remain broader than practical or material | SOURCE_SUPPORTED_WITH_CONDITIONS; modern-lens and school-scoped |
-| modality relationship | Modern Fixed vocabulary can be bridged to historical Solid only with an explicit qualification | SOURCE_SUPPORTED_WITH_CONDITIONS; not unchanged doctrine |
-| rulership | Venus is supported as a named traditional and modern structural relation | SOURCE_SUPPORTED_WITH_CONDITIONS; method and dignity details remain scoped |
-| operating style | Candidate continuity, embodiment, value, or tangible-result language | SOURCE_SUPPORTED_WITH_CONDITIONS and school-specific |
-| constructive possibilities | Patience, consistency, and tangible value as questions, not traits | EDITORIAL_SYNTHESIS; not runtime-admitted |
-| tensions / stereotypes | Inertia, possessiveness, or stubbornness must not be asserted from the sign alone | SOURCE_RESEARCH_REQUIRED plus NATALNODE_POLICY |
+| element relationship | Taurus is a modern Earth convention; the semantics must remain broader than practical or material | SOURCE_SUPPORTED_WITH_CONDITIONS; policy ADOPTED_WITH_CONDITIONS |
+| modality relationship | Modern Fixed vocabulary can be bridged to historical Solid only with an explicit qualification | SOURCE_SUPPORTED_WITH_CONDITIONS; policy ADOPTED_WITH_CONDITIONS |
+| rulership | Venus is supported as a named traditional and modern structural relation | SOURCE_SUPPORTED_WITH_CONDITIONS; policy ADOPTED_WITH_CONDITIONS |
+| operating style | Continuity, embodiment, value, maintenance, and tangible-result language | SOURCE_SUPPORTED_WITH_CONDITIONS; policy ADOPTED_WITH_CONDITIONS |
+| constructive possibilities | Patience, consistency, and tangible value as questions, not traits | EDITORIAL_SYNTHESIS; ADOPTED_WITH_CONDITIONS; runtime not admitted |
+| tensions / stereotypes | Inertia, possessiveness, or stubbornness must not be asserted from the sign alone | SOURCE_RESEARCH_REQUIRED or CONTESTED; not a default personal fact |
 | limitations | Other bodies, house, aspects, method, context, and agency can redirect the reading | NATALNODE_POLICY |
 | prerequisites | Sign fact, zodiac model, source tradition, and context | NATALNODE_POLICY |
-| policy | Structural Earth/Fixed/Venus vocabulary may be considered with conditions; personal-reading default remains unresolved | ADMITTED_WITH_SOURCE_RESEARCH_REQUIRED |
+| policy | Earth/Fixed/Venus are approved bounded modern structural conventions; personal language remains conditional and non-deterministic | SUN_TAURUS_POLICY_ADMITTED |
 
 The Foundations material is a useful educational input and already warns that
 element and mode are not deterministic personality categories. The source
@@ -649,23 +657,22 @@ The exemplar is intentionally bounded:
 | compositionId | body.sun_x_sign.taurus |
 | inputs | body.sun + sign.taurus |
 | rationale | The planet supplies a question about function or subject; the sign supplies a conventional style vocabulary |
-| current admitted language | Sun: identity and vitality; Taurus: steady and sensory; both are existing bounded editorial inputs |
-| candidate synthesis | Explore how identity/vitality may be discussed through a steady, sensory, consistency-oriented symbolic style |
-| constructive projection | Ask where purposeful self-expression is sustained through tangible values or continuity |
-| tension projection | Ask whether continuity supports the aim or makes revision harder; do not label the person |
+| current admitted language | Modern-lens Sun vitality, central/organizing function, self-development, self-expression, and identity-related language; Taurus Earth/Fixed/Venus structure |
+| candidate synthesis | Approved conditional composition: Sun function expressed through Taurus structure |
+| constructive projection | Explore continuity of self-expression, sustained development, tangible/embodied expression, preservation, consolidation, and steady follow-through |
+| tension projection | Conditionally ask whether established conditions are difficult to revise; never convert this into an unconditional label |
 | possible manifestations | Reflective questions about values, effort, embodiment, or self-expression only when context and method support them |
 | modifier dependencies | House, aspects, degree, rulership, dignity, chart emphasis, birth-time authority, school, and lived context |
 | limitations | A single placement does not describe a whole person, predict an outcome, or settle competing factors |
 | ordinary projection | “What part of identity or vitality might be explored through this sign’s steady, sensory vocabulary?” |
 | learner projection | “Separate the Sun’s function from Taurus’s sign-style vocabulary, then ask what other chart layers could reinforce or complicate the pairing.” |
 | professional projection | “Do not issue a personal conclusion until tradition, house, aspects, rulership, required technical data, and counterevidence are admitted.” |
-| quality result | REVISE; source-backed research is complete enough for review, but policy, modifier, and technical admission remain open |
-| source state | SOURCE_SUPPORTED_WITH_CONDITIONS for the bounded research projection; production admission remains pending |
-| policy state | UNRESOLVED for production personal interpretation; EDUCATIONAL_ONLY for architecture review |
+| quality result | PASS for the bounded V1 policy package; production personal interpretation remains not admitted |
+| source state | SOURCE_RESEARCH_COMPLETE_FOR_BOUNDED_V1_POLICY |
+| policy state | ADOPTED_WITH_CONDITIONS; default personal lens is modern/psychological Western; runtime eligibility remains none |
 
-The sample projection sentences are editorial shape examples, not current
-production copy. They are deliberately less certain than the interrupted
-Stage A content expansion and do not modify that UI or runtime.
+The sample projection sentences are policy-admitted research projections, not
+current production copy. They remain separate from the Stage A UI and runtime.
 
 ## 36. Source/research gaps
 
@@ -676,8 +683,7 @@ docs/research/astrology-knowledge-canon/sun-taurus/.
 
 The following gaps still block production personal-interpretation admission:
 
-- a Product Owner decision on the default lens and the conditional modern
-  structural vocabulary;
+- a professional content review before canonical English wording is frozen;
 - explicit conflict-resolution rules for a future multi-school product mode;
 - evidence requirements for degrees, dignity, phase, and other technical
   modifiers;
@@ -685,11 +691,10 @@ The following gaps still block production personal-interpretation admission:
   questions;
 - reviewed policy for historical authority, father, masculine, medical, status,
   financial, relationship, career, and destiny language;
-- a professional content review before canonical English wording is frozen;
 - localization and runtime admission after canonical English approval.
 
-Until these policy and technical gaps close, the exemplar remains research-only
-and no new interpretation runtime is authorized.
+The bounded policy is now admitted, but these policy and technical gaps remain
+before any production personal-interpretation runtime is authorized.
 
 ## 37. Expansion roadmap
 
@@ -698,7 +703,8 @@ The bounded expansion sequence is:
 1. research and register source records for the Sun and Taurus primitives;
 2. compare named traditions and record differences rather than flattening them;
 3. review the Planet × Sign exemplar against the quality gate;
-4. obtain bundled Product Owner policy admission for the source-backed subset;
+4. obtain bundled Product Owner policy admission for the source-backed subset
+   (complete for this package);
 5. admit only the approved subset into a structured research registry;
 6. define a small professional editorial package;
 7. localize after canonical English approval;
@@ -714,7 +720,7 @@ generation, or a full chart knowledge matrix.
 | --- | --- | --- |
 | P0 | Sun symbolic functions across at least two reputable references and named schools | CLOSED FOR RESEARCH; claim matrix with source locators, conflicts, and policy recommendation |
 | P0 | Taurus element, modality, and rulership across traditional and modern sources | CLOSED FOR RESEARCH; claim matrix with school tags and non-deterministic wording |
-| P0 | Sun × Taurus composition review | READY FOR PRODUCT OWNER POLICY DECISION; quality-gate record and unresolved decisions |
+| P0 | Sun × Taurus composition review | POLICY ADMITTED WITH CONDITIONS; production/runtime admission remains closed |
 | P1 | Modifier rules for house, aspects, orb, phase, and birth-time authority | Technical schema examples and eligibility tests |
 | P1 | Counterevidence and domain-language review | Review checklist with rejected overclaims |
 | P1 | Professional content and localization review | Canonical English package plus reviewed locale plan |
@@ -778,13 +784,13 @@ production runtime modules.
 
 ## 42. Exact next task
 
-WEB-P2-ASTROLOGY-KNOWLEDGE-POLICY-ADMISSION-001 — Product Owner admission of
-the bounded Sun/Taurus source-backed research package
+WEB-P2-ASTROLOGY-KNOWLEDGE-EXPANSION-001 — Define the bounded professional
+English package and modifier admission for Sun/Taurus
 
-The next task should decide the default lens, conditional structural
-vocabulary, historical comparison boundary, and Sun × Taurus composition
-eligibility. It must preserve the same scientific boundary, provider-neutral
-Engine boundary, and PROVIDER DECISION DEFERRED policy. Do not begin UI
-integration, interpretation runtime migration, AI generation, provider
-selection, localization, or the full knowledge matrix until that policy task
-is explicitly admitted.
+The next task may expand the approved bounded subset into canonical English
+content and a separate modifier contract, but it must preserve the modern
+psychological default lens, historical comparison boundary, scientific trust
+boundary, provider-neutral Engine boundary, and PROVIDER DECISION DEFERRED
+policy. Do not begin UI integration, interpretation runtime migration,
+localization, AI generation, provider selection, or a full knowledge matrix
+without a separately admitted task.

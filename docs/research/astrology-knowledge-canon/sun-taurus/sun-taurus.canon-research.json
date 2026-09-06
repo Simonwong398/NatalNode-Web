@@ -1,7 +1,10 @@
 {
   "packageId": "sun-taurus-v1-research",
   "taskId": "WEB-P2-ASTROLOGY-KNOWLEDGE-RESEARCH-001",
-  "status": "RESEARCH_COMPLETE_WITH_UNRESOLVED_POLICY",
+  "status": "SUN_TAURUS_POLICY_ADMITTED",
+  "sourceStatus": "SOURCE_RESEARCH_COMPLETE_FOR_BOUNDED_V1_POLICY",
+  "policyStatus": "BOUNDED_PLURAL_LENS_APPROVED",
+  "runtimeEligibility": "PRODUCTION_PERSONAL_INTERPRETATION_NOT_ADMITTED",
   "runtimeAdmission": "NONE",
   "scope": {
     "zodiac": "Western tropical",
@@ -142,7 +145,7 @@
       "directness": "DIRECT",
       "agreement": "HISTORICAL_SOURCE_SUPPORTED",
       "researchStatus": "SOURCE_SUPPORTED_WITH_CONDITIONS",
-      "policyState": "EDUCATIONAL_ONLY",
+      "policyState": "SUPPORTED_AS_ALTERNATIVE",
       "contentEligibility": "HISTORY_OR_NAMED_TRADITIONAL_COMPARISON"
     },
     {
@@ -182,8 +185,8 @@
       "directness": "INFERRED_EDITORIAL_COMPOSITION",
       "agreement": "COHERENT_CONDITIONAL_SYNTHESIS",
       "researchStatus": "SOURCE_SUPPORTED_WITH_CONDITIONS",
-      "policyState": "UNRESOLVED_PENDING_PRODUCT_OWNER",
-      "contentEligibility": "RESEARCH_PROJECTION_ONLY"
+      "policyState": "ADOPTED_WITH_CONDITIONS",
+      "contentEligibility": "POLICY_ADMITTED_RESEARCH_PROJECTION_ONLY"
     },
     {
       "id": "AST-020",
@@ -192,7 +195,7 @@
       "directness": "INFERRED",
       "agreement": "CONTESTED_AS_PERSONAL_DEFAULT",
       "researchStatus": "CONTESTED",
-      "policyState": "UNRESOLVED",
+      "policyState": "ADOPTED_WITH_CONDITIONS",
       "contentEligibility": "TENSION_QUESTION_ONLY_IF_ADMITTED"
     },
     {
@@ -227,19 +230,20 @@
     },
     {
       "id": "AST-028",
-      "claim": "The research package is ready for production personal interpretation without Product Owner policy decisions.",
+      "claim": "The bounded Sun/Taurus package is ready for policy-admitted canon use while production personal interpretation remains closed.",
       "sourceRefs": ["S1", "S2", "S4", "S5", "S7", "S8", "S9"],
       "directness": "INFERRED_ADMISSION_DECISION",
-      "agreement": "NOT_ESTABLISHED",
-      "researchStatus": "SOURCE_RESEARCH_REQUIRED",
-      "policyState": "UNRESOLVED",
-      "contentEligibility": "NONE"
+      "agreement": "PRODUCT_OWNER_POLICY_APPROVED",
+      "researchStatus": "SOURCE_SUPPORTED_WITH_CONDITIONS",
+      "policyState": "SUN_TAURUS_POLICY_ADMITTED",
+      "contentEligibility": "BOUNDED_CANON_ONLY_RUNTIME_NOT_ADMITTED"
     }
   ],
   "composition": {
     "id": "body.sun_x_sign.taurus",
     "status": "SOURCE_SUPPORTED_WITH_CONDITIONS",
-    "policyState": "UNRESOLVED",
+    "policyState": "ADOPTED_WITH_CONDITIONS",
+    "runtimeEligibility": "NONE",
     "requiredModifiers": [
       "house",
       "aspects",

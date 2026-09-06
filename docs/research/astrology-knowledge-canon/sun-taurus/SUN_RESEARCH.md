@@ -1,6 +1,10 @@
 # Sun Research
 
-Status: RESEARCH_ONLY
+Source status: SOURCE_RESEARCH_COMPLETE_FOR_BOUNDED_V1_POLICY
+
+NatalNode policy status: SUN_POLICY_ADOPTED_WITH_CONDITIONS
+
+Runtime / production eligibility: PRODUCTION_PERSONAL_INTERPRETATION_NOT_ADMITTED
 
 Research package: WEB-P2-ASTROLOGY-KNOWLEDGE-RESEARCH-001
 
@@ -116,35 +120,39 @@ The differences are real but not absolute. All three lenses give the Sun a
 central or organizing importance in their own terms; they disagree on what
 that importance means and how personal or technical the claim should be.
 
-## 7. Proposed NatalNode Sun policy
+## 7. Approved NatalNode Sun policy
 
-This is a recommendation for Product Owner admission, not a silent policy
-change.
+The Product Owner approved Package A. The policy is product-owned and does not
+claim that modern/psychological astrology is scientifically validated or the
+only legitimate tradition.
 
-| Sun language | Proposed policy state | Eligibility |
+| Sun language | Approved policy state | Eligibility |
 | --- | --- | --- |
 | Life force or vitality | ADOPTED_WITH_CONDITIONS | Modern or comparative explanation, with non-scientific disclosure |
 | Central organizing function / self-development | ADOPTED_WITH_CONDITIONS | Modern/psychological lens only; whole-chart limit required |
 | Identity or self-expression | ADOPTED_WITH_CONDITIONS | Named modern lens; never the only chart conclusion |
 | Authority, honour, office | EDUCATIONAL_ONLY or SUPPORTED_AS_ALTERNATIVE | Traditional-history or named traditional comparison |
-| Father, masculine, gendered role | EDUCATIONAL_ONLY | Historical comparison only unless separately admitted with a narrow policy |
+| Father, masculine, gendered role | EDUCATIONAL_ONLY, CONTESTED, or NOT_USED_FOR_PERSONAL_INTERPRETATION | Historical comparison only; not default personal prose |
 | Medical, bodily, or status prediction | NOT_USED_FOR_PERSONAL_INTERPRETATION | No production personal wording |
-| Purpose, destiny, or guaranteed life direction | UNRESOLVED / SOURCE_RESEARCH_REQUIRED | Requires separate evidence and policy |
+| Purpose, destiny, or guaranteed life direction | UNRESOLVED / SOURCE_RESEARCH_REQUIRED | Not admitted by this package |
 
-The recommended default is plural and explicit: modern bounded language for
-current reflective education, with historical traditional material in a
-clearly labelled comparison layer.
+The approved default is plural and explicit: modern/psychological Western
+natal astrology is the default personal interpretation lens for this bounded
+package; historical traditional and early-modern material remains a clearly
+labelled comparison layer.
 
 ## 8. Sun research state
 
-The Sun primitive is source-complete enough for a Product Owner decision on
-bounded vocabulary, but not for a universal production doctrine. The following
+The Sun primitive is source-complete for this bounded V1 policy decision, not
+for exhaustive scholarship or a universal production doctrine. The following
 claims remain intentionally conditional:
 
 - identity is a modern lens, not a timeless definition;
 - authority and honour are historical/traditional alternatives;
 - father and masculine symbolism are contested across use cases;
-- purpose and destiny require additional research;
+- purpose and destiny remain outside this package;
 - all personal expressions require chart modifiers and a whole-chart limit.
+
+Policy result: SUN_POLICY_ADOPTED_WITH_CONDITIONS.
 
 No production interpretation runtime is admitted by this dossier.
