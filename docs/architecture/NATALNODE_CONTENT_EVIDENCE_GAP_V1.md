@@ -57,23 +57,56 @@ selection, BFF changes, birth input, location resolution, Signal rules,
 interpretation copy, Weekly UI, authentication, Vault, Share, notifications,
 database, deployment, or SEO.
 
-## 3. Capability and gap taxonomy
+## 3. Three-axis authority taxonomy
 
-| Classification | Meaning |
+The R1 correction freezes three separate questions. A value must not be called
+production scientific authority merely because a schema or computation path can
+represent it.
+
+### 3.1 Capability
+
+Capability asks: can the inspected Engine domain represent or calculate the
+fact?
+
+| Capability status | Meaning |
 | --- | --- |
-| AVAILABLE_AUTHORITATIVE | Evidence is available through an admitted authority and may be used as product truth. |
-| AVAILABLE_AUTHORITATIVE_BUT_NOT_EXPOSED | Engine/domain capability exists, but no admitted public Web/BFF path exposes it. |
-| AVAILABLE_DEVELOPMENT_ONLY | A working development path exists, but it is explicitly not production authority. |
-| AVAILABLE_FIXTURE_ONLY | Behavior exists only in a fixture or conformance artifact. |
-| PARTIAL | Some required fields or semantics exist, but the complete evidence chain is open. |
-| BLOCKED_ENGINE_CAPABILITY | The required semantic capability is not present in the inspected Engine path. |
-| BLOCKED_PUBLIC_CONTRACT | The required evidence is not represented by an admitted public contract. |
-| BLOCKED_TIME_AUTHORITY | Required civil-time or historical-time authority is not closed. |
-| BLOCKED_PROVIDER_AUTHORITY | Provider, rights, configuration, or operational identity is not closed. |
-| BLOCKED_SIGNAL_SEMANTICS | Facts exist, but signal meaning, eligibility, or temporal semantics are not admitted. |
-| BLOCKED_READING_MODEL | Source evidence cannot yet be transformed into an admitted human-reading model. |
-| BLOCKED_PRESENTATION | Evidence or authority is not exposed at the required user-facing depth. |
-| UNKNOWN | Repository evidence is insufficient for a safe claim. |
+| CAPABILITY_AVAILABLE | The inspected Engine/domain path defines the fact or transformation. |
+| CAPABILITY_PARTIAL | Some required inputs or semantics exist, but the capability is incomplete. |
+| CAPABILITY_MISSING | The required Engine capability was not found. |
+
+### 3.2 Contract exposure
+
+Contract exposure asks: is the fact available through the supported public
+contract and Web/BFF path?
+
+| Contract or binding status | Meaning |
+| --- | --- |
+| PUBLIC_CONTRACT_AVAILABLE | The public contract contains the fact with the required shape. |
+| PUBLIC_CONTRACT_PARTIAL | The contract carries only part of the required fact or provenance. |
+| PUBLIC_CONTRACT_BLOCKED | No admitted public contract carries the required fact. |
+| WEB_BINDING_AVAILABLE | The Web/BFF runtime is bound to the admitted contract and authority. |
+| WEB_BINDING_DEVELOPMENT_ONLY | A Web/BFF path exists, but it is explicitly development-only. |
+| WEB_BINDING_MISSING | No Web/BFF binding for the required capability was found. |
+
+### 3.3 Production authority
+
+Production authority asks: may NatalNode currently treat the produced value as
+production scientific authority?
+
+| Production authority status | Meaning |
+| --- | --- |
+| PRODUCTION_AUTHORITY_ADMITTED | Provider, time, configuration, provenance, contract, and runtime gates are admitted. |
+| PRODUCTION_AUTHORITY_BLOCKED_PROVIDER | Provider selection, rights, or operational provider identity is not closed. |
+| PRODUCTION_AUTHORITY_BLOCKED_TIME_AUTHORITY | Required civil-time or historical-time authority is not closed. |
+| PRODUCTION_AUTHORITY_BLOCKED_CONFIGURATION | Scientific configuration identity or release status is not closed. |
+| PRODUCTION_AUTHORITY_BLOCKED_PROVENANCE | Provenance, validation, rights, or governance evidence is not closed. |
+| DEVELOPMENT_RESEARCH_ONLY | The result may support a visibly bounded development/research prototype only. |
+| FIXTURE_ONLY | The value exists only in a fixture or conformance artifact. |
+
+Surface-readiness shorthand such as AVAILABLE_DEVELOPMENT_ONLY is not a
+production authority status. Fixture inputs use the explicit production status
+FIXTURE_ONLY. The authoritative production classification is the third axis
+above.
 
 | Gap | Meaning |
 | --- | --- |
@@ -176,39 +209,42 @@ validation around provider-supplied states; it is not itself an astronomy
 provider. Its input contract requires normalized UTC and latitude/longitude.
 Local civil time and timezone normalization are outside the Engine package.
 
-| Capability | Engine/domain evidence | Product classification | Open condition |
-| --- | --- | --- | --- |
-| Body identity and longitude | Ten canonical bodies and body result fields exist. | AVAILABLE_AUTHORITATIVE_BUT_NOT_EXPOSED | G2, G3, G4: no admitted provider-backed Web result. |
-| Sign and sign-degree mapping | Provider-independent semantic transformation exists. | AVAILABLE_AUTHORITATIVE_BUT_NOT_EXPOSED | Requires admitted body state and public result. |
-| House membership and cusps | Twelve canonical houses and house structures exist. | AVAILABLE_AUTHORITATIVE_BUT_NOT_EXPOSED | Requires known-time input and valid house path. |
-| ASC, MC, ARMC, obliquity | Angle result contract exists. | AVAILABLE_AUTHORITATIVE_BUT_NOT_EXPOSED | G2, G3, G4: no production public binding. |
-| Major aspects | Type, bodies, separation, orb, and applying/exact/separating phase exist. | AVAILABLE_AUTHORITATIVE_BUT_NOT_EXPOSED | Web AspectFact is narrower; no per-fact canonical identity. |
-| Motion / retrograde | Speed and motion semantics exist; near-station warning exists. | PARTIAL | G3, G5: public eligibility and semantics are not closed. |
-| Chart metadata | Configuration/provenance may be COMPLETE or INCOMPLETE_RESEARCH. | PARTIAL | Incomplete metadata does not create provider authority. |
-| Configuration identity | Complete metadata requires configuration identity. | BLOCKED_PROVIDER_AUTHORITY | No production astronomy configuration is approved. |
-| Provenance envelope | Complete metadata requires source, validation, rights, and governance evidence. | BLOCKED_PROVIDER_AUTHORITY | Rights and release gates remain open. |
-| Time context | NATALNODE_TIME_POLICY_V1 creates UT-like, TT, TDB, delta-T, and policy context. | PARTIAL | BLOCKED_TIME_AUTHORITY for local/historical civil-time authority. |
-| Transit-to-natal relationships | No admitted Engine/public operation was found. | BLOCKED_PUBLIC_CONTRACT | G1, G3, G5: do not infer temporal signals from natal facts. |
-| House/angle transits | No admitted capability was found. | BLOCKED_ENGINE_CAPABILITY | G1, G3: requires a separately frozen boundary. |
-| Moon phase / lunation | Web contracts contain concepts; production Engine authority is not admitted. | PARTIAL | G2, G3, G5: fixture and contract are not production evidence. |
-| Production provider | Provider interface exists; no production provider implementation was found in the inspected package. | BLOCKED_PROVIDER_AUTHORITY | PROVIDER DECISION DEFERRED. |
+| Fact or capability | Capability | Public contract | Web binding | Production authority | Evidence / condition |
+| --- | --- | --- | --- | --- | --- |
+| Body identity and longitude | CAPABILITY_AVAILABLE | PUBLIC_CONTRACT_AVAILABLE | WEB_BINDING_DEVELOPMENT_ONLY | PRODUCTION_AUTHORITY_BLOCKED_PROVIDER | Ten canonical bodies and BodyFact fields exist; the executable path is mock-bound. |
+| Sign and sign-degree mapping | CAPABILITY_AVAILABLE | PUBLIC_CONTRACT_AVAILABLE | WEB_BINDING_DEVELOPMENT_ONLY | PRODUCTION_AUTHORITY_BLOCKED_PROVIDER | Provider-independent semantic transformation exists; a provider-backed state is not admitted. |
+| House membership and cusps | CAPABILITY_AVAILABLE | PUBLIC_CONTRACT_AVAILABLE | WEB_BINDING_DEVELOPMENT_ONLY | PRODUCTION_AUTHORITY_BLOCKED_PROVIDER | BodyFact.house and HouseFacts exist; known-time and valid time authority remain required. |
+| ASC, MC, ARMC, obliquity | CAPABILITY_AVAILABLE | PUBLIC_CONTRACT_AVAILABLE | WEB_BINDING_DEVELOPMENT_ONLY | PRODUCTION_AUTHORITY_BLOCKED_PROVIDER | Angle result and AngleFact structures exist; no production binding exists. |
+| Major aspects | CAPABILITY_AVAILABLE | PUBLIC_CONTRACT_AVAILABLE | WEB_BINDING_DEVELOPMENT_ONLY | PRODUCTION_AUTHORITY_BLOCKED_PROVIDER | Type, bodies, separation, and phase exist; Web AspectFact does not expose a per-fact canonical identity. |
+| Orb | CAPABILITY_AVAILABLE | PUBLIC_CONTRACT_AVAILABLE | WEB_BINDING_DEVELOPMENT_ONLY | PRODUCTION_AUTHORITY_BLOCKED_CONFIGURATION | Engine orb semantics and Web AspectFact.orb exist; admitted scientific configuration is still open. |
+| Phase | CAPABILITY_AVAILABLE | PUBLIC_CONTRACT_AVAILABLE | WEB_BINDING_DEVELOPMENT_ONLY | PRODUCTION_AUTHORITY_BLOCKED_PROVIDER | Applying/exact/separating semantics exist; production body states are not admitted. |
+| Motion / retrograde | CAPABILITY_AVAILABLE | PUBLIC_CONTRACT_PARTIAL | WEB_BINDING_DEVELOPMENT_ONLY | PRODUCTION_AUTHORITY_BLOCKED_PROVIDER | Engine has richer speed/motion semantics; ChartResult exposes retrograde but not the full motion evidence. |
+| Warnings | CAPABILITY_AVAILABLE | PUBLIC_CONTRACT_AVAILABLE | WEB_BINDING_DEVELOPMENT_ONLY | PRODUCTION_AUTHORITY_BLOCKED_PROVIDER | Calculation warnings are diagnostic evidence, not independent scientific authority or interpretation rules. |
+| Configuration metadata | CAPABILITY_PARTIAL | PUBLIC_CONTRACT_AVAILABLE | WEB_BINDING_DEVELOPMENT_ONLY | PRODUCTION_AUTHORITY_BLOCKED_CONFIGURATION | Complete and INCOMPLETE_RESEARCH states are representable; no production configuration is approved. |
+| Provenance metadata | CAPABILITY_PARTIAL | PUBLIC_CONTRACT_AVAILABLE | WEB_BINDING_DEVELOPMENT_ONLY | PRODUCTION_AUTHORITY_BLOCKED_PROVENANCE | Provenance identity structures exist; source, validation, rights, and governance gates remain open. |
+| Normalized time context | CAPABILITY_AVAILABLE | PUBLIC_CONTRACT_PARTIAL | WEB_BINDING_DEVELOPMENT_ONLY | PRODUCTION_AUTHORITY_BLOCKED_TIME_AUTHORITY | NATALNODE_TIME_POLICY_V1 handles normalized UTC-derived scales; local/historical authority remains outside this path. |
+| Transit-to-natal relationships | CAPABILITY_MISSING | PUBLIC_CONTRACT_BLOCKED | WEB_BINDING_MISSING | PRODUCTION_AUTHORITY_BLOCKED_PROVIDER | No admitted Engine/public operation was found; do not infer temporal signals from natal facts. |
+| House/angle transits | CAPABILITY_MISSING | PUBLIC_CONTRACT_BLOCKED | WEB_BINDING_MISSING | PRODUCTION_AUTHORITY_BLOCKED_PROVIDER | No admitted capability was found; requires a separately frozen calculation boundary. |
+| Moon phase / lunation | CAPABILITY_PARTIAL | PUBLIC_CONTRACT_PARTIAL | WEB_BINDING_DEVELOPMENT_ONLY | PRODUCTION_AUTHORITY_BLOCKED_PROVIDER | Web concepts and fixtures exist; production temporal authority is not admitted. |
+| Production provider | CAPABILITY_PARTIAL | PUBLIC_CONTRACT_PARTIAL | WEB_BINDING_MISSING | PRODUCTION_AUTHORITY_BLOCKED_PROVIDER | Provider interface exists, but no production provider implementation was found in the inspected package. |
 
 The conformance fixture explicitly says it is not an astronomy model, has
-undefined numerical accuracy, and has production selection NOT_SELECTED. It is
-AVAILABLE_FIXTURE_ONLY and never a scientific authority.
+undefined numerical accuracy, and has production selection NOT_SELECTED. Its
+production authority status is FIXTURE_ONLY and it is never scientific
+authority.
 
 ## 6. Public contract audit
 
-| Contract | Carries | Classification | Gap |
+| Contract | Carries | Public contract exposure | Gap / condition |
 | --- | --- | --- | --- |
-| BirthRequest | Local date/time, location resolution, coordinates, IANA timezone, UTC instant, offset, database version, method, ambiguity. | PARTIAL | Normalized input exists; historical/local-time authority is not fully demonstrated. |
-| ChartRequest | BirthRequest plus house system. | AVAILABLE_AUTHORITATIVE_BUT_NOT_EXPOSED | Contract exists; executable binding is mock. |
-| ChartResult | Bodies, angles, houses, aspects, status, complete/incomplete metadata. | PARTIAL | No per-fact canonical identity; complete metadata depends on provider. |
-| Chart BFF | Chart response and bounded errors. | AVAILABLE_DEVELOPMENT_ONLY | Current binding is not a production Engine result. |
-| SkySnapshotRequest | atUtc point-in-time request. | PARTIAL | Shape exists; runtime is fixture-backed. |
-| SkyEventsRequest | Start/end UTC interval and event response types. | PARTIAL | Production temporal authority is not closed. |
-| Location resolution | Canonical location and timezone fields. | PARTIAL | Does not provide astronomy provider identity or historical-time authority. |
-| Fact provenance | Signal refs may carry fact/configuration/provenance identity. | PARTIAL | ChartResult does not currently supply a stable per-fact identity path. |
+| BirthRequest | Local date/time, location resolution, coordinates, IANA timezone, UTC instant, offset, database version, method, ambiguity. | PUBLIC_CONTRACT_PARTIAL | Normalized input exists; historical/local-time authority is not fully demonstrated. |
+| ChartRequest | BirthRequest plus house system. | PUBLIC_CONTRACT_AVAILABLE | The contract exists; runtime binding remains development-only. |
+| ChartResult | Bodies, angles, houses, aspects, status, complete/incomplete metadata. | PUBLIC_CONTRACT_PARTIAL | No per-fact canonical identity; complete metadata depends on admitted provider/configuration/provenance. |
+| Chart BFF | Chart response and bounded errors. | PUBLIC_CONTRACT_AVAILABLE | Current executable binding is not a production Engine result. |
+| SkySnapshotRequest | atUtc point-in-time request. | PUBLIC_CONTRACT_PARTIAL | Shape exists; runtime is fixture-backed. |
+| SkyEventsRequest | Start/end UTC interval and event response types. | PUBLIC_CONTRACT_PARTIAL | Production temporal authority is not closed. |
+| Location resolution | Canonical location and timezone fields. | PUBLIC_CONTRACT_PARTIAL | Does not provide astronomy provider identity or historical-time authority. |
+| Fact provenance | Signal refs may carry fact/configuration/provenance identity. | PUBLIC_CONTRACT_PARTIAL | ChartResult does not currently supply a stable per-fact identity path. |
 
 The contracts can preserve INCOMPLETE_RESEARCH, which is correct. An incomplete
 result is not evidence that authoritative science is available.
@@ -235,6 +271,48 @@ The mock result is correctly labelled INCOMPLETE_RESEARCH with null
 astronomyConfigurationId and provenanceEnvelopeId, engine version UI_FIXTURE_V1,
 and explicit UI-development/not-scientific-evidence metadata. This is healthy
 incomplete-state behavior, not a production content source.
+
+### Web binding status
+
+| Runtime path | Web binding status | Production authority status |
+| --- | --- | --- |
+| Browser HttpEngineClient to chart BFF | WEB_BINDING_DEVELOPMENT_ONLY | DEVELOPMENT_RESEARCH_ONLY |
+| Browser HttpEngineClient to Sky BFF | WEB_BINDING_DEVELOPMENT_ONLY | FIXTURE_ONLY |
+| Executable server chart dependency | WEB_BINDING_DEVELOPMENT_ONLY | FIXTURE_ONLY |
+| Executable server Sky dependency | WEB_BINDING_DEVELOPMENT_ONLY | FIXTURE_ONLY |
+| Production provider-backed Engine/BFF path | WEB_BINDING_MISSING | PRODUCTION_AUTHORITY_BLOCKED_PROVIDER |
+
+### Authoritative ChartResult
+
+An authoritative ChartResult is not defined by structural schema conformity
+alone. It must be produced through an admitted Engine -> public contract ->
+BFF -> Web path and satisfy the applicable authority gates:
+
+- the provider and its rights/operational identity are approved;
+- the required local and historical time authority is valid;
+- scientific configuration identity and release status are admitted;
+- provenance, validation, rights, and governance evidence satisfy policy;
+- the result is not a fixture, mock, or development snapshot;
+- the result's calculation status and metadata truthfully express that state;
+- the Web surface preserves the authority and incomplete-state semantics.
+
+Only a result satisfying those conditions may be described as an
+AUTHORITATIVE CHARTRESULT or authoritative personal astrology.
+
+### Development/research ChartResult
+
+A development or research ChartResult may conform to the same structural
+schema while remaining DEVELOPMENT_RESEARCH_ONLY. WEB_UI_FIXTURE_V1 is the
+current example: it has calculationStatus INCOMPLETE_RESEARCH, null scientific
+configuration and provenance IDs, and explicit UI-development metadata. A
+development result can support UI composition, content hierarchy, contextual
+learning interaction, unknown-time behavior, and technical-inspection UX. It
+cannot be described as authoritative personal astrology.
+
+INCOMPLETE_RESEARCH is therefore a visible and architectural boundary. It must
+remain visible in calculation details and downstream content, must not acquire
+invented scientific or provenance IDs, and must never be silently promoted from
+development to production authority.
 
 ## 8. Signal semantics audit
 
@@ -314,19 +392,50 @@ relabelled as temporal signals to fill the gap.
 
 ## 12. My Chart readiness
 
-Classification: AVAILABLE_DEVELOPMENT_ONLY, with a bounded route to
-AVAILABLE_AUTHORITATIVE_BUT_NOT_EXPOSED after the provider/public binding gate.
+Current three-axis status:
+
+- Capability: CAPABILITY_AVAILABLE for the stable natal facts represented by
+  the inspected Engine/domain path.
+- Public contract: PUBLIC_CONTRACT_AVAILABLE for the core chart fields, with
+  PUBLIC_CONTRACT_PARTIAL for richer motion/provenance identity.
+- Web binding: WEB_BINDING_DEVELOPMENT_ONLY.
+- Production authority: PRODUCTION_AUTHORITY_BLOCKED_PROVIDER, with
+  configuration, provenance, and time-authority conditions still applicable.
 
 The chart workspace and interpretation panel can present chart structure,
 big-three summaries, planet sign/house placements, angles, aspects, calculation
 details, an incomplete-research notice, and links into Foundations.
 
-The result is not production authority because the executable server is
+The current result is not production authority because the executable server is
 mock-bound. A future bounded slice requires an authoritative ChartResult through
 the BFF, known/unknown birth-time behavior, truthful configuration/provenance,
-one evidence projection, and no temporal language in the static chart surface.
+one target evidence projection, a runtime authority check, and no temporal
+language in the static chart surface.
 
 Gaps: G2, G3, G4, G8.
+
+### Stage A — development product prototype
+
+Stage A may use INCOMPLETE_RESEARCH only when the boundary is visible in both
+the UI and the architecture. Its purpose is UI composition, content hierarchy,
+contextual learning interaction, unknown-time behavior, and
+technical-inspection UX. Stage A may not claim scientific authority,
+authoritative personal astrology, or production-ready calculation.
+
+Stage A must preserve the development/research status, null scientific and
+provenance identities, and explicit fixture/mock labeling. It must not silently
+become Stage B.
+
+### Stage B — authoritative product
+
+Stage B requires an admitted authoritative ChartResult path through:
+
+    Engine -> public contract -> BFF -> Web
+
+The path must satisfy provider, configuration, provenance, rights, validation,
+and applicable local/historical time-authority requirements. A runtime authority
+check is required before any production claim. Stage B must never be inferred
+from Stage A schema conformity or from a successful fixture flow.
 
 ## 13. Learn-from-your-chart readiness
 
@@ -366,7 +475,7 @@ boundary, and rules that distinguish current sky facts from natal anchors. Sky
 contracts contain a conceptual snapshot request, but the runtime is fixture
 backed and personal transit relationships are not exposed.
 
-Classification: BLOCKED_PUBLIC_CONTRACT and BLOCKED_PROVIDER_AUTHORITY.
+Classification: BLOCKED_PUBLIC_CONTRACT and PRODUCTION_AUTHORITY_BLOCKED_PROVIDER.
 Gaps: G1, G2, G3, G4, G5, G6, G9.
 
 No Today product may be inferred from a natal ChartResult or development Sky
@@ -411,8 +520,10 @@ angles, houses, and major aspects. The chart workspace, calculation details,
 interpretation panel, and Foundations can support a development anchor
 experience.
 
-Classification: AVAILABLE_DEVELOPMENT_ONLY, moving to
-AVAILABLE_AUTHORITATIVE_BUT_NOT_EXPOSED after the public result is admitted.
+Classification: AVAILABLE_DEVELOPMENT_ONLY. Its target contract state is
+PUBLIC_CONTRACT_AVAILABLE, while its current Web binding is
+WEB_BINDING_DEVELOPMENT_ONLY and its production authority is
+PRODUCTION_AUTHORITY_BLOCKED_PROVIDER until the public result is admitted.
 Anchors must not silently become a current-sky product.
 
 ## 20. Professional inspectability levels
@@ -448,7 +559,7 @@ production science.
 | Major aspects | Engine semantics and Web aspect facts | PARTIAL | Close configuration/provenance and fact references. |
 | Calculation details | Status and research notice | AVAILABLE_DEVELOPMENT_ONLY | Bind to admitted metadata. |
 | Personal chart context | Static lesson links | PARTIAL | Freeze a personal evidence projection. |
-| Current sky/transits | Sky fixture and conceptual contract | AVAILABLE_FIXTURE_ONLY | Production sky and transit authority. |
+| Current sky/transits | Sky fixture and conceptual contract | FIXTURE_ONLY | Production sky and transit authority. |
 | Time-dependent learning | Unknown-time suppression rules | PARTIAL | Authoritative local/historical timezone resolution. |
 | Current-signal interpretation | Weekly Signal POC | AVAILABLE_DEVELOPMENT_ONLY | Production catalog, temporal evidence, and policy. |
 | Responsible use | Existing lesson/context language | AVAILABLE_DEVELOPMENT_ONLY | Retain; do not use it as a substitute for evidence. |
@@ -504,7 +615,7 @@ policy, stable rendering, share-safe presentation, and separation from natal
 interpretation.
 
 The current Public Sky contract and fixture do not close this. Classification:
-BLOCKED_PUBLIC_CONTRACT and BLOCKED_PROVIDER_AUTHORITY. Gaps: G3, G5, G6, G8,
+BLOCKED_PUBLIC_CONTRACT and PRODUCTION_AUTHORITY_BLOCKED_PROVIDER. Gaps: G3, G5, G6, G8,
 G9. No public horoscope implementation should start from the Weekly POC.
 
 ## 26. FOLLOW and recurrence readiness
@@ -530,7 +641,7 @@ PARTIAL for product direction, with G9 policy still open, plus G2, G5, and G7.
 | Love | PARTIAL | Stable chart education | Deterministic current claims |
 | Money | PARTIAL | Careful stable resource symbolism | Financial prediction or current risk guidance |
 | Astrology Anchors | AVAILABLE_DEVELOPMENT_ONLY | Stable reference categories | Temporal activity without temporal evidence |
-| Public horoscope | BLOCKED_PROVIDER_AUTHORITY | Future acquisition surface | Production horoscope from fixtures |
+| Public horoscope | PRODUCTION_AUTHORITY_BLOCKED_PROVIDER | Future acquisition surface | Production horoscope from fixtures |
 | FOLLOW/recurrence | PARTIAL | Future behavior | Notifications from development drafts |
 
 ## 28. Option comparison and selected surface
@@ -549,15 +660,20 @@ evidence-based selection, not permission to implement against a fixture.
 
 Proposed next task:
 
-WEB-P2-MY-CHART-CONTEXTUAL-LEARN-001 — Freeze the bounded authoritative
-chart-evidence projection and contextual Foundations hooks.
+WEB-P2-MY-CHART-CONTEXTUAL-LEARN-001 — Freeze the target authoritative
+chart-evidence projection, the development-only contextual Foundations
+prototype boundary, and the runtime authority check required before any
+production claim.
 
 Preconditions and limits:
 
-1. Confirm an admitted Engine/BFF ChartResult path, or keep the task
-   documentation-only while PROVIDER DECISION DEFERRED remains unresolved.
-2. Define one projection from ChartResult to personal Learn context; do not
-   create a duplicate fact store.
+1. Confirm whether an admitted Engine/BFF ChartResult path exists. If it does
+   not, the task may define and prototype the projection in Stage A only; it
+   must not label the result authoritative while PROVIDER DECISION DEFERRED
+   remains unresolved.
+2. Define one target projection from ChartResult to personal Learn context; do
+   not create a duplicate fact store or imply that the target projection is
+   already a production authority.
 3. Preserve INCOMPLETE_RESEARCH and unknown-birth-time states visibly.
 4. Limit the first slice to stable natal evidence: structure, placements,
    houses/angles when birth time is known, major aspects, and calculation
