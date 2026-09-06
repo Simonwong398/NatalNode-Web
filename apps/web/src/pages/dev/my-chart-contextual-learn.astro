@@ -1,0 +1,41 @@
+---
+import SiteLayout from '@/layouts/SiteLayout.astro';
+import MyChartContextualLearnStageA from '@/features/my-chart/MyChartContextualLearnStageA';
+import { getEducationalChart } from '@/features/learn/educational-chart-source';
+import type { MyChartContextualLearnScenario } from '@/features/my-chart/my-chart-evidence-projection';
+import type { SeoMetadata } from '@/lib/seo';
+import '@/styles/my-chart-contextual-learn.css';
+
+const isPreviewAvailable =
+  import.meta.env.DEV || process.env.NATALNODE_LOCAL_DEV_PREVIEW === 'true';
+const requestedScenario = Astro.url.searchParams.get('scenario');
+const initialScenario: MyChartContextualLearnScenario = requestedScenario === 'unknown-time'
+  ? 'unknown-time'
+  : 'default';
+const chart = isPreviewAvailable ? await getEducationalChart() : null;
+
+const seo: SeoMetadata = {
+  title: 'My Chart Contextual Learn Stage A | NatalNode',
+  description: 'Development-only preview for the My Chart contextual learning Stage A slice.',
+  canonical: '/dev/my-chart-contextual-learn',
+  robots: 'noindex,nofollow'
+};
+---
+
+<SiteLayout seo={seo} mode="editorial">
+  <main class="nn-container max-w-[78rem] pb-16 pt-8 sm:pb-24 sm:pt-12">
+    {chart !== null ? (
+      <MyChartContextualLearnStageA
+        chart={chart}
+        initialScenario={initialScenario}
+        client:load
+      />
+    ) : (
+      <section class="mx-auto max-w-2xl" aria-labelledby="my-chart-contextual-learn-unavailable-title">
+        <p class="nn-eyebrow">Development only</p>
+        <h1 class="nn-type-page-title mt-3" id="my-chart-contextual-learn-unavailable-title">My Chart contextual learning</h1>
+        <p class="nn-type-body mt-4">This development preview is unavailable in production builds.</p>
+      </section>
+    )}
+  </main>
+</SiteLayout>

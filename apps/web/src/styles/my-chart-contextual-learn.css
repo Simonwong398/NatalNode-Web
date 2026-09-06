@@ -1,0 +1,460 @@
+.my-chart-contextual-learn,
+.my-chart-contextual-learn * {
+  box-sizing: border-box;
+}
+
+.my-chart-contextual-learn {
+  --my-chart-line: color-mix(in srgb, var(--nn-border-default) 72%, transparent);
+  --my-chart-line-subtle: color-mix(in srgb, var(--nn-border-subtle) 82%, transparent);
+  --my-chart-soft: color-mix(in srgb, var(--nn-text-secondary) 78%, transparent);
+  width: 100%;
+  max-width: 78rem;
+  margin-inline: auto;
+  display: grid;
+  gap: 1.25rem;
+  color: var(--nn-text-primary);
+  font-family: var(--nn-font-sans);
+}
+
+.my-chart-contextual-learn__harness {
+  display: grid;
+  gap: 1rem;
+  padding: 1rem;
+  border: 1px solid var(--my-chart-line);
+  border-radius: var(--nn-radius-medium);
+  background: var(--nn-surface-interactive);
+}
+
+.my-chart-contextual-learn__harness-kicker,
+.my-chart-contextual-learn__harness-title,
+.my-chart-contextual-learn__harness-note,
+.my-chart-contextual-learn__scenario-label,
+.my-chart-contextual-learn__eyebrow,
+.my-chart-contextual-learn__section-kicker,
+.my-chart-contextual-learn__fact-label,
+.my-chart-contextual-learn__source-line,
+.my-chart-contextual-learn__learn-note,
+.my-chart-contextual-learn__footer p {
+  margin: 0;
+}
+
+.my-chart-contextual-learn__harness-kicker,
+.my-chart-contextual-learn__eyebrow,
+.my-chart-contextual-learn__section-kicker {
+  color: var(--nn-accent-supporting);
+  font-size: 0.6875rem;
+  font-weight: 750;
+  letter-spacing: 0.13em;
+  line-height: 1.35;
+  text-transform: uppercase;
+}
+
+.my-chart-contextual-learn__harness-title {
+  margin-top: 0.35rem;
+  font-size: 0.9375rem;
+  font-weight: 700;
+  line-height: 1.35;
+}
+
+.my-chart-contextual-learn__harness-note {
+  color: var(--my-chart-soft);
+  font-size: 0.8125rem;
+  line-height: 1.55;
+}
+
+.my-chart-contextual-learn__scenario-label {
+  display: grid;
+  gap: 0.4rem;
+  color: var(--nn-text-muted);
+  font-size: 0.6875rem;
+  font-weight: 750;
+  letter-spacing: 0.1em;
+  line-height: 1.35;
+  text-transform: uppercase;
+}
+
+.my-chart-contextual-learn__scenario-label select {
+  width: 100%;
+  min-width: 0;
+  min-height: 2.75rem;
+  padding: 0.55rem 0.75rem;
+  border: 1px solid var(--my-chart-line);
+  border-radius: var(--nn-radius-small);
+  background: var(--nn-surface-base);
+  color: var(--nn-text-primary);
+  font: inherit;
+  font-size: 0.875rem;
+  letter-spacing: normal;
+  text-transform: none;
+}
+
+.my-chart-contextual-learn__scenario-label select:focus-visible,
+.my-chart-contextual-learn__technical summary:focus-visible,
+.my-chart-contextual-learn__learn-link:focus-visible {
+  outline: 2px solid var(--nn-focus-ring);
+  outline-offset: 3px;
+}
+
+.my-chart-contextual-learn__surface {
+  overflow: hidden;
+  border: 1px solid var(--my-chart-line);
+  border-radius: var(--nn-radius-large);
+  background: var(--nn-surface-base);
+  box-shadow: var(--nn-shadow-low);
+}
+
+.my-chart-contextual-learn__sequence {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1rem;
+  padding: 1rem clamp(1.1rem, 6vw, 4.75rem);
+  border-bottom: 1px solid var(--my-chart-line-subtle);
+  color: var(--nn-text-muted);
+  font-size: 0.6875rem;
+  font-weight: 750;
+  letter-spacing: 0.1em;
+  line-height: 1.35;
+}
+
+.my-chart-contextual-learn__sequence span span {
+  color: var(--nn-accent-supporting);
+  font-variant-numeric: tabular-nums;
+}
+
+.my-chart-contextual-learn__hero {
+  max-width: 53rem;
+  padding: clamp(2rem, 7vw, 5.5rem) clamp(1.1rem, 6vw, 4.75rem) clamp(2rem, 6vw, 4rem);
+  background:
+    radial-gradient(ellipse at 92% 10%, color-mix(in srgb, var(--nn-accent-secondary) 18%, transparent), transparent 38%),
+    linear-gradient(135deg, var(--nn-surface-base), var(--nn-bg-observatory));
+}
+
+.my-chart-contextual-learn__hero h1 {
+  max-width: 12ch;
+  margin: 0.75rem 0 0;
+  font-size: clamp(2.7rem, 8vw, 5.5rem);
+  font-weight: 650;
+  letter-spacing: -0.055em;
+  line-height: 0.98;
+  overflow-wrap: anywhere;
+}
+
+.my-chart-contextual-learn__hero-title {
+  max-width: 34rem;
+  margin: 1.25rem 0 0;
+  color: var(--nn-text-primary);
+  font-size: clamp(1.3rem, 3vw, 2rem);
+  font-weight: 650;
+  letter-spacing: -0.025em;
+  line-height: 1.1;
+}
+
+.my-chart-contextual-learn__hero-copy,
+.my-chart-contextual-learn__body-copy,
+.my-chart-contextual-learn__fact-note,
+.my-chart-contextual-learn__learn-note,
+.my-chart-contextual-learn__unknown-time p,
+.my-chart-contextual-learn__technical-note,
+.my-chart-contextual-learn__footer p:last-child {
+  max-width: 44rem;
+  margin: 0.9rem 0 0;
+  color: var(--nn-text-secondary);
+  font-size: 1rem;
+  line-height: 1.7;
+}
+
+.my-chart-contextual-learn__unknown-time {
+  margin: 0 clamp(1.1rem, 6vw, 4.75rem);
+  padding: 1rem 0 1rem 1rem;
+  border-left: 2px solid var(--nn-status-warning);
+  background: color-mix(in srgb, var(--nn-status-warning-surface) 35%, transparent);
+}
+
+.my-chart-contextual-learn__unknown-time p:last-child {
+  margin-top: 0.45rem;
+}
+
+.my-chart-contextual-learn__section {
+  padding: clamp(2rem, 5vw, 3.75rem) clamp(1.1rem, 6vw, 4.75rem);
+  border-top: 1px solid var(--my-chart-line-subtle);
+}
+
+.my-chart-contextual-learn__section h2 {
+  max-width: 36rem;
+  margin: 0.45rem 0 0;
+  color: var(--nn-text-primary);
+  font-size: clamp(1.55rem, 4vw, 2.35rem);
+  font-weight: 650;
+  letter-spacing: -0.04em;
+  line-height: 1.05;
+}
+
+.my-chart-contextual-learn__section--fact {
+  background: color-mix(in srgb, var(--nn-bg-observatory) 24%, var(--nn-surface-base));
+}
+
+.my-chart-contextual-learn__fact {
+  display: grid;
+  grid-template-columns: minmax(4.75rem, 0.18fr) minmax(0, 1fr);
+  gap: 1rem 1.5rem;
+  align-items: center;
+  max-width: 53rem;
+  margin-top: 2rem;
+  padding: 1.25rem 0;
+  border-top: 2px solid var(--nn-accent-supporting);
+  border-bottom: 1px solid var(--my-chart-line-subtle);
+}
+
+.my-chart-contextual-learn__fact-symbol {
+  display: grid;
+  place-items: center;
+  gap: 0.25rem;
+  min-height: 5.5rem;
+  border-right: 1px solid var(--my-chart-line-subtle);
+  color: var(--nn-accent-supporting);
+  font-size: 2rem;
+  line-height: 1;
+}
+
+.my-chart-contextual-learn__fact-symbol-divider {
+  color: var(--nn-text-muted);
+  font-size: 0.8rem;
+}
+
+.my-chart-contextual-learn__fact-symbol .nn-astrology-glyph {
+  font-size: 1.65rem;
+}
+
+.my-chart-contextual-learn__fact-label {
+  color: var(--nn-text-muted);
+  font-size: 0.6875rem;
+  font-weight: 750;
+  letter-spacing: 0.12em;
+  line-height: 1.35;
+  text-transform: uppercase;
+}
+
+.my-chart-contextual-learn__fact-value {
+  margin: 0.4rem 0 0;
+  color: var(--nn-text-primary);
+  font-size: clamp(1.3rem, 3vw, 2rem);
+  font-weight: 700;
+  letter-spacing: -0.025em;
+  line-height: 1.2;
+  overflow-wrap: anywhere;
+}
+
+.my-chart-contextual-learn__fact-value [role='img'] {
+  color: var(--nn-accent-supporting);
+}
+
+.my-chart-contextual-learn__fact-note {
+  margin-top: 0.55rem;
+  font-size: 0.875rem;
+}
+
+.my-chart-contextual-learn__source-line {
+  margin-top: 1.2rem;
+  color: var(--nn-accent-supporting);
+  font-size: 0.6875rem;
+  font-weight: 750;
+  letter-spacing: 0.1em;
+  line-height: 1.5;
+  text-transform: uppercase;
+}
+
+.my-chart-contextual-learn__section--learn {
+  background: color-mix(in srgb, var(--nn-accent-supporting) 5%, var(--nn-surface-base));
+}
+
+.my-chart-contextual-learn__learn-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.75rem;
+  max-width: 100%;
+  margin-top: 1.5rem;
+  padding: 0.75rem 0;
+  border-bottom: 1px solid color-mix(in srgb, var(--nn-accent-supporting) 60%, transparent);
+  color: var(--nn-accent-supporting);
+  font-size: 1rem;
+  font-weight: 750;
+  line-height: 1.4;
+  text-decoration: none;
+}
+
+.my-chart-contextual-learn__learn-link span:first-child {
+  overflow-wrap: anywhere;
+}
+
+.my-chart-contextual-learn__learn-note {
+  margin-top: 1rem;
+  font-size: 0.875rem;
+}
+
+.my-chart-contextual-learn__section--technical {
+  padding-top: 0;
+  padding-bottom: 0;
+}
+
+.my-chart-contextual-learn__technical {
+  max-width: 53rem;
+}
+
+.my-chart-contextual-learn__technical summary {
+  display: flex;
+  min-height: 4.75rem;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  cursor: pointer;
+  list-style: none;
+}
+
+.my-chart-contextual-learn__technical summary::-webkit-details-marker {
+  display: none;
+}
+
+.my-chart-contextual-learn__summary-label {
+  display: block;
+  margin-top: 0.3rem;
+  font-size: 1rem;
+  font-weight: 700;
+  line-height: 1.4;
+}
+
+.my-chart-contextual-learn__summary-mark {
+  color: var(--nn-accent-supporting);
+  font-size: 1.5rem;
+  font-weight: 350;
+  line-height: 1;
+  transition: transform var(--nn-motion-fast) var(--nn-motion-ease);
+}
+
+.my-chart-contextual-learn__technical[open] .my-chart-contextual-learn__summary-mark {
+  transform: rotate(45deg);
+}
+
+.my-chart-contextual-learn__technical-body {
+  padding: 0 2rem 1.75rem 0;
+}
+
+.my-chart-contextual-learn__technical-body dl {
+  display: grid;
+  gap: 0;
+  margin: 0;
+  border-top: 1px solid var(--my-chart-line-subtle);
+}
+
+.my-chart-contextual-learn__technical-row {
+  display: grid;
+  grid-template-columns: minmax(9rem, 0.8fr) minmax(0, 1.2fr);
+  gap: 1rem;
+  padding: 0.8rem 0;
+  border-bottom: 1px solid var(--my-chart-line-subtle);
+}
+
+.my-chart-contextual-learn__technical-row dt,
+.my-chart-contextual-learn__technical-row dd {
+  min-width: 0;
+  margin: 0;
+  overflow-wrap: anywhere;
+  font-size: 0.8125rem;
+  line-height: 1.5;
+}
+
+.my-chart-contextual-learn__technical-row dt {
+  color: var(--nn-text-muted);
+  font-weight: 700;
+}
+
+.my-chart-contextual-learn__technical-row dd {
+  color: var(--nn-text-secondary);
+  font-variant-numeric: tabular-nums;
+}
+
+.my-chart-contextual-learn__technical-note {
+  margin-top: 1rem;
+  padding-left: 0.9rem;
+  border-left: 2px solid var(--nn-status-warning);
+  font-size: 0.875rem;
+}
+
+.my-chart-contextual-learn__footer {
+  padding: 1.75rem clamp(1.1rem, 6vw, 4.75rem) 2.5rem;
+  border-top: 1px solid var(--my-chart-line-subtle);
+}
+
+.my-chart-contextual-learn__footer p:last-child {
+  margin-top: 0.55rem;
+  font-size: 0.875rem;
+}
+
+.my-chart-contextual-learn__empty {
+  margin: 1.5rem 0 0;
+  color: var(--my-chart-soft);
+  line-height: 1.7;
+}
+
+.my-chart-contextual-learn__sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+@media (min-width: 40rem) {
+  .my-chart-contextual-learn__harness {
+    grid-template-columns: minmax(0, 1fr) minmax(13rem, 0.7fr);
+    align-items: end;
+    padding: 1.15rem 1.25rem;
+  }
+
+  .my-chart-contextual-learn__harness-note {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 30rem) {
+  .my-chart-contextual-learn {
+    gap: 0.75rem;
+  }
+
+  .my-chart-contextual-learn__harness {
+    padding: 0.9rem;
+  }
+
+  .my-chart-contextual-learn__sequence {
+    gap: 0.45rem 0.7rem;
+    padding-inline: 0.9rem;
+    font-size: 0.625rem;
+  }
+
+  .my-chart-contextual-learn__fact {
+    grid-template-columns: minmax(3.5rem, 0.2fr) minmax(0, 1fr);
+    gap: 0.75rem;
+  }
+
+  .my-chart-contextual-learn__fact-symbol {
+    min-height: 4.75rem;
+  }
+
+  .my-chart-contextual-learn__technical-row {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0.2rem;
+  }
+
+  .my-chart-contextual-learn__technical-body {
+    padding-right: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .my-chart-contextual-learn__summary-mark {
+    transition-duration: 0.01ms;
+  }
+}
