@@ -25,6 +25,11 @@ The corresponding evidence reconciliation is
 It records the current Engine, public-contract, BFF, Signal, ReadingModel, and
 presentation evidence without selecting a provider or adding runtime behavior.
 
+The admitted My Chart and contextual Learn architecture is
+[`docs/product/NATALNODE_MY_CHART_CONTEXTUAL_LEARN_V1.md`](product/NATALNODE_MY_CHART_CONTEXTUAL_LEARN_V1.md).
+It freezes the stable-natal evidence projection, contextual learning boundary,
+and Stage A/Stage B authority separation without adding runtime behavior.
+
 ## Fixed System Boundary
 
 The website boundary is fixed:
