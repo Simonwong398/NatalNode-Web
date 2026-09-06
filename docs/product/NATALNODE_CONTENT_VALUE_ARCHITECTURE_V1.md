@@ -667,30 +667,139 @@ creating empty future directories, adding a content service, or introducing a
 second semantic authority. Future implementations should proceed only through
 separately authorized slices with focused contracts and evidence.
 
-## 18. Product Owner decision register
+## 18. Frozen Product Owner direction and implementation gates
 
-The following decisions remain product direction choices, not hidden
-implementation assumptions. They are carried forward from the admitted content
-and information architecture:
+The following six product and information-architecture decisions are already
+approved source truth. They are not unresolved alternatives and must not be
+reopened by future content or implementation work.
 
-1. Whether period reading becomes primary navigation for authenticated readers.
-2. How Vault, My Chart, and Collection should relate in reader-facing language.
-3. Whether Community remains secondary/contextual.
-4. Whether Relationships should be promoted before authority, privacy,
-   comparison semantics, and useful content are complete.
-5. Whether public horoscope content is a primary destination or an
-   acquisition/education path.
-6. Whether public and authenticated Home share a shell with distinct semantic
-   hierarchies or retain one Calculate-first root.
+### 18.1 Approved authenticated period model
 
-No decision above authorizes a route or UI implementation by itself.
+The approved target information architecture is:
+
+```text
+HOME
+TODAY
+THIS WEEK
+THIS MONTH
+MY CHART
+RELATIONSHIPS
+COLLECTION
+LEARN
+```
+
+Its period model is:
+
+```text
+Month = broad context
+Week  = current chapter
+Today = current moment
+```
+
+The target IA is approved. Immediate navigation migration is still separately
+gated; approval of the target does not authorize changing the current header
+or route map in this documentation task.
+
+### 18.2 Approved My Chart / Collection / Vault relationship
+
+The semantic relationship is frozen as:
+
+```text
+MY CHART
+  = stable natal chart / reference / management
+
+COLLECTION
+  = accumulated temporal and editorial artifacts
+
+VAULT
+  = current technical / historical storage concept
+```
+
+Vault V1 remains closed and preserved. No route rename or data migration is
+authorized merely by this architecture.
+
+### 18.3 Approved Community position
+
+Community is not a future core primary-navigation pillar. It remains a
+secondary and contextual public surface. Existing closed Community work is
+preserved.
+
+### 18.4 Approved Relationships position
+
+Relationships is a future value pillar. Its primary-navigation and product
+admission remain deferred until a genuinely mature relationship experience is
+available, such as an admitted Love Style, Compatibility, or relationship
+interpretation surface. Authority, privacy, semantic maturity, and useful
+content are prerequisites. Relationships must not be promoted early.
+
+This is an approved policy, not an unresolved binary choice between early
+promotion and deferral.
+
+### 18.5 Approved public horoscope position
+
+Public horoscope and generalized zodiac content are approved as:
+
+```text
+ACQUISITION
+SEO
+DISCOVERY
+EDUCATION
+```
+
+They are not the core authenticated product, a substitute for personal
+chart-grounded interpretation, or a core authenticated navigation pillar.
+There is no silent fallback from personal interpretation to generic
+horoscope content.
+
+### 18.6 Approved public and authenticated Home distinction
+
+The semantic hierarchy is frozen as:
+
+```text
+PUBLIC HOME
+  = acquisition-first
+
+AUTHENTICATED HOME
+  = personal-value-first
+```
+
+The two experiences may share a shell or implementation primitives. They are
+not required to be two websites, but their user-state-dependent semantic jobs
+are different. The current Calculate-oriented root may remain as
+implementation history until migration, but it is not the approved target
+authenticated Home model and is not an equal product-direction alternative.
+
+### 18.7 What remains open
+
+Only implementation, sequencing, and separately gated product questions remain
+open, including:
+
+- when to migrate current navigation toward the approved target IA;
+- when Relationships has enough authority and content maturity for admission;
+- when Collection receives its product contract and runtime;
+- how public and authenticated Home share implementation primitives;
+- which content-value surface should be implemented next given current
+  authority gaps; and
+- which future route migration requires explicit Product Owner approval.
+
+These questions must be answered without reopening the approved product
+direction above. The distinction is:
+
+```text
+PRODUCT DIRECTION = APPROVED
+IMPLEMENTATION TIMING / MIGRATION = STILL GATED
+```
+
+No item in this section authorizes a route, UI, navigation migration, or
+runtime implementation by itself.
 
 ## 19. Bounded next sequence
 
 After this admission, the shortest evidence-led sequence is:
 
 ```text
-1. Product Owner reviews the content-value and evidence gaps.
+1. Product Owner reviews the content-value and evidence gaps without reopening
+   the frozen IA direction.
 2. Reconcile the missing astrology anchors, authority fields, and content
    coverage needed for the next Weekly decision.
 3. Produce or revise bounded Weekly UX work from the admitted semantic model.
