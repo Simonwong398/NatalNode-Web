@@ -30,6 +30,12 @@ The admitted My Chart and contextual Learn architecture is
 It freezes the stable-natal evidence projection, contextual learning boundary,
 and Stage A/Stage B authority separation without adding runtime behavior.
 
+The astrology knowledge and interpretation canon is
+[docs/content/NATALNODE_ASTROLOGY_KNOWLEDGE_CANON_V1.md](content/NATALNODE_ASTROLOGY_KNOWLEDGE_CANON_V1.md).
+It is a documentation-only source, school, provenance, and content-policy
+boundary; it does not authorize runtime content, Engine changes, or provider
+selection.
+
 ## Fixed System Boundary
 
 The website boundary is fixed:
