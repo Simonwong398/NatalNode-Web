@@ -1,5 +1,6 @@
 import { useEffect, useState, type ReactElement } from 'react';
 import { getLocalizedPath } from '../../lib/localization.js';
+import type { CompositionSignalPolicyRuleRecord } from '../interpretation/composition-signal-personal-synthesis-poc.js';
 import {
   projectMyChartPersonalContent,
   type MyChartPersonalContentProjection,
@@ -9,6 +10,7 @@ import {
 
 export interface MyChartContextualLearnStageAProps {
   readonly initialScenario?: MyChartPersonalContentScenario;
+  readonly representativeSignalRules: readonly CompositionSignalPolicyRuleRecord[];
 }
 
 function scenarioFromUrl(): MyChartPersonalContentScenario | null {
@@ -128,6 +130,38 @@ function WhyThisShowsUp({
               <dd>{theme.technical.selection}</dd>
             </div>
             <div>
+              <dt>Representative Signal IDs</dt>
+              <dd>{theme.technical.signalIds.join(' · ')}</dd>
+            </div>
+            <div>
+              <dt>Composition IDs</dt>
+              <dd>{theme.technical.compositionIds.join(' · ')}</dd>
+            </div>
+            <div>
+              <dt>Placement evidence keys</dt>
+              <dd>{theme.technical.placementEvidenceKeys.join(' · ')}</dd>
+            </div>
+            <div>
+              <dt>Domain / direction</dt>
+              <dd>{theme.technical.domain} · {theme.technical.direction}</dd>
+            </div>
+            <div>
+              <dt>Intensity / confidence</dt>
+              <dd>{theme.technical.intensity} · {theme.technical.confidence}</dd>
+            </div>
+            <div>
+              <dt>Birth-time eligibility</dt>
+              <dd>{theme.technical.birthTimeEligibility.join(' · ')}</dd>
+            </div>
+            <div>
+              <dt>Signal suppression state</dt>
+              <dd>{theme.technical.suppressionState.join(' · ')}</dd>
+            </div>
+            <div>
+              <dt>Source / policy references</dt>
+              <dd>{theme.technical.sourcePolicyRefs.join(' · ')}</dd>
+            </div>
+            <div>
               <dt>Source fact references</dt>
               <dd>{theme.technical.sourceFactRefs.join(' · ')}</dd>
             </div>
@@ -230,6 +264,18 @@ function TechnicalInspection({
             <dd>{projection.fixture.scenarioId}</dd>
           </div>
           <div className="my-chart-contextual-learn__technical-row">
+            <dt>Input source type</dt>
+            <dd>{technical.sourceType}</dd>
+          </div>
+          <div className="my-chart-contextual-learn__technical-row">
+            <dt>Input source authority</dt>
+            <dd>{technical.sourceAuthority}</dd>
+          </div>
+          <div className="my-chart-contextual-learn__technical-row">
+            <dt>Synthesis authority</dt>
+            <dd>{technical.synthesisAuthority}</dd>
+          </div>
+          <div className="my-chart-contextual-learn__technical-row">
             <dt>Birth-time authority</dt>
             <dd>{projection.fixture.birthTimeAuthority}</dd>
           </div>
@@ -249,6 +295,10 @@ function TechnicalInspection({
             <dt>Semantic basis status</dt>
             <dd>{technical.semanticBasisStatus}</dd>
           </div>
+          <div className="my-chart-contextual-learn__technical-row">
+            <dt>Chart coherence</dt>
+            <dd>{technical.coherenceStatus}</dd>
+          </div>
         </dl>
         <p className="my-chart-contextual-learn__technical-note">
           This page is a development reading POC. It does not promote fixture
@@ -260,7 +310,8 @@ function TechnicalInspection({
 }
 
 export default function MyChartContextualLearnStageA({
-  initialScenario = 'known-time'
+  initialScenario = 'known-time',
+  representativeSignalRules
 }: MyChartContextualLearnStageAProps): ReactElement {
   const [scenario, setScenario] = useState<MyChartPersonalContentScenario>(initialScenario);
 
@@ -269,7 +320,7 @@ export default function MyChartContextualLearnStageA({
     if (requested !== null) setScenario(requested);
   }, []);
 
-  const projection = projectMyChartPersonalContent(scenario);
+  const projection = projectMyChartPersonalContent(scenario, representativeSignalRules);
 
   return (
     <div

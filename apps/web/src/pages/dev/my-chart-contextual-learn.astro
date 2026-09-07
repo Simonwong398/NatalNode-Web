@@ -1,6 +1,8 @@
 ---
 import SiteLayout from '@/layouts/SiteLayout.astro';
 import MyChartContextualLearnStageA from '@/features/my-chart/MyChartContextualLearnStageA';
+import type { CompositionSignalPolicyRuleRecord } from '@/features/interpretation/composition-signal-personal-synthesis-poc';
+import compositionSignalArtifact from '../../../../../docs/research/personal-synthesis/COMPOSITION_SIGNAL_REPRESENTATIVE_V1.json';
 import type { SeoMetadata } from '@/lib/seo';
 import '@/styles/my-chart-contextual-learn.css';
 
@@ -12,6 +14,7 @@ const requestedScenario = Astro.url.searchParams.get('scenario');
 const initialScenario = requestedScenario === 'unknown-time'
   ? 'unknown-time'
   : 'known-time';
+const representativeSignalRules = compositionSignalArtifact.rules as CompositionSignalPolicyRuleRecord[];
 
 const seo: SeoMetadata = {
   title: 'My Chart Contextual Learn Stage A | NatalNode',
@@ -26,6 +29,7 @@ const seo: SeoMetadata = {
     {isPreviewAvailable ? (
       <MyChartContextualLearnStageA
         initialScenario={initialScenario}
+        representativeSignalRules={representativeSignalRules}
         client:load
       />
     ) : (

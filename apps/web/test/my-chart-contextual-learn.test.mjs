@@ -2,195 +2,228 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import test from 'node:test';
 
-import {
+const {
   projectMyChartPersonalContent
-} from '../dist/my-chart-contextual-learn-characterization/features/my-chart/my-chart-personal-content-poc.js';
+} = await import(
+  new URL('../dist/my-chart-contextual-learn-characterization/features/my-chart/my-chart-personal-content-poc.js', import.meta.url)
+);
+const {
+  synthesizeCompositionSignalResearchInputs
+} = await import(
+  new URL('../dist/my-chart-contextual-learn-characterization/features/interpretation/composition-signal-personal-synthesis-poc.js', import.meta.url)
+);
+const artifact = JSON.parse(readFileSync(
+  new URL('../../../docs/research/personal-synthesis/COMPOSITION_SIGNAL_REPRESENTATIVE_V1.json', import.meta.url),
+  'utf8'
+));
 
-const projectionSource = readFileSync(
-  new URL('../src/features/my-chart/my-chart-personal-content-poc.ts', import.meta.url),
-  'utf8'
-);
-const componentSource = readFileSync(
-  new URL('../src/features/my-chart/MyChartContextualLearnStageA.tsx', import.meta.url),
-  'utf8'
-);
-const routeSource = readFileSync(
-  new URL('../src/pages/dev/my-chart-contextual-learn.astro', import.meta.url),
-  'utf8'
-);
-const styleSource = readFileSync(
-  new URL('../src/styles/my-chart-contextual-learn.css', import.meta.url),
-  'utf8'
+const rulesByCompositionId = new Map(
+  artifact.rules.map((rule) => [rule.compositionId, rule])
 );
 
-function themeById(projection, themeId) {
-  return projection.reading.themes.find((theme) => theme.themeId === themeId);
+function rules(...compositionIds) {
+  return compositionIds.map((compositionId) => {
+    const rule = rulesByCompositionId.get(compositionId);
+    assert.ok(rule, `missing representative rule ${compositionId}`);
+    return rule;
+  });
 }
 
-test('known-time page model renders selected deterministic themes instead of a primitive dump', () => {
-  const projection = projectMyChartPersonalContent('known-time');
-  const evidenceCount = projection.reading.themes.reduce(
-    (count, theme) => count + theme.evidence.length,
-    0
+function project(scenario) {
+  return projectMyChartPersonalContent(scenario, artifact.rules);
+}
+
+function themeBySignalId(projection, signalId) {
+  return projection.reading.themes.find((theme) =>
+    theme.technical.signalIds.includes(signalId)
   );
+}
+
+const readerProjection = (projection) => projection.reading.themes.map((theme) => ({
+  title: theme.title,
+  domain: theme.domain,
+  directionLabel: theme.directionLabel,
+  recognition: theme.recognition,
+  strength: theme.strength,
+  pattern: theme.pattern,
+  tension: theme.tension,
+  lever: theme.lever,
+  evidence: theme.evidence,
+  why: theme.why
+}));
+
+test('known-time page consumes two synthesized representative Signals and PersonalThemes', () => {
+  const projection = project('known-time');
 
   assert.equal(projection.authority, 'DEVELOPMENT_ONLY');
-  assert.equal(projection.fixture.scenarioId, 'CASE_B_MEANINGFUL_TENSION');
+  assert.equal(projection.fixture.scenarioId, 'MY_CHART_SIGNAL_BACKED_KNOWN_TIME_RESEARCH_PREVIEW');
+  assert.equal(projection.developmentDisclosure.evidence, 'RESEARCH_REPRESENTATIVE_SIGNAL / INCOMPLETE_RESEARCH / DEVELOPMENT_ONLY');
   assert.equal(projection.reading.themes.length, 2);
-  assert.ok(evidenceCount > projection.reading.themes.length);
-  assert.ok(themeById(projection, 'personal-theme.deliberate-action'));
-  assert.ok(themeById(projection, 'personal-theme.relationship-boundary'));
-  assert.equal(themeById(projection, 'personal-theme.emotional-pacing'), undefined);
-  assert.ok(projection.technical.suppressedCandidateCount > 0);
-  assert.match(projection.reading.hook, /patterns you bring/u);
-  assert.doesNotMatch(JSON.stringify(projection.reading.themes), /\d+%/u);
-});
-
-test('known-time page preserves convergence, mixed tension, and constructive asymmetry', () => {
-  const projection = projectMyChartPersonalContent('known-time');
-  const actionTheme = themeById(projection, 'personal-theme.deliberate-action');
-
-  assert.ok(actionTheme);
-  assert.equal(actionTheme.directionLabel, 'A meaningful tension');
-  assert.equal(actionTheme.evidence.length, 2);
-  assert.match(actionTheme.technical.convergence, /distinct paths/u);
-  assert.match(actionTheme.technical.tension, /challenging directions/u);
-  assert.match(actionTheme.why.factors.map((factor) => factor.label).join(' '), /Aries|Fixed emphasis/u);
-  assert.match(actionTheme.why.synthesis, /begin|continue/u);
-  assert.match(actionTheme.tension, /Starting|timing/u);
-  assert.match(actionTheme.lever, /reversible first step/u);
+  assert.equal(projection.technical.evaluatedSignalCount, 2);
+  assert.equal(projection.technical.coherenceStatus, 'COHERENT');
+  assert.equal(projection.technical.sourceType, 'RESEARCH_REPRESENTATIVE_SIGNAL');
+  assert.equal(projection.technical.sourceAuthority, 'INCOMPLETE_RESEARCH');
+  assert.equal(projection.technical.synthesisAuthority, 'DEVELOPMENT_ONLY');
   assert.deepEqual(
-    actionTheme.evidence.map((evidence) => evidence.label),
-    ['Fixed emphasis', 'Aries']
+    projection.reading.themes.flatMap((theme) => theme.evidence.map((evidence) => evidence.label)).sort(),
+    ['Mercury in Taurus', 'Moon in Aries']
   );
+  assert.ok(themeBySignalId(projection, 'signal.composition.body.moon_x_sign.aries'));
+  assert.ok(themeBySignalId(projection, 'signal.composition.body.mercury_x_sign.taurus'));
 });
 
-test('unknown-time page remains useful while excluding time-dependent layers from core content', () => {
-  const projection = projectMyChartPersonalContent('unknown-time');
-  const reading = JSON.stringify(projection.reading.themes.map((theme) => ({
-    title: theme.title,
-    domain: theme.domain,
-    directionLabel: theme.directionLabel,
-    recognition: theme.recognition,
-    strength: theme.strength,
-    pattern: theme.pattern,
-    tension: theme.tension,
-    lever: theme.lever,
-    evidence: theme.evidence
-  })));
+test('the page does not bypass synthesis with manually duplicated fake themes', () => {
+  const projectionSource = readFileSync(
+    new URL('../src/features/my-chart/my-chart-personal-content-poc.ts', import.meta.url),
+    'utf8'
+  );
 
-  assert.equal(projection.fixture.scenarioId, 'CASE_D_UNKNOWN_BIRTH_TIME');
-  assert.equal(projection.fixture.birthTimeAuthority, 'UNKNOWN');
-  assert.equal(projection.reading.themes.length, 2);
-  assert.equal(projection.unknownTime.presentationStatus, 'UNKNOWN_TIME_READING');
-  assert.match(projection.unknownTime.message, /time-sensitive chart layers are unavailable/u);
-  assert.ok(projection.unknownTime.omittedLayers.includes('houses'));
-  assert.ok(projection.technical.skippedRuleCount > 0);
-  assert.doesNotMatch(reading, /ASC|MC|house/iu);
-  assert.match(JSON.stringify(projection.reading.themes), /Mercury|Moon/u);
+  assert.match(projectionSource, /synthesizeCompositionSignalResearchInputs/u);
+  assert.match(projectionSource, /result\.synthesis\.coreThemes\.map/u);
+  assert.doesNotMatch(projectionSource, /synthesizePersonalThemes\(/u);
+  assert.doesNotMatch(projectionSource, /AUTHORITATIVE_ENGINE/u);
+  assert.ok(project('known-time').reading.themes.every((theme) => theme.technical.signalIds.length === 1));
 });
 
-test('every theme has inspectable WHY evidence and contextual Learn references', () => {
-  const projection = projectMyChartPersonalContent('known-time');
+test('surviving Signals remain differentiated, one theme each, without fake convergence', () => {
+  const projection = project('known-time');
+
+  assert.deepEqual(
+    projection.reading.themes.map((theme) => theme.domain).sort(),
+    ['Communication', 'Emotional patterns']
+  );
+  for (const theme of projection.reading.themes) {
+    assert.equal(theme.evidence.length, 1);
+    assert.match(theme.technical.convergence, /one admitted Body × Sign placement/u);
+    assert.equal(theme.technical.direction, 'NEUTRAL');
+    assert.equal(theme.technical.intensity, 'SUBTLE');
+    assert.equal(theme.technical.confidence, 'LOW');
+  }
+});
+
+test('reader prose remains restrained while the internal Signal bounds survive', () => {
+  const projection = project('known-time');
+  const readerText = JSON.stringify(readerProjection(projection));
+
+  assert.doesNotMatch(readerText, /AUTHORITATIVE_ENGINE|INCOMPLETE_RESEARCH|DEVELOPMENT_ONLY/iu);
+  assert.doesNotMatch(readerText, /\bLOW\b|\bSUBTLE\b|confidence|dominant|guarantee|certain|diagnos/iu);
+  assert.doesNotMatch(readerText, /major life theme|objective truth|fixed personality/iu);
+  assert.match(readerText, /pattern worth noticing/u);
+});
+
+test('WHY preserves body, sign, and integrated composition semantics', () => {
+  const projection = project('known-time');
 
   for (const theme of projection.reading.themes) {
-    assert.ok(theme.title.length > 0);
-    assert.ok(theme.recognition.length > 0);
-    assert.ok(theme.strength.length > 0);
-    assert.ok(theme.pattern.length > 0);
-    assert.ok(theme.tension.length > 0);
-    assert.ok(theme.lever.length > 0);
-    assert.ok(theme.evidence.length > 0);
-    assert.ok(theme.why.summary.length > 0);
-    assert.ok(theme.why.factors.length > 0);
-    assert.ok(theme.why.synthesis.length > 0);
-    assert.ok(theme.technical.sourceFactRefs.length > 0);
-    assert.ok(theme.technical.compositionRuleRefs.length > 0);
-    assert.ok(theme.technical.semanticBasisIds.length > 0);
-    assert.ok(theme.learn.length > 0);
+    const evidence = theme.evidence[0];
+    assert.ok(evidence);
+    assert.ok(theme.why.factors.some((factor) => factor.label === evidence.label.split(' in ')[0]));
+    assert.ok(theme.why.factors.some((factor) => factor.label === evidence.label.split(' in ')[1]));
+    assert.match(theme.why.synthesis, /Together, this composition/iu);
+    assert.match(theme.why.synthesis, /may be explored through/iu);
+    assert.match(theme.why.synthesis, /possible trade-off/iu);
+  }
+});
 
-    for (const bridge of theme.learn) {
-      assert.ok(bridge.lessonId);
-      assert.ok(bridge.slug);
-      assert.ok(bridge.title);
-      assert.ok(bridge.hookId);
-      assert.equal(bridge.contentAvailability, 'AVAILABLE');
+test('technical provenance is available under collapsed inspection, not in primary order', () => {
+  const componentSource = readFileSync(
+    new URL('../src/features/my-chart/MyChartContextualLearnStageA.tsx', import.meta.url),
+    'utf8'
+  );
+  const projection = project('known-time');
+
+  assert.match(componentSource, /details className="my-chart-contextual-learn__technical"/u);
+  assert.match(componentSource, /data-theme-technical/u);
+  assert.match(componentSource, /Representative Signal IDs/u);
+  assert.match(componentSource, /Intensity \/ confidence/u);
+  assert.ok(projection.reading.themes.every((theme) => theme.technical.signalIds.length > 0));
+  assert.ok(projection.reading.themes.every((theme) => theme.technical.sourceFactRefs.every((path) => path.startsWith('/research/composition-signals/'))));
+});
+
+test('Learn bridges preserve relevant body/sign destinations and deduplicate lesson destinations', () => {
+  for (const projection of [project('known-time'), project('unknown-time')]) {
+    for (const theme of projection.reading.themes) {
+      const labels = theme.learn.map((bridge) => bridge.label);
+      assert.ok(labels.some((label) => /Moon|Mercury/u.test(label)));
+      assert.ok(labels.some((label) => /Aries|Taurus/u.test(label)));
+      assert.equal(
+        new Set(theme.learn.map((bridge) => bridge.lessonId ?? bridge.objectId)).size,
+        theme.learn.length
+      );
+      assert.ok(theme.learn.every((bridge) => bridge.contentAvailability === 'AVAILABLE'));
     }
   }
 });
 
-test('reader prose stays human, duplicate Learn destinations are suppressed, and Moon themes do not inflate', () => {
-  const projection = projectMyChartPersonalContent('known-time');
-  const readerText = JSON.stringify({
-    hook: projection.reading.hook,
-    introduction: projection.reading.introduction,
-    themes: projection.reading.themes.map((theme) => ({
-      title: theme.title,
-      domain: theme.domain,
-      directionLabel: theme.directionLabel,
-      recognition: theme.recognition,
-      strength: theme.strength,
-      pattern: theme.pattern,
-      tension: theme.tension,
-      lever: theme.lever,
-      evidence: theme.evidence.map((evidence) => evidence.label),
-      why: theme.why
-    }))
-  });
-  const bannedReaderTerms = /(?:supplied layer|evidence path|independent evidence|convergence bonus|repeated copies|bounded trade-off|candidate|selected pattern|five-theme limit|semantic basis|runtime|fixture|authority state)/iu;
+test('unknown-time scenario remains useful without ASC, MC, houses, or fabricated time', () => {
+  const projection = project('unknown-time');
+  const readerText = JSON.stringify(readerProjection(projection));
 
-  assert.doesNotMatch(readerText, bannedReaderTerms);
-  assert.equal(
-    new Set(projection.reading.themes.flatMap((theme) => theme.learn.map((bridge) => bridge.lessonId))).size,
-    projection.reading.themes.flatMap((theme) => theme.learn).length
+  assert.equal(projection.fixture.birthTimeAuthority, 'UNKNOWN');
+  assert.equal(projection.unknownTime.presentationStatus, 'UNKNOWN_TIME_READING');
+  assert.match(projection.unknownTime.message, /time-sensitive chart layers are unavailable/u);
+  assert.deepEqual(
+    projection.reading.themes.flatMap((theme) => theme.evidence.map((evidence) => evidence.label)).sort(),
+    ['Mercury in Aries', 'Moon in Taurus']
   );
-  const relationshipTheme = themeById(projection, 'personal-theme.relationship-boundary');
-  assert.ok(relationshipTheme);
-  assert.deepEqual(relationshipTheme.technical.suppressedThemeKeys, ['emotional-pacing']);
+  assert.ok(projection.reading.themes.every((theme) => theme.technical.birthTimeEligibility.every((status) => status === 'UNKNOWN_TIME_SAFE')));
+  assert.ok(projection.unknownTime.omittedLayers.includes('houses'));
+  assert.doesNotMatch(readerText, /ASC|MC|house|noon|midnight|12:00|fabricated-time/iu);
 });
 
-test('projection output is stable across repeated runs and retains no internal scores in reader content', () => {
-  const first = projectMyChartPersonalContent('known-time');
-  const second = projectMyChartPersonalContent('known-time');
+test('same-body conflicting placements remain rejected and never become page themes', () => {
+  const conflict = synthesizeCompositionSignalResearchInputs(rules(
+    'body.moon_x_sign.aries',
+    'body.moon_x_sign.taurus'
+  ));
 
+  assert.equal(conflict.coherence.status, 'INVALID');
+  assert.equal(conflict.coherence.failures[0]?.code, 'CONFLICTING_BODY_SIGN_PLACEMENT');
+  assert.equal(conflict.suppressedSignals.length, 0);
+  assert.equal(conflict.synthesis.coreThemes.length, 0);
+});
+
+test('repeated projection is deterministic and the route remains dev-only', () => {
+  const first = project('known-time');
+  const second = project('known-time');
   assert.deepEqual(first, second);
-  assert.doesNotMatch(JSON.stringify(first.reading), /internalStrength|baseImportance|ranking|confidence/iu);
-  assert.doesNotMatch(JSON.stringify(first.reading), /\d+%/u);
+
+  const routeSource = readFileSync(
+    new URL('../src/pages/dev/my-chart-contextual-learn.astro', import.meta.url),
+    'utf8'
+  );
+  const projectionSource = readFileSync(
+    new URL('../src/features/my-chart/my-chart-personal-content-poc.ts', import.meta.url),
+    'utf8'
+  );
+  assert.match(routeSource, /import\.meta\.env\.DEV/u);
+  assert.match(routeSource, /robots: 'noindex,nofollow'/u);
+  assert.match(routeSource, /COMPOSITION_SIGNAL_REPRESENTATIVE_V1\.json/u);
+  assert.match(routeSource, /representativeSignalRules/u);
+  assert.doesNotMatch(routeSource, /HttpEngineClient|ENGINE_API_URL|Provider|fetch\(/iu);
+  assert.doesNotMatch(projectionSource, /HttpEngineClient|fetch\(|axios|openai|llm|AUTHORITATIVE_ENGINE/iu);
 });
 
-test('the component renders the deterministic theme model with progressive WHY and Learn disclosure', () => {
-  assert.match(componentSource, /projectMyChartPersonalContent/u);
+test('component preserves the human-first progressive disclosure baseline', () => {
+  const componentSource = readFileSync(
+    new URL('../src/features/my-chart/MyChartContextualLearnStageA.tsx', import.meta.url),
+    'utf8'
+  );
+  const styleSource = readFileSync(
+    new URL('../src/styles/my-chart-contextual-learn.css', import.meta.url),
+    'utf8'
+  );
+
   assert.match(componentSource, /projection\.reading\.themes\.map/u);
-  assert.match(componentSource, /data-core-personal-themes/u);
-  assert.match(componentSource, /data-personal-theme/u);
   assert.match(componentSource, /Recognition/u);
   assert.match(componentSource, /Strength/u);
   assert.match(componentSource, /Pattern/u);
   assert.match(componentSource, /Tension/u);
   assert.match(componentSource, /Lever/u);
-  assert.match(componentSource, /data-theme-why/u);
-  assert.match(componentSource, /data-theme-learn/u);
+  assert.match(componentSource, /Why this shows up/u);
+  assert.match(componentSource, /Learn next/u);
   assert.match(componentSource, /Astrologer's view/u);
-  assert.match(componentSource, /theme\.technical\.selection/u);
-  assert.doesNotMatch(componentSource, /theme\.why\.selection/u);
-  assert.doesNotMatch(componentSource, /bodies\.map|facts\.map|one supplied placement/iu);
   assert.doesNotMatch(componentSource, /Math\.random|Date\.now|fetch\(|axios|openai|llm/iu);
-  assert.doesNotMatch(componentSource, /\d+%/u);
-});
-
-test('dev route remains isolated and supports both known-time and unknown-time fixtures', () => {
-  assert.match(routeSource, /import\.meta\.env\.DEV/u);
-  assert.match(routeSource, /import\.meta\.env\.MODE\s*===\s*'local-integration'/u);
-  assert.match(routeSource, /NATALNODE_LOCAL_DEV_PREVIEW/u);
-  assert.match(routeSource, /robots: 'noindex,nofollow'/u);
-  assert.match(routeSource, /scenario/u);
-  assert.doesNotMatch(routeSource, /getEducationalChart|HttpEngineClient|fetch\(|axios|ENGINE_API_URL|Provider/iu);
-  assert.doesNotMatch(projectionSource, /HttpEngineClient|fetch\(|axios|openai|llm/iu);
-  assert.match(projectionSource, /DEVELOPMENT_ONLY/u);
-  assert.match(projectionSource, /RUNTIME_NOT_ADMITTED/u);
-});
-
-test('visual baseline keeps accessible progressive disclosure and mobile-safe behavior', () => {
   assert.match(styleSource, /focus-visible/u);
   assert.match(styleSource, /prefers-reduced-motion/u);
   assert.match(styleSource, /theme-details/u);
