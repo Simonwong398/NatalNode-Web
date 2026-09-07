@@ -73,14 +73,26 @@ Aries, Fire, Cardinal, and traditional Mars are not four independent pieces of
 evidence. Taurus, Earth, Fixed, and traditional Venus are not four independent
 pieces of evidence. They are distinct descriptive layers of one sign structure.
 
-The only independent inputs in a body × sign record are:
+The authoritative evidence unit for a body × sign record is one placement fact:
 
-1. the authoritative body placement/fact; and
-2. the authoritative sign placement/fact.
+```text
+AUTHORITATIVE BODY_SIGN_PLACEMENT
+  -> body semantic dimension
+  -> sign semantic dimension
+      -> element derived sign layer
+      -> modality derived sign layer
+      -> rulership derived sign layer
+```
 
-Element, modality, and rulership may clarify the sign, but they do not add
-independent convergence. A later Personal Synthesis implementation may count
-independent chart facts only when the source evidence really is separate.
+Therefore Moon in Aries has exactly **one** independent placement evidence unit.
+Body and sign remain semantically distinct because they answer different
+questions, but they are not independent chart evidence units. Element,
+modality, and rulership are also not independent evidence.
+
+Independent convergence requires genuinely separate authoritative ChartFacts,
+such as Moon in Aries plus Mercury in Aries, or Moon in Aries plus a separately
+authoritative admitted aspect. Repeating or re-referencing the same placement
+cannot create convergence or increase confidence, strength, or priority.
 
 ## 3. Rulership boundary
 
@@ -144,6 +156,8 @@ nearbyDistinctions
 modifierRequirements
 forbiddenInferences
 semanticDependencies
+placementEvidence
+semanticDimensions
 sourceRefs
 schoolNotes
 epistemicStatus
@@ -186,8 +200,8 @@ inserted to complete a missing chart fact.
 
 A record passes only when it can answer all of the following:
 
-1. What does the body function contribute independent of the sign?
-2. What conditions does the sign contribute independent of the body?
+1. What distinct semantic function does the body contribute?
+2. What distinct structural conditions does the sign contribute?
 3. How do those layers interact without becoming synonyms?
 4. What bounded chart question follows from the interaction?
 5. What constructive possibility and trade-off can be explored conditionally?
@@ -231,7 +245,7 @@ and not production priorities. They may later be considered as a semantic
 basis only if a separately admitted Signal rule supplies:
 
 - an authoritative chart fact;
-- an independent evidence key;
+- an evidence key for the one authoritative placement fact;
 - an existing closed domain and direction vocabulary;
 - source and rule provenance;
 - explicit birth-time eligibility;
@@ -241,7 +255,8 @@ basis only if a separately admitted Signal rule supplies:
 The composition method does not assign numeric strength, confidence,
 priority, or user-facing ranking. It does not create an eligible runtime
 signal by itself. Repeated references to Fire, Cardinal, Mars, Earth, Fixed,
-or Venus must not be counted as independent convergence.
+or Venus must not be counted as independent convergence, and repeated
+references to the same placement must not increase confidence or priority.
 
 ## 9. Validation gates
 
@@ -254,6 +269,7 @@ The representative package records the following gates:
 | `ELEMENT_MODALITY_SEPARATION` | `PASS` |
 | `RULERSHIP_BOUNDARY` | `PASS` |
 | `NO_SEMANTIC_DOUBLE_COUNTING` | `PASS` |
+| `PLACEMENT_EVIDENCE_MODEL` | `PASS` |
 | `CROSS_MATRIX_DIFFERENTIATION` | `PASS` |
 | `ANTI_STEREOTYPE` | `PASS` |
 | `SOURCE_TRACEABILITY` | `PASS` |

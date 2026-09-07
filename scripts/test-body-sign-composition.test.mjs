@@ -32,6 +32,8 @@ const REQUIRED_FIELDS = [
   'nearbyDistinctions',
   'modifierRequirements',
   'forbiddenInferences',
+  'placementEvidence',
+  'semanticDimensions',
   'semanticDependencies',
   'sourceRefs',
   'schoolNotes',
@@ -210,23 +212,81 @@ test('required anti-stereotype boundaries are absent from bounded meaning fields
   }
 });
 
-test('element, modality, and rulership do not create independent evidence', () => {
-  assert.deepEqual(
-    artifact.method.evidenceAccounting.independentEvidenceUnits,
-    ['authoritative_body_fact', 'authoritative_sign_fact']
-  );
-  assert.equal(artifact.method.evidenceAccounting.derivedSignLayersCountAsIndependentEvidence, false);
-  assert.equal(artifact.method.evidenceAccounting.repeatedPrimitiveLabelsCreateConvergence, false);
+test('each Body × Sign composition has exactly one placement evidence unit', () => {
+  const evidenceAccounting = artifact.method.evidenceAccounting;
+
+  assert.equal(evidenceAccounting.authoritativeEvidenceUnit, 'BODY_SIGN_PLACEMENT');
+  assert.equal(evidenceAccounting.independentEvidenceUnitsPerPlacement, 1);
+  assert.equal(evidenceAccounting.bodyAndSignAreDistinctSemanticDimensions, true);
+  assert.equal(evidenceAccounting.bodyAndSignAreSeparateEvidenceUnits, false);
+  assert.equal(evidenceAccounting.samePlacementMaySelfConverge, false);
+  assert.equal(evidenceAccounting.distinctAuthoritativePlacementFactsMayConvergeLater, true);
+  assert.equal(evidenceAccounting.repeatedPlacementReferencesIncreaseConfidenceOrPriority, false);
+  assert.equal(evidenceAccounting.derivedSignLayersCountAsIndependentEvidence, false);
 
   for (const composition of artifact.compositions) {
-    assert.equal(composition.semanticDependencies.body.independentEvidence, true);
-    assert.equal(composition.semanticDependencies.sign.independentEvidence, true);
+    const placementEvidence = composition.placementEvidence;
+    assert.equal(placementEvidence.evidenceType, 'BODY_SIGN_PLACEMENT');
+    assert.equal(placementEvidence.bodyId, composition.bodyId);
+    assert.equal(placementEvidence.signId, composition.signId);
+    assert.equal(placementEvidence.independentEvidenceUnits, 1);
+    assert.equal(placementEvidence.samePlacementMaySelfConverge, false);
+    assert.equal(new Set([placementEvidence.evidenceId]).size, 1);
+  }
+});
+
+test('semantic dimensions remain distinct while sharing one placement fact', () => {
+  for (const composition of artifact.compositions) {
+    const dimensions = composition.semanticDimensions;
+    assert.notEqual(dimensions.body.id, dimensions.sign.id);
+    assert.equal(dimensions.body.semanticDimension, true);
+    assert.equal(dimensions.sign.semanticDimension, true);
+    assert.equal(dimensions.body.independentEvidence, false);
+    assert.equal(dimensions.sign.independentEvidence, false);
+    assert.equal(composition.semanticDependencies.body.independentEvidence, false);
+    assert.equal(composition.semanticDependencies.sign.independentEvidence, false);
+
     for (const layer of ['element', 'modality', 'rulership']) {
+      assert.equal(dimensions[layer].derivedSignLayer, true);
+      assert.equal(dimensions[layer].derivedFrom, composition.signId);
+      assert.equal(dimensions[layer].independentEvidence, false);
       assert.equal(composition.semanticDependencies[layer].independentEvidence, false);
       assert.equal(composition.semanticDependencies[layer].derivedFrom, composition.signId);
     }
     assert.equal(composition.elementContribution.independentEvidence, false);
     assert.equal(composition.modalityContribution.independentEvidence, false);
+  }
+});
+
+test('only genuinely different placement facts may converge later', () => {
+  const moonAries = artifact.compositions.find(
+    (composition) => composition.compositionId === 'body.moon_x_sign.aries'
+  );
+  const mercuryAries = artifact.compositions.find(
+    (composition) => composition.compositionId === 'body.mercury_x_sign.aries'
+  );
+
+  assert.notEqual(moonAries.placementEvidence.evidenceId, mercuryAries.placementEvidence.evidenceId);
+  assert.equal(
+    new Set([
+      moonAries.placementEvidence.evidenceId,
+      mercuryAries.placementEvidence.evidenceId
+    ]).size,
+    2
+  );
+  assert.equal(artifact.method.evidenceAccounting.distinctAuthoritativePlacementFactsMayConvergeLater, true);
+
+  const repeatedPlacementReferences = [
+    moonAries.placementEvidence.evidenceId,
+    moonAries.placementEvidence.evidenceId
+  ];
+  assert.equal(new Set(repeatedPlacementReferences).size, 1);
+  assert.equal(artifact.method.evidenceAccounting.samePlacementMaySelfConverge, false);
+  assert.equal(artifact.method.evidenceAccounting.repeatedPlacementReferencesIncreaseConfidenceOrPriority, false);
+  for (const composition of artifact.compositions) {
+    assert.equal('confidence' in composition, false);
+    assert.equal('priority' in composition, false);
+    assert.equal('strength' in composition, false);
   }
 });
 
@@ -322,6 +382,7 @@ test('method and review dossier record the same bounded decision', () => {
     'READY_FOR_BROAD_SCALE: NO',
     'RUNTIME_ADMISSION: NO',
     'NO_SEMANTIC_DOUBLE_COUNTING',
+    'PLACEMENT_EVIDENCE_MODEL',
     'UNKNOWN_TIME_COMPATIBILITY',
     'PERSONAL_SYNTHESIS_COMPATIBILITY'
   ]) {

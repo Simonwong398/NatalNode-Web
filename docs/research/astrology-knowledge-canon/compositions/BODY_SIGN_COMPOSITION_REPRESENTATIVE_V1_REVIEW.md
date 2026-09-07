@@ -49,10 +49,12 @@ Element supplies a broad field; modality supplies a mode within that field;
 rulership supplies a named sign-to-planet relation. Element, modality, and
 rulership are derived sign layers and do not create independent evidence.
 
-Only two inputs count as independent evidence in one placement-level record:
-
-1. the authoritative body fact; and
-2. the authoritative sign fact.
+Each record has exactly **one** independent evidence unit: the authoritative
+`BODY_SIGN_PLACEMENT` fact. Body and sign remain distinct semantic dimensions
+of that same placement because they answer different questions. A later
+convergence may use a genuinely different authoritative placement fact, such
+as Moon in Aries plus Mercury in Aries, or a separately authoritative admitted
+aspect. Repeating Moon in Aries cannot self-converge.
 
 Aries is not Mars. Taurus is not Venus. Fixed is not Taurus. Moon is not Water.
 Mercury is not Air. Those collapse tests fail the method deliberately.
@@ -407,10 +409,14 @@ The following substitutions are invalid and are explicitly rejected:
 
 ### 5.2 Evidence accounting
 
-Each record has exactly two independent placement-level units: its body fact
-and its sign fact. Fire/Earth, Cardinal/Fixed, and Mars/Venus are derived
-explanatory layers. They clarify the sign but cannot create convergence or
-inflate a later Signal's confidence, strength, or priority.
+Each record has exactly one independent placement-level unit, represented by
+`placementEvidence.evidenceType: BODY_SIGN_PLACEMENT` and
+`placementEvidence.independentEvidenceUnits: 1`. Its body and sign are
+semantic dimensions of that one fact, not two evidence units. Fire/Earth,
+Cardinal/Fixed, and Mars/Venus are derived explanatory layers. They clarify the
+sign but cannot create convergence or inflate a later Signal's confidence,
+strength, or priority. Repeated references to the same placement also cannot
+increase confidence or priority.
 
 ### 5.3 Rulership boundary
 
@@ -424,7 +430,7 @@ faces, exaltation, fall, and detriment remain out of scope.
 ## 6. Unknown birth time and modifier behavior
 
 Placement-level body × sign content may remain available when the authoritative
-body and sign facts do not require a birth time. Unknown birth time does not
+placement fact does not require a birth time. Unknown birth time does not
 authorize:
 
 - ASC or MC claims;
@@ -441,8 +447,8 @@ the narrower interpretation; it never creates a fake default.
 
 The four records are not final PersonalThemes, production priorities, or
 runtime signals. A future bounded Signal rule may refer to one only after it
-adds an authoritative fact reference, rule identity/version, closed domain and
-direction, independent evidence key, birth-time requirement, limitations and
+adds an authoritative placement-evidence reference, rule identity/version,
+closed domain and direction, birth-time requirement, limitations and
 suppression, and WHY/LEARN provenance.
 
 No numeric strength, confidence, priority, or ranking is stored in this
@@ -470,7 +476,8 @@ modern, and NatalNode policy lanes remain visible rather than being flattened.
 | `BODY_SIGN_SEPARATION` | **PASS** | Body and sign fields are distinct and each pair has a body/sign nearby distinction. |
 | `ELEMENT_MODALITY_SEPARATION` | **PASS** | Element and modality are structured as derived sign layers with different roles. |
 | `RULERSHIP_BOUNDARY` | **PASS** | Mars/Venus are relation-only; complete ruler semantics, co-rulers, and advanced techniques are excluded. |
-| `NO_SEMANTIC_DOUBLE_COUNTING` | **PASS** | Only body fact and sign fact are independent evidence units. |
+| `NO_SEMANTIC_DOUBLE_COUNTING` | **PASS** | Body, sign, element, modality, and rulership are not counted as separate evidence inside one placement. |
+| `PLACEMENT_EVIDENCE_MODEL` | **PASS** | Every composition has one `BODY_SIGN_PLACEMENT` evidence unit; body and sign remain separate semantic dimensions. |
 | `CROSS_MATRIX_DIFFERENTIATION` | **PASS** | All six pairwise distinctions change a semantic axis. |
 | `ANTI_STEREOTYPE` | **PASS** | Required forbidden inferences are explicit and absent from bounded reader-facing meaning fields. |
 | `SOURCE_TRACEABILITY` | **PASS** | Each composition has source IDs, repository locators, source classes, and supported claims. |

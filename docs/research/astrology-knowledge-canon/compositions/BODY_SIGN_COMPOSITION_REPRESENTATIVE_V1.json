@@ -59,10 +59,17 @@
     "rulershipRole": "Rulership records a named sign-to-planet relationship and does not import the ruler's complete body semantics.",
     "compositionRule": "The integrated sentence must preserve both body function and sign conditions, then produce a conditional question rather than a keyword bundle.",
     "evidenceAccounting": {
-      "independentEvidenceUnits": ["authoritative_body_fact", "authoritative_sign_fact"],
+      "authoritativeEvidenceUnit": "BODY_SIGN_PLACEMENT",
+      "independentEvidenceUnitsPerPlacement": 1,
+      "semanticDimensionsPerPlacement": ["body", "sign", "element", "modality", "rulership"],
+      "bodyAndSignAreDistinctSemanticDimensions": true,
+      "bodyAndSignAreSeparateEvidenceUnits": false,
       "derivedSignLayers": ["element", "modality", "rulership"],
       "derivedSignLayersCountAsIndependentEvidence": false,
-      "repeatedPrimitiveLabelsCreateConvergence": false
+      "samePlacementMaySelfConverge": false,
+      "distinctAuthoritativePlacementFactsMayConvergeLater": true,
+      "repeatedPlacementReferencesIncreaseConfidenceOrPriority": false,
+      "independentConvergenceRequires": "A genuinely different authoritative ChartFact, such as a different body-sign placement or a separately authoritative admitted aspect."
     },
     "unknownTimeRule": "An authoritative body × sign fact remains usable when birth time is unknown; ASC, MC, houses, and other time-dependent claims remain unavailable.",
     "personalSynthesisRule": "A composition object is a possible semantic basis only; a separate Signal rule must provide domain, direction, provenance, evidence, birth-time eligibility, suppression, WHY, and LEARN.",
@@ -84,6 +91,8 @@
     "nearbyDistinctions",
     "modifierRequirements",
     "forbiddenInferences",
+    "placementEvidence",
+    "semanticDimensions",
     "semanticDependencies",
     "sourceRefs",
     "schoolNotes",
@@ -201,16 +210,55 @@
         "Aries equals Mars",
         "Mars supplies the complete meaning of Moon in Aries"
       ],
-      "semanticDependencies": {
+      "placementEvidence": {
+        "evidenceType": "BODY_SIGN_PLACEMENT",
+        "evidenceId": "placement.body.moon.sign.aries",
+        "bodyId": "body.moon",
+        "signId": "sign.aries",
+        "independentEvidenceUnits": 1,
+        "samePlacementMaySelfConverge": false,
+        "independentConvergenceRequires": "A different authoritative ChartFact, such as a different body-sign placement or a separately authoritative admitted aspect."
+      },
+      "semanticDimensions": {
         "body": {
           "id": "body.moon",
-          "role": "independent_body_function",
-          "independentEvidence": true
+          "semanticDimension": true,
+          "independentEvidence": false
         },
         "sign": {
           "id": "sign.aries",
-          "role": "independent_sign_context",
-          "independentEvidence": true
+          "semanticDimension": true,
+          "independentEvidence": false
+        },
+        "element": {
+          "id": "element.fire",
+          "derivedSignLayer": true,
+          "derivedFrom": "sign.aries",
+          "independentEvidence": false
+        },
+        "modality": {
+          "id": "modality.cardinal",
+          "derivedSignLayer": true,
+          "derivedFrom": "sign.aries",
+          "independentEvidence": false
+        },
+        "rulership": {
+          "id": "rulership.basic",
+          "derivedSignLayer": true,
+          "derivedFrom": "sign.aries",
+          "independentEvidence": false
+        }
+      },
+      "semanticDependencies": {
+        "body": {
+          "id": "body.moon",
+          "role": "body_semantic_dimension_of_placement",
+          "independentEvidence": false
+        },
+        "sign": {
+          "id": "sign.aries",
+          "role": "sign_semantic_dimension_of_placement",
+          "independentEvidence": false
         },
         "element": {
           "id": "element.fire",
@@ -401,16 +449,55 @@
         "Aries equals Mars",
         "Mars supplies the complete meaning of Mercury in Aries"
       ],
-      "semanticDependencies": {
+      "placementEvidence": {
+        "evidenceType": "BODY_SIGN_PLACEMENT",
+        "evidenceId": "placement.body.mercury.sign.aries",
+        "bodyId": "body.mercury",
+        "signId": "sign.aries",
+        "independentEvidenceUnits": 1,
+        "samePlacementMaySelfConverge": false,
+        "independentConvergenceRequires": "A different authoritative ChartFact, such as a different body-sign placement or a separately authoritative admitted aspect."
+      },
+      "semanticDimensions": {
         "body": {
           "id": "body.mercury",
-          "role": "independent_body_function",
-          "independentEvidence": true
+          "semanticDimension": true,
+          "independentEvidence": false
         },
         "sign": {
           "id": "sign.aries",
-          "role": "independent_sign_context",
-          "independentEvidence": true
+          "semanticDimension": true,
+          "independentEvidence": false
+        },
+        "element": {
+          "id": "element.fire",
+          "derivedSignLayer": true,
+          "derivedFrom": "sign.aries",
+          "independentEvidence": false
+        },
+        "modality": {
+          "id": "modality.cardinal",
+          "derivedSignLayer": true,
+          "derivedFrom": "sign.aries",
+          "independentEvidence": false
+        },
+        "rulership": {
+          "id": "rulership.basic",
+          "derivedSignLayer": true,
+          "derivedFrom": "sign.aries",
+          "independentEvidence": false
+        }
+      },
+      "semanticDependencies": {
+        "body": {
+          "id": "body.mercury",
+          "role": "body_semantic_dimension_of_placement",
+          "independentEvidence": false
+        },
+        "sign": {
+          "id": "sign.aries",
+          "role": "sign_semantic_dimension_of_placement",
+          "independentEvidence": false
         },
         "element": {
           "id": "element.fire",
@@ -601,16 +688,55 @@
         "Taurus equals Venus",
         "Venus supplies the complete meaning of Moon in Taurus"
       ],
-      "semanticDependencies": {
+      "placementEvidence": {
+        "evidenceType": "BODY_SIGN_PLACEMENT",
+        "evidenceId": "placement.body.moon.sign.taurus",
+        "bodyId": "body.moon",
+        "signId": "sign.taurus",
+        "independentEvidenceUnits": 1,
+        "samePlacementMaySelfConverge": false,
+        "independentConvergenceRequires": "A different authoritative ChartFact, such as a different body-sign placement or a separately authoritative admitted aspect."
+      },
+      "semanticDimensions": {
         "body": {
           "id": "body.moon",
-          "role": "independent_body_function",
-          "independentEvidence": true
+          "semanticDimension": true,
+          "independentEvidence": false
         },
         "sign": {
           "id": "sign.taurus",
-          "role": "independent_sign_context",
-          "independentEvidence": true
+          "semanticDimension": true,
+          "independentEvidence": false
+        },
+        "element": {
+          "id": "element.earth",
+          "derivedSignLayer": true,
+          "derivedFrom": "sign.taurus",
+          "independentEvidence": false
+        },
+        "modality": {
+          "id": "modality.fixed",
+          "derivedSignLayer": true,
+          "derivedFrom": "sign.taurus",
+          "independentEvidence": false
+        },
+        "rulership": {
+          "id": "rulership.basic",
+          "derivedSignLayer": true,
+          "derivedFrom": "sign.taurus",
+          "independentEvidence": false
+        }
+      },
+      "semanticDependencies": {
+        "body": {
+          "id": "body.moon",
+          "role": "body_semantic_dimension_of_placement",
+          "independentEvidence": false
+        },
+        "sign": {
+          "id": "sign.taurus",
+          "role": "sign_semantic_dimension_of_placement",
+          "independentEvidence": false
         },
         "element": {
           "id": "element.earth",
@@ -808,16 +934,55 @@
         "Taurus equals Venus",
         "Venus supplies the complete meaning of Mercury in Taurus"
       ],
-      "semanticDependencies": {
+      "placementEvidence": {
+        "evidenceType": "BODY_SIGN_PLACEMENT",
+        "evidenceId": "placement.body.mercury.sign.taurus",
+        "bodyId": "body.mercury",
+        "signId": "sign.taurus",
+        "independentEvidenceUnits": 1,
+        "samePlacementMaySelfConverge": false,
+        "independentConvergenceRequires": "A different authoritative ChartFact, such as a different body-sign placement or a separately authoritative admitted aspect."
+      },
+      "semanticDimensions": {
         "body": {
           "id": "body.mercury",
-          "role": "independent_body_function",
-          "independentEvidence": true
+          "semanticDimension": true,
+          "independentEvidence": false
         },
         "sign": {
           "id": "sign.taurus",
-          "role": "independent_sign_context",
-          "independentEvidence": true
+          "semanticDimension": true,
+          "independentEvidence": false
+        },
+        "element": {
+          "id": "element.earth",
+          "derivedSignLayer": true,
+          "derivedFrom": "sign.taurus",
+          "independentEvidence": false
+        },
+        "modality": {
+          "id": "modality.fixed",
+          "derivedSignLayer": true,
+          "derivedFrom": "sign.taurus",
+          "independentEvidence": false
+        },
+        "rulership": {
+          "id": "rulership.basic",
+          "derivedSignLayer": true,
+          "derivedFrom": "sign.taurus",
+          "independentEvidence": false
+        }
+      },
+      "semanticDependencies": {
+        "body": {
+          "id": "body.mercury",
+          "role": "body_semantic_dimension_of_placement",
+          "independentEvidence": false
+        },
+        "sign": {
+          "id": "sign.taurus",
+          "role": "sign_semantic_dimension_of_placement",
+          "independentEvidence": false
         },
         "element": {
           "id": "element.earth",
@@ -995,6 +1160,7 @@
     "ELEMENT_MODALITY_SEPARATION": "PASS",
     "RULERSHIP_BOUNDARY": "PASS",
     "NO_SEMANTIC_DOUBLE_COUNTING": "PASS",
+    "PLACEMENT_EVIDENCE_MODEL": "PASS",
     "CROSS_MATRIX_DIFFERENTIATION": "PASS",
     "ANTI_STEREOTYPE": "PASS",
     "SOURCE_TRACEABILITY": "PASS",
