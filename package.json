@@ -18,6 +18,7 @@
     "test:body-aspect-composition": "node --test scripts/test-body-aspect-body-composition.test.mjs",
     "test:aspect-signal-policy": "node --test scripts/test-aspect-signal-policy.test.mjs",
     "test:composition-signal-policy": "node --test scripts/test-composition-signal-policy.test.mjs",
+    "test:personal-chart-coverage-architecture": "node --test scripts/test-personal-chart-coverage-architecture.test.mjs",
     "test:composition-signal-synthesis-poc": "npm run test:composition-signal-synthesis-poc --workspace=apps/web",
     "test:shared-root-relational-synthesis-poc": "npm run test:shared-root-relational-synthesis-poc --workspace=apps/web",
     "test:relational-my-chart-poc": "npm run test:relational-my-chart-poc --workspace=apps/web",
