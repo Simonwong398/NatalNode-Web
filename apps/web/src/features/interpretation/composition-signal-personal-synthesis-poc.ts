@@ -64,6 +64,18 @@ function nonEmpty(value: string, label: string): void {
   }
 }
 
+function semanticBasisString(
+  rule: CompositionSignalPolicyRuleRecord,
+  key: 'bodyId' | 'signId'
+): string {
+  const value = rule.semanticBasis[key];
+  if (typeof value !== 'string') {
+    throw new Error(`Composition Signal ${rule.signalId} must preserve semanticBasis.${key}.`);
+  }
+  nonEmpty(value, `Composition Signal semanticBasis.${key}`);
+  return value;
+}
+
 /**
  * Converts one policy rule into a downstream-only research Signal input.
  * `INCOMPLETE_RESEARCH` is intentional: it keeps the Personal Synthesis POC
@@ -96,6 +108,9 @@ export function createCompositionSignalResearchInput(
     throw new Error(`Composition Signal ${rule.signalId} is not eligible for this research adapter.`);
   }
 
+  const bodyId = semanticBasisString(rule, 'bodyId');
+  const signId = semanticBasisString(rule, 'signId');
+
   const placementReference = Object.freeze({
     factKind: 'OTHER' as const,
     canonicalPath: `/research/composition-signals/${rule.placementEvidenceKey}`,
@@ -124,6 +139,10 @@ export function createCompositionSignalResearchInput(
       provenanceEnvelopeId: null
     }),
     authority: 'DEVELOPMENT_ONLY',
+    placementScope: 'SINGLE_NATAL_CHART',
+    placementType: rule.requiredFactType,
+    bodyId,
+    signId,
     placementEvidenceKey: rule.placementEvidenceKey,
     evidenceUnitCount: 1,
     semanticClaim: rule.semanticClaim,

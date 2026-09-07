@@ -2,9 +2,9 @@
 
 | Field | Value |
 | --- | --- |
-| Task | `WEB-P2-SIGNAL-SYNTHESIS-001` |
-| Baseline | `f6a3de578dd1dadff939075eafef9e38db57ccde` |
-| Review result | `BOUNDED_SIGNAL_SYNTHESIS_POC_PASS` |
+| Task | `WEB-P2-SIGNAL-SYNTHESIS-001-R1` |
+| Baseline | `8ba19bc595fb58bef60a70d9d542a7842fb41bb2` |
+| Review result | `BOUNDED_SIGNAL_SYNTHESIS_COHERENCE_PASS` |
 | Upstream Signal policy | `BOUNDED_SIGNAL_ADMISSION = PASS` |
 | Input authority | `RESEARCH_REPRESENTATIVE_SIGNAL` / `INCOMPLETE_RESEARCH` |
 | Personal Synthesis authority | `DEVELOPMENT_ONLY` |
@@ -39,7 +39,26 @@ ChartFact. The representative JSON is read by the targeted Node test; the
 TypeScript adapter does not import the docs artifact and no production bundle
 depends on it.
 
-## 2. Adapter and contract resolution
+## 2. Logical chart coherence
+
+Every structured representative Signal carries an explicit
+`SINGLE_NATAL_CHART` placement scope, `NATAL_BODY_POSITION` placement type,
+`bodyId`, and `signId`. Within one synthesis scope, a body may have at most one
+natal sign placement. This is a POC fixture-integrity guard, not a replacement
+for production astronomy authority.
+
+| Input set | Result |
+| --- | --- |
+| Moon × Aries + Mercury × Aries | Valid; two distinct placements |
+| Moon × Aries + Mercury × Taurus | Valid; two distinct placements |
+| Moon × Aries + Moon × Taurus | `CONFLICTING_BODY_SIGN_PLACEMENT`; rejected before synthesis |
+| Mercury × Aries + Mercury × Taurus | `CONFLICTING_BODY_SIGN_PLACEMENT`; rejected before synthesis |
+| Moon × Aries + Moon × Aries | Duplicate suppression; one eligible placement |
+
+Conflicting placements are not deduped into an arbitrary sign and do not create
+convergence or PersonalTheme candidates.
+
+## 3. Adapter and contract resolution
 
 The adapter is:
 
@@ -75,7 +94,7 @@ Signal-identity ordering only as a deterministic selection tie-break, explicitly
 annotated `no priority inferred`. No internal strength is derived from
 `SUBTLE`, `LOW`, domain, or prose.
 
-## 3. Current PersonalTheme candidates
+## 4. Current PersonalTheme candidates
 
 Each surviving representative Signal produces at most one candidate theme. The
 four bounded inputs project to these candidate keys:
@@ -91,7 +110,7 @@ The output remains a bounded PersonalTheme candidate, not a final reader
 reading. Existing editorial templates provide structure only; the preserved
 Signal trace remains the authority for the semantic claim and its limits.
 
-## 4. Scenario results
+## 5. Scenario results
 
 ### Scenario A — Moon in Aries + Mercury in Aries
 
@@ -128,26 +147,30 @@ Signal trace remains the authority for the semantic claim and its limits.
 
 ### Scenario E — unknown birth time
 
-All four representative Signals remain consumable because they are already
-`UNKNOWN_TIME_SAFE`. The synthesis result is marked `UNKNOWN` birth-time
-authority, retains no angle/house facts, and creates no ASC, MC, house-derived,
-noon, midnight, or fabricated-time content. The four-input result contains four
-themes; `maxThemes: 2` produces two deterministic candidates, proving that five
-is a ceiling rather than a minimum.
+The coherent unknown-time fixture uses Moon × Aries + Mercury × Taurus. It has
+two valid placement evidences, two eligible Signals, and two bounded candidate
+themes. The synthesis result is marked `UNKNOWN` birth-time authority, retains
+no angle/house facts, and creates no ASC, MC, house-derived, noon, midnight, or
+fabricated-time content. The fixture proves unknown-time behavior without
+asserting that one body can occupy two signs.
 
-## 5. Convergence, redundancy, and content bounds
+## 6. Convergence, redundancy, and content bounds
 
 The adapter suppresses duplicate placement evidence before synthesis. Distinct
 placement keys remain distinct unless the existing synthesis grouping receives
-an explicitly shared semantic theme key; shared sign, body, or domain is not
-used as a merge key. The current four inputs therefore do not converge.
+an explicitly shared semantic theme key; shared sign or domain is not used as a
+merge key. A same-body/different-sign input is rejected by the coherence guard,
+while coherent different-body inputs remain separate `SINGLE_EVIDENCE`
+candidates.
 
 The existing Personal Synthesis selector remains the owner of selection and
 redundancy behavior. No one Signal is split into strength, relationship, work,
 or other separate themes. A surviving Signal has one source trace and at most
-one primary PersonalTheme candidate.
+one primary PersonalTheme candidate. `maxThemes` remains a ceiling: coherent
+inputs may produce fewer candidates, and a lower cap suppresses only after the
+coherence check.
 
-## 6. Validation gates
+## 7. Validation gates
 
 | Gate | Result |
 | --- | --- |
@@ -157,16 +180,19 @@ one primary PersonalTheme candidate.
 | `NO_SIGNAL_INFLATION` | `PASS` |
 | `NO_FALSE_CONVERGENCE` | `PASS` |
 | `DUPLICATE_SUPPRESSION` | `PASS` |
+| `LOGICAL_CHART_COHERENCE` | `PASS` |
+| `CONFLICTING_PLACEMENT_GUARD` | `PASS` |
+| `DUPLICATE_VS_CONFLICT_SEPARATION` | `PASS` |
 | `UNKNOWN_TIME_AUTHORITY` | `PASS` |
 | `NO_FAKE_ENGINE_AUTHORITY` | `PASS` |
 | `DETERMINISTIC_SYNTHESIS` | `PASS` |
 | `PERSONAL_THEME_COMPATIBILITY` | `PASS` |
 
-## 7. Targeted validation
+## 8. Targeted validation
 
 ```text
 npm run test:composition-signal-synthesis-poc
-9 tests passed, 0 failed
+10 tests passed, 0 failed
 
 npm run test:personal-synthesis-poc --workspace=apps/web
 9 tests passed, 0 failed
@@ -180,7 +206,7 @@ Astro check reported one pre-existing repository hint for an unused
 outside this change. No broad build, browser test, production runtime, or
 authority integration was run.
 
-## 8. Readiness
+## 9. Readiness
 
 ```text
 READY_FOR_MY_CHART_SIGNAL_POC: YES
@@ -193,7 +219,7 @@ This POC is ready for a separately scoped My Chart Signal POC review because
 the downstream bridge is bounded and deterministic. Production Signal
 emission and production Personal Synthesis remain explicitly unadmitted.
 
-## 9. Source authority
+## 10. Source authority
 
 The adapter reuses the existing Personal Synthesis POC implementation,
 Interpretation Signal contracts, ranking/grouping/composition boundaries, and

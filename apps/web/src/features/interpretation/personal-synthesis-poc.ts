@@ -116,6 +116,9 @@ export type PersonalSynthesisCandidateMetadata = Omit<
   'internalStrength' | 'priority' | 'ranking'
 >;
 
+export type PersonalSynthesisPlacementScope = 'SINGLE_NATAL_CHART';
+export type PersonalSynthesisPlacementType = 'NATAL_BODY_POSITION';
+
 /**
  * A structured research Signal accepted by the downstream synthesis POC.
  * This is intentionally not an InterpretationSignal: the representative
@@ -134,6 +137,10 @@ export interface PersonalSynthesisStructuredSignalInput {
   readonly confidence: InterpretationConfidence;
   readonly provenance: InterpretationSignalProvenance;
   readonly authority: 'DEVELOPMENT_ONLY';
+  readonly placementScope: PersonalSynthesisPlacementScope;
+  readonly placementType: PersonalSynthesisPlacementType;
+  readonly bodyId: string;
+  readonly signId: string;
   readonly placementEvidenceKey: string;
   readonly evidenceUnitCount: 1;
   readonly semanticClaim: string;
@@ -321,11 +328,26 @@ export interface PersonalSynthesisStructuredSuppression {
   readonly reason: 'DUPLICATE_SAME_PLACEMENT';
 }
 
+export interface PersonalSynthesisStructuredCoherenceFailure {
+  readonly code: 'CONFLICTING_BODY_SIGN_PLACEMENT';
+  readonly placementScope: PersonalSynthesisPlacementScope;
+  readonly placementType: PersonalSynthesisPlacementType;
+  readonly bodyId: string;
+  readonly signIds: readonly string[];
+  readonly signalIds: readonly string[];
+}
+
+export interface PersonalSynthesisStructuredCoherence {
+  readonly status: 'COHERENT' | 'INVALID';
+  readonly failures: readonly PersonalSynthesisStructuredCoherenceFailure[];
+}
+
 export interface PersonalSynthesisStructuredResult {
   readonly sourceType: 'RESEARCH_REPRESENTATIVE_SIGNAL';
   readonly inputSignals: readonly PersonalSynthesisStructuredSignalInput[];
   readonly eligibleSignals: readonly PersonalSynthesisStructuredSignalInput[];
   readonly suppressedSignals: readonly PersonalSynthesisStructuredSuppression[];
+  readonly coherence: PersonalSynthesisStructuredCoherence;
   readonly synthesis: PersonalSynthesisResult;
 }
 
@@ -1508,6 +1530,8 @@ function validateStructuredSignalInput(
   nonEmpty(signal.signalId, 'Structured Signal signalId');
   nonEmpty(signal.compositionId, 'Structured Signal compositionId');
   nonEmpty(signal.signalThemeKey, 'Structured Signal signalThemeKey');
+  nonEmpty(signal.bodyId, 'Structured Signal bodyId');
+  nonEmpty(signal.signId, 'Structured Signal signId');
   nonEmpty(signal.placementEvidenceKey, 'Structured Signal placementEvidenceKey');
   nonEmpty(signal.semanticClaim, 'Structured Signal semanticClaim');
   nonEmpty(signal.constructiveCapacity, 'Structured Signal constructiveCapacity');
@@ -1518,6 +1542,12 @@ function validateStructuredSignalInput(
   }
   if (signal.authority !== 'DEVELOPMENT_ONLY') {
     throw new Error(`Structured Signal ${signal.signalId} cannot claim authoritative output.`);
+  }
+  if (signal.placementScope !== 'SINGLE_NATAL_CHART') {
+    throw new Error(`Structured Signal ${signal.signalId} has an unsupported placement scope.`);
+  }
+  if (signal.placementType !== 'NATAL_BODY_POSITION') {
+    throw new Error(`Structured Signal ${signal.signalId} has an unsupported placement type.`);
   }
   if (signal.provenance.sourceAuthority !== 'INCOMPLETE_RESEARCH') {
     throw new Error(
@@ -1592,6 +1622,84 @@ function structuredCandidate(
   });
 }
 
+function detectStructuredPlacementConflicts(
+  signals: readonly PersonalSynthesisStructuredSignalInput[]
+): readonly PersonalSynthesisStructuredCoherenceFailure[] {
+  const placements = new Map<
+    string,
+    {
+      readonly placementScope: PersonalSynthesisPlacementScope;
+      readonly placementType: PersonalSynthesisPlacementType;
+      readonly bodyId: string;
+      readonly signalIdsBySign: Map<string, Set<string>>;
+    }
+  >();
+
+  for (const signal of signals) {
+    const placementKey = `${signal.placementScope}|${signal.placementType}|${signal.bodyId}`;
+    let placement = placements.get(placementKey);
+    if (placement === undefined) {
+      placement = {
+        placementScope: signal.placementScope,
+        placementType: signal.placementType,
+        bodyId: signal.bodyId,
+        signalIdsBySign: new Map()
+      };
+      placements.set(placementKey, placement);
+    }
+
+    let signalIds = placement.signalIdsBySign.get(signal.signId);
+    if (signalIds === undefined) {
+      signalIds = new Set();
+      placement.signalIdsBySign.set(signal.signId, signalIds);
+    }
+    signalIds.add(signal.signalId);
+  }
+
+  const failures: PersonalSynthesisStructuredCoherenceFailure[] = [];
+  for (const placement of placements.values()) {
+    if (placement.signalIdsBySign.size < 2) {
+      continue;
+    }
+
+    const signalIds = new Set<string>();
+    for (const signSignalIds of placement.signalIdsBySign.values()) {
+      for (const signalId of signSignalIds) {
+        signalIds.add(signalId);
+      }
+    }
+    failures.push(Object.freeze({
+      code: 'CONFLICTING_BODY_SIGN_PLACEMENT',
+      placementScope: placement.placementScope,
+      placementType: placement.placementType,
+      bodyId: placement.bodyId,
+      signIds: freezeArray([...placement.signalIdsBySign.keys()].sort()),
+      signalIds: freezeArray([...signalIds].sort())
+    }));
+  }
+
+  return freezeArray(failures);
+}
+
+function rejectedStructuredSynthesis(
+  inputSignals: readonly PersonalSynthesisStructuredSignalInput[]
+): PersonalSynthesisResult {
+  return Object.freeze({
+    scenarioId: 'COMPOSITION_SIGNAL_REPRESENTATIVE_SYNTHESIS',
+    title: 'Representative Composition Signal synthesis rejected',
+    purpose: 'Reject incoherent research inputs before Personal Synthesis can select or merge themes.',
+    authority: 'DEVELOPMENT_ONLY',
+    birthTimeAuthority: 'UNKNOWN',
+    fixtureVersion: PERSONAL_SYNTHESIS_POC_FIXTURE_VERSION,
+    semanticBasisStatus: 'RUNTIME_NOT_ADMITTED',
+    evaluatedSignals: freezeArray([]),
+    skippedRules: freezeArray([]),
+    candidateTrace: freezeArray([]),
+    coreThemes: freezeArray([]),
+    naiveFactDump: freezeArray(inputSignals.map((signal) => signal.placementEvidenceKey))
+  });
+}
+
 /**
  * Downstream-only bridge for already-structured research Signals. It bypasses
  * the ChartFact → Signal registry because no authoritative Engine fact exists
@@ -1618,6 +1726,21 @@ export function synthesizePersonalThemesFromStructuredSignals(
   const orderedSignals = inputSignals
     .slice()
     .sort((left, right) => left.signalId.localeCompare(right.signalId));
+  const coherenceFailures = detectStructuredPlacementConflicts(orderedSignals);
+  if (coherenceFailures.length > 0) {
+    return Object.freeze({
+      sourceType: 'RESEARCH_REPRESENTATIVE_SIGNAL',
+      inputSignals: freezeArray(orderedSignals),
+      eligibleSignals: freezeArray([]),
+      suppressedSignals: freezeArray([]),
+      coherence: Object.freeze({
+        status: 'INVALID',
+        failures: coherenceFailures
+      }),
+      synthesis: rejectedStructuredSynthesis(orderedSignals)
+    });
+  }
+
   const eligibleSignals: PersonalSynthesisStructuredSignalInput[] = [];
   const suppressedSignals: PersonalSynthesisStructuredSuppression[] = [];
   const seenPlacementEvidence = new Set<string>();
@@ -1703,14 +1826,18 @@ export function synthesizePersonalThemesFromStructuredSignals(
     skippedRules: freezeArray([]),
     candidateTrace: freezeArray(candidateTrace),
     coreThemes: freezeArray(selectedThemes),
-    naiveFactDump: freezeArray(inputSignals.map((signal) => signal.placementEvidenceKey))
+    naiveFactDump: freezeArray(orderedSignals.map((signal) => signal.placementEvidenceKey))
   });
 
   return Object.freeze({
     sourceType: 'RESEARCH_REPRESENTATIVE_SIGNAL',
-    inputSignals: freezeArray(inputSignals),
+    inputSignals: freezeArray(orderedSignals),
     eligibleSignals: freezeArray(eligibleSignals),
     suppressedSignals: freezeArray(suppressedSignals),
+    coherence: Object.freeze({
+      status: 'COHERENT',
+      failures: freezeArray([])
+    }),
     synthesis
   });
 }

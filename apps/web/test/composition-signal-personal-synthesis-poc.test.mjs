@@ -46,6 +46,7 @@ test('representative Signals enter the existing Personal Synthesis POC without f
   assert.equal(result.sourceType, 'RESEARCH_REPRESENTATIVE_SIGNAL');
   assert.equal(result.synthesis.authority, 'DEVELOPMENT_ONLY');
   assert.equal(result.synthesis.semanticBasisStatus, 'RUNTIME_NOT_ADMITTED');
+  assert.equal(result.coherence.status, 'COHERENT');
   assert.equal(result.synthesis.evaluatedSignals.length, 2);
   assert.ok(result.synthesis.evaluatedSignals.every((signal) =>
     signal.sourceType === 'RESEARCH_REPRESENTATIVE_SIGNAL' &&
@@ -70,6 +71,10 @@ test('Signal identity, domains, direction, intensity, confidence, and placement 
     assert.equal(trace.compositionId, rule.compositionId);
     assert.equal(trace.rule.ruleId, rule.ruleId);
     assert.equal(trace.rule.ruleVersion, rule.ruleVersion);
+    assert.equal(trace.placementScope, 'SINGLE_NATAL_CHART');
+    assert.equal(trace.placementType, 'NATAL_BODY_POSITION');
+    assert.equal(trace.bodyId, rule.semanticBasis.bodyId);
+    assert.equal(trace.signId, rule.semanticBasis.signId);
     assert.equal(trace.domain, rule.eligibleDomain);
     assert.equal(trace.direction, rule.direction);
     assert.equal(trace.intensity, rule.candidateIntensity);
@@ -105,12 +110,9 @@ test('same-sign different placements remain separate and do not auto-converge', 
     'body.moon_x_sign.taurus',
     'body.mercury_x_sign.taurus'
   );
-  const sameBody = synthesize(
-    'body.moon_x_sign.aries',
-    'body.moon_x_sign.taurus'
-  );
 
   for (const result of [aries, taurus]) {
+    assert.equal(result.coherence.status, 'COHERENT');
     assert.equal(result.synthesis.coreThemes.length, 2);
     assert.ok(result.synthesis.coreThemes.every((candidate) => candidate.convergence.status === 'SINGLE_EVIDENCE'));
     assert.ok(result.synthesis.coreThemes.every((candidate) => candidate.sourceSignalIds.length === 1));
@@ -119,9 +121,44 @@ test('same-sign different placements remain separate and do not auto-converge', 
       ['COMMUNICATION', 'EMOTIONAL']
     );
   }
-  assert.equal(sameBody.synthesis.coreThemes.length, 2);
-  assert.ok(sameBody.synthesis.coreThemes.every((candidate) => candidate.convergence.status === 'SINGLE_EVIDENCE'));
-  assert.ok(sameBody.synthesis.coreThemes.every((candidate) => candidate.domain === 'EMOTIONAL'));
+});
+
+test('same body with different signs is rejected as a placement conflict, not deduped', () => {
+  for (const { bodyId, conflict, signIds, signalIds } of [
+    {
+      bodyId: 'body.moon',
+      conflict: synthesize('body.moon_x_sign.aries', 'body.moon_x_sign.taurus'),
+      signIds: ['sign.aries', 'sign.taurus'],
+      signalIds: [
+        'signal.composition.body.moon_x_sign.aries',
+        'signal.composition.body.moon_x_sign.taurus'
+      ]
+    },
+    {
+      bodyId: 'body.mercury',
+      conflict: synthesize('body.mercury_x_sign.aries', 'body.mercury_x_sign.taurus'),
+      signIds: ['sign.aries', 'sign.taurus'],
+      signalIds: [
+        'signal.composition.body.mercury_x_sign.aries',
+        'signal.composition.body.mercury_x_sign.taurus'
+      ]
+    }
+  ]) {
+    assert.equal(conflict.coherence.status, 'INVALID');
+    assert.deepEqual(conflict.coherence.failures, [{
+      code: 'CONFLICTING_BODY_SIGN_PLACEMENT',
+      placementScope: 'SINGLE_NATAL_CHART',
+      placementType: 'NATAL_BODY_POSITION',
+      bodyId,
+      signIds,
+      signalIds
+    }]);
+    assert.deepEqual(conflict.coherence.failures[0].signIds, signIds);
+    assert.equal(conflict.suppressedSignals.length, 0);
+    assert.equal(conflict.eligibleSignals.length, 0);
+    assert.equal(conflict.synthesis.evaluatedSignals.length, 0);
+    assert.equal(conflict.synthesis.coreThemes.length, 0);
+  }
 });
 
 test('different compositions do not introduce forced domain diversity or invented tension', () => {
@@ -130,6 +167,7 @@ test('different compositions do not introduce forced domain diversity or invente
     'body.mercury_x_sign.aries'
   );
 
+  assert.equal(result.coherence.status, 'COHERENT');
   assert.equal(result.synthesis.coreThemes.length, 2);
   assert.deepEqual(
     result.synthesis.coreThemes.map((candidate) => candidate.domain).sort(),
@@ -144,6 +182,7 @@ test('duplicate same placement is suppressed before synthesis without inflation'
   const moonAries = rules('body.moon_x_sign.aries')[0];
   const result = adapter.synthesizeCompositionSignalResearchInputs([moonAries, moonAries]);
 
+  assert.equal(result.coherence.status, 'COHERENT');
   assert.equal(result.inputSignals.length, 2);
   assert.equal(result.eligibleSignals.length, 1);
   assert.equal(result.suppressedSignals.length, 1);
@@ -162,37 +201,36 @@ test('duplicate same placement is suppressed before synthesis without inflation'
 
 test('one surviving Signal produces at most one PersonalTheme and max five is only a ceiling', () => {
   const single = synthesize('body.moon_x_sign.aries');
-  const all = synthesize(
+  const coherent = synthesize(
     'body.moon_x_sign.aries',
-    'body.mercury_x_sign.aries',
-    'body.moon_x_sign.taurus',
     'body.mercury_x_sign.taurus'
   );
   const capped = adapter.synthesizeCompositionSignalResearchInputs(
     rules(
       'body.moon_x_sign.aries',
-      'body.mercury_x_sign.aries',
-      'body.moon_x_sign.taurus',
       'body.mercury_x_sign.taurus'
     ),
-    { maxThemes: 2 }
+    { maxThemes: 1 }
   );
 
   assert.equal(single.synthesis.coreThemes.length, 1);
   assert.equal(single.synthesis.coreThemes[0].sourceSignalIds.length, 1);
-  assert.equal(all.synthesis.coreThemes.length, 4);
-  assert.ok(all.synthesis.coreThemes.length <= 5);
-  assert.equal(capped.synthesis.coreThemes.length, 2);
+  assert.equal(coherent.coherence.status, 'COHERENT');
+  assert.equal(coherent.synthesis.coreThemes.length, 2);
+  assert.ok(coherent.synthesis.coreThemes.length <= 5);
+  assert.equal(capped.synthesis.coreThemes.length, 1);
 });
 
 test('unknown-time-safe representative Signals remain usable without time-dependent content', () => {
   const result = synthesize(
     'body.moon_x_sign.aries',
-    'body.mercury_x_sign.aries',
-    'body.moon_x_sign.taurus',
     'body.mercury_x_sign.taurus'
   );
 
+  assert.equal(result.coherence.status, 'COHERENT');
+  assert.equal(result.eligibleSignals.length, 2);
+  assert.equal(result.synthesis.evaluatedSignals.length, 2);
+  assert.equal(result.synthesis.coreThemes.length, 2);
   assert.equal(result.synthesis.birthTimeAuthority, 'UNKNOWN');
   for (const themeCandidate of result.synthesis.coreThemes) {
     assert.equal(themeCandidate.authorityRequirements.birthTimeDependency, 'UNKNOWN_TIME_SAFE');
@@ -218,16 +256,12 @@ test('unknown-time-safe representative Signals remain usable without time-depend
 
 test('representative synthesis is deterministic and preserves the five-theme ceiling', () => {
   const first = synthesize(
-    'body.mercury_x_sign.taurus',
     'body.moon_x_sign.aries',
-    'body.mercury_x_sign.aries',
-    'body.moon_x_sign.taurus'
+    'body.mercury_x_sign.taurus'
   );
   const second = synthesize(
     'body.mercury_x_sign.taurus',
-    'body.moon_x_sign.aries',
-    'body.mercury_x_sign.aries',
-    'body.moon_x_sign.taurus'
+    'body.moon_x_sign.aries'
   );
   assert.deepEqual(first, second);
   assert.ok(first.synthesis.coreThemes.length <= 5);
