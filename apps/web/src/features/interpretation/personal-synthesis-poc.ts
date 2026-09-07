@@ -117,6 +117,17 @@ export interface PersonalSynthesisLearnReference {
   readonly label: string;
 }
 
+export interface PersonalSynthesisWhyReaderFactor {
+  readonly label: string;
+  readonly contribution: string;
+}
+
+export interface PersonalSynthesisWhyReader {
+  readonly summary: string;
+  readonly factors: readonly PersonalSynthesisWhyReaderFactor[];
+  readonly synthesis: string;
+}
+
 export interface PersonalSynthesisDeeperReference {
   readonly objectId: string;
   readonly label: string;
@@ -124,6 +135,7 @@ export interface PersonalSynthesisDeeperReference {
 
 export interface PersonalSynthesisWhyTrace {
   readonly text: string;
+  readonly reader: PersonalSynthesisWhyReader;
   readonly sourceChartFacts: readonly InterpretationFactReference[];
   readonly semanticBasisIds: readonly string[];
   readonly compositionRuleRefs: readonly string[];
@@ -248,6 +260,8 @@ interface PersonalEditorialTemplate {
   readonly pattern: string;
   readonly tension: string;
   readonly lever: string;
+  readonly whyReaderSummary: string;
+  readonly whyReaderSynthesis: string;
   readonly whyLead: string;
 }
 
@@ -265,11 +279,13 @@ const PERSONAL_EDITORIAL_TEMPLATES: Readonly<
     deeperReferences: Object.freeze([
       Object.freeze({ objectId: 'knowledge.counterevidence', label: 'Review limits and counterevidence' })
     ]),
-    recognition: 'The supplied {{anchor}} {{verb}} clear exchange a useful question in this chart.',
-    strength: 'The structure supports naming the useful point before the explanation expands.',
-    pattern: 'Attention may gather around making a message legible and answerable.',
-    tension: 'Directness can become too much framing if room for another response disappears.',
-    lever: 'Name the point in one sentence, then pause for the response before adding context.',
+    recognition: 'You may find yourself looking for the clearest way to say what matters, while still leaving room for another person to answer.',
+    strength: 'You can make an important point easier to hear by giving it a clean shape.',
+    pattern: 'When something matters, you may keep refining the message until the meaning and the response can meet.',
+    tension: 'Clarity can turn into too much framing if the other person has no room to respond in their own way.',
+    lever: 'Say the point in one sentence, then pause long enough to hear what comes back before adding the rest.',
+    whyReaderSummary: 'This theme speaks to the way a thought becomes a message, and to the space that message leaves for a response.',
+    whyReaderSynthesis: 'Together, these factors make clear exchange a practice: say what matters, then let the answer have its own shape.',
     whyLead: 'The communication theme uses an admitted body-level semantic basis to frame a question about exchange, not a guarantee about another person’s response.'
   },
   'deliberate-action': {
@@ -284,11 +300,13 @@ const PERSONAL_EDITORIAL_TEMPLATES: Readonly<
     deeperReferences: Object.freeze([
       Object.freeze({ objectId: 'knowledge.counterevidence', label: 'Review limits and counterevidence' })
     ]),
-    recognition: 'The supplied {{anchor}} {{verb}} the first useful step a live question in this chart.',
-    strength: 'The structure supports beginning or activating one defined move.',
-    pattern: 'Decision attention may gather around momentum, pacing, and what is ready to move.',
-    tension: 'Momentum can outrun pacing, while caution can keep a usable first step in draft form.',
-    lever: 'Name the first reversible step and the information still missing before expanding the plan.',
+    recognition: 'You may feel a strong urge to get something moving, alongside a steady instinct to make sure it can last.',
+    strength: 'You can give an idea a beginning without losing sight of what will keep it going.',
+    pattern: 'You may move between the courage to start and the patience to stay with something until it becomes real.',
+    tension: 'Starting quickly can outrun your pacing, while waiting for certainty can keep a good first step in draft.',
+    lever: 'Choose one reversible first step, and name what you still need to learn before you build the larger plan.',
+    whyReaderSummary: 'This theme speaks to the moment when an impulse wants to begin and another part of you asks whether the choice can hold its shape.',
+    whyReaderSynthesis: 'Together, these factors connect the courage to begin with the patience to continue, so the timing of a first step matters as much as the step itself.',
     whyLead: 'The action theme keeps initiation and continuation together as a bounded trade-off; it does not turn either layer into a fixed personality claim.'
   },
   'relationship-boundary': {
@@ -302,11 +320,13 @@ const PERSONAL_EDITORIAL_TEMPLATES: Readonly<
     deeperReferences: Object.freeze([
       Object.freeze({ objectId: 'knowledge.counterevidence', label: 'Review limits and counterevidence' })
     ]),
-    recognition: 'The supplied {{anchor}} {{verb}} closeness and boundaries a useful question in this chart.',
-    strength: 'The structure supports noticing what helps connection remain responsive rather than automatic.',
-    pattern: 'Relationship attention may gather around receptivity, distance, and the pace of response.',
+    recognition: 'Closeness may feel best when it has enough room to stay honest and responsive.',
+    strength: 'You can notice what helps connection remain warm without making it automatic.',
+    pattern: 'You may pay close attention to receptivity, distance, and the pace at which trust answers back.',
     tension: 'Protecting steadiness can also reduce openness if a boundary is treated as a conclusion.',
     lever: 'Name the boundary and the connection it is meant to protect before deciding what distance means.',
+    whyReaderSummary: 'This theme speaks to how you receive closeness and how you keep enough space for the relationship to stay honest.',
+    whyReaderSynthesis: 'That emphasis makes connection a balance between receptivity and a boundary that keeps contact responsive.',
     whyLead: 'The relationship theme uses a bounded response or relationship layer; it does not predict another person’s behavior or guarantee closeness.'
   },
   'work-continuity': {
@@ -320,11 +340,13 @@ const PERSONAL_EDITORIAL_TEMPLATES: Readonly<
     deeperReferences: Object.freeze([
       Object.freeze({ objectId: 'knowledge.counterevidence', label: 'Review limits and counterevidence' })
     ]),
-    recognition: 'The supplied {{anchor}} {{verb}} continuity and output a useful question in this chart.',
-    strength: 'The structure supports keeping a meaningful process in view long enough to develop it.',
-    pattern: 'Work or creation attention may gather around maintenance, sequencing, and finishing conditions.',
+    recognition: 'You may do your best work when a meaningful process has time to gather shape.',
+    strength: 'You can keep a worthwhile process in view long enough for it to develop.',
+    pattern: 'Your attention may return to maintenance, sequencing, and the conditions that let good work reach completion.',
     tension: 'Continuity can become inertia when the process is preserved after its purpose has changed.',
     lever: 'Choose one part of the process to maintain and one signal that would justify changing it.',
+    whyReaderSummary: 'This theme speaks to the part of your work that grows through continuity rather than quick results.',
+    whyReaderSynthesis: 'Together, these factors point to a process that can be maintained without becoming fixed.',
     whyLead: 'The work theme uses a bounded continuation or information layer to discuss process, not status, productivity worth, or guaranteed success.'
   },
   'self-direction': {
@@ -338,11 +360,13 @@ const PERSONAL_EDITORIAL_TEMPLATES: Readonly<
     deeperReferences: Object.freeze([
       Object.freeze({ objectId: 'knowledge.counterevidence', label: 'Review limits and counterevidence' })
     ]),
-    recognition: 'The supplied {{anchor}} {{verb}} self-direction and agency a useful question in this chart.',
-    strength: 'The structure supports identifying a direction and giving it a first form.',
-    pattern: 'Self-direction attention may gather around initiative, naming a priority, and choosing a starting point.',
+    recognition: 'You may find direction by giving an impulse a first, concrete form.',
+    strength: 'You can turn a beginning into a direction without needing the whole path at once.',
+    pattern: 'You may return to initiative, naming a priority, and choosing the next honest starting point.',
     tension: 'A clear first direction can narrow the field too quickly if context is treated as irrelevant.',
     lever: 'State the direction, then name the piece of context that could revise the next step.',
+    whyReaderSummary: 'This theme speaks to how an inner direction becomes a choice you can begin to live.',
+    whyReaderSynthesis: 'Together, these factors turn a first impulse into a direction while leaving room for context to refine it.',
     whyLead: 'The self-direction theme uses a bounded initiating or naming layer; it does not define the whole person or promise a life outcome.'
   },
   'emotional-pacing': {
@@ -356,11 +380,13 @@ const PERSONAL_EDITORIAL_TEMPLATES: Readonly<
     deeperReferences: Object.freeze([
       Object.freeze({ objectId: 'knowledge.counterevidence', label: 'Review limits and counterevidence' })
     ]),
-    recognition: 'The supplied {{anchor}} {{verb}} response, rhythm, and steadiness a useful question in this chart.',
-    strength: 'The structure supports noticing what helps a response settle before a deliberate choice.',
-    pattern: 'Emotional attention may gather around familiar rhythms, receptivity, and the pace of inner response.',
+    recognition: 'Your first response may arrive as a rhythm or feeling that needs time before it becomes a decision.',
+    strength: 'You can notice what helps a response settle before asking it to choose for you.',
+    pattern: 'You may return to familiar rhythms of receptivity, feeling, and recovery when something matters.',
     tension: 'A familiar response can feel safe while still narrowing the range of available choices.',
     lever: 'Name the first response, then allow one additional observation before treating it as a decision.',
+    whyReaderSummary: 'This theme speaks to the space between your first response and the choice that follows it.',
+    whyReaderSynthesis: 'That rhythm is why a pause between feeling and choice can make more room for what you really want.',
     whyLead: 'The emotional theme uses a bounded Moon-related response layer; it does not diagnose emotional health or define a complete emotional life.'
   }
 });
@@ -828,6 +854,51 @@ function renderWithAnchor(templateText: string, anchor: string): string {
     .replaceAll('{{verb}}', verb);
 }
 
+const WHY_READER_FACTORS: Readonly<
+  Record<PersonalSynthesisSemanticBasisId, PersonalSynthesisWhyReaderFactor>
+> = Object.freeze({
+  'body.moon': Object.freeze({
+    label: 'Moon',
+    contribution: 'The Moon speaks to feeling, receptivity, and the rhythm of response.'
+  }),
+  'body.mercury': Object.freeze({
+    label: 'Mercury',
+    contribution: 'Mercury speaks to how a thought becomes words and how meaning travels between people.'
+  }),
+  'sign.aries': Object.freeze({
+    label: 'Aries',
+    contribution: 'Aries brings a direct impulse to begin and give an idea its first movement.'
+  }),
+  'modality.fixed': Object.freeze({
+    label: 'Fixed emphasis',
+    contribution: 'Fixed emphasis adds continuity, patience, and a wish to stay with what matters.'
+  }),
+  'rulership.basic': Object.freeze({
+    label: 'Chart ruler',
+    contribution: 'The chart ruler helps show where the chart gathers its organizing emphasis.'
+  })
+});
+
+function readerWhyFactors(
+  definitions: readonly PersonalSynthesisCandidateDefinition[]
+): readonly PersonalSynthesisWhyReaderFactor[] {
+  const seen = new Set<PersonalSynthesisSemanticBasisId>();
+  const factors: PersonalSynthesisWhyReaderFactor[] = [];
+  for (const definition of definitions) {
+    const semanticBasisId = definition.semanticBasisId as PersonalSynthesisSemanticBasisId;
+    if (seen.has(semanticBasisId)) {
+      continue;
+    }
+    const factor = WHY_READER_FACTORS[semanticBasisId];
+    if (factor === undefined) {
+      throw new Error(`Missing reader astrology factor for ${definition.semanticBasisId}.`);
+    }
+    seen.add(semanticBasisId);
+    factors.push(factor);
+  }
+  return freezeArray(factors);
+}
+
 function createTheme(
   group: PersonalThemeGroup,
   fixture: PersonalSynthesisFixture,
@@ -863,6 +934,11 @@ function createTheme(
     : 'No mixed direction is claimed for this theme.';
   const why: PersonalSynthesisWhyTrace = Object.freeze({
     text: `${group.template.whyLead} ${convergenceText} ${tensionText}`,
+    reader: Object.freeze({
+      summary: group.template.whyReaderSummary,
+      factors: readerWhyFactors(group.definitions),
+      synthesis: group.template.whyReaderSynthesis
+    }),
     sourceChartFacts: sourceFactRefs,
     semanticBasisIds,
     compositionRuleRefs,
@@ -1466,7 +1542,7 @@ const SCENARIO_B = fixture(
       semanticBasisId: 'body.moon',
       compositionRuleId: 'personal-synthesis.relationship.response',
       convergenceKey: 'relationship-boundary',
-      redundancyKey: 'relationship-boundary',
+      redundancyKey: 'moon-response',
       independentEvidenceKey: 'moon-response',
       domain: 'RELATIONSHIP',
       direction: 'SUPPORTIVE',
@@ -1489,7 +1565,7 @@ const SCENARIO_B = fixture(
       semanticBasisId: 'body.moon',
       compositionRuleId: 'personal-synthesis.emotional.response',
       convergenceKey: 'emotional-pacing',
-      redundancyKey: 'emotional-pacing',
+      redundancyKey: 'moon-response',
       independentEvidenceKey: 'moon-response',
       domain: 'EMOTIONAL',
       direction: 'NEUTRAL',

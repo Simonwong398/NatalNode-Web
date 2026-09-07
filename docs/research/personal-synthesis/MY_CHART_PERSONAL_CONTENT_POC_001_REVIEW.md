@@ -2,16 +2,18 @@
 
 | Field | Value |
 | --- | --- |
-| Task | `WEB-P2-MY-CHART-CONTENT-001` |
-| Baseline | `a5667cce3da8dd6b17736234efe9f19d3be83bc5` |
+| Task | `WEB-P2-MY-CHART-CONTENT-001-R1` |
+| Baseline | `75350ed6fe111f3e3dfd386273724464ee7f5a2c` |
 | Route | `/dev/my-chart-contextual-learn/` |
 | Authority | `DEVELOPMENT_ONLY` |
 | Production runtime admission | `NO` |
-| Browser review state | Engineering-ready; Product Owner review required |
+| Browser review state | R1 engineering revision ready; Product Owner review required |
 
-This review covers the bounded dev-only integration from the accepted
-deterministic Personal Synthesis POC into the existing My Chart contextual
-Learn route. It evaluates content value, not production astrology authority.
+This R1 review addresses the owner finding that the first version was too
+engine-oriented in its primary reading. It keeps the bounded dev-only
+integration and deterministic Personal Synthesis underneath while making the
+visible reading human-first. It evaluates content value, not production
+astrology authority.
 
 ## 1. Scope and architecture boundary
 
@@ -55,7 +57,7 @@ READING
   -> CORE PERSONAL THEMES
       -> WHY THIS SHOWS UP
           -> LEARN NEXT
-              -> ASTROLOGER / TECHNICAL DEPTH
+              -> ASTROLOGER'S VIEW
 ```
 
 The initial reading shows the selected themes and their:
@@ -66,10 +68,10 @@ The initial reading shows the selected themes and their:
 - Tension; and
 - Lever.
 
-WHY, evidence labels, convergence, birth-time boundaries, and contextual
-Foundation lessons are available inside each theme disclosure. Raw fact paths,
-semantic basis IDs, and composition rule references are kept in the nested
-technical depth view rather than the primary reading.
+WHY now starts with human astrology: chart factors, what each contributes, and
+why they matter together. Convergence, selection, birth-time boundaries, raw
+fact paths, semantic basis IDs, and composition rule references are kept in the
+nested Astrologer's view rather than the primary reading.
 
 The UI does not show ranking numbers, normalized scores, confidence math,
 percentages, primitive fact lists, invented degrees, houses, angles, aspects,
@@ -86,14 +88,15 @@ authority. Its supplied evidence includes:
 
 | Supplied evidence | Role in the reading |
 | --- | --- |
-| Aries sign layer | Initiation / first useful move |
-| Fixed modality layer | Continuation / pacing trade-off |
-| Moon placement | Relationship response and emotional rhythm |
+| Aries | Initiation / first useful move |
+| Fixed emphasis | Continuation / pacing |
+| Moon | Relationship response |
 
 The two action factors converge into one `ACTION_DECISION` theme with a mixed
-direction. The Moon evidence supports two different bounded life questions:
-relationship boundaries and emotional pacing. They are rendered as distinct
-editorial themes, not as a list of primitive placements.
+direction. The two Moon-derived alternatives were inspected and the
+relationship theme retained because it is the more direct, materially distinct
+reading for this fixture; the separate emotional-pacing theme is suppressed
+rather than used to increase content volume.
 
 ### B. Unknown-time personal chart
 
@@ -106,9 +109,8 @@ the existing signal prerequisite path.
 
 The page uses concise disclosure:
 
-> Some time-sensitive chart layers are unavailable. The reading below uses
-> only the remaining available placement-level factors in this development
-> fixture.
+> Some time-sensitive chart layers are unavailable. The reading below stays
+> with placements that remain usable without a known birth time.
 
 No ASC, MC, house, or house-derived theme is emitted into the core personal
 content. Noon or midnight substitution is not used.
@@ -121,11 +123,11 @@ content. Noon or midnight substitution is not used.
 | --- | --- | --- | --- | --- |
 | Initiation and pacing | Action and decisions | Meaningful tension | Aries + Fixed modality | Holds momentum and continuation together, then offers a reversible-step lever. |
 | Connection with clear boundaries | Relationships | Supportive pattern | Moon placement | Frames closeness and boundaries as a question without predicting another person. |
-| A responsive emotional rhythm | Emotional patterns | Supportive pattern | Moon placement | Frames response and pacing without diagnosis or a complete personality claim. |
 
 The first theme proves constructive asymmetry: it contains a constructive
-capacity, an honest trade-off, and a useful lever. The other themes retain the
-same bounded shape rather than becoming praise or doom.
+capacity, an honest trade-off, and a useful lever. The Moon-derived alternative
+is recorded in the technical trace as suppressed, keeping the reader with two
+stronger supported themes rather than two thin variations on one placement.
 
 ### Unknown-time result
 
@@ -143,19 +145,17 @@ Every rendered theme has a readable WHY layer containing:
 
 ```text
 personal theme
-  -> supplied evidence labels
-  -> how independent evidence converges, if it does
-  -> what supportive/challenging directions remain visible
-  -> birth-time boundary
-  -> why this theme was retained rather than repeated alternatives
+  -> YOUR CHART factors
+  -> what each factor contributes
+  -> why the factors matter together
   -> contextual Foundation lesson
-  -> optional source paths / semantic basis / composition references
 ```
 
 The machine trace remains attached to the model through source fact references,
-semantic basis IDs, composition rule references, and the original deterministic
-Personal Synthesis result. The primary UI translates that trace into ordinary
-language and keeps implementation identifiers behind progressive disclosure.
+semantic basis IDs, composition rule references, convergence, selection, and
+the original deterministic Personal Synthesis result. It is available in the
+collapsed `ASTROLOGER'S VIEW`; the primary WHY layer stays in ordinary
+astrological language.
 
 ## 6. Learn bridge
 
@@ -171,7 +171,8 @@ the existing Personal Synthesis references to admitted Foundation lessons:
 
 Each selected theme exposes the lesson title and existing route only when the
 Foundation registry reports the content as available. No My Chart-only lesson
-set was created.
+set was created. The adapter deduplicates by final lesson destination, so Aries
+and Fixed emphasis do not render two links to the same Zodiac lesson.
 
 ## 7. Old versus new experience
 
@@ -192,24 +193,25 @@ not show why multiple supplied factors belong together.
 selected personal themes
     -> recognition / strength / pattern
     -> tension / lever
-    -> WHY evidence and selection trace
+    -> human WHY: chart factors / contribution / synthesis
     -> contextual Foundation learning
+    -> collapsed Astrologer's view for audit trace
 ```
 
 The page now gives the reader a coherent bounded reading before asking them to
 study planets, signs, or modes. It visibly demonstrates convergence in the
-known-time fixture and graceful authority reduction in the unknown-time
-fixture.
+known-time fixture, suppresses same-source Moon theme inflation, and preserves
+graceful authority reduction in the unknown-time fixture.
 
 ## 8. Targeted acceptance results
 
 | Gate | Result | Evidence |
 | --- | --- | --- |
-| `PERSONAL_CONTENT_DENSITY` | **PASS** | Three known-time themes and two unknown-time themes carry R/S/P/T/L structure; no primitive card loop. |
-| `PERSONAL_RELEVANCE` | **PASS** | Reader-facing content is selected from PersonalTheme editorial output before Learn content. |
+| `PERSONAL_CONTENT_DENSITY` | **PASS** | Two known-time themes and two unknown-time themes carry R/S/P/T/L structure; same-source Moon inflation is suppressed. |
+| `PERSONAL_RELEVANCE` | **PASS** | Reader-facing prose leads with lived patterns and choices before astrology factors or Learn content. |
 | `THEME_SYNTHESIS` | **PASS** | Existing deterministic themes are projected without a second synthesis engine. |
-| `WHY_TRACEABILITY` | **PASS** | Every theme carries evidence, convergence/tension, birth-time, selection, and technical trace. |
-| `LEARN_BRIDGE` | **PASS** | Learn references resolve through the existing Foundation registry and follow the reading. |
+| `WHY_TRACEABILITY` | **PASS** | WHY explains chart factors, contributions, and synthesis; full convergence/selection trace remains collapsed in Astrologer's view. |
+| `LEARN_BRIDGE` | **PASS** | Learn references resolve through the existing Foundation registry, follow the reading, and duplicate destinations are suppressed. |
 | `UNKNOWN_TIME_AUTHORITY` | **PASS** | Unknown-time output contains no ASC/MC/house-derived personal theme and uses no noon/midnight substitution. |
 | `NO_FACT_DUMP` | **PASS** | Primary content is theme-based; raw references are progressive technical detail. |
 | `DEV_ONLY_ISOLATION` | **PASS** | Existing noindex dev route only; no production route, BFF, Engine, provider, or Auth/Vault changes. |
@@ -227,7 +229,7 @@ npm run test:my-chart-contextual-learn --workspace=@natalnode/web
 Result:
 
 ```text
-8 tests passed
+9 tests passed
 0 tests failed
 ```
 
@@ -240,6 +242,10 @@ The test covers:
 - unknown-time usefulness and zero ASC/MC/house leakage from core content;
 - WHY evidence for every theme;
 - contextual Learn references;
+- reader prose excludes the R1 engineering-language ban list;
+- duplicate Learn destinations are suppressed;
+- same-source Moon theme inflation is prevented;
+- technical trace remains available but is not primary;
 - no internal scores or fake percentages in reader content;
 - stable repeated output;
 - no LLM or transport dependency;

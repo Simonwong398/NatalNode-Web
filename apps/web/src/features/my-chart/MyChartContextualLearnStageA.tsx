@@ -30,8 +30,8 @@ function LearnBridge({
       <p className="my-chart-contextual-learn__section-kicker">Learn next</p>
       <h4>Put the concept in context</h4>
       <p className="my-chart-contextual-learn__theme-copy">
-        The personal reading comes first. These lessons explain the astrology
-        vocabulary behind the evidence without replacing the reading.
+        The reading comes first. These lessons open the astrology behind it
+        without asking you to leave the personal thread.
       </p>
       <div className="my-chart-contextual-learn__learn-links">
         {theme.learn.map((bridge) => {
@@ -67,7 +67,7 @@ function WhyThisShowsUp({
       <summary>
         <span>
           <span className="my-chart-contextual-learn__section-kicker">Why this shows up</span>
-          <span className="my-chart-contextual-learn__summary-label">Open the evidence and the next lesson</span>
+          <span className="my-chart-contextual-learn__summary-label">See the astrology behind it</span>
         </span>
         <span aria-hidden="true" className="my-chart-contextual-learn__summary-mark">+</span>
       </summary>
@@ -76,52 +76,72 @@ function WhyThisShowsUp({
 
         <dl className="my-chart-contextual-learn__why-grid">
           <div>
-            <dt>Evidence that contributes</dt>
+            <dt>Your chart</dt>
             <dd>
-              <ul>
+              <ul className="my-chart-contextual-learn__why-factors">
                 {theme.evidence.map((evidence) => (
                   <li key={`${evidence.factKind}|${evidence.canonicalPath}`}>
                     <strong>{evidence.label}</strong>
-                    <span>{evidence.semanticBasisLabel}</span>
                   </li>
                 ))}
               </ul>
             </dd>
           </div>
           <div>
-            <dt>How the pattern was selected</dt>
-            <dd>{theme.why.selection}</dd>
+            <dt>What each factor brings</dt>
+            <dd>
+              <ul className="my-chart-contextual-learn__why-factors">
+                {theme.why.factors.map((factor) => (
+                  <li key={factor.label}>
+                    <strong>{factor.label}</strong>
+                    <span>{factor.contribution}</span>
+                  </li>
+                ))}
+              </ul>
+            </dd>
           </div>
           <div>
-            <dt>What converges</dt>
-            <dd>{theme.why.convergence}</dd>
-          </div>
-          <div>
-            <dt>What remains honest</dt>
-            <dd>{theme.why.tension}</dd>
-          </div>
-          <div>
-            <dt>Birth-time boundary</dt>
-            <dd>{theme.why.birthTime}</dd>
+            <dt>Why they matter together</dt>
+            <dd>{theme.why.synthesis}</dd>
           </div>
         </dl>
 
         <LearnBridge theme={theme} />
 
         <details className="my-chart-contextual-learn__theme-technical" data-theme-technical>
-          <summary>Astrologer / technical depth</summary>
+          <summary>Astrologer's view</summary>
           <dl>
             <div>
+              <dt>Evidence convergence</dt>
+              <dd>{theme.technical.convergence}</dd>
+            </div>
+            <div>
+              <dt>Direction retained</dt>
+              <dd>{theme.technical.tension}</dd>
+            </div>
+            <div>
+              <dt>Birth-time boundary</dt>
+              <dd>{theme.technical.birthTime}</dd>
+            </div>
+            <div>
+              <dt>Selection trace</dt>
+              <dd>{theme.technical.selection}</dd>
+            </div>
+            <div>
               <dt>Source fact references</dt>
-              <dd>{theme.why.sourceFactRefs.join(' · ')}</dd>
+              <dd>{theme.technical.sourceFactRefs.join(' · ')}</dd>
             </div>
             <div>
               <dt>Semantic basis</dt>
-              <dd>{theme.why.semanticBasisIds.join(' · ')}</dd>
+              <dd>{theme.technical.semanticBasisIds.join(' · ')}</dd>
             </div>
             <div>
               <dt>Composition rules</dt>
-              <dd>{theme.why.compositionRuleRefs.join(' · ')}</dd>
+              <dd>{theme.technical.compositionRuleRefs.join(' · ')}</dd>
+            </div>
+            <div>
+              <dt>Suppressed alternatives</dt>
+              <dd>{theme.technical.suppressedThemeKeys.join(' · ') || 'None'}</dd>
             </div>
             <div>
               <dt>Presentation authority</dt>
@@ -147,6 +167,14 @@ function ThemeCard({
         <div>
           <p className="my-chart-contextual-learn__section-kicker">{theme.domain}</p>
           <h3>{theme.title}</h3>
+          <div className="my-chart-contextual-learn__theme-chart-evidence">
+            <p className="my-chart-contextual-learn__section-kicker">Your chart</p>
+            <ul aria-label="Chart factors">
+              {theme.evidence.map((evidence) => (
+                <li key={`${evidence.factKind}|${evidence.canonicalPath}`}>{evidence.label}</li>
+              ))}
+            </ul>
+          </div>
         </div>
         <p className="my-chart-contextual-learn__theme-direction">{theme.directionLabel}</p>
       </header>
@@ -301,8 +329,8 @@ export default function MyChartContextualLearnStageA({
           <p className="my-chart-contextual-learn__section-kicker">Core personal themes</p>
           <h2 id="my-chart-reading-title">What keeps showing up</h2>
           <p className="my-chart-contextual-learn__body-copy">
-            These themes are the reading. Each one combines the supplied evidence
-            into a constructive pattern, an honest trade-off, and a useful lever.
+            These themes are the reading. Each one gives you a pattern to
+            recognize, a strength to use, and a choice to notice in real life.
           </p>
           <div className="my-chart-contextual-learn__themes" data-core-personal-themes>
             {projection.reading.themes.map((theme) => (

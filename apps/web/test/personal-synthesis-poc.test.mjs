@@ -78,6 +78,7 @@ test('convergent evidence merges into one theme and repeated evidence does not c
 test('meaningful tension preserves both directions and derives a mixed theme', () => {
   const result = synthesize('CASE_B_MEANINGFUL_TENSION');
   const action = theme(result, 'deliberate-action');
+  const relationship = theme(result, 'relationship-boundary');
 
   assert.equal(action.direction, 'MIXED');
   assert.equal(action.editorial.why.tension.status, 'MIXED');
@@ -87,6 +88,11 @@ test('meaningful tension preserves both directions and derives a mixed theme', (
   assert.match(action.editorial.tension, /Momentum|pacing/u);
   assert.match(action.editorial.lever, /reversible|missing/u);
   assert.match(action.editorial.why.text, /remain together|trade-off/u);
+  assert.deepEqual(result.coreThemes.map((candidate) => candidate.semanticThemeKey), [
+    'deliberate-action',
+    'relationship-boundary'
+  ]);
+  assert.deepEqual(relationship.redundancy.suppressedThemeKeys, ['emotional-pacing']);
 });
 
 test('redundant candidates are suppressed in favor of the clearest representative', () => {

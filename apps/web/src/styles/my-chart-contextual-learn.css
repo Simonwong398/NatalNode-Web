@@ -326,6 +326,28 @@
   line-height: 1.08;
 }
 
+.my-chart-contextual-learn__theme-chart-evidence {
+  margin-top: 1rem;
+}
+
+.my-chart-contextual-learn__theme-chart-evidence ul {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  margin: 0.45rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.my-chart-contextual-learn__theme-chart-evidence li {
+  padding: 0.35rem 0.55rem;
+  border: 1px solid var(--my-chart-line-subtle);
+  border-radius: 999px;
+  color: var(--nn-text-secondary);
+  font-size: 0.75rem;
+  line-height: 1.35;
+}
+
 .my-chart-contextual-learn__theme-direction {
   flex: 0 1 auto;
   margin: 0.25rem 0 0;
@@ -460,6 +482,14 @@
 
 .my-chart-contextual-learn__why-grid li span {
   color: var(--nn-accent-supporting);
+}
+
+.my-chart-contextual-learn__why-factors li {
+  align-items: baseline;
+}
+
+.my-chart-contextual-learn__why-factors li span {
+  color: var(--nn-text-secondary);
 }
 
 .my-chart-contextual-learn__theme-learn {

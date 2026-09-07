@@ -46,6 +46,22 @@ export type MyChartPersonalContentLearnBridge = Readonly<{
   contentAvailability: 'AVAILABLE' | 'UNAVAILABLE';
 }>;
 
+export type MyChartPersonalContentWhyFactor = Readonly<{
+  label: string;
+  contribution: string;
+}>;
+
+export type MyChartPersonalContentThemeTechnical = Readonly<{
+  convergence: string;
+  tension: string;
+  birthTime: string;
+  selection: string;
+  sourceFactRefs: readonly string[];
+  compositionRuleRefs: readonly string[];
+  semanticBasisIds: readonly string[];
+  suppressedThemeKeys: readonly string[];
+}>;
+
 export type MyChartPersonalContentTheme = Readonly<{
   themeId: string;
   title: string;
@@ -59,14 +75,10 @@ export type MyChartPersonalContentTheme = Readonly<{
   evidence: readonly MyChartPersonalContentEvidence[];
   why: Readonly<{
     summary: string;
-    convergence: string;
-    tension: string;
-    birthTime: string;
-    selection: string;
-    sourceFactRefs: readonly string[];
-    compositionRuleRefs: readonly string[];
-    semanticBasisIds: readonly string[];
+    factors: readonly MyChartPersonalContentWhyFactor[];
+    synthesis: string;
   }>;
+  technical: MyChartPersonalContentThemeTechnical;
   learn: readonly MyChartPersonalContentLearnBridge[];
 }>;
 
@@ -134,8 +146,8 @@ const SEMANTIC_BASIS_LABELS: Readonly<Record<string, string>> = Object.freeze({
   'body.moon': 'Moon',
   'body.mercury': 'Mercury',
   'sign.aries': 'Aries',
-  'modality.fixed': 'Fixed modality',
-  'rulership.basic': 'Rulership'
+  'modality.fixed': 'Fixed emphasis',
+  'rulership.basic': 'Chart ruler'
 });
 
 const FOUNDATIONS_LESSON_BY_OBJECT_ID: Readonly<
@@ -169,7 +181,9 @@ function findFactLabel(
     referenceKey(definition.fact.reference) === `${factKind}|${reference}`
   );
 
-  return candidate?.factLabel ?? 'Supplied chart evidence';
+  return candidate === undefined
+    ? 'Chart factor'
+    : SEMANTIC_BASIS_LABELS[candidate.semanticBasisId] ?? candidate.factLabel;
 }
 
 function learnBridge(
@@ -192,6 +206,23 @@ function learnBridge(
     hookId: lesson?.myChartHook.hookId ?? null,
     contentAvailability: getFoundationsContentAvailability(content)
   });
+}
+
+function learnBridges(
+  references: readonly PersonalSynthesisLearnReference[]
+): readonly MyChartPersonalContentLearnBridge[] {
+  const seenDestinations = new Set<string>();
+  const bridges: MyChartPersonalContentLearnBridge[] = [];
+  for (const reference of references) {
+    const bridge = learnBridge(reference);
+    const destinationKey = bridge.lessonId ?? `object:${bridge.objectId}`;
+    if (seenDestinations.has(destinationKey)) {
+      continue;
+    }
+    seenDestinations.add(destinationKey);
+    bridges.push(bridge);
+  }
+  return freezeArray(bridges);
 }
 
 function evidenceForTheme(
@@ -288,7 +319,11 @@ function projectTheme(
     lever: theme.editorial.lever,
     evidence,
     why: Object.freeze({
-      summary: theme.editorial.why.text,
+      summary: theme.editorial.why.reader.summary,
+      factors: freezeArray(theme.editorial.why.reader.factors),
+      synthesis: theme.editorial.why.reader.synthesis
+    }),
+    technical: Object.freeze({
       convergence: evidenceSummary(theme),
       tension: tensionSummary(theme),
       birthTime: birthTimeSummary(fixture, theme),
@@ -297,9 +332,10 @@ function projectTheme(
         reference.canonicalPath
       )),
       compositionRuleRefs: freezeArray(theme.editorial.why.compositionRuleRefs),
-      semanticBasisIds: freezeArray(theme.editorial.why.semanticBasisIds)
+      semanticBasisIds: freezeArray(theme.editorial.why.semanticBasisIds),
+      suppressedThemeKeys: freezeArray(theme.redundancy.suppressedThemeKeys)
     }),
-    learn: freezeArray(theme.editorial.learnReferences.map(learnBridge))
+    learn: learnBridges(theme.editorial.learnReferences)
   });
 }
 
@@ -340,10 +376,10 @@ export function projectMyChartPersonalContent(
       evidence: 'FIXTURE-BACKED / DETERMINISTIC / NOT PRODUCTION AUTHORITY'
     }),
     reading: Object.freeze({
-      hook: 'Read the pattern first. Open the evidence and the lesson when you want the next layer.',
+      hook: 'A closer look at the patterns you bring to life.',
       introduction: scenario === 'unknown-time'
-        ? 'This reading uses only the remaining placement-level factors available in the unknown-time development fixture.'
-        : 'This reading starts with the themes that connect across the supplied chart evidence, then lets you inspect why they show up.',
+        ? 'With birth time unknown, this reading stays with the placements that remain clear: how you communicate and how your inner responses move.'
+        : 'Your chart brings two themes into focus: the courage to begin, and the kind of connection that stays honest.',
       themes: freezeArray(themes)
     }),
     unknownTime: Object.freeze({
@@ -351,7 +387,7 @@ export function projectMyChartPersonalContent(
         ? 'UNKNOWN_TIME_READING'
         : 'KNOWN_TIME_READING',
       message: scenario === 'unknown-time'
-        ? 'Some time-sensitive chart layers are unavailable. The reading below uses only the remaining available placement-level factors in this development fixture.'
+        ? 'Some time-sensitive chart layers are unavailable. The reading below stays with placements that remain usable without a known birth time.'
         : null,
       omittedLayers: scenario === 'unknown-time'
         ? freezeArray(['time-sensitive angles', 'houses', 'house-derived themes'])

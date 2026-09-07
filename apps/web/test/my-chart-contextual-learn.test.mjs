@@ -36,13 +36,13 @@ test('known-time page model renders selected deterministic themes instead of a p
 
   assert.equal(projection.authority, 'DEVELOPMENT_ONLY');
   assert.equal(projection.fixture.scenarioId, 'CASE_B_MEANINGFUL_TENSION');
-  assert.ok(projection.reading.themes.length >= 3);
-  assert.ok(projection.reading.themes.length <= 5);
+  assert.equal(projection.reading.themes.length, 2);
   assert.ok(evidenceCount > projection.reading.themes.length);
   assert.ok(themeById(projection, 'personal-theme.deliberate-action'));
   assert.ok(themeById(projection, 'personal-theme.relationship-boundary'));
-  assert.ok(themeById(projection, 'personal-theme.emotional-pacing'));
-  assert.match(projection.reading.hook, /pattern first/u);
+  assert.equal(themeById(projection, 'personal-theme.emotional-pacing'), undefined);
+  assert.ok(projection.technical.suppressedCandidateCount > 0);
+  assert.match(projection.reading.hook, /patterns you bring/u);
   assert.doesNotMatch(JSON.stringify(projection.reading.themes), /\d+%/u);
 });
 
@@ -53,13 +53,15 @@ test('known-time page preserves convergence, mixed tension, and constructive asy
   assert.ok(actionTheme);
   assert.equal(actionTheme.directionLabel, 'A meaningful tension');
   assert.equal(actionTheme.evidence.length, 2);
-  assert.match(actionTheme.why.convergence, /distinct paths/u);
-  assert.match(actionTheme.why.tension, /challenging directions/u);
-  assert.match(actionTheme.tension, /Momentum/u);
-  assert.match(actionTheme.lever, /reversible step/u);
+  assert.match(actionTheme.technical.convergence, /distinct paths/u);
+  assert.match(actionTheme.technical.tension, /challenging directions/u);
+  assert.match(actionTheme.why.factors.map((factor) => factor.label).join(' '), /Aries|Fixed emphasis/u);
+  assert.match(actionTheme.why.synthesis, /begin|continue/u);
+  assert.match(actionTheme.tension, /Starting|timing/u);
+  assert.match(actionTheme.lever, /reversible first step/u);
   assert.deepEqual(
     actionTheme.evidence.map((evidence) => evidence.label),
-    ['Fixed modality layer', 'Aries sign layer']
+    ['Fixed emphasis', 'Aries']
   );
 });
 
@@ -85,7 +87,7 @@ test('unknown-time page remains useful while excluding time-dependent layers fro
   assert.ok(projection.unknownTime.omittedLayers.includes('houses'));
   assert.ok(projection.technical.skippedRuleCount > 0);
   assert.doesNotMatch(reading, /ASC|MC|house/iu);
-  assert.match(JSON.stringify(projection.reading.themes), /placement-level evidence/u);
+  assert.match(JSON.stringify(projection.reading.themes), /Mercury|Moon/u);
 });
 
 test('every theme has inspectable WHY evidence and contextual Learn references', () => {
@@ -100,9 +102,11 @@ test('every theme has inspectable WHY evidence and contextual Learn references',
     assert.ok(theme.lever.length > 0);
     assert.ok(theme.evidence.length > 0);
     assert.ok(theme.why.summary.length > 0);
-    assert.ok(theme.why.sourceFactRefs.length > 0);
-    assert.ok(theme.why.compositionRuleRefs.length > 0);
-    assert.ok(theme.why.semanticBasisIds.length > 0);
+    assert.ok(theme.why.factors.length > 0);
+    assert.ok(theme.why.synthesis.length > 0);
+    assert.ok(theme.technical.sourceFactRefs.length > 0);
+    assert.ok(theme.technical.compositionRuleRefs.length > 0);
+    assert.ok(theme.technical.semanticBasisIds.length > 0);
     assert.ok(theme.learn.length > 0);
 
     for (const bridge of theme.learn) {
@@ -113,6 +117,36 @@ test('every theme has inspectable WHY evidence and contextual Learn references',
       assert.equal(bridge.contentAvailability, 'AVAILABLE');
     }
   }
+});
+
+test('reader prose stays human, duplicate Learn destinations are suppressed, and Moon themes do not inflate', () => {
+  const projection = projectMyChartPersonalContent('known-time');
+  const readerText = JSON.stringify({
+    hook: projection.reading.hook,
+    introduction: projection.reading.introduction,
+    themes: projection.reading.themes.map((theme) => ({
+      title: theme.title,
+      domain: theme.domain,
+      directionLabel: theme.directionLabel,
+      recognition: theme.recognition,
+      strength: theme.strength,
+      pattern: theme.pattern,
+      tension: theme.tension,
+      lever: theme.lever,
+      evidence: theme.evidence.map((evidence) => evidence.label),
+      why: theme.why
+    }))
+  });
+  const bannedReaderTerms = /(?:supplied layer|evidence path|independent evidence|convergence bonus|repeated copies|bounded trade-off|candidate|selected pattern|five-theme limit|semantic basis|runtime|fixture|authority state)/iu;
+
+  assert.doesNotMatch(readerText, bannedReaderTerms);
+  assert.equal(
+    new Set(projection.reading.themes.flatMap((theme) => theme.learn.map((bridge) => bridge.lessonId))).size,
+    projection.reading.themes.flatMap((theme) => theme.learn).length
+  );
+  const relationshipTheme = themeById(projection, 'personal-theme.relationship-boundary');
+  assert.ok(relationshipTheme);
+  assert.deepEqual(relationshipTheme.technical.suppressedThemeKeys, ['emotional-pacing']);
 });
 
 test('projection output is stable across repeated runs and retains no internal scores in reader content', () => {
@@ -136,7 +170,9 @@ test('the component renders the deterministic theme model with progressive WHY a
   assert.match(componentSource, /Lever/u);
   assert.match(componentSource, /data-theme-why/u);
   assert.match(componentSource, /data-theme-learn/u);
-  assert.match(componentSource, /Astrologer \/ technical depth/u);
+  assert.match(componentSource, /Astrologer's view/u);
+  assert.match(componentSource, /theme\.technical\.selection/u);
+  assert.doesNotMatch(componentSource, /theme\.why\.selection/u);
   assert.doesNotMatch(componentSource, /bodies\.map|facts\.map|one supplied placement/iu);
   assert.doesNotMatch(componentSource, /Math\.random|Date\.now|fetch\(|axios|openai|llm/iu);
   assert.doesNotMatch(componentSource, /\d+%/u);
