@@ -42,6 +42,8 @@ const requiredRuleFields = [
   'relationalSemanticClaim',
   'constructiveCapacity',
   'possibleTension',
+  'semanticUnit',
+  'semanticDimensions',
   'evidenceLineage',
   'suppressionConditions',
   'authorityRequirements',
@@ -107,6 +109,83 @@ test('exact four-rule inventory and Signal contract', () => {
     assert.equal(rule.policyState, 'ADOPTED_WITH_CONDITIONS');
     assert.equal(rule.editorialReviewStatus, 'REPRESENTATIVE_POLICY_REVIEWED');
   }
+});
+
+test('SEMANTIC_UNIT_ACCOUNTING: each Aspect Signal contributes exactly one relational unit', () => {
+  assert.equal(signal.evidencePolicy.semanticUnitCountPerAspectSignal, 1);
+  assert.equal(signal.evidencePolicy.semanticUnitType, 'BODY_ASPECT_BODY');
+  assert.equal(signal.evidencePolicy.relationalSemanticUnitType, 'BODY_ASPECT_BODY');
+
+  for (const rule of signal.rules) {
+    assert.equal(rule.semanticUnit.type, 'BODY_ASPECT_BODY', rule.ruleId);
+    assert.equal(rule.semanticUnit.count, 1, rule.ruleId);
+    assert.equal(rule.evidenceLineage.semanticUnitCount, 1, rule.ruleId);
+    assert.notEqual(rule.evidenceLineage.semanticUnitCount, rule.semanticDimensions.count, rule.ruleId);
+  }
+
+  const bundle = signal.convergencePolicy.examples.find(
+    (candidate) => candidate.exampleId === 'placement-plus-aspect-shared-roots',
+  );
+  assert.ok(bundle);
+  assert.equal(bundle.aspectSemanticUnitCount, 1);
+  assert.equal(bundle.semanticUnitCount, 3);
+  assert.deepEqual(bundle.semanticUnitIds, [
+    'semantic-unit.placement.body.moon.sign.aries',
+    'semantic-unit.placement.body.mercury.sign.taurus',
+    'semantic-unit.relational.body.moon_aspect.square_body.mercury',
+  ]);
+  assert.deepEqual(signal.evidencePolicy.placementPlusPlacementPlusAspectUnitBreakdown, [1, 1, 1]);
+  assert.equal(1 + 1 + 1, bundle.semanticUnitCount);
+  assert.notEqual(1 + 1 + 3, bundle.semanticUnitCount);
+});
+
+test('SEMANTIC_DIMENSION_SEPARATION: one unit retains three dimensions', () => {
+  assert.equal(signal.evidencePolicy.semanticDimensionCountPerAspectSignal, 3);
+  assert.deepEqual(signal.evidencePolicy.semanticDimensionValuesPerAspectSignal, [
+    'BODY_A_FUNCTION',
+    'BODY_B_FUNCTION',
+    'ASPECT_RELATIONAL_OPERATOR',
+  ]);
+  for (const rule of signal.rules) {
+    assert.equal(rule.semanticUnit.count, 1, rule.ruleId);
+    assert.equal(rule.semanticDimensions.count, 3, rule.ruleId);
+    assert.deepEqual(rule.semanticDimensions.values, signal.evidencePolicy.semanticDimensionValuesPerAspectSignal, rule.ruleId);
+    assert.equal(rule.semanticBasis.semanticUnitType, 'BODY_ASPECT_BODY', rule.ruleId);
+    assert.equal(rule.semanticBasis.semanticDimensionCount, 3, rule.ruleId);
+  }
+});
+
+test('ROOT_ACCOUNTING: two roots remain two and the relation adds zero roots', () => {
+  assert.deepEqual(signal.evidencePolicy.positionRootKeys, expectedRootKeys);
+  assert.equal(signal.evidencePolicy.independentRootCount, 2);
+  assert.equal(signal.evidencePolicy.relationalFactIndependentEvidenceIncrement, 0);
+  assert.equal(signal.evidencePolicy.aspectIntroducesIndependentPositionRoot, false);
+  const bundle = signal.convergencePolicy.examples.find(
+    (candidate) => candidate.exampleId === 'placement-plus-aspect-shared-roots',
+  );
+  assert.equal(bundle.uniqueRootCount, 2);
+  assert.equal(signal.evidencePolicy.placementPlusPlacementPlusAspectUniqueRootCount, 2);
+  for (const rule of signal.rules) {
+    assert.equal(rule.evidenceLineage.uniqueRootCount, 2, rule.ruleId);
+    assert.equal(rule.evidenceLineage.independentRootCount, 2, rule.ruleId);
+    assert.equal(rule.evidenceLineage.relationalFactIndependentEvidenceIncrement, 0, rule.ruleId);
+  }
+});
+
+test('ROOT_DEDUPLICATION and SEMANTIC_UNIT_DEDUPLICATION remain separate operations', () => {
+  assert.equal(signal.evidencePolicy.rootDeduplicationOperation, 'ROOT_DEDUPLICATION');
+  assert.equal(signal.evidencePolicy.semanticUnitDeduplicationOperation, 'SEMANTIC_UNIT_DEDUPLICATION');
+  assert.equal(signal.evidencePolicy.rootAndSemanticUnitDeduplicationAreDistinct, true);
+  assert.notEqual(
+    signal.evidencePolicy.rootDeduplicationOperation,
+    signal.evidencePolicy.semanticUnitDeduplicationOperation,
+  );
+  const bundle = signal.convergencePolicy.examples.find(
+    (candidate) => candidate.exampleId === 'placement-plus-aspect-shared-roots',
+  );
+  assert.equal(bundle.uniqueRootCount, 2);
+  assert.equal(bundle.semanticUnitCount, 3);
+  assert.equal(new Set(bundle.semanticUnitIds).size, 3);
 });
 test('DOMAIN_SEMANTICS: domain comes from integrated relation, not body ownership', () => {
   assert.equal(signal.domainPolicy.derivation, 'INTEGRATED_COMPOSITION_SEMANTICS');
@@ -202,7 +281,9 @@ test('EVIDENCE_LINEAGE_PRESERVATION: exact Moon and Mercury roots are retained',
     assert.deepEqual(lineage.dependentPositionFactKeys, expectedRootKeys, rule.ruleId);
     assert.deepEqual(lineage.evidenceRootKeys, expectedRootKeys, rule.ruleId);
     assert.equal(lineage.independentRootCount, 2, rule.ruleId);
-    assert.equal(lineage.semanticUnitCount, 3, rule.ruleId);
+    assert.equal(lineage.uniqueRootCount, 2, rule.ruleId);
+    assert.equal(lineage.semanticUnitCount, 1, rule.ruleId);
+    assert.equal(lineage.semanticDimensionCount, 3, rule.ruleId);
     assert.equal(lineage.relationalFactAddsSemanticInformation, true, rule.ruleId);
     assert.equal(lineage.relationalFactIsIndependentRoot, false, rule.ruleId);
     assert.equal(lineage.relationalFactIndependentEvidenceIncrement, 0, rule.ruleId);
@@ -210,6 +291,14 @@ test('EVIDENCE_LINEAGE_PRESERVATION: exact Moon and Mercury roots are retained',
     assert.equal(lineage.relationalSemanticUnit, 'BODY_ASPECT_BODY', rule.ruleId);
     assert.equal(lineage.rootDeduplicationOperation, 'ROOT_DEDUPLICATION', rule.ruleId);
     assert.equal(lineage.relationalSemanticEnrichmentOperation, 'RELATIONAL_ENRICHMENT', rule.ruleId);
+    assert.equal(rule.semanticUnit.type, 'BODY_ASPECT_BODY', rule.ruleId);
+    assert.equal(rule.semanticUnit.count, 1, rule.ruleId);
+    assert.equal(rule.semanticDimensions.count, 3, rule.ruleId);
+    assert.deepEqual(rule.semanticDimensions.values, [
+      'BODY_A_FUNCTION',
+      'BODY_B_FUNCTION',
+      'ASPECT_RELATIONAL_OPERATOR',
+    ], rule.ruleId);
   }
 });
 
@@ -220,6 +309,9 @@ test('ROOT_DEDUPLICATION: placement plus placement plus aspect has two roots and
   assert.ok(example);
   assert.deepEqual(example.uniqueRootKeys, expectedRootKeys);
   assert.equal(example.uniqueRootCount, 2);
+  assert.equal(example.semanticUnitCount, 3);
+  assert.equal(example.aspectSemanticUnitCount, 1);
+  assert.equal(example.aspectSemanticDimensionCount, 3);
   assert.equal(example.semanticUnits.length, 3);
   assert.deepEqual(example.semanticUnits, [
     'MOON_PLACEMENT',
@@ -234,6 +326,7 @@ test('ROOT_DEDUPLICATION: placement plus placement plus aspect has two roots and
 
 test('RELATIONAL_SEMANTIC_ENRICHMENT: no new root still preserves new interaction meaning', () => {
   assert.equal(signal.evidencePolicy.relationalSemanticEnrichmentOperation, 'RELATIONAL_ENRICHMENT');
+  assert.equal(signal.evidencePolicy.relationalEnrichmentRetainsSemanticUnit, true);
   assert.ok(signal.convergencePolicy.classificationVocabulary.includes('RELATIONAL_ENRICHMENT'));
   assert.ok(signal.convergencePolicy.classificationVocabulary.includes('INDEPENDENT_CONVERGENCE'));
   assert.notEqual(
@@ -241,6 +334,8 @@ test('RELATIONAL_SEMANTIC_ENRICHMENT: no new root still preserves new interactio
     signal.convergencePolicy.classifications.INDEPENDENT_CONVERGENCE.definition,
   );
   assert.equal(signal.convergencePolicy.classifications.RELATIONAL_ENRICHMENT.automaticPromotion, false);
+  assert.equal(signal.convergencePolicy.classifications.RELATIONAL_ENRICHMENT.retainsRelationalSemanticUnit, true);
+  assert.equal(signal.convergencePolicy.classifications.RELATIONAL_ENRICHMENT.relationalSemanticUnitCount, 1);
   assert.equal(signal.convergencePolicy.classifications.INDEPENDENT_CONVERGENCE.automaticPromotion, false);
 
   const independent = signal.convergencePolicy.examples.find(
@@ -262,7 +357,7 @@ test('NO_FALSE_CONVERGENCE: shared roots, body, domain, or wording are insuffici
   assert.match(signal.convergencePolicy.classifications.RELATIONAL_ENRICHMENT.definition, /compatibility decision/i);
 });
 
-test('DUPLICATE_RELATIONAL_FACT: duplicate relation is suppressed, not promoted', () => {
+test('DUPLICATE_SEMANTIC_SUPPRESSION: duplicate relation is suppressed without unit or root growth', () => {
   assert.equal(signal.primarySignalPolicy.maxSignalsPerRelationalFact, 1);
   assert.equal(signal.primarySignalPolicy.duplicateRelationalFactOutcome, 'SUPPRESS_DUPLICATE');
   const duplicate = signal.convergencePolicy.examples.find(
@@ -272,6 +367,12 @@ test('DUPLICATE_RELATIONAL_FACT: duplicate relation is suppressed, not promoted'
   assert.equal(duplicate.classification, 'REDUNDANCY');
   assert.equal(duplicate.outcome, 'DUPLICATE_RELATIONAL_FACT_SUPPRESSED');
   assert.equal(duplicate.uniqueRootCount, 2);
+  assert.equal(duplicate.semanticUnitCount, 1);
+  assert.equal(duplicate.uniqueSemanticUnitCount, 1);
+  assert.equal(duplicate.duplicateSemanticUnitCountAdded, 0);
+  assert.deepEqual(duplicate.semanticUnitIds, [
+    'semantic-unit.relational.body.moon_aspect.square_body.mercury',
+  ]);
   assert.equal(duplicate.eligibleForConvergence, false);
   assert.equal(duplicate.automaticPromotion, false);
   for (const rule of signal.rules) {
@@ -449,6 +550,11 @@ test('deterministic structured output, source trace, gates, and readiness', () =
   for (const text of [method, review]) {
     for (const gate of [
       'ASPECT_SIGNAL_CONTRACT PASS',
+      'SEMANTIC_UNIT_ACCOUNTING PASS',
+      'SEMANTIC_DIMENSION_SEPARATION PASS',
+      'ROOT_ACCOUNTING PASS',
+      'RELATIONAL_ENRICHMENT PASS',
+      'DUPLICATE_SEMANTIC_SUPPRESSION PASS',
       'DOMAIN_SEMANTICS PASS',
       'DIRECTION_POLICY PASS',
       'INTENSITY_POLICY PASS',

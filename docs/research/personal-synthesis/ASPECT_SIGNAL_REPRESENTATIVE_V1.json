@@ -127,15 +127,31 @@
       "body.moon.position",
       "body.mercury.position"
     ],
+    "semanticUnitType": "BODY_ASPECT_BODY",
     "relationalSemanticUnitType": "BODY_ASPECT_BODY",
+    "semanticUnitCountPerAspectSignal": 1,
+    "semanticDimensionCountPerAspectSignal": 3,
+    "semanticDimensionValuesPerAspectSignal": [
+      "BODY_A_FUNCTION",
+      "BODY_B_FUNCTION",
+      "ASPECT_RELATIONAL_OPERATOR"
+    ],
     "independentRootCount": 2,
     "relationalFactAddsSemanticInformation": true,
     "relationalFactIndependentEvidenceIncrement": 0,
     "aspectIntroducesIndependentPositionRoot": false,
     "rootDeduplicationOperation": "ROOT_DEDUPLICATION",
+    "semanticUnitDeduplicationOperation": "SEMANTIC_UNIT_DEDUPLICATION",
+    "rootAndSemanticUnitDeduplicationAreDistinct": true,
     "relationalSemanticEnrichmentOperation": "RELATIONAL_ENRICHMENT",
     "placementPlusPlacementPlusAspectUniqueRootCount": 2,
     "placementPlusPlacementPlusAspectSemanticUnitCount": 3,
+    "placementPlusPlacementPlusAspectUnitBreakdown": [
+      1,
+      1,
+      1
+    ],
+    "relationalEnrichmentRetainsSemanticUnit": true,
     "semanticDistinctnessIsNotEvidenceRootIndependence": true,
     "repeatedRelationalFactIncreasesConfidence": false,
     "repeatedRelationalFactIncreasesIntensity": false,
@@ -167,10 +183,13 @@
       },
       "RELATIONAL_ENRICHMENT": {
         "definition": "A relational semantic unit adds interaction meaning over roots already used by placement semantics after an admitted compatibility decision.",
+        "retainsRelationalSemanticUnit": true,
+        "relationalSemanticUnitCount": 1,
         "automaticPromotion": false
       },
       "REDUNDANCY": {
         "definition": "Repeated relational semantics add no useful new meaning, including a duplicate relational fact.",
+        "duplicateSemanticUnitAdded": 0,
         "automaticPromotion": false
       },
       "COUNTEREVIDENCE": {
@@ -191,6 +210,14 @@
           "body.mercury.position"
         ],
         "uniqueRootCount": 2,
+        "semanticUnitCount": 3,
+        "aspectSemanticUnitCount": 1,
+        "aspectSemanticDimensionCount": 3,
+        "semanticUnitIds": [
+          "semantic-unit.placement.body.moon.sign.aries",
+          "semantic-unit.placement.body.mercury.sign.taurus",
+          "semantic-unit.relational.body.moon_aspect.square_body.mercury"
+        ],
         "semanticUnits": [
           "MOON_PLACEMENT",
           "MERCURY_PLACEMENT",
@@ -206,9 +233,15 @@
           "relational.body.moon_aspect.square_body.mercury"
         ],
         "classification": "REDUNDANCY",
-        "outcome": "DUPLICATE_RELATIONAL_FACT_SUPPRESSED",
-        "uniqueRootCount": 2,
-        "eligibleForConvergence": false,
+      "outcome": "DUPLICATE_RELATIONAL_FACT_SUPPRESSED",
+      "uniqueRootCount": 2,
+      "semanticUnitCount": 1,
+      "uniqueSemanticUnitCount": 1,
+      "duplicateSemanticUnitCountAdded": 0,
+      "semanticUnitIds": [
+        "semantic-unit.relational.body.moon_aspect.square_body.mercury"
+      ],
+      "eligibleForConvergence": false,
         "automaticPromotion": false
       },
       {
@@ -470,6 +503,19 @@
         "higherConfidence": "Requires separately admitted independent evidence; shared roots do not qualify."
       },
       "candidateConfidence": "LOW",
+      "semanticUnit": {
+        "id": "semantic-unit.relational.body.moon_aspect.conjunction_body.mercury",
+        "type": "BODY_ASPECT_BODY",
+        "count": 1
+      },
+      "semanticDimensions": {
+        "count": 3,
+        "values": [
+          "BODY_A_FUNCTION",
+          "BODY_B_FUNCTION",
+          "ASPECT_RELATIONAL_OPERATOR"
+        ]
+      },
       "relationalSemanticClaim": "Moon response and Mercury naming may be explored in close coupling: felt experience can make language more immediate, while language can give recurring response a form for examination.",
       "constructiveCapacity": "Translate a response into words while letting the response remain open; allow language to clarify without closing experience too quickly.",
       "possibleTension": "Close coupling may let an immediate response become a settled interpretation, or let interpretation move ahead of receptivity.",
@@ -549,7 +595,9 @@
           "body.mercury.position"
         ],
         "independentRootCount": 2,
-        "semanticUnitCount": 3,
+        "uniqueRootCount": 2,
+        "semanticUnitCount": 1,
+        "semanticDimensionCount": 3,
         "relationalFactAddsSemanticInformation": true,
         "relationalFactIsIndependentRoot": false,
         "relationalFactIndependentEvidenceIncrement": 0,
@@ -662,6 +710,19 @@
         "higherConfidence": "Requires separately admitted independent evidence; shared roots do not qualify."
       },
       "candidateConfidence": "LOW",
+      "semanticUnit": {
+        "id": "semantic-unit.relational.body.moon_aspect.trine_body.mercury",
+        "type": "BODY_ASPECT_BODY",
+        "count": 1
+      },
+      "semanticDimensions": {
+        "count": 3,
+        "values": [
+          "BODY_A_FUNCTION",
+          "BODY_B_FUNCTION",
+          "ASPECT_RELATIONAL_OPERATOR"
+        ]
+      },
       "relationalSemanticClaim": "Moon response and Mercury naming may be explored through relatively easier circulation: felt information can be noticed, translated, and compared with less deliberate friction, while ease still needs checking.",
       "constructiveCapacity": "Let response inform language and language clarify response, using available circulation intentionally while testing whether the first understanding still fits.",
       "possibleTension": "A readily available connection may be taken for granted; familiar flow can reduce the impulse to check what was omitted or assumed.",
@@ -743,7 +804,9 @@
           "body.mercury.position"
         ],
         "independentRootCount": 2,
-        "semanticUnitCount": 3,
+        "uniqueRootCount": 2,
+        "semanticUnitCount": 1,
+        "semanticDimensionCount": 3,
         "relationalFactAddsSemanticInformation": true,
         "relationalFactIsIndependentRoot": false,
         "relationalFactIndependentEvidenceIncrement": 0,
@@ -856,6 +919,19 @@
         "higherConfidence": "Requires separately admitted independent evidence; shared roots do not qualify."
       },
       "candidateConfidence": "LOW",
+      "semanticUnit": {
+        "id": "semantic-unit.relational.body.moon_aspect.square_body.mercury",
+        "type": "BODY_ASPECT_BODY",
+        "count": 1
+      },
+      "semanticDimensions": {
+        "count": 3,
+        "values": [
+          "BODY_A_FUNCTION",
+          "BODY_B_FUNCTION",
+          "ASPECT_RELATIONAL_OPERATOR"
+        ]
+      },
       "relationalSemanticClaim": "Moon response and Mercury naming may be explored through active friction: felt experience and interpretation can press against one another, making translation, pacing, and adjustment more visible.",
       "constructiveCapacity": "Use mismatch as feedback: pause between response and explanation, distinguish what was felt from what was concluded, and let revision improve exchange.",
       "possibleTension": "Pressure for adjustment can produce premature naming or retreat into explanation instead of staying with the response that needs attention.",
@@ -936,7 +1012,9 @@
           "body.mercury.position"
         ],
         "independentRootCount": 2,
-        "semanticUnitCount": 3,
+        "uniqueRootCount": 2,
+        "semanticUnitCount": 1,
+        "semanticDimensionCount": 3,
         "relationalFactAddsSemanticInformation": true,
         "relationalFactIsIndependentRoot": false,
         "relationalFactIndependentEvidenceIncrement": 0,
@@ -1049,6 +1127,19 @@
         "higherConfidence": "Requires separately admitted independent evidence; shared roots do not qualify."
       },
       "candidateConfidence": "LOW",
+      "semanticUnit": {
+        "id": "semantic-unit.relational.body.moon_aspect.opposition_body.mercury",
+        "type": "BODY_ASPECT_BODY",
+        "count": 1
+      },
+      "semanticDimensions": {
+        "count": 3,
+        "values": [
+          "BODY_A_FUNCTION",
+          "BODY_B_FUNCTION",
+          "ASPECT_RELATIONAL_OPERATOR"
+        ]
+      },
       "relationalSemanticClaim": "Moon response and Mercury naming may be explored across a polarity: attention can alternate between felt need and interpretation, making perspective and negotiation more visible while keeping both functions in conversation.",
       "constructiveCapacity": "Name both response and explanation, then alternate listening and interpretation long enough to find a workable relationship between them.",
       "possibleTension": "Polarity may become a pendulum between feeling and explanation; one perspective can be pushed away or treated as the only legitimate account.",
@@ -1129,7 +1220,9 @@
           "body.mercury.position"
         ],
         "independentRootCount": 2,
-        "semanticUnitCount": 3,
+        "uniqueRootCount": 2,
+        "semanticUnitCount": 1,
+        "semanticDimensionCount": 3,
         "relationalFactAddsSemanticInformation": true,
         "relationalFactIsIndependentRoot": false,
         "relationalFactIndependentEvidenceIncrement": 0,
@@ -1204,6 +1297,11 @@
   ],
   "validationGates": {
     "ASPECT_SIGNAL_CONTRACT": "PASS",
+    "SEMANTIC_UNIT_ACCOUNTING": "PASS",
+    "SEMANTIC_DIMENSION_SEPARATION": "PASS",
+    "ROOT_ACCOUNTING": "PASS",
+    "RELATIONAL_ENRICHMENT": "PASS",
+    "DUPLICATE_SEMANTIC_SUPPRESSION": "PASS",
     "DOMAIN_SEMANTICS": "PASS",
     "DIRECTION_POLICY": "PASS",
     "INTENSITY_POLICY": "PASS",

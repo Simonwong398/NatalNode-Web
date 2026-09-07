@@ -108,11 +108,29 @@ Each rule declares:
 
 - exactly the two root keys `body.moon.position` and
   `body.mercury.position`;
+- one stable `BODY_ASPECT_BODY` relational semantic unit;
+- three semantic dimensions: body A function, body B function, and aspect
+  relational operator;
 - `independentRootCount: 2`;
-- `semanticUnitCount: 3` for Moon, Mercury, and the relation;
+- `uniqueRootCount: 2`;
+- `semanticUnitCount: 1` for the individual Aspect Signal;
+- `semanticDimensionCount: 3`;
 - `relationalFactAddsSemanticInformation: true`;
 - `relationalFactIndependentEvidenceIncrement: 0`; and
 - `countsAsThreeIndependentRoots: false`.
+
+The invariant is:
+
+```text
+one Aspect Signal
+  = 1 relational semantic unit
+  = 3 semantic dimensions
+  = 2 evidence roots
+  = 0 new evidence roots
+```
+
+Semantic dimensions are contained by the relational unit. They are not three
+semantic units.
 
 Therefore:
 
@@ -122,12 +140,24 @@ Mercury placement Signal    roots: [Mercury position]
 Moon–Mercury aspect Signal  roots: [Moon position, Mercury position]
 
 unique astronomical roots = 2
-semantic units = 3
+unique semantic units = 1 + 1 + 1 = 3
+```
+
+The combined bundle has one Moon placement unit, one Mercury placement unit,
+and one Moon–Mercury relational unit. It is not `1 + 1 + 3 = 5`. Root
+deduplication and semantic-unit deduplication are distinct operations:
+
+```text
+ROOT_DEDUPLICATION
+  -> unique astronomical root keys
+
+SEMANTIC_UNIT_DEDUPLICATION
+  -> unique placement/relational semantic unit IDs
 ```
 
 The relation is semantically new without being a third independent ChartFact.
-The future synthesis layer must preserve both facts rather than collapsing
-them into a single counter.
+Relational enrichment retains the one relational semantic unit and adds
+interaction meaning without promoting confidence or intensity.
 
 ## 6. Root deduplication and relational enrichment
 
@@ -140,9 +170,9 @@ The policy names four future-safe classifications:
 | `REDUNDANCY` | Repeated relation adds no useful semantic meaning, including duplicate relational fact. | Suppress duplicate; no promotion. |
 | `COUNTEREVIDENCE` | Separately admitted semantics qualify or complicate an existing theme. | Preserve qualification; no automatic negative direction. |
 
-The concrete shared-root example has two unique roots and three semantic units.
-It is not automatically convergent. A later layer must decide whether the
-aspect relation is relevant to either placement theme, and whether that
+The concrete shared-root example has two unique roots and three total semantic
+units: one placement unit, one placement unit, and one relational unit. It is
+not automatically convergent. A later layer must decide whether the aspect relation is relevant to either placement theme, and whether that
 relationship is enrichment, redundancy, counterevidence, or an independent
 convergence with a genuinely separate root set.
 
@@ -154,7 +184,8 @@ This artifact does not implement broad synthesis or selection.
 The duplicate relation example uses the same `relationalFactId` twice. It is
 classified as `REDUNDANCY` and returns
 `DUPLICATE_RELATIONAL_FACT_SUPPRESSED`. It does not become a different aspect,
-an additional root, or a second primary Signal.
+an additional root, semantic unit, or second primary Signal. The surviving
+relation contributes one semantic unit; the duplicate contributes zero.
 
 The Signal is suppressed for missing authoritative aspect fact, missing
 position lineage, non-admitted composition or rule, unsupported aspect or
@@ -235,6 +266,11 @@ Signals into any runtime surface.
 
 ```text
 ASPECT_SIGNAL_CONTRACT PASS
+SEMANTIC_UNIT_ACCOUNTING PASS
+SEMANTIC_DIMENSION_SEPARATION PASS
+ROOT_ACCOUNTING PASS
+RELATIONAL_ENRICHMENT PASS
+DUPLICATE_SEMANTIC_SUPPRESSION PASS
 DOMAIN_SEMANTICS PASS
 DIRECTION_POLICY PASS
 INTENSITY_POLICY PASS

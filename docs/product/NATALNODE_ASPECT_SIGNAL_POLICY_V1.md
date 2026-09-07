@@ -173,10 +173,29 @@ body.mercury.position ----------------+
 Every rule preserves:
 
 - `evidenceRootKeys = [body.moon.position, body.mercury.position]`;
+- one `BODY_ASPECT_BODY` relational semantic unit;
+- three semantic dimensions: `BODY_A_FUNCTION`, `BODY_B_FUNCTION`, and
+  `ASPECT_RELATIONAL_OPERATOR`;
 - `independentRootCount = 2`;
+- `uniqueRootCount = 2`;
 - `relationalFactAddsSemanticInformation = true`;
 - `relationalFactIndependentEvidenceIncrement = 0`; and
-- a relational semantic unit distinct from either placement semantic unit.
+- `semanticUnitCount = 1` for the individual Aspect Signal.
+
+The invariant is explicit:
+
+```text
+SEMANTIC_DIMENSION_COUNT != SEMANTIC_UNIT_COUNT
+
+one Aspect Signal
+  = 1 relational semantic unit
+  = 3 semantic dimensions
+  = 2 evidence roots
+  = 0 new evidence roots
+```
+
+The three dimensions are contained by the one relational unit. They are not
+three additional units and must not be counted as `semanticUnitCount`.
 
 The aspect Signal adds interaction meaning but introduces no independent
 position root. A future synthesis layer must maintain two separate operations:
@@ -196,9 +215,25 @@ Moon placement Signal       roots: [Moon position]
 Mercury placement Signal    roots: [Mercury position]
 Moon–Mercury aspect Signal  roots: [Moon position, Mercury position]
 
-unique root count = 2
-semantic units = 3
+unique astronomical roots = 2
+unique semantic units = 1 + 1 + 1 = 3
 ```
+
+The combined bundle therefore has one Moon placement unit, one Mercury
+placement unit, and one Moon–Mercury relational unit. It is not `1 + 1 + 3 =
+5`. Root deduplication and semantic-unit deduplication are separate operations:
+
+```text
+ROOT_DEDUPLICATION
+  -> unique astronomical root keys
+
+SEMANTIC_UNIT_DEDUPLICATION
+  -> unique placement/relational semantic unit IDs
+```
+
+A duplicate Aspect Signal adds zero semantic units and zero roots. Relational
+enrichment retains the one relational semantic unit while adding interaction
+meaning; it does not turn its three dimensions into three units.
 
 No-new-root does not mean no-new-semantic-value. The relational unit may
 enrich, constrain, reshape, or connect themes derived from the same roots,
@@ -332,6 +367,11 @@ Required gates:
 
 ```text
 ASPECT_SIGNAL_CONTRACT PASS
+SEMANTIC_UNIT_ACCOUNTING PASS
+SEMANTIC_DIMENSION_SEPARATION PASS
+ROOT_ACCOUNTING PASS
+RELATIONAL_ENRICHMENT PASS
+DUPLICATE_SEMANTIC_SUPPRESSION PASS
 DOMAIN_SEMANTICS PASS
 DIRECTION_POLICY PASS
 INTENSITY_POLICY PASS
