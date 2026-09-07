@@ -1,0 +1,249 @@
+{
+  "artifactId": "natalnode.chart-convergence-counterevidence.representative-v1",
+  "taskId": "WEB-P2-CHART-CONVERGENCE-COUNTEREVIDENCE-001",
+  "baseline": "6620b1979096bb290f854756c3fd7e427a4f82ee",
+  "status": "BOUNDED_POLICY_PASS",
+  "epistemicStatus": "MECHANISM_PROOF_WITH_ASTROLOGY_CASES_NOT_ADMITTED",
+  "policyState": "ADOPTED_WITH_CONDITIONS",
+  "runtimeEligibility": "RUNTIME_NOT_ADMITTED",
+  "scope": {
+    "chartType": "NATAL",
+    "zodiacModel": "WESTERN_TROPICAL",
+    "classificationInventory": [
+      "INDEPENDENT_CONVERGENCE",
+      "COUNTEREVIDENCE",
+      "RELATIONAL_ENRICHMENT",
+      "REDUNDANCY",
+      "DUPLICATE",
+      "DISTINCT",
+      "CONFLICT"
+    ],
+    "productionRuntimeChanges": false,
+    "newSelectorCreated": false,
+    "astrologyCalculation": false,
+    "providerAuthority": false,
+    "aiSemanticAuthority": false,
+    "excluded": [
+      "production convergence runtime",
+      "production counterevidence runtime",
+      "My Chart admission",
+      "house and angle semantics",
+      "numeric scoring or similarity",
+      "embedding or LLM classification",
+      "automatic square/opposition negativity",
+      "new astrology doctrine"
+    ]
+  },
+  "currentInventoryAudit": {
+    "astrologyIndependentConvergenceCaseAdmitted": "NO",
+    "astrologyCounterevidenceCaseAdmitted": "NO",
+    "independentConvergenceFinding": "The admitted Body × Sign candidates have distinct explicit life-questions; shared sign, domain, or wording is not an overlap admission. Existing relational Signals reuse their participating roots.",
+    "counterevidenceFinding": "The admitted square and opposition semantics are relational meanings over their own participating roots. No separately rooted qualifying semantic unit is currently admitted.",
+    "mechanismFixtureUse": "Required and explicitly labelled MECHANISM_ONLY_SEMANTIC_TEST_FIXTURE; fixtures do not claim astrology admission or astronomy authority."
+  },
+  "classificationPolicy": {
+    "precedence": [
+      "CONFLICT",
+      "DUPLICATE",
+      "REDUNDANCY",
+      "COUNTEREVIDENCE",
+      "RELATIONAL_ENRICHMENT",
+      "INDEPENDENT_CONVERGENCE",
+      "DISTINCT"
+    ],
+    "conflict": {
+      "condition": "same natal body + different sign + same placement scope/type",
+      "outcome": "CONFLICT",
+      "failClosed": true,
+      "isCounterevidence": false
+    },
+    "duplicate": {
+      "condition": "same fact identity",
+      "outcome": "DUPLICATE",
+      "effect": "NONE",
+      "rootCountInflation": false
+    },
+    "redundancy": {
+      "condition": "different candidate identity + materially identical reader meaning",
+      "outcome": "REDUNDANCY",
+      "effect": "NONE",
+      "rootCountInflation": false
+    }
+  },
+  "semanticOverlapContract": {
+    "policyId": "NATALNODE_CHART_LEVEL_SEMANTIC_OVERLAP_POLICY_V1",
+    "policyVersion": "1.0.0",
+    "decisionMode": "EXPLICIT_DETERMINISTIC_ADMISSION",
+    "allowedRelations": [
+      "SHARED_LIFE_QUESTION",
+      "QUALIFYING_LIFE_QUESTION",
+      "DISTINCT_LIFE_QUESTION",
+      "REDUNDANT_MEANING"
+    ],
+    "sharedLifeQuestionRequires": [
+      "pairwise-disjoint root sets",
+      "explicit shared life-question",
+      "explicit integrated semantic basis",
+      "one closed selected domain"
+    ],
+    "insufficientShortcuts": [
+      "same sign",
+      "same domain",
+      "same body",
+      "same wording",
+      "same aspect type",
+      "same element",
+      "same modality",
+      "shared roots"
+    ],
+    "numericSimilarity": false,
+    "embeddingSimilarity": false,
+    "llmDecision": false
+  },
+  "independentConvergencePolicy": {
+    "requiresSeparateRootSets": true,
+    "rootRule": "All source root sets must be pairwise-disjoint; output roots are the unique set union.",
+    "requiresAdmittedSemanticOverlap": true,
+    "classification": "INDEPENDENT_CONVERGENCE",
+    "effect": "CONVERGE",
+    "editorialSupportMayIncrease": true,
+    "changesConfidence": false,
+    "changesIntensity": false,
+    "changesDirection": false,
+    "changesProbability": false,
+    "sourceThemeState": "CONVERGED_SUPPORTING_SOURCE",
+    "cardRule": "source A + source B + converged theme does not create three Core cards",
+    "astrologyPositiveCaseAdmitted": false
+  },
+  "relationalEnrichmentPolicy": {
+    "requiresSharedRoots": true,
+    "requiresAdmittedRelationalUnit": true,
+    "classification": "RELATIONAL_ENRICHMENT",
+    "independentEvidenceIncrement": 0,
+    "isIndependentConvergence": false,
+    "sourceThemeState": "RELATIONAL_SOURCE",
+    "acceptedExample": "Moon placement + Venus placement + Moon-Venus conjunction"
+  },
+  "counterevidencePolicy": {
+    "requiresSeparatelyAdmittedSemanticUnit": true,
+    "requiresIndependentRootContribution": true,
+    "rootRule": "At least one qualifier root must not already be contained in the target theme root set; if none exists, fail closed to same-root relational/internal tension.",
+    "requiresQualifyingLifeQuestion": true,
+    "allowedEffects": [
+      "QUALIFY",
+      "NARROW",
+      "SUPPRESS_OVERBROAD"
+    ],
+    "classification": "COUNTEREVIDENCE",
+    "changesClaimScope": true,
+    "changesConfidence": false,
+    "changesIntensity": false,
+    "changesDirection": false,
+    "negativeSoundingSemanticsAreSufficient": false,
+    "squareIsAutomaticCounterevidence": false,
+    "oppositionIsAutomaticCounterevidence": false,
+    "sameRootFallback": "RELATIONAL_ENRICHMENT_OR_INTERNAL_TENSION",
+    "cardRule": "theme + counterevidence produces one qualified/narrowed theme, not a second primary card",
+    "astrologyPositiveCaseAdmitted": false
+  },
+  "epistemicPolicy": {
+    "directionPreserved": true,
+    "intensityPreserved": true,
+    "confidencePreserved": true,
+    "lowPlusLowDoesNotBecomeMedium": true,
+    "subtlePlusSubtleDoesNotBecomeNoticeable": true,
+    "noNegativeScore": true,
+    "noProbability": true,
+    "noCertaintyClaim": true
+  },
+  "mechanismOnlyFixtures": [
+    {
+      "fixtureId": "mechanism.independent-convergence.shared-life-question",
+      "fixtureType": "MECHANISM_ONLY_SEMANTIC_TEST_FIXTURE",
+      "astrologyIndependentConvergenceCaseAdmitted": false,
+      "sourceRootSets": [
+        ["mechanism.root.source-a"],
+        ["mechanism.root.source-b"]
+      ],
+      "semanticRelation": "SHARED_LIFE_QUESTION",
+      "effect": "CONVERGE",
+      "expectedClassification": "INDEPENDENT_CONVERGENCE",
+      "expectedUniqueRootCount": 2,
+      "expectedSourceThemeState": "CONVERGED_SUPPORTING_SOURCE"
+    },
+    {
+      "fixtureId": "mechanism.counterevidence.qualify",
+      "fixtureType": "MECHANISM_ONLY_SEMANTIC_TEST_FIXTURE",
+      "astrologyCounterevidenceCaseAdmitted": false,
+      "targetRootSet": ["mechanism.root.target"],
+      "qualifierRootSet": ["mechanism.root.qualifier"],
+      "semanticRelation": "QUALIFYING_LIFE_QUESTION",
+      "effect": "QUALIFY",
+      "expectedClassification": "COUNTEREVIDENCE",
+      "expectedClaimScope": "QUALIFIED"
+    },
+    {
+      "fixtureId": "mechanism.counterevidence.narrow",
+      "fixtureType": "MECHANISM_ONLY_SEMANTIC_TEST_FIXTURE",
+      "astrologyCounterevidenceCaseAdmitted": false,
+      "targetRootSet": ["mechanism.root.target"],
+      "qualifierRootSet": ["mechanism.root.qualifier"],
+      "semanticRelation": "QUALIFYING_LIFE_QUESTION",
+      "effect": "NARROW",
+      "expectedClassification": "COUNTEREVIDENCE",
+      "expectedClaimScope": "NARROWED"
+    },
+    {
+      "fixtureId": "mechanism.counterevidence.suppress-overbroad",
+      "fixtureType": "MECHANISM_ONLY_SEMANTIC_TEST_FIXTURE",
+      "astrologyCounterevidenceCaseAdmitted": false,
+      "targetRootSet": ["mechanism.root.target"],
+      "qualifierRootSet": ["mechanism.root.qualifier"],
+      "semanticRelation": "QUALIFYING_LIFE_QUESTION",
+      "effect": "SUPPRESS_OVERBROAD",
+      "expectedClassification": "COUNTEREVIDENCE",
+      "expectedClaimScope": "SUPPRESSED_OVERBROAD"
+    }
+  ],
+  "validationGates": {
+    "CLASSIFICATION_TAXONOMY": "PASS",
+    "INDEPENDENT_ROOT_REQUIREMENT": "PASS",
+    "SEMANTIC_OVERLAP_REQUIREMENT": "PASS",
+    "INDEPENDENT_CONVERGENCE": "PASS",
+    "RELATIONAL_ENRICHMENT_SEPARATION": "PASS",
+    "COUNTEREVIDENCE_ROOT_INDEPENDENCE": "PASS",
+    "COUNTEREVIDENCE_QUALIFICATION": "PASS",
+    "COUNTEREVIDENCE_NARROWING": "PASS",
+    "NO_NEGATIVE_ASPECT_SHORTCUT": "PASS",
+    "NO_FALSE_CONVERGENCE": "PASS",
+    "NO_EVIDENCE_INFLATION": "PASS",
+    "NO_CONFIDENCE_PROMOTION": "PASS",
+    "NO_INTENSITY_PROMOTION": "PASS",
+    "CONVERGED_SOURCE_STATE": "PASS",
+    "SELECTOR_INTEGRATION": "PASS",
+    "NO_CARD_EXPLOSION": "PASS",
+    "PROVENANCE_PRESERVATION": "PASS",
+    "DETERMINISTIC_POLICY": "PASS",
+    "ASTROLOGY_CASE_ADMISSION_INTEGRITY": "PASS"
+  },
+  "readiness": {
+    "READY_FOR_HOUSE_ANGLE_SEMANTIC_GATE": "YES",
+    "READY_FOR_PRODUCTION_CONVERGENCE": "NO",
+    "READY_FOR_PRODUCTION_COUNTEREVIDENCE": "NO",
+    "READY_FOR_PRODUCTION_MY_CHART": "NO",
+    "READY_FOR_BROAD_SCALE": "NO",
+    "RUNTIME_ADMISSION": "NO"
+  },
+  "sourceCatalog": [
+    {"refId": "PERSONAL_CHART_COVERAGE_ARCHITECTURE", "path": "docs/product/NATALNODE_PERSONAL_CHART_COVERAGE_ARCHITECTURE_V1.md", "supports": "Independent convergence, relational enrichment, counterevidence, and selective chart output."},
+    {"refId": "PERSONAL_CHART_COVERAGE_MATRIX", "path": "docs/research/personal-synthesis/PERSONAL_CHART_COVERAGE_MATRIX_V1.json", "supports": "Existing synthesis roles and readiness dimensions."},
+    {"refId": "CHART_LEVEL_SELECTOR_POLICY", "path": "docs/product/NATALNODE_CHART_LEVEL_THEME_SELECTOR_V1.md", "supports": "Ordinal selection, no numeric ranking, and no card explosion."},
+    {"refId": "CHART_LEVEL_SELECTOR_POC", "path": "apps/web/src/features/interpretation/chart-level-personal-theme-selector-poc.ts", "supports": "Existing selector contract and integration boundary."},
+    {"refId": "PERSONAL_SYNTHESIS_POC", "path": "apps/web/src/features/interpretation/personal-synthesis-poc.ts", "supports": "Deterministic candidate and theme semantics."},
+    {"refId": "SHARED_ROOT_RELATIONAL_POC", "path": "apps/web/src/features/interpretation/shared-root-relational-synthesis-poc.ts", "supports": "Shared-root enrichment, root accounting, and subsumption."},
+    {"refId": "PERSONAL_EDITORIAL_ARCHITECTURE", "path": "docs/product/NATALNODE_PERSONAL_EDITORIAL_ARCHITECTURE_V1.md", "supports": "Human-first meaning, WHY, LEARN, and bounded claims."},
+    {"refId": "CONTENT_VALUE_ARCHITECTURE", "path": "docs/product/NATALNODE_CONTENT_VALUE_ARCHITECTURE_V1.md", "supports": "One semantic owner and progressive depth."},
+    {"refId": "INTERPRETATION_SYSTEM", "path": "docs/architecture/NATALNODE_INTERPRETATION_SYSTEM_V1.md", "supports": "Fact, Signal, Interpretation, Presentation boundaries."},
+    {"refId": "PERSONAL_ASPECT_EXPANSION", "path": "docs/research/personal-synthesis/PERSONAL_ASPECT_COVERAGE_EXPANSION_V1_REVIEW.md", "supports": "Aspect scope and square/opposition safety."}
+  ]
+}

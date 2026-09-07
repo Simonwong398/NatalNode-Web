@@ -44,6 +44,24 @@ export type SelectorConfidence = 'LOW' | 'MEDIUM' | 'HIGH';
 
 export type SelectorCandidateKind = 'PLACEMENT' | 'RELATIONAL' | 'PROJECTION';
 
+export type SelectorSynthesisClassification =
+  | 'INDEPENDENT_CONVERGENCE'
+  | 'COUNTEREVIDENCE'
+  | 'RELATIONAL_ENRICHMENT'
+  | 'REDUNDANCY'
+  | 'DUPLICATE'
+  | 'DISTINCT'
+  | 'CONFLICT';
+
+export type SelectorIndependentSupportState = 'NONE' | 'INDEPENDENTLY_SUPPORTED';
+
+export type SelectorClaimScopeState =
+  | 'ORIGINAL'
+  | 'QUALIFIED'
+  | 'NARROWED'
+  | 'INTERNAL_TENSION'
+  | 'SUPPRESSED_OVERBROAD';
+
 export type SelectorEditorialRole =
   | 'CORE'
   | 'SUPPORTING_THREAD'
@@ -100,6 +118,14 @@ export interface ChartLevelThemeCandidate {
     | 'NONE'
     | 'COUNTEREVIDENCE_PENDING'
     | 'QUALIFICATION_REQUIRED';
+  /** Optional chart-wide synthesis metadata; omission preserves old candidates. */
+  readonly synthesisClassification?: SelectorSynthesisClassification;
+  readonly independentSupportState?: SelectorIndependentSupportState;
+  readonly claimScopeState?: SelectorClaimScopeState;
+  readonly sourceThemeStates?: readonly {
+    readonly themeId: string;
+    readonly state: string;
+  }[];
   readonly placement?: {
     readonly scope: 'SINGLE_NATAL_CHART';
     readonly placementType: 'NATAL_BODY_POSITION';
@@ -193,6 +219,29 @@ const PERSONAL_RELEVANCE_ORDER = Object.freeze([
 
 const RELATIONAL_ORDER = Object.freeze(['ENRICHED', 'NONE'] as const);
 
+const INDEPENDENT_SUPPORT_ORDER = Object.freeze([
+  'INDEPENDENTLY_SUPPORTED',
+  'NONE'
+] as const);
+
+const SYNTHESIS_CLASSIFICATIONS = Object.freeze([
+  'INDEPENDENT_CONVERGENCE',
+  'COUNTEREVIDENCE',
+  'RELATIONAL_ENRICHMENT',
+  'REDUNDANCY',
+  'DUPLICATE',
+  'DISTINCT',
+  'CONFLICT'
+] as const);
+
+const CLAIM_SCOPE_STATES = Object.freeze([
+  'ORIGINAL',
+  'QUALIFIED',
+  'NARROWED',
+  'INTERNAL_TENSION',
+  'SUPPRESSED_OVERBROAD'
+] as const);
+
 const GATE_ORDER = Object.freeze([
   'AUTHORITY_ELIGIBILITY',
   'COHERENCE_CONFLICT',
@@ -250,6 +299,18 @@ function compareForRetention(
     return leftRelational - rightRelational;
   }
 
+  const leftIndependent = orderOf(
+    INDEPENDENT_SUPPORT_ORDER,
+    left.independentSupportState ?? 'NONE'
+  );
+  const rightIndependent = orderOf(
+    INDEPENDENT_SUPPORT_ORDER,
+    right.independentSupportState ?? 'NONE'
+  );
+  if (leftIndependent !== rightIndependent) {
+    return leftIndependent - rightIndependent;
+  }
+
   const leftRelevance = orderOf(PERSONAL_RELEVANCE_ORDER, left.personalRelevance);
   const rightRelevance = orderOf(PERSONAL_RELEVANCE_ORDER, right.personalRelevance);
   if (leftRelevance !== rightRelevance) {
@@ -295,6 +356,13 @@ function hasValidSemantics(candidate: ChartLevelThemeCandidate): boolean {
     isNonEmptyString(candidate.readerMeaningKey) &&
     isNonEmptyString(candidate.factIdentityKey) &&
     isOneOf(RELATIONAL_ORDER, candidate.relationalEnrichmentState) &&
+    (candidate.synthesisClassification === undefined ||
+      isOneOf(SYNTHESIS_CLASSIFICATIONS, candidate.synthesisClassification)) &&
+    (candidate.claimScopeState === undefined ||
+      isOneOf(CLAIM_SCOPE_STATES, candidate.claimScopeState)) &&
+    (candidate.sourceThemeStates === undefined || candidate.sourceThemeStates.every((state) =>
+      isNonEmptyString(state.themeId) && isNonEmptyString(state.state)
+    )) &&
     isNonEmptyStringArray(candidate.semanticBasisIds) &&
     Array.isArray(candidate.subsumedCandidateIds) &&
     candidate.subsumedCandidateIds.every(isNonEmptyString) &&
