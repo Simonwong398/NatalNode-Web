@@ -43,6 +43,8 @@ export const PERSONAL_SYNTHESIS_POC_SOURCE_AUTHORITY =
 export const PERSONAL_SYNTHESIS_POC_SEMANTIC_BASIS_IDS = Object.freeze([
   'body.moon',
   'body.mercury',
+  'body.venus',
+  'body.mars',
   'sign.aries',
   'modality.fixed',
   'rulership.basic'
@@ -62,7 +64,9 @@ export type PersonalSynthesisLifeQuestion =
 export type PersonalSynthesisEditorialTemplateId =
   | 'communication-clarity'
   | 'deliberate-action'
+  | 'action-assertion'
   | 'relationship-boundary'
+  | 'relationship-valuation'
   | 'work-continuity'
   | 'self-direction'
   | 'emotional-pacing';
@@ -431,6 +435,46 @@ const PERSONAL_EDITORIAL_TEMPLATES: Readonly<
     whyReaderSummary: 'This theme speaks to how you receive closeness and how you keep enough space for the relationship to stay honest.',
     whyReaderSynthesis: 'That emphasis makes connection a balance between receptivity and a boundary that keeps contact responsive.',
     whyLead: 'The relationship theme uses a bounded response or relationship layer; it does not predict another person’s behavior or guarantee closeness.'
+  },
+  'relationship-valuation': {
+    templateId: 'relationship-valuation',
+    domain: 'RELATIONSHIP',
+    allowedSemanticBasisIds: ['body.venus'],
+    lifeQuestions: ['RELATIONSHIPS'],
+    learnReferences: Object.freeze([
+      Object.freeze({ objectId: 'body.venus', label: 'Learn Venus' })
+    ]),
+    deeperReferences: Object.freeze([
+      Object.freeze({ objectId: 'knowledge.counterevidence', label: 'Review limits and counterevidence' })
+    ]),
+    recognition: 'You may notice how a preference or value shapes the way you enter and respond to connection.',
+    strength: 'You can name what matters to you while leaving room for another person’s values to remain distinct.',
+    pattern: 'When connection matters, preference and valuation may become a way of noticing what kind of exchange feels workable.',
+    tension: 'A clear preference can become a conclusion about connection if it is not allowed to meet new information.',
+    lever: 'Name the value or preference, then ask what the relationship needs to stay responsive rather than certain.',
+    whyReaderSummary: 'This theme speaks to how values and preferences shape the way connection is approached.',
+    whyReaderSynthesis: 'Together, these factors make relating a practice of naming what matters while allowing exchange to revise the first preference.',
+    whyLead: 'The relationship theme uses a bounded Venus valuation layer; it does not predict attraction, outcome, beauty, wealth, or another person’s behavior.'
+  },
+  'action-assertion': {
+    templateId: 'action-assertion',
+    domain: 'ACTION_DECISION',
+    allowedSemanticBasisIds: ['body.mars'],
+    lifeQuestions: ['DECISIONS_ACTION'],
+    learnReferences: Object.freeze([
+      Object.freeze({ objectId: 'body.mars', label: 'Learn Mars' })
+    ]),
+    deeperReferences: Object.freeze([
+      Object.freeze({ objectId: 'knowledge.counterevidence', label: 'Review limits and counterevidence' })
+    ]),
+    recognition: 'You may notice what kind of effort helps an intention move from possibility into a deliberate next step.',
+    strength: 'You can direct effort toward a clear action while keeping the choice revisable.',
+    pattern: 'When something needs movement, assertion and effort may organize how a next step is chosen and sustained.',
+    tension: 'The wish to act can outrun the context that would show whether the effort belongs there.',
+    lever: 'Name the intended action, then identify the boundary or information that should shape the next move.',
+    whyReaderSummary: 'This theme speaks to how directed effort and assertion organize a decision or next step.',
+    whyReaderSynthesis: 'Together, these factors keep action connected to context, so effort can be directed without becoming a fixed verdict.',
+    whyLead: 'The action theme uses a bounded Mars effort layer; it does not diagnose temperament or predict danger, success, or behavior.'
   },
   'work-continuity': {
     templateId: 'work-continuity',
@@ -1043,6 +1087,14 @@ const WHY_READER_FACTORS: Readonly<
     label: 'Mercury',
     contribution: 'Mercury speaks to how a thought becomes words and how meaning travels between people.'
   }),
+  'body.venus': Object.freeze({
+    label: 'Venus',
+    contribution: 'Venus speaks to how value, preference, and relating shape an exchange.'
+  }),
+  'body.mars': Object.freeze({
+    label: 'Mars',
+    contribution: 'Mars speaks to how effort, assertion, and directed action become a next step.'
+  }),
   'sign.aries': Object.freeze({
     label: 'Aries',
     contribution: 'Aries brings a direct impulse to begin and give an idea its first movement.'
@@ -1518,6 +1570,12 @@ function structuredTemplateForSignal(
   }
   if (signal.domain === 'COMMUNICATION' && bodyId === 'body.mercury') {
     return { editorialTemplateId: 'communication-clarity', semanticBasisId: 'body.mercury' };
+  }
+  if (signal.domain === 'RELATIONSHIP' && bodyId === 'body.venus') {
+    return { editorialTemplateId: 'relationship-valuation', semanticBasisId: 'body.venus' };
+  }
+  if (signal.domain === 'ACTION_DECISION' && bodyId === 'body.mars') {
+    return { editorialTemplateId: 'action-assertion', semanticBasisId: 'body.mars' };
   }
   throw new Error(
     `Research Signal ${signal.signalId} has no bounded Personal Synthesis template for ${signal.domain} and ${String(bodyId)}.`

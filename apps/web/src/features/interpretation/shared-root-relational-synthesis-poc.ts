@@ -39,6 +39,24 @@ export const SHARED_ROOT_RELATIONAL_COMPATIBILITY_RULE = Object.freeze({
   version: '1.0.0'
 });
 
+export const SHARED_ROOT_RELATIONAL_COMPATIBILITY_RULES = Object.freeze({
+  'body.moon|body.mercury|conjunction': SHARED_ROOT_RELATIONAL_COMPATIBILITY_RULE,
+  'body.moon|body.venus|conjunction': Object.freeze({
+    id: 'shared-root-relational.compatibility.moon-venus-conjunction',
+    version: '1.0.0'
+  }),
+  'body.mercury|body.mars|conjunction': Object.freeze({
+    id: 'shared-root-relational.compatibility.mercury-mars-conjunction',
+    version: '1.0.0'
+  })
+} as const);
+
+const SUPPORTED_RELATIONAL_BODY_PAIRS = Object.freeze([
+  'body.moon|body.mercury',
+  'body.moon|body.venus',
+  'body.mercury|body.mars'
+] as const);
+
 const ASPECT_DIMENSIONS = Object.freeze([
   'BODY_A_FUNCTION',
   'BODY_B_FUNCTION',
@@ -383,8 +401,48 @@ function isSupportedAspectType(value: string): value is SupportedAspectType {
   return (SUPPORTED_ASPECT_TYPES as readonly string[]).includes(value);
 }
 
+function relationalBodyPairKey(bodyAId: string, bodyBId: string): string {
+  return `${bodyAId}|${bodyBId}`;
+}
+
+function relationalCompatibilityKey(
+  bodyAId: string,
+  bodyBId: string,
+  aspectType: string
+): string {
+  return `${relationalBodyPairKey(bodyAId, bodyBId)}|${aspectType}`;
+}
+
+type RelationalCompatibilityRule =
+  (typeof SHARED_ROOT_RELATIONAL_COMPATIBILITY_RULES)[keyof typeof SHARED_ROOT_RELATIONAL_COMPATIBILITY_RULES];
+
+function getRelationalCompatibilityRule(key: string): RelationalCompatibilityRule | undefined {
+  if (!Object.prototype.hasOwnProperty.call(SHARED_ROOT_RELATIONAL_COMPATIBILITY_RULES, key)) {
+    return undefined;
+  }
+  return SHARED_ROOT_RELATIONAL_COMPATIBILITY_RULES[
+    key as keyof typeof SHARED_ROOT_RELATIONAL_COMPATIBILITY_RULES
+  ];
+}
+
+function isSupportedRelationalBodyPair(bodyAId: string, bodyBId: string): boolean {
+  return (SUPPORTED_RELATIONAL_BODY_PAIRS as readonly string[]).includes(
+    relationalBodyPairKey(bodyAId, bodyBId)
+  );
+}
+
+function expectedPositionRoots(bodyAId: string, bodyBId: string): readonly string[] {
+  return uniqueSorted([`${bodyAId}.position`, `${bodyBId}.position`]);
+}
+
 function placementRootKey(signal: PersonalSynthesisStructuredSignalInput): string {
-  if (signal.bodyId !== 'body.moon' && signal.bodyId !== 'body.mercury') {
+  if (![
+    'body.sun',
+    'body.moon',
+    'body.mercury',
+    'body.venus',
+    'body.mars'
+  ].includes(signal.bodyId)) {
     throw new Error(`Shared-root POC does not admit placement body ${signal.bodyId}.`);
   }
   return `${signal.bodyId}.position`;
@@ -396,8 +454,9 @@ function placementSemanticUnitId(signal: PersonalSynthesisStructuredSignalInput)
 
 function aspectRootKeys(signal: SharedRootAspectSignalInput): readonly string[] {
   const roots = uniqueSorted(signal.evidenceLineage.evidenceRootKeys);
-  if (!sameStrings(roots, ['body.mercury.position', 'body.moon.position'])) {
-    throw new Error(`Aspect Signal ${signal.signalId} must preserve the Moon and Mercury position roots.`);
+  const expectedRoots = expectedPositionRoots(signal.bodyAId, signal.bodyBId);
+  if (!sameStrings(roots, expectedRoots)) {
+    throw new Error(`Aspect Signal ${signal.signalId} must preserve both admitted position roots.`);
   }
   return roots;
 }
@@ -426,8 +485,8 @@ export function createAspectSignalResearchInput(
   if (rule.requiredFactType !== 'NATAL_ASPECT') {
     return rejectAspectRule(rule, 'unsupported fact type');
   }
-  if (rule.bodyAId !== 'body.moon' || rule.bodyBId !== 'body.mercury') {
-    return rejectAspectRule(rule, 'only the admitted Moon-Mercury pair is in scope');
+  if (!isSupportedRelationalBodyPair(rule.bodyAId, rule.bodyBId)) {
+    return rejectAspectRule(rule, 'the body pair is outside the three admitted personal relational pairs');
   }
   if (!isSupportedAspectType(rule.aspectType)) {
     return rejectAspectRule(rule, 'unsupported aspect type');
@@ -458,7 +517,7 @@ export function createAspectSignalResearchInput(
   }
 
   const roots = uniqueSorted(rule.evidenceLineage.evidenceRootKeys);
-  if (!sameStrings(roots, ['body.mercury.position', 'body.moon.position'])) {
+  if (!sameStrings(roots, expectedPositionRoots(rule.bodyAId, rule.bodyBId))) {
     return rejectAspectRule(rule, 'position root lineage is incomplete or inflated');
   }
 
@@ -558,9 +617,9 @@ function noRelationalCompatibility(
 }
 
 /**
- * Deterministic compatibility policy for the one admitted relational bridge.
- * Shared roots are reported, but they never qualify as compatibility by
- * themselves.
+ * Deterministic compatibility policy for the bounded admitted relational
+ * bridges. Shared roots are reported, but they never qualify as compatibility
+ * by themselves.
  */
 export function evaluateRelationalCompatibility(
   placementSignals: readonly PersonalSynthesisStructuredSignalInput[],
@@ -570,8 +629,8 @@ export function evaluateRelationalCompatibility(
   } = {}
 ): SharedRootCompatibilityDecision {
   const expectedBasisIds = Object.freeze([
-    'body.moon',
-    'body.mercury',
+    aspectSignal.bodyAId,
+    aspectSignal.bodyBId,
     `aspect.relation.${aspectSignal.aspectType}`
   ]);
   const integratedBasisIds = freezeArray(
@@ -597,18 +656,20 @@ export function evaluateRelationalCompatibility(
     );
   }
   const bodyIds = uniqueSorted(placementSignals.map((signal) => signal.bodyId));
-  if (!sameStrings(bodyIds, ['body.mercury', 'body.moon'])) {
+  if (!sameStrings(bodyIds, expectedPositionRoots(aspectSignal.bodyAId, aspectSignal.bodyBId)
+    .map((root) => root.replace(/\.position$/u, '')))) {
     return noRelationalCompatibility(
-      'The admitted compatibility rule is limited to one Moon placement and one Mercury placement.',
+      'The admitted compatibility rule requires one placement for each participating body.',
       roots,
       integratedBasisIds
     );
   }
-  if (aspectSignal.bodyAId !== 'body.moon' ||
-      aspectSignal.bodyBId !== 'body.mercury' ||
-      aspectSignal.aspectType !== 'conjunction') {
+  const compatibilityRule = getRelationalCompatibilityRule(
+    relationalCompatibilityKey(aspectSignal.bodyAId, aspectSignal.bodyBId, aspectSignal.aspectType)
+  );
+  if (compatibilityRule === undefined) {
     return noRelationalCompatibility(
-      'The current bounded relational rule admits only Moon conjunction Mercury.',
+      'The current bounded relational rules admit conjunction only for the three reviewed personal body pairs.',
       roots,
       integratedBasisIds
     );
@@ -623,9 +684,9 @@ export function evaluateRelationalCompatibility(
       integratedBasisIds
     );
   }
-  if (!sameStrings(roots, ['body.mercury.position', 'body.moon.position'])) {
+  if (!sameStrings(roots, expectedPositionRoots(aspectSignal.bodyAId, aspectSignal.bodyBId))) {
     return noRelationalCompatibility(
-      'The relational Signal does not share exactly the two admitted position roots.',
+      'The relational Signal does not share exactly the two participating position roots.',
       roots,
       integratedBasisIds
     );
@@ -633,9 +694,9 @@ export function evaluateRelationalCompatibility(
 
   return Object.freeze({
     status: 'RELATIONAL_ENRICHMENT',
-    ruleId: SHARED_ROOT_RELATIONAL_COMPATIBILITY_RULE.id,
-    ruleVersion: SHARED_ROOT_RELATIONAL_COMPATIBILITY_RULE.version,
-    reason: 'Moon response and Mercury naming are admitted as one integrated communication question under conjunction close coupling; shared roots alone are insufficient.',
+    ruleId: compatibilityRule.id,
+    ruleVersion: compatibilityRule.version,
+    reason: `${aspectSignal.bodyAId} and ${aspectSignal.bodyBId} are admitted as one integrated ${aspectSignal.aspectType} relational question; shared roots alone are insufficient.`,
     integratedSemanticBasisIds: integratedBasisIds,
     sharedRootKeys: roots
   });
@@ -751,6 +812,80 @@ function emptyAccounting(): SharedRootEvidenceAccounting {
   });
 }
 
+interface RelationalEditorialProfile {
+  readonly themeId: string;
+  readonly semanticThemeKey: string;
+  readonly domain: InterpretationSignalDomain;
+  readonly compositionQuestion: string;
+  readonly domainRationale: string;
+  readonly whySummary: string;
+  readonly whyText: string;
+  readonly recognition: string;
+  readonly strength: string;
+  readonly pattern: string;
+  readonly tension: string;
+  readonly lever: string;
+}
+
+function relationalEditorialProfile(
+  aspectSignal: SharedRootAspectSignalInput
+): RelationalEditorialProfile {
+  const key = relationalCompatibilityKey(
+    aspectSignal.bodyAId,
+    aspectSignal.bodyBId,
+    aspectSignal.aspectType
+  );
+  if (key === 'body.moon|body.mercury|conjunction') {
+    return {
+      themeId: 'shared-root-relational.moon-mercury-conjunction',
+      semanticThemeKey: 'communication-moon-mercury-relational',
+      domain: 'COMMUNICATION',
+      compositionQuestion: 'How may recurring response and naming meet in close exchange without either becoming the whole meaning?',
+      domainRationale: 'The integrated Moon response × Mercury naming × conjunction composition describes a life-question about exchange and formulation, so COMMUNICATION is selected from the closed domain set; no body-only mapping or domain majority vote is used.',
+      whySummary: 'This PersonalTheme is one relationally enriched communication theme, not a count increase in evidence strength.',
+      whyText: 'Moon response and Mercury naming are explored together through conjunction close coupling: the useful new meaning is how a response becomes language and how language gives a response a form, while the two position roots remain the same two astronomical roots.',
+      recognition: 'You may notice that a felt response and the words used to name it arrive close together, so each can change how the other is understood.',
+      strength: 'You can give an immediate response enough language to be examined without treating the first formulation as final.',
+      pattern: 'When something matters, response and naming may move as one exchange: feeling shapes the words, and the words give the feeling a form that can be answered.',
+      tension: 'Close coupling can let an immediate response become a settled interpretation, or let interpretation move ahead of receptivity.',
+      lever: 'Name the response in one sentence, then leave room for the next observation or answer to revise the wording.'
+    };
+  }
+  if (key === 'body.moon|body.venus|conjunction') {
+    return {
+      themeId: 'shared-root-relational.moon-venus-conjunction',
+      semanticThemeKey: 'relationship-moon-venus-relational',
+      domain: 'RELATIONSHIP',
+      compositionQuestion: 'How may recurring need and valuation meet in close relating without turning either into a fixed verdict about connection?',
+      domainRationale: 'The integrated Moon response × Venus valuation × conjunction composition describes a life-question about how receptivity and preference shape relating; RELATIONSHIP is selected from the closed domain set, not inherited from Venus alone.',
+      whySummary: 'This PersonalTheme is one relationally enriched connection theme, not a promotion of relationship certainty or evidence strength.',
+      whyText: 'Moon response and Venus valuation are explored together through conjunction close coupling: a need can shape what is valued, while a preference can give a response a form for attention, without collapsing either function into a connection verdict.',
+      recognition: 'You may notice that a recurring need and a clear preference arrive together when deciding how to stay responsive in a connection.',
+      strength: 'You can name what feels sustaining while leaving enough room for the relationship to answer with new information.',
+      pattern: 'When connection matters, response and valuation may move as one exchange: a need shapes preference, and preference gives the need a form that can be considered.',
+      tension: 'Close coupling can let a need borrow certainty from a preference, or let a preference stand in for listening to the response underneath it.',
+      lever: 'Name the need and the preference separately, then ask what would keep the exchange responsive rather than settled too soon.'
+    };
+  }
+  if (key === 'body.mercury|body.mars|conjunction') {
+    return {
+      themeId: 'shared-root-relational.mercury-mars-conjunction',
+      semanticThemeKey: 'action-decision-mercury-mars-relational',
+      domain: 'ACTION_DECISION',
+      compositionQuestion: 'How may interpretation and assertion occupy one field while an idea becomes a revisable next action?',
+      domainRationale: 'The integrated Mercury naming × Mars directed effort × conjunction composition describes a life-question about moving from interpretation into action; ACTION_DECISION is selected from the closed domain set, not inherited from Mars alone.',
+      whySummary: 'This PersonalTheme is one relationally enriched action-and-interpretation theme, not a promotion of certainty or force.',
+      whyText: 'Mercury naming and Mars directed effort are explored together through conjunction close coupling: an interpretation can shape the next action while an action tests the interpretation, and the two position roots remain the same two astronomical roots.',
+      recognition: 'You may notice that naming a choice and moving toward it happen close together, so each can revise how the other is understood.',
+      strength: 'You can turn an interpretation into a deliberate next step while keeping the wording and the action open to revision.',
+      pattern: 'When something needs movement, interpretation and assertion may form one exchange: the words organize the effort, and the effort tests the words.',
+      tension: 'Close coupling can let a first interpretation rush into action, or let the momentum of action make an untested explanation feel settled.',
+      lever: 'State the interpretation, choose one reversible action, and name the observation that would make you revise either one.'
+    };
+  }
+  throw new Error(`No relational editorial profile is admitted for ${key}.`);
+}
+
 function createEnrichedTheme(
   placementThemes: readonly PersonalSynthesisPersonalTheme[],
   placementSignals: readonly PersonalSynthesisStructuredSignalInput[],
@@ -769,14 +904,18 @@ function createEnrichedTheme(
   const sourceSignals = sourceSignalIds(placementSignals, aspectSignal);
   const semanticBasisIds = compatibility.integratedSemanticBasisIds;
   const subsumedThemeIds = freezeArray(placementThemes.map((theme) => theme.themeId).sort());
+  const profile = relationalEditorialProfile(aspectSignal);
+  if (accounting.semanticUnitCount !== 3 || accounting.uniqueRootCount !== 2) {
+    throw new Error('Relational enrichment requires three semantic units and two unique roots.');
+  }
   const compositionRuleRefs = freezeArray([
     ...placementSignals.map((signal) => `${signal.rule.ruleId}@${signal.rule.ruleVersion}`),
     `${aspectSignal.rule.ruleId}@${aspectSignal.rule.ruleVersion}`,
     `${compatibility.ruleId}@${compatibility.ruleVersion}`
   ]);
   const why = Object.freeze({
-    summary: 'This PersonalTheme is one relationally enriched communication theme, not a count increase in evidence strength.',
-    text: 'Moon response and Mercury naming are explored together through conjunction close coupling: the useful new meaning is how a response becomes language and how language gives a response a form, while the two position roots remain the same two astronomical roots.',
+    summary: profile.whySummary,
+    text: profile.whyText,
     sourceSignalIds: sourceSignals,
     sourceSemanticUnitIds: accounting.semanticUnitIds,
     uniqueRootKeys: accounting.uniqueRootKeys,
@@ -796,16 +935,16 @@ function createEnrichedTheme(
   });
 
   return Object.freeze({
-    themeId: 'shared-root-relational.moon-mercury-conjunction',
-    semanticThemeKey: 'communication-moon-mercury-relational',
+    themeId: profile.themeId,
+    semanticThemeKey: profile.semanticThemeKey,
     type: 'PERSONAL_THEME',
-    domain: 'COMMUNICATION',
+    domain: profile.domain,
     domainDerivation: Object.freeze({
       method: 'INTEGRATED_THEME_SEMANTICS',
-      selectedDomain: 'COMMUNICATION',
+      selectedDomain: profile.domain,
       majorityVote: false,
-      compositionQuestion: 'How may recurring response and naming meet in close exchange without either becoming the whole meaning?',
-      rationale: 'The integrated Moon response × Mercury naming × conjunction composition describes a life-question about exchange and formulation, so COMMUNICATION is selected from the closed domain set; no body-only mapping or domain majority vote is used.'
+      compositionQuestion: profile.compositionQuestion,
+      rationale: profile.domainRationale
     }),
     contributingDomains: uniqueSorted([
       ...placementSignals.map((signal) => signal.domain),
@@ -845,11 +984,11 @@ function createEnrichedTheme(
         : 'REQUIRES_KNOWN'
     }),
     editorial: Object.freeze({
-      recognition: 'You may notice that a felt response and the words used to name it arrive close together, so each can change how the other is understood.',
-      strength: 'You can give an immediate response enough language to be examined without treating the first formulation as final.',
-      pattern: 'When something matters, response and naming may move as one exchange: feeling shapes the words, and the words give the feeling a form that can be answered.',
-      tension: 'Close coupling can let an immediate response become a settled interpretation, or let interpretation move ahead of receptivity.',
-      lever: 'Name the response in one sentence, then leave room for the next observation or answer to revise the wording.',
+      recognition: profile.recognition,
+      strength: profile.strength,
+      pattern: profile.pattern,
+      tension: profile.tension,
+      lever: profile.lever,
       why,
       learnReferences: learnReferencesForTheme(placementSignals, aspectSignal)
     }),
