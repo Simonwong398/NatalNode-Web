@@ -1,0 +1,1228 @@
+{
+  "artifactId": "natalnode.aspect-signal.representative-v1",
+  "taskId": "WEB-P2-ASPECT-SIGNAL-001",
+  "baseline": "dbbc5d965defe881c0b6b6fa4237bc9c6bbd0613",
+  "status": "REPRESENTATIVE_ASPECT_SIGNAL_POLICY_PASS",
+  "sourceStatus": "SOURCE_SUPPORTED_WITH_CONDITIONS",
+  "epistemicStatus": "EDITORIAL_SYNTHESIS",
+  "policyState": "ADOPTED_WITH_CONDITIONS",
+  "runtimeEligibility": "RUNTIME_NOT_ADMITTED",
+  "scope": {
+    "zodiacModel": "WESTERN_TROPICAL",
+    "defaultCandidateLens": "MODERN_PSYCHOLOGICAL_WESTERN",
+    "comparisonLenses": [
+      "TRADITIONAL_CLASSICAL",
+      "EARLY_MODERN",
+      "NAMED_MODERN_SCHOOL"
+    ],
+    "bodyPair": [
+      "body.moon",
+      "body.mercury"
+    ],
+    "includedRuleCount": 4,
+    "includedCompositionIds": [
+      "body.moon_x_aspect.conjunction_x_body.mercury",
+      "body.moon_x_aspect.trine_x_body.mercury",
+      "body.moon_x_aspect.square_x_body.mercury",
+      "body.moon_x_aspect.opposition_x_body.mercury"
+    ],
+    "includedAspectTypes": [
+      "conjunction",
+      "trine",
+      "square",
+      "opposition"
+    ],
+    "excluded": [
+      "sextile and all other aspect types",
+      "other body pairs",
+      "aspect patterns",
+      "numeric orb policy",
+      "phase interpretation",
+      "production Signal emission",
+      "PersonalTheme emission",
+      "runtime wiring",
+      "provider selection",
+      "AI generation"
+    ]
+  },
+  "signalTaxonomy": {
+    "domains": [
+      "SELF",
+      "EMOTIONAL",
+      "RELATIONSHIP",
+      "COMMUNICATION",
+      "WORK_CREATION",
+      "ACTION_DECISION"
+    ],
+    "directions": [
+      "SUPPORTIVE",
+      "CHALLENGING",
+      "MIXED",
+      "NEUTRAL"
+    ],
+    "intensities": [
+      "SUBTLE",
+      "NOTICEABLE",
+      "STRONG",
+      "DOMINANT"
+    ],
+    "confidences": [
+      "HIGH",
+      "MEDIUM",
+      "LOW"
+    ],
+    "source": "EXISTING_INTERPRETATION_SIGNAL_TAXONOMY"
+  },
+  "domainPolicy": {
+    "derivation": "INTEGRATED_COMPOSITION_SEMANTICS",
+    "bodyRole": "SEMANTIC_FUNCTION_INPUT",
+    "aspectRole": "RELATIONAL_OPERATOR",
+    "eligibleDomainForThisPair": "COMMUNICATION",
+    "BODY_ONLY_DOMAIN_MAPPING": "FORBIDDEN",
+    "DOMAIN_FROM_COMPOSITION_SEMANTICS": "REQUIRED",
+    "bodyOnlyMappingFallback": "NO_SIGNAL",
+    "ambiguousCompositionOutcome": "NO_SIGNAL",
+    "unknownCompositionOutcome": "NO_SIGNAL",
+    "relationshipDomainShortcut": "FORBIDDEN",
+    "futureCompositionRequirement": "ADMITTED_INTEGRATED_SEMANTICS_MUST_MAP_CLEANLY_TO_ONE_CLOSED_DOMAIN"
+  },
+  "directionPolicy": {
+    "defaultForTheseRules": "NEUTRAL",
+    "aspectTypeAloneDeterminesDirection": false,
+    "constructiveAndTensionBecomeMixedAutomatically": false,
+    "orientationMayBeRaisedOnlyBy": "A separately admitted Signal rule and explicit semantic orientation.",
+    "forbiddenMappings": [
+      "trine -> SUPPORTIVE",
+      "square -> CHALLENGING",
+      "opposition -> MIXED",
+      "conjunction -> fixed direction"
+    ]
+  },
+  "intensityPolicy": {
+    "singleAspectAllowedValues": [
+      "SUBTLE"
+    ],
+    "singleAspectCandidateValue": "SUBTLE",
+    "singleAspectMaximum": "SUBTLE",
+    "noticeablePromotionAdmittedForTheseRules": false,
+    "noticeableRequires": "An explicitly admitted promotion such as structural salience, independently supported convergence, or another future rule.",
+    "strongRequires": "A separately admitted stronger structure; none of these four rules may emit STRONG.",
+    "dominantRequires": "A separately admitted policy; none of these four rules may emit DOMINANT.",
+    "orbMayPromoteIntensity": false,
+    "isImportanceScore": false
+  },
+  "confidencePolicy": {
+    "factAuthority": "AUTHORITATIVE_ENGINE_REQUIRED",
+    "singleAspectInterpretiveEvidence": "LOW",
+    "singleAspectCandidateValue": "LOW",
+    "higherConfidenceRequires": "Separately admitted independent evidence and a later Personal Synthesis policy.",
+    "factAuthorityEqualsInterpretiveConfidence": false,
+    "sharedRootsPromoteConfidence": false,
+    "isProbability": false,
+    "usesPercentages": false
+  },
+  "evidencePolicy": {
+    "authoritativeFactType": "NATAL_ASPECT",
+    "positionRootKeys": [
+      "body.moon.position",
+      "body.mercury.position"
+    ],
+    "relationalSemanticUnitType": "BODY_ASPECT_BODY",
+    "independentRootCount": 2,
+    "relationalFactAddsSemanticInformation": true,
+    "relationalFactIndependentEvidenceIncrement": 0,
+    "aspectIntroducesIndependentPositionRoot": false,
+    "rootDeduplicationOperation": "ROOT_DEDUPLICATION",
+    "relationalSemanticEnrichmentOperation": "RELATIONAL_ENRICHMENT",
+    "placementPlusPlacementPlusAspectUniqueRootCount": 2,
+    "placementPlusPlacementPlusAspectSemanticUnitCount": 3,
+    "semanticDistinctnessIsNotEvidenceRootIndependence": true,
+    "repeatedRelationalFactIncreasesConfidence": false,
+    "repeatedRelationalFactIncreasesIntensity": false,
+    "repeatedRelationalFactIncreasesPriority": false
+  },
+  "primarySignalPolicy": {
+    "maxSignalsPerRelationalFact": 1,
+    "duplicateRelationalFactOutcome": "SUPPRESS_DUPLICATE",
+    "priorityAssignment": "DEFERRED_TO_PERSONAL_SYNTHESIS",
+    "signalExistenceDoesNotImplyConvergence": true
+  },
+  "convergencePolicy": {
+    "automaticAspectPlacementConvergence": false,
+    "sharedRootsAreNotConvergence": true,
+    "sameBodyIsNotConvergence": true,
+    "sameDomainIsNotConvergence": true,
+    "sameThemeWordingIsNotConvergence": true,
+    "requiresFutureSemanticOverlapDecision": true,
+    "classificationVocabulary": [
+      "INDEPENDENT_CONVERGENCE",
+      "RELATIONAL_ENRICHMENT",
+      "REDUNDANCY",
+      "COUNTEREVIDENCE"
+    ],
+    "classifications": {
+      "INDEPENDENT_CONVERGENCE": {
+        "definition": "Separate evidence root sets plus an admitted semantic-overlap decision.",
+        "automaticPromotion": false
+      },
+      "RELATIONAL_ENRICHMENT": {
+        "definition": "A relational semantic unit adds interaction meaning over roots already used by placement semantics after an admitted compatibility decision.",
+        "automaticPromotion": false
+      },
+      "REDUNDANCY": {
+        "definition": "Repeated relational semantics add no useful new meaning, including a duplicate relational fact.",
+        "automaticPromotion": false
+      },
+      "COUNTEREVIDENCE": {
+        "definition": "Separately admitted semantics qualify or complicate an existing theme.",
+        "automaticPromotion": false
+      }
+    },
+    "examples": [
+      {
+        "exampleId": "placement-plus-aspect-shared-roots",
+        "inputs": [
+          "placement.body.moon.sign.aries",
+          "placement.body.mercury.sign.taurus",
+          "relational.body.moon_aspect.square_body.mercury"
+        ],
+        "uniqueRootKeys": [
+          "body.moon.position",
+          "body.mercury.position"
+        ],
+        "uniqueRootCount": 2,
+        "semanticUnits": [
+          "MOON_PLACEMENT",
+          "MERCURY_PLACEMENT",
+          "MOON_MERCURY_RELATION"
+        ],
+        "automaticConvergence": false,
+        "requiresSemanticOverlapDecision": true
+      },
+      {
+        "exampleId": "same-relational-fact-duplicate",
+        "relationalFactIds": [
+          "relational.body.moon_aspect.square_body.mercury",
+          "relational.body.moon_aspect.square_body.mercury"
+        ],
+        "classification": "REDUNDANCY",
+        "outcome": "DUPLICATE_RELATIONAL_FACT_SUPPRESSED",
+        "uniqueRootCount": 2,
+        "eligibleForConvergence": false,
+        "automaticPromotion": false
+      },
+      {
+        "exampleId": "separate-roots-with-admitted-overlap",
+        "rootSets": [
+          [
+            "body.moon.position"
+          ],
+          [
+            "body.venus.position"
+          ]
+        ],
+        "classification": "INDEPENDENT_CONVERGENCE",
+        "requiresAdmittedSemanticOverlap": true,
+        "automaticPromotion": false
+      },
+      {
+        "exampleId": "separate-qualification",
+        "classification": "COUNTEREVIDENCE",
+        "requiresSeparatelyAdmittedSemantics": true,
+        "automaticPromotion": false
+      }
+    ]
+  },
+  "comparisonMatrix": [
+    {
+      "comparisonId": "conjunction_vs_trine",
+      "left": "body.moon_x_aspect.conjunction_x_body.mercury",
+      "right": "body.moon_x_aspect.trine_x_body.mercury",
+      "whatChanges": "Close coupling and concentration become relatively easier circulation and compatibility.",
+      "whyItMatters": "Concentration is not ease, and neither assigns direction or importance."
+    },
+    {
+      "comparisonId": "conjunction_vs_square",
+      "left": "body.moon_x_aspect.conjunction_x_body.mercury",
+      "right": "body.moon_x_aspect.square_x_body.mercury",
+      "whatChanges": "Close coupling becomes active friction, pressure, and adjustment.",
+      "whyItMatters": "Co-presence is not a translation problem and does not justify STRONG."
+    },
+    {
+      "comparisonId": "conjunction_vs_opposition",
+      "left": "body.moon_x_aspect.conjunction_x_body.mercury",
+      "right": "body.moon_x_aspect.opposition_x_body.mercury",
+      "whatChanges": "Concentration becomes polarity, facing, alternation, and negotiation.",
+      "whyItMatters": "Close coupling is not a forced choice or a required winner."
+    },
+    {
+      "comparisonId": "trine_vs_square",
+      "left": "body.moon_x_aspect.trine_x_body.mercury",
+      "right": "body.moon_x_aspect.square_x_body.mercury",
+      "whatChanges": "Easier circulation becomes active friction and adjustment.",
+      "whyItMatters": "Ease is not SUPPORTIVE by definition and friction is not CHALLENGING by definition."
+    },
+    {
+      "comparisonId": "trine_vs_opposition",
+      "left": "body.moon_x_aspect.trine_x_body.mercury",
+      "right": "body.moon_x_aspect.opposition_x_body.mercury",
+      "whatChanges": "Readily available circulation becomes polarity, perspective, and negotiation.",
+      "whyItMatters": "A channel that circulates easily is not the same structure as two perspectives facing."
+    },
+    {
+      "comparisonId": "square_vs_opposition",
+      "left": "body.moon_x_aspect.square_x_body.mercury",
+      "right": "body.moon_x_aspect.opposition_x_body.mercury",
+      "whatChanges": "Adjustment pressure becomes alternation and negotiation across polarity.",
+      "whyItMatters": "Pressure is not conflict, and polarity is not MIXED by definition."
+    }
+  ],
+  "failClosedPolicy": {
+    "missingRuleOutcome": "NO_SIGNAL",
+    "unsupportedCompositionOutcome": "NO_SIGNAL",
+    "fallbackAstrology": false,
+    "conditions": [
+      "MISSING_AUTHORITATIVE_ASPECT_FACT",
+      "MISSING_POSITION_LINEAGE",
+      "COMPOSITION_NOT_ADMITTED",
+      "SIGNAL_RULE_NOT_ADMITTED",
+      "UNSUPPORTED_ASPECT_TYPE",
+      "UNSUPPORTED_ZODIAC_MODEL",
+      "INCOMPATIBLE_SCHOOL_OR_POLICY",
+      "MISSING_ORB_AUTHORITY",
+      "UNKNOWN_TIME_WITHOUT_ENGINE_CERTIFICATION",
+      "DUPLICATE_RELATIONAL_FACT",
+      "INCONSISTENT_BODY_PAIR",
+      "UNSUPPORTED_SEMANTIC_INFERENCE",
+      "FAKE_OR_DEVELOPMENT_ASTRONOMY_AUTHORITY"
+    ]
+  },
+  "unknownBirthTimePolicy": {
+    "status": "FAIL_CLOSED_BY_DEFAULT",
+    "aspectSignalEligibility": "NO_ASPECT_SIGNAL_UNLESS_AUTHORITATIVE_ENGINE_CERTIFIES",
+    "requiresKnownBirthTime": false,
+    "requiresAuthoritativeCertification": true,
+    "forbiddenFallbacks": [
+      "noon",
+      "midnight",
+      "default time",
+      "average time",
+      "guessed birth time",
+      "fake degrees",
+      "synthetic angular separation"
+    ],
+    "forbiddenDependencies": [
+      "ASC",
+      "MC",
+      "houses",
+      "house-derived-domain",
+      "fabricated-time"
+    ]
+  },
+  "sourceCatalog": [
+    {
+      "refId": "ASPECT_COMPOSITION_ARTIFACT",
+      "path": "docs/research/astrology-knowledge-canon/aspects/BODY_ASPECT_BODY_REPRESENTATIVE_V1.json",
+      "locator": "Four admitted Moon–Mercury composition records",
+      "sourceClass": "INTERNAL_POLICY",
+      "supports": "Admitted composition IDs, relational meaning, modifiers, lineage, and boundaries."
+    },
+    {
+      "refId": "ASPECT_COMPOSITION_METHOD",
+      "path": "docs/product/NATALNODE_BODY_ASPECT_BODY_COMPOSITION_METHOD_V1.md",
+      "locator": "Evidence lineage, relation operator, unknown time, and anti-stereotype policy",
+      "sourceClass": "INTERNAL_POLICY",
+      "supports": "Composition sequence and semantic relation without false independent evidence."
+    },
+    {
+      "refId": "FOUNDATIONS_ASPECTS_EN",
+      "path": "docs/content/foundations/v1/en/09-aspects-relationships-between-planets.md",
+      "locator": "The five major aspects; Orb; Applying, exact, and separating",
+      "sourceClass": "ESTABLISHED_REFERENCE",
+      "supports": "Cautious aspect vocabulary and separation of geometry from interpretation."
+    },
+    {
+      "refId": "CHART_ASPECT_FACT_CONTRACT",
+      "path": "packages/contracts/src/chart.ts",
+      "locator": "AspectFact and AspectPhaseState",
+      "sourceClass": "INTERNAL_POLICY",
+      "supports": "Supplied aspect fact fields and calculation boundary."
+    },
+    {
+      "refId": "SIGNAL_CONTRACT",
+      "path": "apps/web/src/features/interpretation/interpretation-signal-contracts.ts",
+      "locator": "Signal vocabulary and NATAL_ASPECT fact kind",
+      "sourceClass": "INTERNAL_POLICY",
+      "supports": "Existing domains, directions, intensities, confidence, and fact vocabulary."
+    },
+    {
+      "refId": "ASPECT_SIGNAL_POLICY_METHOD",
+      "path": "docs/product/NATALNODE_ASPECT_SIGNAL_POLICY_V1.md",
+      "locator": "Contract, domain, direction, intensity, confidence, lineage, and readiness",
+      "sourceClass": "INTERNAL_POLICY",
+      "supports": "This bounded Signal policy."
+    },
+    {
+      "refId": "PERSONAL_BODIES_PRIMITIVE",
+      "path": "docs/research/astrology-knowledge-canon/primitives/bodies/PERSONAL_BODIES.md",
+      "locator": "BODY-MOON-001 and BODY-MERCURY-001",
+      "sourceClass": "ESTABLISHED_REFERENCE",
+      "supports": "Bounded Moon and Mercury functions and anti-stereotype limits."
+    },
+    {
+      "refId": "PERSONAL_EDITORIAL_ARCHITECTURE",
+      "path": "docs/product/NATALNODE_PERSONAL_EDITORIAL_ARCHITECTURE_V1.md",
+      "locator": "ChartFacts, WHY/evidence, unknown birth time, and anti-Barnum policy",
+      "sourceClass": "INTERNAL_POLICY",
+      "supports": "Conditional personal meaning, traceability, and limitations."
+    },
+    {
+      "refId": "CONTENT_VALUE_ARCHITECTURE",
+      "path": "docs/product/NATALNODE_CONTENT_VALUE_ARCHITECTURE_V1.md",
+      "locator": "FACT/SIGNAL/INTERPRETATION/EDUCATION boundaries",
+      "sourceClass": "INTERNAL_POLICY",
+      "supports": "No authority upgrade through presentation."
+    },
+    {
+      "refId": "INTERPRETATION_SYSTEM",
+      "path": "docs/architecture/NATALNODE_INTERPRETATION_SYSTEM_V1.md",
+      "locator": "Fact → Signal → Interpretation → Presentation and no Web astronomy",
+      "sourceClass": "INTERNAL_POLICY",
+      "supports": "Runtime and calculation boundaries."
+    },
+    {
+      "refId": "PERSONAL_SYNTHESIS_POC",
+      "path": "docs/research/personal-synthesis/PERSONAL_SYNTHESIS_POC_001_REVIEW.md",
+      "locator": "Evidence, convergence, redundancy, unknown-time, and provenance",
+      "sourceClass": "INTERNAL_POLICY",
+      "supports": "Future shared-root synthesis compatibility."
+    }
+  ],
+  "sourceReferences": [
+    {
+      "refId": "ASPECT_COMPOSITION_ARTIFACT",
+      "path": "docs/research/astrology-knowledge-canon/aspects/BODY_ASPECT_BODY_REPRESENTATIVE_V1.json"
+    },
+    {
+      "refId": "ASPECT_COMPOSITION_METHOD",
+      "path": "docs/product/NATALNODE_BODY_ASPECT_BODY_COMPOSITION_METHOD_V1.md"
+    },
+    {
+      "refId": "FOUNDATIONS_ASPECTS_EN",
+      "path": "docs/content/foundations/v1/en/09-aspects-relationships-between-planets.md"
+    },
+    {
+      "refId": "CHART_ASPECT_FACT_CONTRACT",
+      "path": "packages/contracts/src/chart.ts"
+    },
+    {
+      "refId": "SIGNAL_CONTRACT",
+      "path": "apps/web/src/features/interpretation/interpretation-signal-contracts.ts"
+    },
+    {
+      "refId": "PERSONAL_EDITORIAL_ARCHITECTURE",
+      "path": "docs/product/NATALNODE_PERSONAL_EDITORIAL_ARCHITECTURE_V1.md"
+    },
+    {
+      "refId": "PERSONAL_SYNTHESIS_POC",
+      "path": "docs/research/personal-synthesis/PERSONAL_SYNTHESIS_POC_001_REVIEW.md"
+    }
+  ],
+  "rules": [
+    {
+      "ruleId": "aspect-signal.body.moon_x_aspect.conjunction_x_body.mercury",
+      "ruleVersion": "1.0.0",
+      "compositionId": "body.moon_x_aspect.conjunction_x_body.mercury",
+      "signalId": "signal.aspect.body.moon_x_aspect.conjunction_x_body.mercury",
+      "signalThemeKey": "moon-mercury-conjunction-relational",
+      "requiredFactType": "NATAL_ASPECT",
+      "relationalFactId": "relational.body.moon_aspect.conjunction_body.mercury",
+      "bodyAId": "body.moon",
+      "bodyBId": "body.mercury",
+      "aspectType": "conjunction",
+      "eligibleDomain": "COMMUNICATION",
+      "domainRationale": "The integrated composition asks how Moon response and receptivity meet Mercury naming and interpretation through conjunction close coupling; that specific life-question maps to COMMUNICATION, not a universal Mercury-to-domain rule.",
+      "domainDerivation": {
+        "method": "INTEGRATED_COMPOSITION_SEMANTICS",
+        "bodyRole": "SEMANTIC_FUNCTION_INPUT",
+        "aspectRole": "RELATIONAL_OPERATOR",
+        "bodyOnlyMapping": "FORBIDDEN",
+        "ambiguousOutcome": "NO_SIGNAL",
+        "compositionQuestion": "How can recurring response and naming occupy the same communicative field without one being mistaken for the whole of the other?"
+      },
+      "direction": "NEUTRAL",
+      "directionPolicy": "Conjunction supplies close coupling but does not establish a supportive, challenging, or mixed orientation.",
+      "intensityPolicy": {
+        "candidateValue": "SUBTLE",
+        "allowedSingleAspectValues": [
+          "SUBTLE"
+        ],
+        "maximum": "SUBTLE",
+        "noticeablePromotion": "Not admitted; NOTICEABLE requires a separately admitted promotion.",
+        "strongOrDominant": "Not eligible from this rule alone.",
+        "orbMayPromote": false
+      },
+      "candidateIntensity": "SUBTLE",
+      "confidencePolicy": {
+        "candidateValue": "LOW",
+        "interpretiveEvidence": "One admitted relational fact with two shared position roots and bounded editorial synthesis.",
+        "factAuthority": "AUTHORITATIVE_ENGINE_REQUIRED",
+        "higherConfidence": "Requires separately admitted independent evidence; shared roots do not qualify."
+      },
+      "candidateConfidence": "LOW",
+      "relationalSemanticClaim": "Moon response and Mercury naming may be explored in close coupling: felt experience can make language more immediate, while language can give recurring response a form for examination.",
+      "constructiveCapacity": "Translate a response into words while letting the response remain open; allow language to clarify without closing experience too quickly.",
+      "possibleTension": "Close coupling may let an immediate response become a settled interpretation, or let interpretation move ahead of receptivity.",
+      "semanticBasis": {
+        "bodyAFunction": "response, rhythm, receptivity, inner experience, and need",
+        "bodyBFunction": "thinking, naming, interpretation, learning, reasoning, and exchange",
+        "aspectOperator": "co-presence, concentration, combination, and close coupling",
+        "integratedCompositionId": "body.moon_x_aspect.conjunction_x_body.mercury",
+        "semanticUnitType": "BODY_ASPECT_BODY",
+        "semanticDimensionCount": 3
+      },
+      "forbiddenInferences": [
+        "STRONG",
+        "dominant",
+        "fused personality",
+        "emotionally intelligent",
+        "guaranteed communication ability",
+        "complete personality",
+        "diagnosis"
+      ],
+      "suppressionConditions": [
+        "MISSING_AUTHORITATIVE_ASPECT_FACT",
+        "MISSING_POSITION_LINEAGE",
+        "COMPOSITION_NOT_ADMITTED",
+        "SIGNAL_RULE_NOT_ADMITTED",
+        "UNSUPPORTED_ASPECT_TYPE",
+        "UNSUPPORTED_ZODIAC_MODEL",
+        "INCOMPATIBLE_SCHOOL_OR_POLICY",
+        "MISSING_ORB_AUTHORITY",
+        "UNKNOWN_TIME_WITHOUT_ENGINE_CERTIFICATION",
+        "DUPLICATE_RELATIONAL_FACT",
+        "INCONSISTENT_BODY_PAIR",
+        "UNSUPPORTED_SEMANTIC_INFERENCE",
+        "FAKE_OR_DEVELOPMENT_ASTRONOMY_AUTHORITY"
+      ],
+      "authorityRequirements": {
+        "requiredAspectAuthority": "AUTHORITATIVE_ENGINE_REQUIRED",
+        "allowedSourceAuthorities": [
+          "AUTHORITATIVE_ENGINE"
+        ],
+        "developmentFixtureEligibility": "SUPPRESS",
+        "fixtureDoesNotClaimAuthority": true,
+        "requiredCompositionAdmission": "BOUNDED_ASPECT_COMPOSITION_ADMISSION_PASS",
+        "requiredPolicyState": "ADOPTED_WITH_CONDITIONS"
+      },
+      "orbRequirements": {
+        "requiresAdmittedUpstreamPolicy": true,
+        "numericValueProvided": false,
+        "usedForIntensity": false,
+        "phasePreservedOnlyAsTechnicalProvenance": true,
+        "phaseInterpretationAdmitted": false
+      },
+      "birthTimeRequirement": {
+        "status": "UNKNOWN_TIME_FAIL_CLOSED",
+        "requiresKnownBirthTime": false,
+        "requiresAuthoritativeCertification": true,
+        "condition": "Unknown birth time suppresses this aspect Signal unless a future authoritative Engine result certifies the relation under time uncertainty.",
+        "forbiddenDependencies": [
+          "ASC",
+          "MC",
+          "houses",
+          "house-derived-domain",
+          "noon",
+          "midnight",
+          "fabricated-time"
+        ]
+      },
+      "evidenceLineage": {
+        "relationalFactId": "relational.body.moon_aspect.conjunction_body.mercury",
+        "relationalSemanticUnit": "BODY_ASPECT_BODY",
+        "dependentPositionFactKeys": [
+          "body.moon.position",
+          "body.mercury.position"
+        ],
+        "evidenceRootKeys": [
+          "body.moon.position",
+          "body.mercury.position"
+        ],
+        "independentRootCount": 2,
+        "semanticUnitCount": 3,
+        "relationalFactAddsSemanticInformation": true,
+        "relationalFactIsIndependentRoot": false,
+        "relationalFactIndependentEvidenceIncrement": 0,
+        "countsAsThreeIndependentRoots": false,
+        "rootDeduplicationOperation": "ROOT_DEDUPLICATION",
+        "relationalSemanticEnrichmentOperation": "RELATIONAL_ENRICHMENT",
+        "deduplicationRule": "Deduplicate the two position root keys before counting support; retain the relational semantic unit separately."
+      },
+      "suppressionReasonOnDuplicate": "REDUNDANCY",
+      "provenance": {
+        "sourceRefs": [
+          "ASPECT_COMPOSITION_ARTIFACT",
+          "ASPECT_COMPOSITION_METHOD",
+          "FOUNDATIONS_ASPECTS_EN",
+          "CHART_ASPECT_FACT_CONTRACT",
+          "SIGNAL_CONTRACT",
+          "PERSONAL_SYNTHESIS_POC",
+          "PERSONAL_EDITORIAL_ARCHITECTURE",
+          "CONTENT_VALUE_ARCHITECTURE",
+          "INTERPRETATION_SYSTEM"
+        ],
+        "compositionArtifactPath": "docs/research/astrology-knowledge-canon/aspects/BODY_ASPECT_BODY_REPRESENTATIVE_V1.json",
+        "compositionEvidenceStatus": "SOURCE_SUPPORTED_WITH_CONDITIONS",
+        "ruleEpistemicStatus": "EDITORIAL_SYNTHESIS",
+        "sourceAuthorityRequirement": "AUTHORITATIVE_ENGINE_REQUIRED",
+        "researchFixtureAuthority": "DEVELOPMENT_ONLY_SUPPRESS",
+        "runtimeStatus": "RUNTIME_NOT_ADMITTED"
+      },
+      "whyReferences": {
+        "aspectFact": "relational.body.moon_aspect.conjunction_body.mercury",
+        "dependentPositionRoots": [
+          "body.moon.position",
+          "body.mercury.position"
+        ],
+        "compositionId": "body.moon_x_aspect.conjunction_x_body.mercury",
+        "rule": "aspect-signal.body.moon_x_aspect.conjunction_x_body.mercury@1.0.0",
+        "semanticBasis": [
+          "body.moon",
+          "body.mercury",
+          "aspect.relation.conjunction"
+        ],
+        "authorityState": "AUTHORITATIVE_ENGINE_REQUIRED",
+        "orbState": "ADMITTED_UPSTREAM_POLICY_REQUIRED",
+        "birthTimeEligibility": "UNKNOWN_TIME_REQUIRES_CERTIFICATION",
+        "sourcePolicyRefs": [
+          "ASPECT_COMPOSITION_ARTIFACT",
+          "ASPECT_COMPOSITION_METHOD",
+          "PERSONAL_SYNTHESIS_POC"
+        ]
+      },
+      "learnReferences": [
+        {
+          "objectId": "body.moon",
+          "label": "Moon",
+          "sourcePath": "docs/research/astrology-knowledge-canon/primitives/bodies/PERSONAL_BODIES.md"
+        },
+        {
+          "objectId": "body.mercury",
+          "label": "Mercury",
+          "sourcePath": "docs/research/astrology-knowledge-canon/primitives/bodies/PERSONAL_BODIES.md"
+        },
+        {
+          "objectId": "aspect.conjunction",
+          "label": "Conjunction and major aspects",
+          "sourcePath": "docs/content/foundations/v1/en/09-aspects-relationships-between-planets.md"
+        }
+      ],
+      "runtimeEligibility": "RUNTIME_NOT_ADMITTED",
+      "policyState": "ADOPTED_WITH_CONDITIONS",
+      "editorialReviewStatus": "REPRESENTATIVE_POLICY_REVIEWED"
+    },
+    {
+      "ruleId": "aspect-signal.body.moon_x_aspect.trine_x_body.mercury",
+      "ruleVersion": "1.0.0",
+      "compositionId": "body.moon_x_aspect.trine_x_body.mercury",
+      "signalId": "signal.aspect.body.moon_x_aspect.trine_x_body.mercury",
+      "signalThemeKey": "moon-mercury-trine-relational",
+      "requiredFactType": "NATAL_ASPECT",
+      "relationalFactId": "relational.body.moon_aspect.trine_body.mercury",
+      "bodyAId": "body.moon",
+      "bodyBId": "body.mercury",
+      "aspectType": "trine",
+      "eligibleDomain": "COMMUNICATION",
+      "domainRationale": "The integrated composition asks how Moon response and receptivity meet Mercury naming and interpretation through trine easier circulation; that specific life-question maps to COMMUNICATION, not a universal Mercury-to-domain rule.",
+      "domainDerivation": {
+        "method": "INTEGRATED_COMPOSITION_SEMANTICS",
+        "bodyRole": "SEMANTIC_FUNCTION_INPUT",
+        "aspectRole": "RELATIONAL_OPERATOR",
+        "bodyOnlyMapping": "FORBIDDEN",
+        "ambiguousOutcome": "NO_SIGNAL",
+        "compositionQuestion": "Where can response and naming circulate readily while ease still receives deliberate checking?"
+      },
+      "direction": "NEUTRAL",
+      "directionPolicy": "Trine supplies relatively easier circulation but does not establish a supportive, challenging, or mixed orientation.",
+      "intensityPolicy": {
+        "candidateValue": "SUBTLE",
+        "allowedSingleAspectValues": [
+          "SUBTLE"
+        ],
+        "maximum": "SUBTLE",
+        "noticeablePromotion": "Not admitted; NOTICEABLE requires a separately admitted promotion.",
+        "strongOrDominant": "Not eligible from this rule alone.",
+        "orbMayPromote": false
+      },
+      "candidateIntensity": "SUBTLE",
+      "confidencePolicy": {
+        "candidateValue": "LOW",
+        "interpretiveEvidence": "One admitted relational fact with two shared position roots and bounded editorial synthesis.",
+        "factAuthority": "AUTHORITATIVE_ENGINE_REQUIRED",
+        "higherConfidence": "Requires separately admitted independent evidence; shared roots do not qualify."
+      },
+      "candidateConfidence": "LOW",
+      "relationalSemanticClaim": "Moon response and Mercury naming may be explored through relatively easier circulation: felt information can be noticed, translated, and compared with less deliberate friction, while ease still needs checking.",
+      "constructiveCapacity": "Let response inform language and language clarify response, using available circulation intentionally while testing whether the first understanding still fits.",
+      "possibleTension": "A readily available connection may be taken for granted; familiar flow can reduce the impulse to check what was omitted or assumed.",
+      "semanticBasis": {
+        "bodyAFunction": "response, rhythm, receptivity, inner experience, and need",
+        "bodyBFunction": "thinking, naming, interpretation, learning, reasoning, and exchange",
+        "aspectOperator": "relatively easier circulation, flow, and compatibility",
+        "integratedCompositionId": "body.moon_x_aspect.trine_x_body.mercury",
+        "semanticUnitType": "BODY_ASPECT_BODY",
+        "semanticDimensionCount": 3
+      },
+      "forbiddenInferences": [
+        "SUPPORTIVE",
+        "talent",
+        "gift",
+        "virtue",
+        "success",
+        "high confidence",
+        "guaranteed outcome",
+        "complete personality",
+        "diagnosis"
+      ],
+      "suppressionConditions": [
+        "MISSING_AUTHORITATIVE_ASPECT_FACT",
+        "MISSING_POSITION_LINEAGE",
+        "COMPOSITION_NOT_ADMITTED",
+        "SIGNAL_RULE_NOT_ADMITTED",
+        "UNSUPPORTED_ASPECT_TYPE",
+        "UNSUPPORTED_ZODIAC_MODEL",
+        "INCOMPATIBLE_SCHOOL_OR_POLICY",
+        "MISSING_ORB_AUTHORITY",
+        "UNKNOWN_TIME_WITHOUT_ENGINE_CERTIFICATION",
+        "DUPLICATE_RELATIONAL_FACT",
+        "INCONSISTENT_BODY_PAIR",
+        "UNSUPPORTED_SEMANTIC_INFERENCE",
+        "FAKE_OR_DEVELOPMENT_ASTRONOMY_AUTHORITY"
+      ],
+      "authorityRequirements": {
+        "requiredAspectAuthority": "AUTHORITATIVE_ENGINE_REQUIRED",
+        "allowedSourceAuthorities": [
+          "AUTHORITATIVE_ENGINE"
+        ],
+        "developmentFixtureEligibility": "SUPPRESS",
+        "fixtureDoesNotClaimAuthority": true,
+        "requiredCompositionAdmission": "BOUNDED_ASPECT_COMPOSITION_ADMISSION_PASS",
+        "requiredPolicyState": "ADOPTED_WITH_CONDITIONS"
+      },
+      "orbRequirements": {
+        "requiresAdmittedUpstreamPolicy": true,
+        "numericValueProvided": false,
+        "usedForIntensity": false,
+        "phasePreservedOnlyAsTechnicalProvenance": true,
+        "phaseInterpretationAdmitted": false
+      },
+      "birthTimeRequirement": {
+        "status": "UNKNOWN_TIME_FAIL_CLOSED",
+        "requiresKnownBirthTime": false,
+        "requiresAuthoritativeCertification": true,
+        "condition": "Unknown birth time suppresses this aspect Signal unless a future authoritative Engine result certifies the relation under time uncertainty.",
+        "forbiddenDependencies": [
+          "ASC",
+          "MC",
+          "houses",
+          "house-derived-domain",
+          "noon",
+          "midnight",
+          "fabricated-time"
+        ]
+      },
+      "evidenceLineage": {
+        "relationalFactId": "relational.body.moon_aspect.trine_body.mercury",
+        "relationalSemanticUnit": "BODY_ASPECT_BODY",
+        "dependentPositionFactKeys": [
+          "body.moon.position",
+          "body.mercury.position"
+        ],
+        "evidenceRootKeys": [
+          "body.moon.position",
+          "body.mercury.position"
+        ],
+        "independentRootCount": 2,
+        "semanticUnitCount": 3,
+        "relationalFactAddsSemanticInformation": true,
+        "relationalFactIsIndependentRoot": false,
+        "relationalFactIndependentEvidenceIncrement": 0,
+        "countsAsThreeIndependentRoots": false,
+        "rootDeduplicationOperation": "ROOT_DEDUPLICATION",
+        "relationalSemanticEnrichmentOperation": "RELATIONAL_ENRICHMENT",
+        "deduplicationRule": "Deduplicate the two position root keys before counting support; retain the relational semantic unit separately."
+      },
+      "suppressionReasonOnDuplicate": "REDUNDANCY",
+      "provenance": {
+        "sourceRefs": [
+          "ASPECT_COMPOSITION_ARTIFACT",
+          "ASPECT_COMPOSITION_METHOD",
+          "FOUNDATIONS_ASPECTS_EN",
+          "CHART_ASPECT_FACT_CONTRACT",
+          "SIGNAL_CONTRACT",
+          "PERSONAL_SYNTHESIS_POC",
+          "PERSONAL_EDITORIAL_ARCHITECTURE",
+          "CONTENT_VALUE_ARCHITECTURE",
+          "INTERPRETATION_SYSTEM"
+        ],
+        "compositionArtifactPath": "docs/research/astrology-knowledge-canon/aspects/BODY_ASPECT_BODY_REPRESENTATIVE_V1.json",
+        "compositionEvidenceStatus": "SOURCE_SUPPORTED_WITH_CONDITIONS",
+        "ruleEpistemicStatus": "EDITORIAL_SYNTHESIS",
+        "sourceAuthorityRequirement": "AUTHORITATIVE_ENGINE_REQUIRED",
+        "researchFixtureAuthority": "DEVELOPMENT_ONLY_SUPPRESS",
+        "runtimeStatus": "RUNTIME_NOT_ADMITTED"
+      },
+      "whyReferences": {
+        "aspectFact": "relational.body.moon_aspect.trine_body.mercury",
+        "dependentPositionRoots": [
+          "body.moon.position",
+          "body.mercury.position"
+        ],
+        "compositionId": "body.moon_x_aspect.trine_x_body.mercury",
+        "rule": "aspect-signal.body.moon_x_aspect.trine_x_body.mercury@1.0.0",
+        "semanticBasis": [
+          "body.moon",
+          "body.mercury",
+          "aspect.relation.trine"
+        ],
+        "authorityState": "AUTHORITATIVE_ENGINE_REQUIRED",
+        "orbState": "ADMITTED_UPSTREAM_POLICY_REQUIRED",
+        "birthTimeEligibility": "UNKNOWN_TIME_REQUIRES_CERTIFICATION",
+        "sourcePolicyRefs": [
+          "ASPECT_COMPOSITION_ARTIFACT",
+          "ASPECT_COMPOSITION_METHOD",
+          "PERSONAL_SYNTHESIS_POC"
+        ]
+      },
+      "learnReferences": [
+        {
+          "objectId": "body.moon",
+          "label": "Moon",
+          "sourcePath": "docs/research/astrology-knowledge-canon/primitives/bodies/PERSONAL_BODIES.md"
+        },
+        {
+          "objectId": "body.mercury",
+          "label": "Mercury",
+          "sourcePath": "docs/research/astrology-knowledge-canon/primitives/bodies/PERSONAL_BODIES.md"
+        },
+        {
+          "objectId": "aspect.trine",
+          "label": "Trine and major aspects",
+          "sourcePath": "docs/content/foundations/v1/en/09-aspects-relationships-between-planets.md"
+        }
+      ],
+      "runtimeEligibility": "RUNTIME_NOT_ADMITTED",
+      "policyState": "ADOPTED_WITH_CONDITIONS",
+      "editorialReviewStatus": "REPRESENTATIVE_POLICY_REVIEWED"
+    },
+    {
+      "ruleId": "aspect-signal.body.moon_x_aspect.square_x_body.mercury",
+      "ruleVersion": "1.0.0",
+      "compositionId": "body.moon_x_aspect.square_x_body.mercury",
+      "signalId": "signal.aspect.body.moon_x_aspect.square_x_body.mercury",
+      "signalThemeKey": "moon-mercury-square-relational",
+      "requiredFactType": "NATAL_ASPECT",
+      "relationalFactId": "relational.body.moon_aspect.square_body.mercury",
+      "bodyAId": "body.moon",
+      "bodyBId": "body.mercury",
+      "aspectType": "square",
+      "eligibleDomain": "COMMUNICATION",
+      "domainRationale": "The integrated composition asks how Moon response and receptivity meet Mercury naming and interpretation through square active friction; that specific life-question maps to COMMUNICATION, not a universal Mercury-to-domain rule.",
+      "domainDerivation": {
+        "method": "INTEGRATED_COMPOSITION_SEMANTICS",
+        "bodyRole": "SEMANTIC_FUNCTION_INPUT",
+        "aspectRole": "RELATIONAL_OPERATOR",
+        "bodyOnlyMapping": "FORBIDDEN",
+        "ambiguousOutcome": "NO_SIGNAL",
+        "compositionQuestion": "What must be slowed, distinguished, or reworded when response and interpretation press against each other in exchange?"
+      },
+      "direction": "NEUTRAL",
+      "directionPolicy": "Square supplies active friction and adjustment pressure but does not establish a supportive, challenging, or mixed orientation.",
+      "intensityPolicy": {
+        "candidateValue": "SUBTLE",
+        "allowedSingleAspectValues": [
+          "SUBTLE"
+        ],
+        "maximum": "SUBTLE",
+        "noticeablePromotion": "Not admitted; NOTICEABLE requires a separately admitted promotion.",
+        "strongOrDominant": "Not eligible from this rule alone.",
+        "orbMayPromote": false
+      },
+      "candidateIntensity": "SUBTLE",
+      "confidencePolicy": {
+        "candidateValue": "LOW",
+        "interpretiveEvidence": "One admitted relational fact with two shared position roots and bounded editorial synthesis.",
+        "factAuthority": "AUTHORITATIVE_ENGINE_REQUIRED",
+        "higherConfidence": "Requires separately admitted independent evidence; shared roots do not qualify."
+      },
+      "candidateConfidence": "LOW",
+      "relationalSemanticClaim": "Moon response and Mercury naming may be explored through active friction: felt experience and interpretation can press against one another, making translation, pacing, and adjustment more visible.",
+      "constructiveCapacity": "Use mismatch as feedback: pause between response and explanation, distinguish what was felt from what was concluded, and let revision improve exchange.",
+      "possibleTension": "Pressure for adjustment can produce premature naming or retreat into explanation instead of staying with the response that needs attention.",
+      "semanticBasis": {
+        "bodyAFunction": "response, rhythm, receptivity, inner experience, and need",
+        "bodyBFunction": "thinking, naming, interpretation, learning, reasoning, and exchange",
+        "aspectOperator": "active friction, pressure, and adjustment",
+        "integratedCompositionId": "body.moon_x_aspect.square_x_body.mercury",
+        "semanticUnitType": "BODY_ASPECT_BODY",
+        "semanticDimensionCount": 3
+      },
+      "forbiddenInferences": [
+        "CHALLENGING",
+        "badness",
+        "pathology",
+        "emotional instability",
+        "communication problem",
+        "major life struggle",
+        "head versus heart",
+        "diagnosis"
+      ],
+      "suppressionConditions": [
+        "MISSING_AUTHORITATIVE_ASPECT_FACT",
+        "MISSING_POSITION_LINEAGE",
+        "COMPOSITION_NOT_ADMITTED",
+        "SIGNAL_RULE_NOT_ADMITTED",
+        "UNSUPPORTED_ASPECT_TYPE",
+        "UNSUPPORTED_ZODIAC_MODEL",
+        "INCOMPATIBLE_SCHOOL_OR_POLICY",
+        "MISSING_ORB_AUTHORITY",
+        "UNKNOWN_TIME_WITHOUT_ENGINE_CERTIFICATION",
+        "DUPLICATE_RELATIONAL_FACT",
+        "INCONSISTENT_BODY_PAIR",
+        "UNSUPPORTED_SEMANTIC_INFERENCE",
+        "FAKE_OR_DEVELOPMENT_ASTRONOMY_AUTHORITY"
+      ],
+      "authorityRequirements": {
+        "requiredAspectAuthority": "AUTHORITATIVE_ENGINE_REQUIRED",
+        "allowedSourceAuthorities": [
+          "AUTHORITATIVE_ENGINE"
+        ],
+        "developmentFixtureEligibility": "SUPPRESS",
+        "fixtureDoesNotClaimAuthority": true,
+        "requiredCompositionAdmission": "BOUNDED_ASPECT_COMPOSITION_ADMISSION_PASS",
+        "requiredPolicyState": "ADOPTED_WITH_CONDITIONS"
+      },
+      "orbRequirements": {
+        "requiresAdmittedUpstreamPolicy": true,
+        "numericValueProvided": false,
+        "usedForIntensity": false,
+        "phasePreservedOnlyAsTechnicalProvenance": true,
+        "phaseInterpretationAdmitted": false
+      },
+      "birthTimeRequirement": {
+        "status": "UNKNOWN_TIME_FAIL_CLOSED",
+        "requiresKnownBirthTime": false,
+        "requiresAuthoritativeCertification": true,
+        "condition": "Unknown birth time suppresses this aspect Signal unless a future authoritative Engine result certifies the relation under time uncertainty.",
+        "forbiddenDependencies": [
+          "ASC",
+          "MC",
+          "houses",
+          "house-derived-domain",
+          "noon",
+          "midnight",
+          "fabricated-time"
+        ]
+      },
+      "evidenceLineage": {
+        "relationalFactId": "relational.body.moon_aspect.square_body.mercury",
+        "relationalSemanticUnit": "BODY_ASPECT_BODY",
+        "dependentPositionFactKeys": [
+          "body.moon.position",
+          "body.mercury.position"
+        ],
+        "evidenceRootKeys": [
+          "body.moon.position",
+          "body.mercury.position"
+        ],
+        "independentRootCount": 2,
+        "semanticUnitCount": 3,
+        "relationalFactAddsSemanticInformation": true,
+        "relationalFactIsIndependentRoot": false,
+        "relationalFactIndependentEvidenceIncrement": 0,
+        "countsAsThreeIndependentRoots": false,
+        "rootDeduplicationOperation": "ROOT_DEDUPLICATION",
+        "relationalSemanticEnrichmentOperation": "RELATIONAL_ENRICHMENT",
+        "deduplicationRule": "Deduplicate the two position root keys before counting support; retain the relational semantic unit separately."
+      },
+      "suppressionReasonOnDuplicate": "REDUNDANCY",
+      "provenance": {
+        "sourceRefs": [
+          "ASPECT_COMPOSITION_ARTIFACT",
+          "ASPECT_COMPOSITION_METHOD",
+          "FOUNDATIONS_ASPECTS_EN",
+          "CHART_ASPECT_FACT_CONTRACT",
+          "SIGNAL_CONTRACT",
+          "PERSONAL_SYNTHESIS_POC",
+          "PERSONAL_EDITORIAL_ARCHITECTURE",
+          "CONTENT_VALUE_ARCHITECTURE",
+          "INTERPRETATION_SYSTEM"
+        ],
+        "compositionArtifactPath": "docs/research/astrology-knowledge-canon/aspects/BODY_ASPECT_BODY_REPRESENTATIVE_V1.json",
+        "compositionEvidenceStatus": "SOURCE_SUPPORTED_WITH_CONDITIONS",
+        "ruleEpistemicStatus": "EDITORIAL_SYNTHESIS",
+        "sourceAuthorityRequirement": "AUTHORITATIVE_ENGINE_REQUIRED",
+        "researchFixtureAuthority": "DEVELOPMENT_ONLY_SUPPRESS",
+        "runtimeStatus": "RUNTIME_NOT_ADMITTED"
+      },
+      "whyReferences": {
+        "aspectFact": "relational.body.moon_aspect.square_body.mercury",
+        "dependentPositionRoots": [
+          "body.moon.position",
+          "body.mercury.position"
+        ],
+        "compositionId": "body.moon_x_aspect.square_x_body.mercury",
+        "rule": "aspect-signal.body.moon_x_aspect.square_x_body.mercury@1.0.0",
+        "semanticBasis": [
+          "body.moon",
+          "body.mercury",
+          "aspect.relation.square"
+        ],
+        "authorityState": "AUTHORITATIVE_ENGINE_REQUIRED",
+        "orbState": "ADMITTED_UPSTREAM_POLICY_REQUIRED",
+        "birthTimeEligibility": "UNKNOWN_TIME_REQUIRES_CERTIFICATION",
+        "sourcePolicyRefs": [
+          "ASPECT_COMPOSITION_ARTIFACT",
+          "ASPECT_COMPOSITION_METHOD",
+          "PERSONAL_SYNTHESIS_POC"
+        ]
+      },
+      "learnReferences": [
+        {
+          "objectId": "body.moon",
+          "label": "Moon",
+          "sourcePath": "docs/research/astrology-knowledge-canon/primitives/bodies/PERSONAL_BODIES.md"
+        },
+        {
+          "objectId": "body.mercury",
+          "label": "Mercury",
+          "sourcePath": "docs/research/astrology-knowledge-canon/primitives/bodies/PERSONAL_BODIES.md"
+        },
+        {
+          "objectId": "aspect.square",
+          "label": "Square and major aspects",
+          "sourcePath": "docs/content/foundations/v1/en/09-aspects-relationships-between-planets.md"
+        }
+      ],
+      "runtimeEligibility": "RUNTIME_NOT_ADMITTED",
+      "policyState": "ADOPTED_WITH_CONDITIONS",
+      "editorialReviewStatus": "REPRESENTATIVE_POLICY_REVIEWED"
+    },
+    {
+      "ruleId": "aspect-signal.body.moon_x_aspect.opposition_x_body.mercury",
+      "ruleVersion": "1.0.0",
+      "compositionId": "body.moon_x_aspect.opposition_x_body.mercury",
+      "signalId": "signal.aspect.body.moon_x_aspect.opposition_x_body.mercury",
+      "signalThemeKey": "moon-mercury-opposition-relational",
+      "requiredFactType": "NATAL_ASPECT",
+      "relationalFactId": "relational.body.moon_aspect.opposition_body.mercury",
+      "bodyAId": "body.moon",
+      "bodyBId": "body.mercury",
+      "aspectType": "opposition",
+      "eligibleDomain": "COMMUNICATION",
+      "domainRationale": "The integrated composition asks how Moon response and receptivity meet Mercury naming and interpretation through opposition polarity and negotiation; that specific life-question maps to COMMUNICATION, not a universal Mercury-to-domain rule.",
+      "domainDerivation": {
+        "method": "INTEGRATED_COMPOSITION_SEMANTICS",
+        "bodyRole": "SEMANTIC_FUNCTION_INPUT",
+        "aspectRole": "RELATIONAL_OPERATOR",
+        "bodyOnlyMapping": "FORBIDDEN",
+        "ambiguousOutcome": "NO_SIGNAL",
+        "compositionQuestion": "How can felt response and interpretation remain two perspectives in communicative negotiation without forcing one to win?"
+      },
+      "direction": "NEUTRAL",
+      "directionPolicy": "Opposition supplies polarity and negotiation but does not establish a supportive, challenging, or mixed orientation.",
+      "intensityPolicy": {
+        "candidateValue": "SUBTLE",
+        "allowedSingleAspectValues": [
+          "SUBTLE"
+        ],
+        "maximum": "SUBTLE",
+        "noticeablePromotion": "Not admitted; NOTICEABLE requires a separately admitted promotion.",
+        "strongOrDominant": "Not eligible from this rule alone.",
+        "orbMayPromote": false
+      },
+      "candidateIntensity": "SUBTLE",
+      "confidencePolicy": {
+        "candidateValue": "LOW",
+        "interpretiveEvidence": "One admitted relational fact with two shared position roots and bounded editorial synthesis.",
+        "factAuthority": "AUTHORITATIVE_ENGINE_REQUIRED",
+        "higherConfidence": "Requires separately admitted independent evidence; shared roots do not qualify."
+      },
+      "candidateConfidence": "LOW",
+      "relationalSemanticClaim": "Moon response and Mercury naming may be explored across a polarity: attention can alternate between felt need and interpretation, making perspective and negotiation more visible while keeping both functions in conversation.",
+      "constructiveCapacity": "Name both response and explanation, then alternate listening and interpretation long enough to find a workable relationship between them.",
+      "possibleTension": "Polarity may become a pendulum between feeling and explanation; one perspective can be pushed away or treated as the only legitimate account.",
+      "semanticBasis": {
+        "bodyAFunction": "response, rhythm, receptivity, inner experience, and need",
+        "bodyBFunction": "thinking, naming, interpretation, learning, reasoning, and exchange",
+        "aspectOperator": "polarity, facing, alternation, perspective, and negotiation",
+        "integratedCompositionId": "body.moon_x_aspect.opposition_x_body.mercury",
+        "semanticUnitType": "BODY_ASPECT_BODY",
+        "semanticDimensionCount": 3
+      },
+      "forbiddenInferences": [
+        "MIXED",
+        "conflict",
+        "split personality",
+        "projection as universal doctrine",
+        "relationship problems",
+        "inevitable conflict",
+        "complete personality",
+        "diagnosis"
+      ],
+      "suppressionConditions": [
+        "MISSING_AUTHORITATIVE_ASPECT_FACT",
+        "MISSING_POSITION_LINEAGE",
+        "COMPOSITION_NOT_ADMITTED",
+        "SIGNAL_RULE_NOT_ADMITTED",
+        "UNSUPPORTED_ASPECT_TYPE",
+        "UNSUPPORTED_ZODIAC_MODEL",
+        "INCOMPATIBLE_SCHOOL_OR_POLICY",
+        "MISSING_ORB_AUTHORITY",
+        "UNKNOWN_TIME_WITHOUT_ENGINE_CERTIFICATION",
+        "DUPLICATE_RELATIONAL_FACT",
+        "INCONSISTENT_BODY_PAIR",
+        "UNSUPPORTED_SEMANTIC_INFERENCE",
+        "FAKE_OR_DEVELOPMENT_ASTRONOMY_AUTHORITY"
+      ],
+      "authorityRequirements": {
+        "requiredAspectAuthority": "AUTHORITATIVE_ENGINE_REQUIRED",
+        "allowedSourceAuthorities": [
+          "AUTHORITATIVE_ENGINE"
+        ],
+        "developmentFixtureEligibility": "SUPPRESS",
+        "fixtureDoesNotClaimAuthority": true,
+        "requiredCompositionAdmission": "BOUNDED_ASPECT_COMPOSITION_ADMISSION_PASS",
+        "requiredPolicyState": "ADOPTED_WITH_CONDITIONS"
+      },
+      "orbRequirements": {
+        "requiresAdmittedUpstreamPolicy": true,
+        "numericValueProvided": false,
+        "usedForIntensity": false,
+        "phasePreservedOnlyAsTechnicalProvenance": true,
+        "phaseInterpretationAdmitted": false
+      },
+      "birthTimeRequirement": {
+        "status": "UNKNOWN_TIME_FAIL_CLOSED",
+        "requiresKnownBirthTime": false,
+        "requiresAuthoritativeCertification": true,
+        "condition": "Unknown birth time suppresses this aspect Signal unless a future authoritative Engine result certifies the relation under time uncertainty.",
+        "forbiddenDependencies": [
+          "ASC",
+          "MC",
+          "houses",
+          "house-derived-domain",
+          "noon",
+          "midnight",
+          "fabricated-time"
+        ]
+      },
+      "evidenceLineage": {
+        "relationalFactId": "relational.body.moon_aspect.opposition_body.mercury",
+        "relationalSemanticUnit": "BODY_ASPECT_BODY",
+        "dependentPositionFactKeys": [
+          "body.moon.position",
+          "body.mercury.position"
+        ],
+        "evidenceRootKeys": [
+          "body.moon.position",
+          "body.mercury.position"
+        ],
+        "independentRootCount": 2,
+        "semanticUnitCount": 3,
+        "relationalFactAddsSemanticInformation": true,
+        "relationalFactIsIndependentRoot": false,
+        "relationalFactIndependentEvidenceIncrement": 0,
+        "countsAsThreeIndependentRoots": false,
+        "rootDeduplicationOperation": "ROOT_DEDUPLICATION",
+        "relationalSemanticEnrichmentOperation": "RELATIONAL_ENRICHMENT",
+        "deduplicationRule": "Deduplicate the two position root keys before counting support; retain the relational semantic unit separately."
+      },
+      "suppressionReasonOnDuplicate": "REDUNDANCY",
+      "provenance": {
+        "sourceRefs": [
+          "ASPECT_COMPOSITION_ARTIFACT",
+          "ASPECT_COMPOSITION_METHOD",
+          "FOUNDATIONS_ASPECTS_EN",
+          "CHART_ASPECT_FACT_CONTRACT",
+          "SIGNAL_CONTRACT",
+          "PERSONAL_SYNTHESIS_POC",
+          "PERSONAL_EDITORIAL_ARCHITECTURE",
+          "CONTENT_VALUE_ARCHITECTURE",
+          "INTERPRETATION_SYSTEM"
+        ],
+        "compositionArtifactPath": "docs/research/astrology-knowledge-canon/aspects/BODY_ASPECT_BODY_REPRESENTATIVE_V1.json",
+        "compositionEvidenceStatus": "SOURCE_SUPPORTED_WITH_CONDITIONS",
+        "ruleEpistemicStatus": "EDITORIAL_SYNTHESIS",
+        "sourceAuthorityRequirement": "AUTHORITATIVE_ENGINE_REQUIRED",
+        "researchFixtureAuthority": "DEVELOPMENT_ONLY_SUPPRESS",
+        "runtimeStatus": "RUNTIME_NOT_ADMITTED"
+      },
+      "whyReferences": {
+        "aspectFact": "relational.body.moon_aspect.opposition_body.mercury",
+        "dependentPositionRoots": [
+          "body.moon.position",
+          "body.mercury.position"
+        ],
+        "compositionId": "body.moon_x_aspect.opposition_x_body.mercury",
+        "rule": "aspect-signal.body.moon_x_aspect.opposition_x_body.mercury@1.0.0",
+        "semanticBasis": [
+          "body.moon",
+          "body.mercury",
+          "aspect.relation.opposition"
+        ],
+        "authorityState": "AUTHORITATIVE_ENGINE_REQUIRED",
+        "orbState": "ADMITTED_UPSTREAM_POLICY_REQUIRED",
+        "birthTimeEligibility": "UNKNOWN_TIME_REQUIRES_CERTIFICATION",
+        "sourcePolicyRefs": [
+          "ASPECT_COMPOSITION_ARTIFACT",
+          "ASPECT_COMPOSITION_METHOD",
+          "PERSONAL_SYNTHESIS_POC"
+        ]
+      },
+      "learnReferences": [
+        {
+          "objectId": "body.moon",
+          "label": "Moon",
+          "sourcePath": "docs/research/astrology-knowledge-canon/primitives/bodies/PERSONAL_BODIES.md"
+        },
+        {
+          "objectId": "body.mercury",
+          "label": "Mercury",
+          "sourcePath": "docs/research/astrology-knowledge-canon/primitives/bodies/PERSONAL_BODIES.md"
+        },
+        {
+          "objectId": "aspect.opposition",
+          "label": "Opposition and major aspects",
+          "sourcePath": "docs/content/foundations/v1/en/09-aspects-relationships-between-planets.md"
+        }
+      ],
+      "runtimeEligibility": "RUNTIME_NOT_ADMITTED",
+      "policyState": "ADOPTED_WITH_CONDITIONS",
+      "editorialReviewStatus": "REPRESENTATIVE_POLICY_REVIEWED"
+    }
+  ],
+  "validationGates": {
+    "ASPECT_SIGNAL_CONTRACT": "PASS",
+    "DOMAIN_SEMANTICS": "PASS",
+    "DIRECTION_POLICY": "PASS",
+    "INTENSITY_POLICY": "PASS",
+    "CONFIDENCE_POLICY": "PASS",
+    "EVIDENCE_LINEAGE_PRESERVATION": "PASS",
+    "ROOT_DEDUPLICATION": "PASS",
+    "RELATIONAL_SEMANTIC_ENRICHMENT": "PASS",
+    "NO_FALSE_CONVERGENCE": "PASS",
+    "NO_VALENCE_COLLAPSE": "PASS",
+    "ORB_AUTHORITY_BOUNDARY": "PASS",
+    "UNKNOWN_TIME_AUTHORITY": "PASS",
+    "ANTI_STEREOTYPE": "PASS",
+    "WHY_TRACEABILITY": "PASS",
+    "PERSONAL_SYNTHESIS_COMPATIBILITY": "PASS"
+  },
+  "readiness": {
+    "READY_FOR_BOUNDED_ASPECT_SIGNAL_ADMISSION": "YES",
+    "READY_FOR_SHARED_ROOT_SYNTHESIS_POC": "YES",
+    "READY_FOR_BROAD_SCALE": "NO",
+    "RUNTIME_ADMISSION": "NO"
+  }
+}
