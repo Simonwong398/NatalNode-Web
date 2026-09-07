@@ -124,3 +124,50 @@ development build. Owner browser review remains a separate gate.
 
 The route is suitable for owner comparison at the supplied local URLs only.
 It is not a production admission decision.
+
+## R1 scenario-fidelity correction
+
+The R1 browser review identified a static-build hydration problem: the route
+could expose the default relational shell before the URL-selected scenario had
+hydrated. The route now uses a client-only React boundary and the component
+reads the query scenario during its initial client render. The scenario now
+owns the hero, section framing, themes, WHY content, and Technical Boundary as
+one projection.
+
+The placement-only projection keeps the existing synthesis classification
+`NO_RELATIONAL_ENRICHMENT` (the repository's existing non-relational
+equivalent), with 2 semantic units, 2 unique roots, no Aspect Signal, no
+compatibility rule, and no subsumed themes. The unknown-time projection has
+the same trace shape and `UNKNOWN` birth-time authority. Neither projection
+contains relational reader claims.
+
+Placement-only and unknown-time use the canonical placement reader copy from
+the accepted My Chart POC. In particular, Moon in Taurus renders
+`Steadiness that still leaves room to respond`, rather than a generic fallback.
+
+The contextual Learn bridges resolve to the existing English lesson
+destinations:
+
+- Moon → `/en/learn/foundations/the-sun-and-moon/`
+- Mercury → `/en/learn/foundations/mercury-venus-and-mars/`
+- Aries/Taurus → `/en/learn/foundations/the-zodiac-polarity-elements-and-modes/`
+- conjunction → `/en/learn/foundations/aspects-relationships-between-planets/`
+
+R1 gates:
+
+- `RELATIONAL_CONTENT_VALUE PASS`
+- `SCENARIO_COPY_ISOLATION PASS`
+- `TECHNICAL_TRACE_FIDELITY PASS`
+- `FAIR_COMPARISON_BASELINE PASS`
+- `UNKNOWN_TIME_SEMANTIC_FIDELITY PASS`
+- `UNKNOWN_TIME_CONTENT_QUALITY PASS`
+- `LEARN_LINK_FIDELITY PASS`
+- `NO_RELATIONAL_LEAKAGE PASS`
+
+`READY_FOR_OWNER_BROWSER_REVIEW YES`
+
+`READY_FOR_PRODUCTION_MY_CHART NO`
+
+`READY_FOR_BROAD_SCALE NO`
+
+`RUNTIME_ADMISSION NO`

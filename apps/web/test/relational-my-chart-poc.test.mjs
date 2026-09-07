@@ -1,6 +1,8 @@
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import test from 'node:test';
+import { createElement } from 'react';
+import { renderToStaticMarkup } from 'react-dom/server';
 
 const projectionModule = await import(
   new URL(
@@ -11,6 +13,12 @@ const projectionModule = await import(
 const sharedRootModule = await import(
   new URL(
     '../dist/relational-my-chart-poc-characterization/features/interpretation/shared-root-relational-synthesis-poc.js',
+    import.meta.url
+  ).href
+);
+const componentModule = await import(
+  new URL(
+    '../dist/relational-my-chart-poc-characterization/features/my-chart/MyChartRelationalPoc.js',
     import.meta.url
   ).href
 );
@@ -38,10 +46,21 @@ function project(scenario) {
   );
 }
 
+function renderScenario(scenario) {
+  return renderToStaticMarkup(createElement(componentModule.default, {
+    initialScenario: scenario,
+    placementRules: placementArtifact.rules,
+    aspectRules: aspectArtifact.rules
+  }));
+}
+
 function primaryReaderText(projection) {
   return JSON.stringify({
     hook: projection.reading.hook,
     introduction: projection.reading.introduction,
+    sectionKicker: projection.reading.sectionKicker,
+    sectionTitle: projection.reading.sectionTitle,
+    sectionBody: projection.reading.sectionBody,
     themes: projection.reading.themes.map((theme) => ({
       title: theme.title,
       domain: theme.domain,
@@ -88,6 +107,24 @@ test('relational-known-time renders exactly one enriched primary theme', () => {
   assert.equal(theme.technical.confidence, 'LOW');
 });
 
+test('relational-known-time owns the relational reader shell and technical trace', () => {
+  const projection = project('relational-known-time');
+  const html = renderScenario('relational-known-time');
+
+  assert.match(primaryReaderText(projection), /When response becomes language/iu);
+  assert.match(primaryReaderText(projection), /one interaction pattern at a time/iu);
+  assert.match(html, /data-my-chart-scenario="relational-known-time"/u);
+  assert.match(html, /data-my-chart-classification="RELATIONAL_ENRICHMENT"/u);
+  assert.match(html, /My Chart · Relational Reading POC/u);
+  assert.match(html, /When response becomes language\./u);
+  assert.match(html, /When response and naming arrive together/u);
+  assert.match(html, /Semantic units<\/dt><dd>3/u);
+  assert.match(html, /Aspect Signal ID<\/dt><dd>signal\.aspect/u);
+  assert.match(html, /shared-root-relational\.compatibility\.moon-mercury-conjunction@1\.0\.0/u);
+  assert.match(html, /personal-theme\.mercury-aries-information-initiation/u);
+  assert.match(html, /personal-theme\.moon-aries-response-initiation/u);
+});
+
 test('reader theme is derived from the shared-root synthesis output, not a manual theme bypass', () => {
   const moonRule = placementRules.get('body.moon_x_sign.aries');
   const mercuryRule = placementRules.get('body.mercury_x_sign.aries');
@@ -112,6 +149,7 @@ test('reader theme is derived from the shared-root synthesis output, not a manua
   );
   assert.match(projectionSource, /synthesizeSharedRootRelationalSignals/u);
   assert.match(projectionSource, /result\.synthesis\.enrichedThemes/u);
+  assert.match(projectionSource, /getMyChartPlacementReaderCopy/u);
   assert.doesNotMatch(projectionSource, /themeId:\s*['"]shared-root-relational/u);
   assert.doesNotMatch(projectionSource, /AUTHORITATIVE_ENGINE/u);
 });
@@ -191,13 +229,31 @@ test('technical provenance is collapsed by default and exposes the required insp
 test('placement-only comparison stays fair and contains no Aspect semantics', () => {
   const projection = project('placement-only');
   const readerText = primaryReaderText(projection);
+  const html = renderScenario('placement-only');
   assert.equal(projection.reading.themes.length, 2);
   assert.equal(projection.technical.classification, 'NO_RELATIONAL_ENRICHMENT');
   assert.equal(projection.technical.semanticUnitCount, 2);
   assert.equal(projection.technical.uniqueRootCount, 2);
   assert.equal(projection.technical.sourceAspectSignalId, null);
+  assert.equal(projection.technical.compatibilityRule, null);
   assert.equal(projection.technical.subsumedThemeIds.length, 0);
-  assert.doesNotMatch(readerText, /conjunct|conjunction|aspect|close coupling/iu);
+  assert.doesNotMatch(readerText, /response becomes language|arrive close together|close coupling|conjunct|conjunction|relational enrichment|interaction pattern/iu);
+  assert.equal(
+    projection.reading.themes.find((theme) => theme.evidence[0] === 'Moon in Aries')?.title,
+    'A response that can begin without rushing itself'
+  );
+  assert.match(html, /data-my-chart-scenario="placement-only"/u);
+  assert.match(html, /data-my-chart-classification="NO_RELATIONAL_ENRICHMENT"/u);
+  assert.match(html, /My Chart · Placement Reading POC/u);
+  assert.match(html, /Two patterns worth noticing\./u);
+  assert.match(html, /Core personal themes/u);
+  assert.match(html, /What keeps showing up/u);
+  assert.match(html, /Semantic units<\/dt><dd>2/u);
+  assert.match(html, /Unique roots<\/dt><dd>2/u);
+  assert.match(html, /Aspect Signal ID<\/dt><dd>None/u);
+  assert.match(html, /Compatibility rule<\/dt><dd>None/u);
+  assert.match(html, /Subsumed source themes<\/dt><dd>None/u);
+  assert.doesNotMatch(html, /When response becomes language|When response and naming arrive together|arrive close together|close coupling|conjunct|conjunction|Relational Reading POC|data-my-chart-classification="RELATIONAL_ENRICHMENT"|shared-root-relational\.compatibility|semantic-unit\.relational|shared-root-relational\.moon-mercury-conjunction/u);
   assert.ok(projection.reading.themes.every((theme) => theme.evidence.length === 1));
   assert.ok(projection.reading.themes.every((theme) => theme.technical.semanticUnitCount === 1));
   assert.ok(projection.reading.themes.every((theme) => theme.technical.intensity === 'SUBTLE'));
@@ -207,6 +263,7 @@ test('placement-only comparison stays fair and contains no Aspect semantics', ()
 test('unknown-time scenario remains useful without Aspect enrichment or fabricated time', () => {
   const projection = project('unknown-time');
   const readerText = primaryReaderText(projection);
+  const html = renderScenario('unknown-time');
   assert.equal(projection.fixture.birthTimeAuthority, 'UNKNOWN');
   assert.equal(projection.unknownTime.presentationStatus, 'UNKNOWN_TIME_READING');
   assert.equal(projection.reading.themes.length, 2);
@@ -214,8 +271,27 @@ test('unknown-time scenario remains useful without Aspect enrichment or fabricat
   assert.equal(projection.technical.semanticUnitCount, 2);
   assert.equal(projection.technical.uniqueRootCount, 2);
   assert.equal(projection.technical.sourceAspectSignalId, null);
+  assert.equal(projection.technical.compatibilityRule, null);
+  assert.equal(projection.technical.subsumedThemeIds.length, 0);
   assert.match(projection.unknownTime.message, /precise birth time|placements remain useful/iu);
-  assert.doesNotMatch(readerText, /ASC|MC|houses|fabricated time|fake aspect|fake orb|noon|midnight|12:00/iu);
+  assert.equal(
+    projection.reading.themes.find((theme) => theme.evidence[0] === 'Moon in Taurus')?.title,
+    'Steadiness that still leaves room to respond'
+  );
+  assert.doesNotMatch(readerText, /response becomes language|arrive close together|close coupling|conjunct|conjunction|relational enrichment|interaction pattern|ASC|MC|houses|fabricated time|fake aspect|fake orb|noon|midnight|12:00/iu);
+  assert.match(html, /data-my-chart-scenario="unknown-time"/u);
+  assert.match(html, /data-my-chart-classification="NO_RELATIONAL_ENRICHMENT"/u);
+  assert.match(html, /My Chart · Unknown-Time Reading POC/u);
+  assert.match(html, /Two patterns still in view\./u);
+  assert.match(html, /Core personal themes/u);
+  assert.match(html, /What keeps showing up/u);
+  assert.match(html, /Unknown-time reading/u);
+  assert.match(html, /Semantic units<\/dt><dd>2/u);
+  assert.match(html, /Unique roots<\/dt><dd>2/u);
+  assert.match(html, /Aspect Signal ID<\/dt><dd>None/u);
+  assert.match(html, /Compatibility rule<\/dt><dd>None/u);
+  assert.match(html, /Subsumed source themes<\/dt><dd>None/u);
+  assert.doesNotMatch(html, /When response becomes language|When response and naming arrive together|arrive close together|close coupling|conjunct|conjunction|Relational Reading POC|data-my-chart-classification="RELATIONAL_ENRICHMENT"|shared-root-relational\.compatibility|semantic-unit\.relational|shared-root-relational\.moon-mercury-conjunction|A supported personal theme/u);
   assert.ok(projection.reading.themes.every((theme) =>
     theme.technical.birthTimeState.includes('UNKNOWN_TIME_SAFE')
   ));
@@ -249,9 +325,25 @@ test('route isolation preserves the accepted My Chart POC and keeps the new rout
   assert.match(routeSource, /robots: 'noindex,nofollow'/u);
   assert.match(routeSource, /COMPOSITION_SIGNAL_REPRESENTATIVE_V1\.json/u);
   assert.match(routeSource, /ASPECT_SIGNAL_REPRESENTATIVE_V1\.json/u);
+  assert.match(routeSource, /client:only="react"/u);
   assert.doesNotMatch(routeSource, /fetch\(|HttpEngineClient|ENGINE_API_URL|Provider/iu);
   assert.match(existingRouteSource, /MyChartContextualLearnStageA/u);
   assert.doesNotMatch(existingRouteSource, /MyChartRelationalPoc|ASPECT_SIGNAL_REPRESENTATIVE_V1/u);
+});
+
+test('contextual Learn bridges resolve to the existing intended destinations', () => {
+  const theme = project('relational-known-time').reading.themes[0];
+  const bridgesByObjectId = new Map(theme.learn.map((bridge) => [bridge.objectId, bridge]));
+
+  assert.equal(bridgesByObjectId.get('body.moon')?.lessonId, 'foundations.sun_moon');
+  assert.equal(bridgesByObjectId.get('body.moon')?.slug, 'the-sun-and-moon');
+  assert.equal(bridgesByObjectId.get('body.mercury')?.lessonId, 'foundations.mercury_venus_mars');
+  assert.equal(bridgesByObjectId.get('body.mercury')?.slug, 'mercury-venus-and-mars');
+  assert.equal(bridgesByObjectId.get('sign.aries')?.lessonId, 'foundations.zodiac_structure');
+  assert.equal(bridgesByObjectId.get('sign.aries')?.slug, 'the-zodiac-polarity-elements-and-modes');
+  assert.equal(bridgesByObjectId.get('aspect.conjunction')?.lessonId, 'foundations.aspects');
+  assert.equal(bridgesByObjectId.get('aspect.conjunction')?.slug, 'aspects-relationships-between-planets');
+  assert.ok(theme.learn.every((bridge) => bridge.contentAvailability === 'AVAILABLE'));
 });
 
 test('all three scenarios are deterministic and route-selectable', () => {

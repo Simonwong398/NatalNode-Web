@@ -29,6 +29,7 @@ import type {
   PersonalSynthesisPersonalTheme,
   PersonalSynthesisStructuredSignalInput
 } from '../interpretation/personal-synthesis-poc.js';
+import { getMyChartPlacementReaderCopy } from './my-chart-personal-content-poc.js';
 
 export const MY_CHART_RELATIONAL_SCENARIOS = Object.freeze([
   'relational-known-time',
@@ -110,6 +111,11 @@ export type MyChartRelationalProjection = Readonly<{
   reading: Readonly<{
     hook: string;
     introduction: string;
+    sectionKicker: string;
+    sectionTitle: string;
+    sectionBody: string;
+    harnessTitle: string;
+    harnessNote: string;
     themes: readonly MyChartRelationalReaderTheme[];
   }>;
   unknownTime: Readonly<{
@@ -196,11 +202,6 @@ const DIRECTION_LABELS: Readonly<Record<PersonalSynthesisPersonalTheme['directio
   CHALLENGING: 'A challenging edge',
   MIXED: 'A meaningful tension',
   NEUTRAL: 'An open question'
-});
-
-const THEME_TITLES: Readonly<Record<string, string>> = Object.freeze({
-  'moon-aries-response-initiation': 'A response that can begin without rushing itself',
-  'mercury-aries-information-initiation': 'A first formulation that can stay open'
 });
 
 const BODY_LABELS: Readonly<Record<string, string>> = Object.freeze({
@@ -438,17 +439,18 @@ function projectPlacementTheme(
   if (signal === undefined) {
     throw new Error(`Placement theme ${theme.themeId} has no representative Signal.`);
   }
+  const copy = getMyChartPlacementReaderCopy(signal.compositionId, theme.semanticThemeKey);
   return Object.freeze({
     themeId: theme.themeId,
-    title: THEME_TITLES[theme.semanticThemeKey] ?? 'A supported personal theme',
+    title: copy.title,
     domain: DOMAIN_LABELS[theme.domain],
     directionLabel: DIRECTION_LABELS[theme.direction],
     evidence: sourceEvidenceLabels([signal], null),
-    recognition: theme.editorial.recognition,
-    constructiveCapacity: theme.editorial.strength,
-    pattern: theme.editorial.pattern,
-    tension: theme.editorial.tension,
-    lever: theme.editorial.lever,
+    recognition: copy.recognition,
+    constructiveCapacity: copy.strength,
+    pattern: copy.pattern,
+    tension: copy.tension,
+    lever: copy.lever,
     why: whyForPlacementTheme(theme),
     learn: learnBridges(signal.learnReferences),
     technical: placementTechnical(theme, signal, birthTimeAuthority)
@@ -619,13 +621,32 @@ export function projectMyChartRelationalContent(
       hook: scenario === 'relational-known-time'
         ? 'When response becomes language.'
         : scenario === 'unknown-time'
-          ? 'What remains in view.'
+          ? 'Two patterns still in view.'
           : 'Two patterns worth noticing.',
       introduction: scenario === 'relational-known-time'
         ? 'A response and the words that explain it may arrive close together. This reading follows what that creates in practice.'
         : scenario === 'unknown-time'
-          ? 'Without a precise birth time, Moon and Mercury placements still offer useful patterns to notice without adding time-sensitive layers.'
-          : 'Read these two placement-level patterns side by side, then compare what changes when their relationship is included.',
+          ? 'With birth time unknown, these two patterns can still offer useful ways to notice what matters without adding time-sensitive layers.'
+          : 'Read these two patterns side by side, keeping each one recognizable on its own.',
+      sectionKicker: scenario === 'relational-known-time'
+        ? 'Core personal theme'
+        : 'Core personal themes',
+      sectionTitle: scenario === 'relational-known-time'
+        ? 'What this pattern makes possible'
+        : 'What keeps showing up',
+      sectionBody: scenario === 'relational-known-time'
+        ? 'The reading stays with one interaction pattern at a time: what you may recognize, what it can make possible, and what to do with it.'
+        : 'Each theme stands on its own: what you may recognize, what it can make possible, and what to do with it.',
+      harnessTitle: scenario === 'relational-known-time'
+        ? 'My Chart · Relational Reading POC'
+        : scenario === 'unknown-time'
+          ? 'My Chart · Unknown-Time Reading POC'
+          : 'My Chart · Placement Reading POC',
+      harnessNote: scenario === 'relational-known-time'
+        ? 'Compare the enriched interaction pattern with the placement-only reading.'
+        : scenario === 'unknown-time'
+          ? 'Compare two placement readings while time-sensitive layers stay out of scope.'
+          : 'Compare two independent placement readings without relational enrichment.',
       themes: freezeArray(themes)
     }),
     unknownTime: Object.freeze({

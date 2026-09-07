@@ -294,6 +294,32 @@ function signalCopy(signal: PersonalSynthesisStructuredSignalInput): SignalReade
   return copy;
 }
 
+export type MyChartPlacementReaderCopy = Readonly<{
+  title: string;
+  recognition: string;
+  strength: string;
+  pattern: string;
+  tension: string;
+  lever: string;
+  whySynthesis: string;
+}>;
+
+/**
+ * Exposes the accepted placement reader copy to another development-only
+ * presentation POC without creating a second source of placement prose.
+ */
+export function getMyChartPlacementReaderCopy(
+  compositionId: string,
+  semanticThemeKey: string
+): MyChartPlacementReaderCopy {
+  const copy = SIGNAL_READER_COPY[compositionId];
+  const title = THEME_TITLES[semanticThemeKey];
+  if (copy === undefined || title === undefined) {
+    throw new Error(`No bounded placement reader copy is admitted for ${compositionId} / ${semanticThemeKey}.`);
+  }
+  return Object.freeze({ title, ...copy });
+}
+
 function signalsForTheme(
   theme: PersonalSynthesisPersonalTheme
 ): readonly PersonalSynthesisStructuredSignalInput[] {

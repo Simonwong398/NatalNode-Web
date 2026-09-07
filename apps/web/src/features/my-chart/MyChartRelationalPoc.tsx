@@ -283,7 +283,9 @@ export default function MyChartRelationalPoc({
   placementRules,
   aspectRules
 }: MyChartRelationalPocProps): ReactElement {
-  const [scenario, setScenario] = useState<MyChartRelationalScenario>(initialScenario);
+  const [scenario, setScenario] = useState<MyChartRelationalScenario>(
+    () => scenarioFromUrl() ?? initialScenario
+  );
 
   useEffect(() => {
     const requested = scenarioFromUrl();
@@ -298,11 +300,12 @@ export default function MyChartRelationalPoc({
       data-my-chart-relational="reader-experience-poc"
       data-my-chart-scenario={scenario}
       data-my-chart-authority={projection.authority}
+      data-my-chart-classification={projection.technical.classification}
     >
       <header className="my-chart-contextual-learn__harness">
         <div>
           <p className="my-chart-contextual-learn__harness-kicker">{projection.developmentDisclosure.label}</p>
-          <p className="my-chart-contextual-learn__harness-title">My Chart · Relational Reading POC</p>
+          <p className="my-chart-contextual-learn__harness-title">{projection.reading.harnessTitle}</p>
         </div>
         <label className="my-chart-contextual-learn__scenario-label">
           <span>Reading fixture</span>
@@ -317,8 +320,7 @@ export default function MyChartRelationalPoc({
           </select>
         </label>
         <p className="my-chart-contextual-learn__harness-note">
-          {projection.developmentDisclosure.evidence}. Compare the enriched
-          interaction pattern with the placement-only reading.
+          {projection.developmentDisclosure.evidence}. {projection.reading.harnessNote}
         </p>
       </header>
 
@@ -344,12 +346,9 @@ export default function MyChartRelationalPoc({
         ) : null}
 
         <section aria-labelledby="my-chart-relational-reading-title" className="my-chart-contextual-learn__section my-chart-contextual-learn__section--reading">
-          <p className="my-chart-contextual-learn__section-kicker">Core personal theme</p>
-          <h2 id="my-chart-relational-reading-title">What this pattern makes possible</h2>
-          <p className="my-chart-contextual-learn__body-copy">
-            The reading stays with one interaction pattern at a time: what you
-            may recognize, what it can make possible, and what to do with it.
-          </p>
+          <p className="my-chart-contextual-learn__section-kicker">{projection.reading.sectionKicker}</p>
+          <h2 id="my-chart-relational-reading-title">{projection.reading.sectionTitle}</h2>
+          <p className="my-chart-contextual-learn__body-copy">{projection.reading.sectionBody}</p>
           <div className="my-chart-contextual-learn__themes" data-core-personal-themes>
             {projection.reading.themes.map((theme) => (
               <ThemeCard key={theme.themeId} projection={projection} theme={theme} />
