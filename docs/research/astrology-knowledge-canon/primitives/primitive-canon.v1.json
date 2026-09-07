@@ -1,0 +1,194 @@
+{
+  "packageId": "core-primitive-canon-v1",
+  "taskId": "WEB-P2-ASTROLOGY-KNOWLEDGE-EXPANSION-001",
+  "status": "PRIMITIVE_RESEARCH_COMPLETE_WITH_POLICY_GAPS",
+  "policyGate": "READY_FOR_OWNER_ADMISSION",
+  "runtimeEligibility": "RUNTIME_NOT_ADMITTED",
+  "scope": {
+    "zodiac": "Western tropical",
+    "defaultCandidateLens": "MODERN_PSYCHOLOGICAL_WESTERN",
+    "comparisonLenses": [
+      "TRADITIONAL_CLASSICAL",
+      "EARLY_MODERN",
+      "NAMED_MODERN_SCHOOL"
+    ],
+    "excluded": [
+      "Vedic/Jyotish personal doctrine",
+      "Chinese astrology",
+      "sidereal personal doctrine",
+      "Moon phase and current-Moon timing",
+      "Planet × Sign composition matrix",
+      "advanced dignity",
+      "dispositor chains",
+      "mutual reception",
+      "runtime interpretation"
+    ]
+  },
+  "claimStatusVocabulary": [
+    "SOURCE_SUPPORTED",
+    "SOURCE_SUPPORTED_WITH_CONDITIONS",
+    "CONTESTED",
+    "SOURCE_RESEARCH_REQUIRED",
+    "REJECTED"
+  ],
+  "policyStatusVocabulary": [
+    "ADOPTED",
+    "ADOPTED_WITH_CONDITIONS",
+    "SUPPORTED_AS_ALTERNATIVE",
+    "EDUCATIONAL_ONLY",
+    "NOT_USED_FOR_PERSONAL_INTERPRETATION",
+    "UNRESOLVED"
+  ],
+  "objects": [
+    {
+      "id": "body.sun",
+      "kind": "BODY",
+      "sourceStatus": "SOURCE_SUPPORTED_WITH_CONDITIONS",
+      "policyStatus": "ADOPTED_WITH_CONDITIONS",
+      "runtime": "RUNTIME_NOT_ADMITTED",
+      "sourceRefs": ["PC-04", "PC-05", "PC-19"],
+      "preservedPolicy": "SUN_TAURUS_POLICY_ADMITTED",
+      "negativeBoundary": "not a whole-person or scientific claim"
+    },
+    {
+      "id": "body.moon",
+      "kind": "BODY",
+      "sourceStatus": "SOURCE_SUPPORTED_WITH_CONDITIONS",
+      "policyStatus": "UNRESOLVED",
+      "runtime": "RUNTIME_NOT_ADMITTED",
+      "sourceRefs": ["PC-06", "PC-07"],
+      "candidateVocabulary": ["rhythm", "habit", "response", "need", "receptivity", "inner life", "memory", "affect"],
+      "negativeBoundary": "not emotions-only; historical mother/feminine/body/medical material is not default personal doctrine"
+    },
+    {
+      "id": "body.mercury",
+      "kind": "BODY",
+      "sourceStatus": "SOURCE_SUPPORTED_WITH_CONDITIONS",
+      "policyStatus": "UNRESOLVED",
+      "runtime": "RUNTIME_NOT_ADMITTED",
+      "sourceRefs": ["PC-06", "PC-08", "PC-13", "PC-14"],
+      "candidateVocabulary": ["thinking", "language", "exchange", "interpretation", "learning", "reasoning", "movement", "commerce"],
+      "negativeBoundary": "not communication-only"
+    },
+    {
+      "id": "body.venus",
+      "kind": "BODY",
+      "sourceStatus": "SOURCE_SUPPORTED_WITH_CONDITIONS",
+      "policyStatus": "UNRESOLVED",
+      "runtime": "RUNTIME_NOT_ADMITTED",
+      "sourceRefs": ["PC-06", "PC-09", "PC-13", "PC-14"],
+      "candidateVocabulary": ["relating", "attraction", "value", "preference", "pleasure", "aesthetic", "harmony", "union"],
+      "negativeBoundary": "not automatic romance, wealth, beauty, luxury, or relationship behavior"
+    },
+    {
+      "id": "body.mars",
+      "kind": "BODY",
+      "sourceStatus": "SOURCE_SUPPORTED_WITH_CONDITIONS",
+      "policyStatus": "UNRESOLVED",
+      "runtime": "RUNTIME_NOT_ADMITTED",
+      "sourceRefs": ["PC-06", "PC-10", "PC-13", "PC-14"],
+      "candidateVocabulary": ["action", "assertion", "separation", "conflict", "drive", "effort", "heat", "courage", "competition"],
+      "negativeBoundary": "not anger-only, violence, criminality, dangerousness, or fixed personality"
+    },
+    {
+      "id": "element.fire",
+      "kind": "ELEMENT",
+      "sourceStatus": "SOURCE_SUPPORTED_WITH_CONDITIONS",
+      "policyStatus": "UNRESOLVED",
+      "runtime": "RUNTIME_NOT_ADMITTED",
+      "sourceRefs": ["PC-11", "PC-16"],
+      "candidateVocabulary": ["activation", "initiative", "visibility", "energy", "expression"],
+      "negativeBoundary": "not extroversion or success"
+    },
+    {
+      "id": "element.earth",
+      "kind": "ELEMENT",
+      "sourceStatus": "SOURCE_SUPPORTED_WITH_CONDITIONS",
+      "policyStatus": "UNRESOLVED",
+      "runtime": "RUNTIME_NOT_ADMITTED",
+      "sourceRefs": ["PC-11", "PC-16", "PC-19"],
+      "candidateVocabulary": ["materialization", "continuity", "embodiment", "constraint", "valuation"],
+      "negativeBoundary": "broader than practical, wealthy, slow, or materially focused"
+    },
+    {
+      "id": "element.air",
+      "kind": "ELEMENT",
+      "sourceStatus": "SOURCE_SUPPORTED_WITH_CONDITIONS",
+      "policyStatus": "UNRESOLVED",
+      "runtime": "RUNTIME_NOT_ADMITTED",
+      "sourceRefs": ["PC-11", "PC-16"],
+      "candidateVocabulary": ["relation", "information", "contrast", "exchange", "abstraction"],
+      "negativeBoundary": "not intelligence-only or emotional absence"
+    },
+    {
+      "id": "element.water",
+      "kind": "ELEMENT",
+      "sourceStatus": "SOURCE_SUPPORTED_WITH_CONDITIONS",
+      "policyStatus": "UNRESOLVED",
+      "runtime": "RUNTIME_NOT_ADMITTED",
+      "sourceRefs": ["PC-11", "PC-16"],
+      "candidateVocabulary": ["receptivity", "affect", "continuity", "permeability", "depth"],
+      "negativeBoundary": "not instability or weakness"
+    },
+    {
+      "id": "modality.cardinal",
+      "kind": "MODALITY",
+      "sourceStatus": "SOURCE_SUPPORTED_WITH_CONDITIONS",
+      "policyStatus": "UNRESOLVED",
+      "runtime": "RUNTIME_NOT_ADMITTED",
+      "sourceRefs": ["PC-01", "PC-12"],
+      "candidateVocabulary": ["initiation", "formation", "turning", "movement"],
+      "negativeBoundary": "not always active or dominant"
+    },
+    {
+      "id": "modality.fixed",
+      "kind": "MODALITY",
+      "sourceStatus": "SOURCE_SUPPORTED_WITH_CONDITIONS",
+      "policyStatus": "UNRESOLVED",
+      "runtime": "RUNTIME_NOT_ADMITTED",
+      "sourceRefs": ["PC-01", "PC-12", "PC-19"],
+      "candidateVocabulary": ["continuation", "consolidation", "settlement", "maintenance"],
+      "negativeBoundary": "not stubbornness or immobility"
+    },
+    {
+      "id": "modality.mutable",
+      "kind": "MODALITY",
+      "sourceStatus": "SOURCE_SUPPORTED_WITH_CONDITIONS",
+      "policyStatus": "UNRESOLVED",
+      "runtime": "RUNTIME_NOT_ADMITTED",
+      "sourceRefs": ["PC-01", "PC-12"],
+      "candidateVocabulary": ["adaptation", "transition", "redistribution", "integration"],
+      "negativeBoundary": "not inconsistency or unreliability"
+    },
+    {
+      "id": "rulership.basic",
+      "kind": "RULERSHIP",
+      "sourceStatus": "SOURCE_SUPPORTED_WITH_CONDITIONS",
+      "policyStatus": "ADOPTED_WITH_CONDITIONS",
+      "runtime": "RUNTIME_NOT_ADMITTED",
+      "sourceRefs": ["PC-13", "PC-14", "PC-19"],
+      "negativeBoundary": "not a strength score, personality verdict, or advanced dispositor authority"
+    }
+  ],
+  "signs": [
+    {"id": "sign.aries", "element": "Fire", "modality": "Cardinal", "traditionalRuler": "Mars", "modernVariant": null, "sourceStatus": "SOURCE_SUPPORTED_WITH_CONDITIONS", "policyStatus": "UNRESOLVED", "runtime": "RUNTIME_NOT_ADMITTED"},
+    {"id": "sign.taurus", "element": "Earth", "modality": "Fixed", "traditionalRuler": "Venus", "modernVariant": null, "sourceStatus": "SOURCE_SUPPORTED_WITH_CONDITIONS", "policyStatus": "ADOPTED_WITH_CONDITIONS", "runtime": "RUNTIME_NOT_ADMITTED", "preservedPolicy": "TAURUS_POLICY_ADOPTED_WITH_CONDITIONS"},
+    {"id": "sign.gemini", "element": "Air", "modality": "Mutable", "traditionalRuler": "Mercury", "modernVariant": null, "sourceStatus": "SOURCE_SUPPORTED_WITH_CONDITIONS", "policyStatus": "UNRESOLVED", "runtime": "RUNTIME_NOT_ADMITTED"},
+    {"id": "sign.cancer", "element": "Water", "modality": "Cardinal", "traditionalRuler": "Moon", "modernVariant": null, "sourceStatus": "SOURCE_SUPPORTED_WITH_CONDITIONS", "policyStatus": "UNRESOLVED", "runtime": "RUNTIME_NOT_ADMITTED"},
+    {"id": "sign.leo", "element": "Fire", "modality": "Fixed", "traditionalRuler": "Sun", "modernVariant": null, "sourceStatus": "SOURCE_SUPPORTED_WITH_CONDITIONS", "policyStatus": "UNRESOLVED", "runtime": "RUNTIME_NOT_ADMITTED"},
+    {"id": "sign.virgo", "element": "Earth", "modality": "Mutable", "traditionalRuler": "Mercury", "modernVariant": null, "sourceStatus": "SOURCE_SUPPORTED_WITH_CONDITIONS", "policyStatus": "UNRESOLVED", "runtime": "RUNTIME_NOT_ADMITTED"},
+    {"id": "sign.libra", "element": "Air", "modality": "Cardinal", "traditionalRuler": "Venus", "modernVariant": null, "sourceStatus": "SOURCE_SUPPORTED_WITH_CONDITIONS", "policyStatus": "UNRESOLVED", "runtime": "RUNTIME_NOT_ADMITTED"},
+    {"id": "sign.scorpio", "element": "Water", "modality": "Fixed", "traditionalRuler": "Mars", "modernVariant": "Pluto", "sourceStatus": "SOURCE_SUPPORTED_WITH_CONDITIONS", "policyStatus": "UNRESOLVED", "runtime": "RUNTIME_NOT_ADMITTED"},
+    {"id": "sign.sagittarius", "element": "Fire", "modality": "Mutable", "traditionalRuler": "Jupiter", "modernVariant": null, "sourceStatus": "SOURCE_SUPPORTED_WITH_CONDITIONS", "policyStatus": "UNRESOLVED", "runtime": "RUNTIME_NOT_ADMITTED"},
+    {"id": "sign.capricorn", "element": "Earth", "modality": "Cardinal", "traditionalRuler": "Saturn", "modernVariant": null, "sourceStatus": "SOURCE_SUPPORTED_WITH_CONDITIONS", "policyStatus": "UNRESOLVED", "runtime": "RUNTIME_NOT_ADMITTED"},
+    {"id": "sign.aquarius", "element": "Air", "modality": "Fixed", "traditionalRuler": "Saturn", "modernVariant": "Uranus", "sourceStatus": "SOURCE_SUPPORTED_WITH_CONDITIONS", "policyStatus": "UNRESOLVED", "runtime": "RUNTIME_NOT_ADMITTED"},
+    {"id": "sign.pisces", "element": "Water", "modality": "Mutable", "traditionalRuler": "Jupiter", "modernVariant": "Neptune", "sourceStatus": "SOURCE_SUPPORTED_WITH_CONDITIONS", "policyStatus": "UNRESOLVED", "runtime": "RUNTIME_NOT_ADMITTED"}
+  ],
+  "compositionPolicy": {
+    "id": "element_x_modality",
+    "status": "SOURCE_SUPPORTED_WITH_CONDITIONS",
+    "policyStatus": "UNRESOLVED",
+    "rule": "Element supplies a broad field; modality supplies an operating mode; neither is a personality verdict.",
+    "runtime": "RUNTIME_NOT_ADMITTED"
+  }
+}

@@ -3,6 +3,8 @@
 **Status:** SUN_TAURUS_POLICY_ADMITTED
 **Source status:** SOURCE_RESEARCH_COMPLETE_FOR_BOUNDED_V1_POLICY
 **NatalNode policy status:** BOUNDED_PLURAL_LENS_APPROVED
+**Core primitive expansion status:** PRIMITIVE_RESEARCH_COMPLETE_WITH_POLICY_GAPS
+**Core primitive policy gate:** READY_FOR_OWNER_ADMISSION
 **Scope:** documentation-only knowledge architecture and content governance
 **Canonical source locale:** English (en)
 **Runtime / production eligibility:** PRODUCTION_PERSONAL_INTERPRETATION_NOT_ADMITTED
@@ -782,15 +784,60 @@ exemplar belongs under docs/research/astrology-knowledge-canon/ until it passes
 source and policy review. Incomplete research must not be imported into
 production runtime modules.
 
-## 42. Exact next task
+## 42. Core primitive expansion checkpoint
 
-WEB-P2-ASTROLOGY-KNOWLEDGE-EXPANSION-001 — Define the bounded professional
-English package and modifier admission for Sun/Taurus
+The bounded primitive expansion is now recorded as a research-only package at
+docs/research/astrology-knowledge-canon/primitives/. It covers:
 
-The next task may expand the approved bounded subset into canonical English
-content and a separate modifier contract, but it must preserve the modern
-psychological default lens, historical comparison boundary, scientific trust
-boundary, provider-neutral Engine boundary, and PROVIDER DECISION DEFERRED
-policy. Do not begin UI integration, interpretation runtime migration,
-localization, AI generation, provider selection, or a full knowledge matrix
-without a separately admitted task.
+| Family | Coverage | Current state |
+| --- | --- | --- |
+| Personal bodies | Sun, Moon, Mercury, Venus, Mars | Sun/Taurus policy preserved; Moon, Mercury, Venus, and Mars are source-backed with conditions and await policy admission |
+| Signs | Aries through Pisces | Element, modality, basic ruler, and bounded structural question recorded; no sign personality profiles |
+| Elements | Fire, Earth, Air, Water | Western tropical structural grouping recorded; standalone policy awaits admission |
+| Modalities | Cardinal, Fixed, Mutable | Structural operating-mode vocabulary recorded; standalone policy awaits admission |
+| Basic rulership | Traditional seven-visible-planet map plus named modern outer variants | Traditional/modern distinction recorded; advanced dispositor and dignity work deferred |
+
+The package consists of a source register, grouped research notes, a finite
+coverage matrix, and a research-only JSON record. Each material claim carries
+one of the canon claim statuses SOURCE_SUPPORTED,
+SOURCE_SUPPORTED_WITH_CONDITIONS, CONTESTED, SOURCE_RESEARCH_REQUIRED, or
+REJECTED. Each policy decision is independently labelled ADOPTED,
+ADOPTED_WITH_CONDITIONS, SUPPORTED_AS_ALTERNATIVE, EDUCATIONAL_ONLY,
+NOT_USED_FOR_PERSONAL_INTERPRETATION, or UNRESOLVED.
+
+The quality review result is:
+
+- specificity: bounded structural questions replace sign/person stereotypes;
+- traceability: source IDs and review modes are registered at claim-group level;
+- school clarity: traditional, early-modern, modern reference, and NatalNode
+  policy layers remain separate;
+- composition utility: body, sign, element, modality, and ruler are separate
+  inputs; the Element × modality rule is explicitly not a full matrix;
+- limitation quality: historical medical, gendered, predictive, deterministic,
+  financial, relationship, and moral overclaims are rejected or educational-only;
+- learnability: QUICK, PLAIN, and LEARNER templates are present while
+  ASTROLOGER and TECHNICAL depth remain incomplete;
+- Barnum defense and non-determinism: no primitive is admitted as a person label,
+  complete personality, diagnosis, or outcome guarantee;
+- localization neutrality: no locale or translation was changed;
+- runtime boundary: no runtime import, UI content, Engine contract, provider,
+  or production personal-interpretation authority was added.
+
+The full readiness view is maintained in
+docs/research/astrology-knowledge-canon/primitives/PRIMITIVE_COVERAGE_MATRIX.md.
+The package does not reopen the existing SUN_POLICY_ADOPTED_WITH_CONDITIONS,
+TAURUS_POLICY_ADOPTED_WITH_CONDITIONS, or
+SUN_TAURUS_COMPOSITION_ADOPTED_WITH_CONDITIONS decisions.
+
+## 43. Exact next task
+
+WEB-P2-ASTROLOGY-KNOWLEDGE-POLICY-ADMISSION-002 — Product Owner admission of
+the expanded primitive vocabulary
+
+The next task may admit a bounded subset of the new body, sign, element,
+modality, and basic-rulership records into a canonical English policy package.
+It must preserve the modern psychological default lens, historical comparison
+boundary, scientific trust boundary, provider-neutral Engine boundary, and
+PROVIDER DECISION DEFERRED policy. Do not begin UI integration, interpretation
+runtime migration, localization, AI generation, provider selection, or a full
+Planet × Sign matrix without a separately admitted task.
