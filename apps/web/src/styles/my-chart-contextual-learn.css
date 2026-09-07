@@ -89,6 +89,8 @@
 }
 
 .my-chart-contextual-learn__scenario-label select:focus-visible,
+.my-chart-contextual-learn__theme-details summary:focus-visible,
+.my-chart-contextual-learn__theme-technical summary:focus-visible,
 .my-chart-contextual-learn__technical summary:focus-visible,
 .my-chart-contextual-learn__learn-link:focus-visible {
   outline: 2px solid var(--nn-focus-ring);
@@ -291,6 +293,240 @@
   font-size: 0.875rem;
 }
 
+.my-chart-contextual-learn__themes {
+  display: grid;
+  gap: 1rem;
+  max-width: 58rem;
+  margin-top: 2rem;
+}
+
+.my-chart-contextual-learn__theme-card {
+  overflow: hidden;
+  border: 1px solid var(--my-chart-line);
+  border-radius: var(--nn-radius-medium);
+  background: color-mix(in srgb, var(--nn-surface-interactive) 42%, var(--nn-surface-base));
+}
+
+.my-chart-contextual-learn__theme-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1.25rem clamp(1rem, 4vw, 1.75rem);
+  border-bottom: 1px solid var(--my-chart-line-subtle);
+}
+
+.my-chart-contextual-learn__theme-header h3 {
+  max-width: 30rem;
+  margin: 0.45rem 0 0;
+  color: var(--nn-text-primary);
+  font-size: clamp(1.35rem, 3vw, 1.9rem);
+  font-weight: 650;
+  letter-spacing: -0.035em;
+  line-height: 1.08;
+}
+
+.my-chart-contextual-learn__theme-direction {
+  flex: 0 1 auto;
+  margin: 0.25rem 0 0;
+  color: var(--nn-accent-supporting);
+  font-size: 0.6875rem;
+  font-weight: 750;
+  letter-spacing: 0.08em;
+  line-height: 1.45;
+  text-align: right;
+  text-transform: uppercase;
+}
+
+.my-chart-contextual-learn__theme-reading {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem 1.25rem;
+  padding: 1.25rem clamp(1rem, 4vw, 1.75rem) 1.5rem;
+}
+
+.my-chart-contextual-learn__theme-reading > div {
+  min-width: 0;
+}
+
+.my-chart-contextual-learn__theme-reading h4,
+.my-chart-contextual-learn__theme-learn h4 {
+  margin: 0;
+  color: var(--nn-accent-supporting);
+  font-size: 0.6875rem;
+  font-weight: 750;
+  letter-spacing: 0.11em;
+  line-height: 1.35;
+  text-transform: uppercase;
+}
+
+.my-chart-contextual-learn__theme-reading p,
+.my-chart-contextual-learn__theme-copy {
+  margin: 0.4rem 0 0;
+  color: var(--nn-text-secondary);
+  font-size: 0.9375rem;
+  line-height: 1.65;
+}
+
+.my-chart-contextual-learn__theme-tradeoff,
+.my-chart-contextual-learn__theme-lever {
+  padding: 0.9rem;
+  border-left: 2px solid var(--nn-status-warning);
+  background: color-mix(in srgb, var(--nn-status-warning-surface) 26%, transparent);
+}
+
+.my-chart-contextual-learn__theme-lever {
+  border-left-color: var(--nn-accent-supporting);
+  background: color-mix(in srgb, var(--nn-accent-supporting) 7%, transparent);
+}
+
+.my-chart-contextual-learn__theme-details {
+  border-top: 1px solid var(--my-chart-line-subtle);
+}
+
+.my-chart-contextual-learn__theme-details summary,
+.my-chart-contextual-learn__theme-technical summary {
+  display: flex;
+  min-height: 4.75rem;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0 clamp(1rem, 4vw, 1.75rem);
+  cursor: pointer;
+  list-style: none;
+}
+
+.my-chart-contextual-learn__theme-details summary::-webkit-details-marker,
+.my-chart-contextual-learn__theme-technical summary::-webkit-details-marker {
+  display: none;
+}
+
+.my-chart-contextual-learn__theme-details[open] > summary .my-chart-contextual-learn__summary-mark,
+.my-chart-contextual-learn__theme-technical[open] .my-chart-contextual-learn__summary-mark {
+  transform: rotate(45deg);
+}
+
+.my-chart-contextual-learn__theme-details-body {
+  padding: 0 clamp(1rem, 4vw, 1.75rem) 1.75rem;
+}
+
+.my-chart-contextual-learn__why-grid {
+  display: grid;
+  gap: 1rem;
+  max-width: 50rem;
+  margin: 1.5rem 0 0;
+}
+
+.my-chart-contextual-learn__why-grid > div {
+  padding-top: 0.85rem;
+  border-top: 1px solid var(--my-chart-line-subtle);
+}
+
+.my-chart-contextual-learn__why-grid dt,
+.my-chart-contextual-learn__why-grid dd {
+  margin: 0;
+  font-size: 0.875rem;
+  line-height: 1.6;
+}
+
+.my-chart-contextual-learn__why-grid dt {
+  color: var(--nn-text-muted);
+  font-weight: 750;
+}
+
+.my-chart-contextual-learn__why-grid dd {
+  margin-top: 0.35rem;
+  color: var(--nn-text-secondary);
+}
+
+.my-chart-contextual-learn__why-grid ul {
+  display: grid;
+  gap: 0.45rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.my-chart-contextual-learn__why-grid li {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem 0.75rem;
+}
+
+.my-chart-contextual-learn__why-grid li strong {
+  color: var(--nn-text-primary);
+  font-weight: 650;
+}
+
+.my-chart-contextual-learn__why-grid li span {
+  color: var(--nn-accent-supporting);
+}
+
+.my-chart-contextual-learn__theme-learn {
+  margin-top: 1.5rem;
+  padding: 1rem;
+  border: 1px solid var(--my-chart-line-subtle);
+  background: color-mix(in srgb, var(--nn-accent-supporting) 5%, transparent);
+}
+
+.my-chart-contextual-learn__learn-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.65rem 1rem;
+  margin-top: 0.85rem;
+}
+
+.my-chart-contextual-learn__learn-link--unavailable {
+  border-bottom-style: dashed;
+  color: var(--nn-text-muted);
+}
+
+.my-chart-contextual-learn__theme-technical {
+  margin-top: 1.5rem;
+  border-top: 1px solid var(--my-chart-line-subtle);
+}
+
+.my-chart-contextual-learn__theme-technical summary {
+  min-height: 3.75rem;
+  padding-inline: 0;
+  color: var(--nn-text-muted);
+  font-size: 0.8125rem;
+  font-weight: 700;
+}
+
+.my-chart-contextual-learn__theme-technical dl {
+  display: grid;
+  gap: 0;
+  margin: 0;
+  border-top: 1px solid var(--my-chart-line-subtle);
+}
+
+.my-chart-contextual-learn__theme-technical dl > div {
+  display: grid;
+  grid-template-columns: minmax(9rem, 0.8fr) minmax(0, 1.2fr);
+  gap: 1rem;
+  padding: 0.75rem 0;
+  border-bottom: 1px solid var(--my-chart-line-subtle);
+}
+
+.my-chart-contextual-learn__theme-technical dt,
+.my-chart-contextual-learn__theme-technical dd {
+  min-width: 0;
+  margin: 0;
+  overflow-wrap: anywhere;
+  font-size: 0.8125rem;
+  line-height: 1.5;
+}
+
+.my-chart-contextual-learn__theme-technical dt {
+  color: var(--nn-text-muted);
+  font-weight: 700;
+}
+
+.my-chart-contextual-learn__theme-technical dd {
+  color: var(--nn-text-secondary);
+}
+
 .my-chart-contextual-learn__section--technical {
   padding-top: 0;
   padding-bottom: 0;
@@ -450,6 +686,23 @@
 
   .my-chart-contextual-learn__technical-body {
     padding-right: 0;
+  }
+
+  .my-chart-contextual-learn__theme-header {
+    display: grid;
+  }
+
+  .my-chart-contextual-learn__theme-direction {
+    text-align: left;
+  }
+
+  .my-chart-contextual-learn__theme-reading {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .my-chart-contextual-learn__theme-technical dl > div {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0.2rem;
   }
 }
 

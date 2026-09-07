@@ -15,7 +15,6 @@ import type {
   InterpretationSignalDirection,
   InterpretationSignalIntensity,
   InterpretationSignalRankingMetadata,
-  InterpretationSignalSourceAuthority,
   InterpretationRuleIdentity,
   InterpretationSignalRule
 } from './interpretation-signal-contracts.js';
@@ -915,6 +914,7 @@ function createTheme(
     evidenceRefs: sourceFactRefs,
     semanticBasisIds,
     compositionRuleRefs,
+    convergenceKey: group.convergenceKey,
     authorityRequirements: Object.freeze({
       birthTimeDependency: group.birthTimeDependency
     }),

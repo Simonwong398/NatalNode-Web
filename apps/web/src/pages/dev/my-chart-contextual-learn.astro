@@ -1,18 +1,17 @@
 ---
 import SiteLayout from '@/layouts/SiteLayout.astro';
 import MyChartContextualLearnStageA from '@/features/my-chart/MyChartContextualLearnStageA';
-import { getEducationalChart } from '@/features/learn/educational-chart-source';
-import type { MyChartContextualLearnScenario } from '@/features/my-chart/my-chart-evidence-projection';
 import type { SeoMetadata } from '@/lib/seo';
 import '@/styles/my-chart-contextual-learn.css';
 
 const isPreviewAvailable =
-  import.meta.env.DEV || process.env.NATALNODE_LOCAL_DEV_PREVIEW === 'true';
+  import.meta.env.DEV ||
+  import.meta.env.MODE === 'local-integration' ||
+  process.env.NATALNODE_LOCAL_DEV_PREVIEW === 'true';
 const requestedScenario = Astro.url.searchParams.get('scenario');
-const initialScenario: MyChartContextualLearnScenario = requestedScenario === 'unknown-time'
+const initialScenario = requestedScenario === 'unknown-time'
   ? 'unknown-time'
-  : 'default';
-const chart = isPreviewAvailable ? await getEducationalChart() : null;
+  : 'known-time';
 
 const seo: SeoMetadata = {
   title: 'My Chart Contextual Learn Stage A | NatalNode',
@@ -24,9 +23,8 @@ const seo: SeoMetadata = {
 
 <SiteLayout seo={seo} mode="editorial">
   <main class="nn-container max-w-[78rem] pb-16 pt-8 sm:pb-24 sm:pt-12">
-    {chart !== null ? (
+    {isPreviewAvailable ? (
       <MyChartContextualLearnStageA
-        chart={chart}
         initialScenario={initialScenario}
         client:load
       />

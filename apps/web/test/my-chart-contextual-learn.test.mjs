@@ -3,30 +3,11 @@ import { readFileSync } from 'node:fs';
 import test from 'node:test';
 
 import {
-  projectMyChartEvidence
-} from '../dist/my-chart-contextual-learn-characterization/features/my-chart/my-chart-evidence-projection.js';
-
-const fixtureChart = {
-  calculationStatus: 'INCOMPLETE_RESEARCH',
-  schemaVersion: '1.0.0',
-  engineVersion: 'UI_FIXTURE_V1',
-  bodies: [
-    { bodyId: 'Sun', longitude: 45.25, sign: 'Taurus', house: 11, retrograde: false }
-  ],
-  angles: [{ angleId: 'ASC', longitude: 109.8, sign: 'Cancer' }],
-  houses: { system: 'Placidus', cusps: [] },
-  aspects: [],
-  warnings: [],
-  metadata: {
-    configurationStatus: 'INCOMPLETE_RESEARCH',
-    astronomyConfigurationId: null,
-    provenanceEnvelopeId: null,
-    reason: 'INCOMPLETE_RESEARCH'
-  }
-};
+  projectMyChartPersonalContent
+} from '../dist/my-chart-contextual-learn-characterization/features/my-chart/my-chart-personal-content-poc.js';
 
 const projectionSource = readFileSync(
-  new URL('../src/features/my-chart/my-chart-evidence-projection.ts', import.meta.url),
+  new URL('../src/features/my-chart/my-chart-personal-content-poc.ts', import.meta.url),
   'utf8'
 );
 const componentSource = readFileSync(
@@ -42,92 +23,141 @@ const styleSource = readFileSync(
   'utf8'
 );
 
-test('Stage A projects one supplied body × sign fact without deriving or inventing identity', () => {
-  const projection = projectMyChartEvidence(fixtureChart);
+function themeById(projection, themeId) {
+  return projection.reading.themes.find((theme) => theme.themeId === themeId);
+}
 
-  assert.equal(projection.authority, 'DEVELOPMENT_RESEARCH_ONLY');
-  assert.equal(projection.developmentDisclosure.label, 'DEVELOPMENT RESEARCH PREVIEW');
-  assert.equal(projection.developmentDisclosure.evidence, 'SAMPLE / FIXTURE-BACKED / INCOMPLETE RESEARCH');
-  assert.equal(projection.primaryEvidence?.kind, 'BODY_SIGN_PLACEMENT');
-  assert.equal(projection.primaryEvidence?.bodyId, 'Sun');
-  assert.equal(projection.primaryEvidence?.sign, 'Taurus');
-  assert.equal(projection.primaryEvidence?.longitude, 45.25);
-  assert.equal(projection.primaryEvidence?.house, 11);
-  assert.equal(projection.primaryEvidence?.factIdentity, null);
-  assert.match(projectionSource, /ChartResult/u);
-  assert.match(projectionSource, /primaryEvidence/u);
-  assert.doesNotMatch(projectionSource, /Math.random|Date.now|pseudo.?id/iu);
+test('known-time page model renders selected deterministic themes instead of a primitive dump', () => {
+  const projection = projectMyChartPersonalContent('known-time');
+  const evidenceCount = projection.reading.themes.reduce(
+    (count, theme) => count + theme.evidence.length,
+    0
+  );
+
+  assert.equal(projection.authority, 'DEVELOPMENT_ONLY');
+  assert.equal(projection.fixture.scenarioId, 'CASE_B_MEANINGFUL_TENSION');
+  assert.ok(projection.reading.themes.length >= 3);
+  assert.ok(projection.reading.themes.length <= 5);
+  assert.ok(evidenceCount > projection.reading.themes.length);
+  assert.ok(themeById(projection, 'personal-theme.deliberate-action'));
+  assert.ok(themeById(projection, 'personal-theme.relationship-boundary'));
+  assert.ok(themeById(projection, 'personal-theme.emotional-pacing'));
+  assert.match(projection.reading.hook, /pattern first/u);
+  assert.doesNotMatch(JSON.stringify(projection.reading.themes), /\d+%/u);
 });
 
-test('Stage A keeps meaning bounded to admitted interpretation content and links existing Foundations', () => {
-  const projection = projectMyChartEvidence(fixtureChart);
+test('known-time page preserves convergence, mixed tension, and constructive asymmetry', () => {
+  const projection = projectMyChartPersonalContent('known-time');
+  const actionTheme = themeById(projection, 'personal-theme.deliberate-action');
 
-  assert.equal(projection.meaning.eligibility, 'BOUNDED_EXISTING_CONTENT');
-  assert.equal(projection.meaning.source, 'EXISTING_INTERPRETATION_CONTENT');
-  assert.match(projection.meaning.text, /identity and vitality/u);
-  assert.equal(projection.learn.lessonId, 'foundations.sun_moon');
-  assert.equal(projection.learn.slug, 'the-sun-and-moon');
-  assert.equal(projection.learn.hookId, 'my_chart.luminaries');
-  assert.equal(projection.learn.contentAvailability, 'AVAILABLE');
-  assert.match(projection.learn.description, /luminaries|chart components/u);
+  assert.ok(actionTheme);
+  assert.equal(actionTheme.directionLabel, 'A meaningful tension');
+  assert.equal(actionTheme.evidence.length, 2);
+  assert.match(actionTheme.why.convergence, /distinct paths/u);
+  assert.match(actionTheme.why.tension, /challenging directions/u);
+  assert.match(actionTheme.tension, /Momentum/u);
+  assert.match(actionTheme.lever, /reversible step/u);
+  assert.deepEqual(
+    actionTheme.evidence.map((evidence) => evidence.label),
+    ['Fixed modality layer', 'Aries sign layer']
+  );
 });
 
-test('Stage A preserves incomplete research metadata and never promotes fixture authority', () => {
-  const projection = projectMyChartEvidence(fixtureChart);
+test('unknown-time page remains useful while excluding time-dependent layers from core content', () => {
+  const projection = projectMyChartPersonalContent('unknown-time');
+  const reading = JSON.stringify(projection.reading.themes.map((theme) => ({
+    title: theme.title,
+    domain: theme.domain,
+    directionLabel: theme.directionLabel,
+    recognition: theme.recognition,
+    strength: theme.strength,
+    pattern: theme.pattern,
+    tension: theme.tension,
+    lever: theme.lever,
+    evidence: theme.evidence
+  })));
 
-  assert.equal(projection.technical.calculationStatus, 'INCOMPLETE_RESEARCH');
-  assert.equal(projection.technical.engineVersion, 'UI_FIXTURE_V1');
-  assert.equal(projection.technical.astronomyConfigurationId, null);
-  assert.equal(projection.technical.provenanceEnvelopeId, null);
-  assert.equal(projection.unknownTime.runtimePropagation, 'NOT_AVAILABLE');
-  assert.match(projectionSource, /SAMPLE \/ FIXTURE-BACKED \/ INCOMPLETE RESEARCH/u);
-  assert.match(componentSource, /developmentDisclosure\.evidence/u);
-  assert.match(componentSource, /not a[\s\S]*production personal chart/u);
-  assert.doesNotMatch(componentSource, /your (?:real|natal|personal) chart/iu);
+  assert.equal(projection.fixture.scenarioId, 'CASE_D_UNKNOWN_BIRTH_TIME');
+  assert.equal(projection.fixture.birthTimeAuthority, 'UNKNOWN');
+  assert.equal(projection.reading.themes.length, 2);
+  assert.equal(projection.unknownTime.presentationStatus, 'UNKNOWN_TIME_READING');
+  assert.match(projection.unknownTime.message, /time-sensitive chart layers are unavailable/u);
+  assert.ok(projection.unknownTime.omittedLayers.includes('houses'));
+  assert.ok(projection.technical.skippedRuleCount > 0);
+  assert.doesNotMatch(reading, /ASC|MC|house/iu);
+  assert.match(JSON.stringify(projection.reading.themes), /placement-level evidence/u);
 });
 
-test('Unknown-time presentation omits time-dependent facts without claiming runtime propagation', () => {
-  const projection = projectMyChartEvidence(fixtureChart, 'unknown-time');
+test('every theme has inspectable WHY evidence and contextual Learn references', () => {
+  const projection = projectMyChartPersonalContent('known-time');
 
-  assert.equal(projection.unknownTime.presentationStatus, 'UNKNOWN_TIME_PRESENTATION');
-  assert.deepEqual(projection.unknownTime.omittedFacts, ['HOUSES', 'ANGLES', 'HOUSE_BASED_CONTEXT']);
-  assert.equal(projection.primaryEvidence?.house, null);
-  assert.equal(projection.technical.housesOmitted, true);
-  assert.equal(projection.technical.anglesOmitted, true);
-  assert.equal(projection.unknownTime.runtimePropagation, 'NOT_AVAILABLE');
-  assert.match(componentSource, /data-unknown-time-presentation/u);
-  assert.match(componentSource, /unknown-time runtime[\s\S]*propagation is not available/u);
+  for (const theme of projection.reading.themes) {
+    assert.ok(theme.title.length > 0);
+    assert.ok(theme.recognition.length > 0);
+    assert.ok(theme.strength.length > 0);
+    assert.ok(theme.pattern.length > 0);
+    assert.ok(theme.tension.length > 0);
+    assert.ok(theme.lever.length > 0);
+    assert.ok(theme.evidence.length > 0);
+    assert.ok(theme.why.summary.length > 0);
+    assert.ok(theme.why.sourceFactRefs.length > 0);
+    assert.ok(theme.why.compositionRuleRefs.length > 0);
+    assert.ok(theme.why.semanticBasisIds.length > 0);
+    assert.ok(theme.learn.length > 0);
+
+    for (const bridge of theme.learn) {
+      assert.ok(bridge.lessonId);
+      assert.ok(bridge.slug);
+      assert.ok(bridge.title);
+      assert.ok(bridge.hookId);
+      assert.equal(bridge.contentAvailability, 'AVAILABLE');
+    }
+  }
 });
 
-test('Stage A presents the required Fact → Meaning → Learn → Technical sequence accessibly', () => {
-  assert.match(componentSource, /<h1[^>]*>My Chart<\/h1>/u);
-  assert.match(componentSource, /Chart fact/u);
-  assert.match(componentSource, /<details/u);
-  assert.match(componentSource, /<summary/u);
-  assert.match(componentSource, /<AstrologyGlyph/u);
-  assert.match(componentSource, /data-my-chart-technical/u);
-  assert.match(componentSource, /aria-label=\{evidence\.bodyLabel\}/u);
-  assert.match(componentSource, /<a className="my-chart-contextual-learn__learn-link"/u);
-  assert.match(styleSource, /focus-visible/u);
-  assert.match(styleSource, /prefers-reduced-motion/u);
-  assert.doesNotMatch(styleSource, /overflow-x\s*:\s*(?:auto|scroll)/u);
+test('projection output is stable across repeated runs and retains no internal scores in reader content', () => {
+  const first = projectMyChartPersonalContent('known-time');
+  const second = projectMyChartPersonalContent('known-time');
+
+  assert.deepEqual(first, second);
+  assert.doesNotMatch(JSON.stringify(first.reading), /internalStrength|baseImportance|ranking|confidence/iu);
+  assert.doesNotMatch(JSON.stringify(first.reading), /\d+%/u);
 });
 
-test('Route is a noindex development-only sibling and does not alter normal navigation', () => {
+test('the component renders the deterministic theme model with progressive WHY and Learn disclosure', () => {
+  assert.match(componentSource, /projectMyChartPersonalContent/u);
+  assert.match(componentSource, /projection\.reading\.themes\.map/u);
+  assert.match(componentSource, /data-core-personal-themes/u);
+  assert.match(componentSource, /data-personal-theme/u);
+  assert.match(componentSource, /Recognition/u);
+  assert.match(componentSource, /Strength/u);
+  assert.match(componentSource, /Pattern/u);
+  assert.match(componentSource, /Tension/u);
+  assert.match(componentSource, /Lever/u);
+  assert.match(componentSource, /data-theme-why/u);
+  assert.match(componentSource, /data-theme-learn/u);
+  assert.match(componentSource, /Astrologer \/ technical depth/u);
+  assert.doesNotMatch(componentSource, /bodies\.map|facts\.map|one supplied placement/iu);
+  assert.doesNotMatch(componentSource, /Math\.random|Date\.now|fetch\(|axios|openai|llm/iu);
+  assert.doesNotMatch(componentSource, /\d+%/u);
+});
+
+test('dev route remains isolated and supports both known-time and unknown-time fixtures', () => {
   assert.match(routeSource, /import\.meta\.env\.DEV/u);
+  assert.match(routeSource, /import\.meta\.env\.MODE\s*===\s*'local-integration'/u);
   assert.match(routeSource, /NATALNODE_LOCAL_DEV_PREVIEW/u);
   assert.match(routeSource, /robots: 'noindex,nofollow'/u);
-  assert.match(routeSource, /getEducationalChart/u);
-  assert.doesNotMatch(routeSource, /HttpEngineClient|fetch\(|axios|Provider|ENGINE_API_URL/iu);
-  assert.doesNotMatch(routeSource, /<nav|href=/u);
+  assert.match(routeSource, /scenario/u);
+  assert.doesNotMatch(routeSource, /getEducationalChart|HttpEngineClient|fetch\(|axios|ENGINE_API_URL|Provider/iu);
+  assert.doesNotMatch(projectionSource, /HttpEngineClient|fetch\(|axios|openai|llm/iu);
+  assert.match(projectionSource, /DEVELOPMENT_ONLY/u);
+  assert.match(projectionSource, /RUNTIME_NOT_ADMITTED/u);
 });
 
-test('Default presentation retains the stable primary fact while unknown-time removes only time-dependent detail', () => {
-  const defaultProjection = projectMyChartEvidence(fixtureChart, 'default');
-  const unknownProjection = projectMyChartEvidence(fixtureChart, 'unknown-time');
-
-  assert.equal(defaultProjection.primaryEvidence?.bodyId, unknownProjection.primaryEvidence?.bodyId);
-  assert.equal(defaultProjection.primaryEvidence?.sign, unknownProjection.primaryEvidence?.sign);
-  assert.equal(defaultProjection.primaryEvidence?.house, 11);
-  assert.equal(unknownProjection.primaryEvidence?.house, null);
+test('visual baseline keeps accessible progressive disclosure and mobile-safe behavior', () => {
+  assert.match(styleSource, /focus-visible/u);
+  assert.match(styleSource, /prefers-reduced-motion/u);
+  assert.match(styleSource, /theme-details/u);
+  assert.match(styleSource, /theme-learn/u);
+  assert.doesNotMatch(styleSource, /overflow-x\s*:\s*(?:auto|scroll)/u);
 });

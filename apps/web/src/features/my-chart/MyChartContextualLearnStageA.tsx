@@ -1,185 +1,280 @@
 import { useEffect, useState, type ReactElement } from 'react';
-import type { ChartResult } from '@natalnode/contracts';
-import { AstrologyGlyph } from '../../core/astrology-taxonomy/AstrologyGlyph.js';
 import { getLocalizedPath } from '../../lib/localization.js';
 import {
-  MY_CHART_CONTEXTUAL_LEARN_SCENARIOS,
-  projectMyChartEvidence,
-  type MyChartContextualLearnScenario,
-  type MyChartEvidenceProjection
-} from './my-chart-evidence-projection.js';
+  projectMyChartPersonalContent,
+  type MyChartPersonalContentProjection,
+  type MyChartPersonalContentScenario,
+  type MyChartPersonalContentTheme
+} from './my-chart-personal-content-poc.js';
 
 export interface MyChartContextualLearnStageAProps {
-  readonly chart: ChartResult;
-  readonly initialScenario?: MyChartContextualLearnScenario;
+  readonly initialScenario?: MyChartPersonalContentScenario;
 }
 
-const HOUSE_LABELS = [
-  'I', 'II', 'III', 'IV', 'V', 'VI',
-  'VII', 'VIII', 'IX', 'X', 'XI', 'XII'
-] as const;
-
-function scenarioFromUrl(): MyChartContextualLearnScenario | null {
+function scenarioFromUrl(): MyChartPersonalContentScenario | null {
   if (typeof window === 'undefined') return null;
+
   const requested = new URLSearchParams(window.location.search).get('scenario');
-  return MY_CHART_CONTEXTUAL_LEARN_SCENARIOS.includes(
-    requested as MyChartContextualLearnScenario
-  )
-    ? requested as MyChartContextualLearnScenario
-    : null;
+  if (requested === 'unknown-time') return 'unknown-time';
+  if (requested === 'known-time' || requested === 'default') return 'known-time';
+  return null;
 }
 
-function formatLongitude(longitude: number | null): string {
-  return longitude === null ? 'Not supplied' : `${longitude}°`;
-}
-
-function formatHouse(house: number | null): string {
-  return house !== null && house >= 1 && house <= 12
-    ? `House ${HOUSE_LABELS[house - 1]}`
-    : 'Not shown in this scenario';
-}
-
-function TechnicalRow({ label, value }: { label: string; value: string }) {
+function LearnBridge({
+  theme
+}: {
+  readonly theme: MyChartPersonalContentTheme;
+}): ReactElement {
   return (
-    <div className="my-chart-contextual-learn__technical-row">
-      <dt>{label}</dt>
-      <dd>{value}</dd>
-    </div>
-  );
-}
-
-function EvidenceFact({ projection }: { projection: MyChartEvidenceProjection }) {
-  const evidence = projection.primaryEvidence;
-
-  if (evidence === null) {
-    return (
-      <p className="my-chart-contextual-learn__empty">
-        No stable body × sign fact was supplied by this development result.
+    <section className="my-chart-contextual-learn__theme-learn" data-theme-learn>
+      <p className="my-chart-contextual-learn__section-kicker">Learn next</p>
+      <h4>Put the concept in context</h4>
+      <p className="my-chart-contextual-learn__theme-copy">
+        The personal reading comes first. These lessons explain the astrology
+        vocabulary behind the evidence without replacing the reading.
       </p>
-    );
-  }
+      <div className="my-chart-contextual-learn__learn-links">
+        {theme.learn.map((bridge) => {
+          const learnHref = bridge.slug === null || bridge.contentAvailability !== 'AVAILABLE'
+            ? null
+            : getLocalizedPath('en', `/learn/foundations/${bridge.slug}/`);
 
-  return (
-    <div className="my-chart-contextual-learn__fact" data-my-chart-primary-evidence>
-      <div className="my-chart-contextual-learn__fact-symbol" aria-hidden="true">
-        <AstrologyGlyph kind="body" value={evidence.bodyId} />
-        <span className="my-chart-contextual-learn__fact-symbol-divider">×</span>
-        <AstrologyGlyph kind="sign" value={evidence.sign} />
+          return learnHref === null ? (
+            <span className="my-chart-contextual-learn__learn-link my-chart-contextual-learn__learn-link--unavailable" key={bridge.objectId}>
+              {bridge.label}
+            </span>
+          ) : (
+            <a className="my-chart-contextual-learn__learn-link" href={learnHref} key={bridge.objectId}>
+              <span>{bridge.title ?? bridge.label}</span>
+              <span aria-hidden="true">→</span>
+            </a>
+          );
+        })}
       </div>
-      <div className="my-chart-contextual-learn__fact-copy">
-        <p className="my-chart-contextual-learn__fact-label">Sample placement</p>
-        <p className="my-chart-contextual-learn__fact-value">
-          <span aria-label={evidence.bodyLabel} role="img">
-            {evidence.bodyGlyph ?? evidence.bodyLabel}
-          </span>{' '}
-          {evidence.bodyLabel} in{' '}
-          <span aria-label={evidence.signLabel} role="img">
-            {evidence.signGlyph ?? evidence.signLabel}
-          </span>{' '}
-          {evidence.signLabel}
-        </p>
-        <p className="my-chart-contextual-learn__fact-note">
-          A supplied chart fact for study. It is not presented as a real personal result.
-        </p>
-      </div>
-    </div>
+    </section>
   );
 }
 
-function TechnicalInspection({ projection }: { projection: MyChartEvidenceProjection }) {
+function WhyThisShowsUp({
+  projection,
+  theme
+}: {
+  readonly projection: MyChartPersonalContentProjection;
+  readonly theme: MyChartPersonalContentTheme;
+}): ReactElement {
+  return (
+    <details className="my-chart-contextual-learn__theme-details" data-theme-why>
+      <summary>
+        <span>
+          <span className="my-chart-contextual-learn__section-kicker">Why this shows up</span>
+          <span className="my-chart-contextual-learn__summary-label">Open the evidence and the next lesson</span>
+        </span>
+        <span aria-hidden="true" className="my-chart-contextual-learn__summary-mark">+</span>
+      </summary>
+      <div className="my-chart-contextual-learn__theme-details-body">
+        <p className="my-chart-contextual-learn__theme-copy">{theme.why.summary}</p>
+
+        <dl className="my-chart-contextual-learn__why-grid">
+          <div>
+            <dt>Evidence that contributes</dt>
+            <dd>
+              <ul>
+                {theme.evidence.map((evidence) => (
+                  <li key={`${evidence.factKind}|${evidence.canonicalPath}`}>
+                    <strong>{evidence.label}</strong>
+                    <span>{evidence.semanticBasisLabel}</span>
+                  </li>
+                ))}
+              </ul>
+            </dd>
+          </div>
+          <div>
+            <dt>How the pattern was selected</dt>
+            <dd>{theme.why.selection}</dd>
+          </div>
+          <div>
+            <dt>What converges</dt>
+            <dd>{theme.why.convergence}</dd>
+          </div>
+          <div>
+            <dt>What remains honest</dt>
+            <dd>{theme.why.tension}</dd>
+          </div>
+          <div>
+            <dt>Birth-time boundary</dt>
+            <dd>{theme.why.birthTime}</dd>
+          </div>
+        </dl>
+
+        <LearnBridge theme={theme} />
+
+        <details className="my-chart-contextual-learn__theme-technical" data-theme-technical>
+          <summary>Astrologer / technical depth</summary>
+          <dl>
+            <div>
+              <dt>Source fact references</dt>
+              <dd>{theme.why.sourceFactRefs.join(' · ')}</dd>
+            </div>
+            <div>
+              <dt>Semantic basis</dt>
+              <dd>{theme.why.semanticBasisIds.join(' · ')}</dd>
+            </div>
+            <div>
+              <dt>Composition rules</dt>
+              <dd>{theme.why.compositionRuleRefs.join(' · ')}</dd>
+            </div>
+            <div>
+              <dt>Presentation authority</dt>
+              <dd>{projection.authority}</dd>
+            </div>
+          </dl>
+        </details>
+      </div>
+    </details>
+  );
+}
+
+function ThemeCard({
+  projection,
+  theme
+}: {
+  readonly projection: MyChartPersonalContentProjection;
+  readonly theme: MyChartPersonalContentTheme;
+}): ReactElement {
+  return (
+    <article className="my-chart-contextual-learn__theme-card" data-personal-theme>
+      <header className="my-chart-contextual-learn__theme-header">
+        <div>
+          <p className="my-chart-contextual-learn__section-kicker">{theme.domain}</p>
+          <h3>{theme.title}</h3>
+        </div>
+        <p className="my-chart-contextual-learn__theme-direction">{theme.directionLabel}</p>
+      </header>
+
+      <div className="my-chart-contextual-learn__theme-reading">
+        <div>
+          <h4>Recognition</h4>
+          <p>{theme.recognition}</p>
+        </div>
+        <div>
+          <h4>Strength</h4>
+          <p>{theme.strength}</p>
+        </div>
+        <div>
+          <h4>Pattern</h4>
+          <p>{theme.pattern}</p>
+        </div>
+        <div className="my-chart-contextual-learn__theme-tradeoff">
+          <h4>Tension</h4>
+          <p>{theme.tension}</p>
+        </div>
+        <div className="my-chart-contextual-learn__theme-lever">
+          <h4>Lever</h4>
+          <p>{theme.lever}</p>
+        </div>
+      </div>
+
+      <WhyThisShowsUp projection={projection} theme={theme} />
+    </article>
+  );
+}
+
+function TechnicalInspection({
+  projection
+}: {
+  readonly projection: MyChartPersonalContentProjection;
+}): ReactElement {
   const technical = projection.technical;
-  const houseValue = formatHouse(technical.house);
-  const configurationValue = technical.astronomyConfigurationId ?? 'Unavailable — incomplete research';
-  const provenanceValue = technical.provenanceEnvelopeId ?? 'Unavailable — incomplete research';
 
   return (
     <details className="my-chart-contextual-learn__technical" data-my-chart-technical>
       <summary>
         <span>
-          <span className="my-chart-contextual-learn__section-kicker">Technical</span>
-          <span className="my-chart-contextual-learn__summary-label">Inspect supplied values</span>
+          <span className="my-chart-contextual-learn__section-kicker">Technical boundary</span>
+          <span className="my-chart-contextual-learn__summary-label">Inspect the development result</span>
         </span>
         <span aria-hidden="true" className="my-chart-contextual-learn__summary-mark">+</span>
       </summary>
       <div className="my-chart-contextual-learn__technical-body">
         <dl>
-          <TechnicalRow label="Body" value={technical.bodyId ?? 'Not supplied'} />
-          <TechnicalRow label="Sign" value={technical.sign ?? 'Not supplied'} />
-          <TechnicalRow label="Longitude" value={formatLongitude(technical.longitude)} />
-          <TechnicalRow label="House" value={houseValue} />
-          <TechnicalRow
-            label="Motion"
-            value={technical.retrograde === null
-              ? 'Not supplied'
-              : technical.retrograde ? 'Retrograde' : 'Direct'}
-          />
-          <TechnicalRow label="Calculation status" value={technical.calculationStatus} />
-          <TechnicalRow label="Chart schema" value={technical.schemaVersion} />
-          <TechnicalRow label="Development source" value={technical.engineVersion} />
-          <TechnicalRow label="Astronomy configuration identity" value={configurationValue} />
-          <TechnicalRow label="Provenance envelope" value={provenanceValue} />
-          <TechnicalRow label="Per-fact identity" value="Not supplied — no pseudo-ID created" />
+          <div className="my-chart-contextual-learn__technical-row">
+            <dt>Fixture</dt>
+            <dd>{projection.fixture.scenarioId}</dd>
+          </div>
+          <div className="my-chart-contextual-learn__technical-row">
+            <dt>Birth-time authority</dt>
+            <dd>{projection.fixture.birthTimeAuthority}</dd>
+          </div>
+          <div className="my-chart-contextual-learn__technical-row">
+            <dt>Signals evaluated</dt>
+            <dd>{technical.evaluatedSignalCount}</dd>
+          </div>
+          <div className="my-chart-contextual-learn__technical-row">
+            <dt>Candidate merges</dt>
+            <dd>{technical.mergedCandidateCount}</dd>
+          </div>
+          <div className="my-chart-contextual-learn__technical-row">
+            <dt>Redundant candidates suppressed</dt>
+            <dd>{technical.suppressedCandidateCount}</dd>
+          </div>
+          <div className="my-chart-contextual-learn__technical-row">
+            <dt>Semantic basis status</dt>
+            <dd>{technical.semanticBasisStatus}</dd>
+          </div>
         </dl>
-        {technical.housesOmitted || technical.anglesOmitted ? (
-          <p className="my-chart-contextual-learn__technical-note">
-            Houses, angles, and house-based context are omitted from this unknown-time
-            presentation scenario. The current development mock does not propagate
-            request-level unknown-time authority into ChartResult.
-          </p>
-        ) : null}
+        <p className="my-chart-contextual-learn__technical-note">
+          This page is a development reading POC. It does not promote fixture
+          content to production personal astrology or change Engine authority.
+        </p>
       </div>
     </details>
   );
 }
 
 export default function MyChartContextualLearnStageA({
-  chart,
-  initialScenario = 'default'
+  initialScenario = 'known-time'
 }: MyChartContextualLearnStageAProps): ReactElement {
-  const [scenario, setScenario] = useState<MyChartContextualLearnScenario>(initialScenario);
+  const [scenario, setScenario] = useState<MyChartPersonalContentScenario>(initialScenario);
 
   useEffect(() => {
     const requested = scenarioFromUrl();
     if (requested !== null) setScenario(requested);
   }, []);
 
-  const projection = projectMyChartEvidence(chart, scenario);
-  const learnHref = projection.learn.slug === null
-    ? null
-    : getLocalizedPath('en', `/learn/foundations/${projection.learn.slug}/`);
+  const projection = projectMyChartPersonalContent(scenario);
 
   return (
     <div
       className="my-chart-contextual-learn"
-      data-my-chart-contextual-learn="stage-a"
+      data-my-chart-contextual-learn="personal-content-poc"
       data-my-chart-scenario={scenario}
       data-my-chart-authority={projection.authority}
     >
       <header className="my-chart-contextual-learn__harness">
         <div>
           <p className="my-chart-contextual-learn__harness-kicker">{projection.developmentDisclosure.label}</p>
-          <p className="my-chart-contextual-learn__harness-title">My Chart · Contextual Learn · Stage A</p>
+          <p className="my-chart-contextual-learn__harness-title">My Chart · Personal Reading POC</p>
         </div>
         <label className="my-chart-contextual-learn__scenario-label">
-          <span>Presentation scenario</span>
+          <span>Reading fixture</span>
           <select
             data-my-chart-scenario-switcher
             value={scenario}
-            onChange={(event) => setScenario(event.currentTarget.value as MyChartContextualLearnScenario)}
+            onChange={(event) => setScenario(event.currentTarget.value as MyChartPersonalContentScenario)}
           >
-            <option value="default">Default sample</option>
-            <option value="unknown-time">Unknown-time presentation</option>
+            <option value="known-time">Known-time personal reading</option>
+            <option value="unknown-time">Unknown-time personal reading</option>
           </select>
         </label>
         <p className="my-chart-contextual-learn__harness-note">
-          {projection.developmentDisclosure.evidence}. This sibling preview is not a
-          production personal chart and has no Provider authority.
+          {projection.developmentDisclosure.evidence}. The reading uses selected
+          Personal Synthesis themes rather than a primitive fact dump.
         </p>
       </header>
 
       <article aria-labelledby="my-chart-contextual-learn-title" className="my-chart-contextual-learn__surface">
-        <nav aria-label="Contextual learning sequence" className="my-chart-contextual-learn__sequence">
-          {['FACT', 'MEANING', 'LEARN', 'TECHNICAL'].map((step, index) => (
+        <nav aria-label="Personal reading sequence" className="my-chart-contextual-learn__sequence">
+          {['READING', 'THEMES', 'WHY', 'LEARN'].map((step, index) => (
             <span key={step}>
               <span aria-hidden="true">{String(index + 1).padStart(2, '0')}</span> {step}
             </span>
@@ -187,59 +282,33 @@ export default function MyChartContextualLearnStageA({
         </nav>
 
         <header className="my-chart-contextual-learn__hero">
-          <p className="my-chart-contextual-learn__eyebrow">Development sample chart</p>
+          <p className="my-chart-contextual-learn__eyebrow">Development personal reading</p>
           <h1 id="my-chart-contextual-learn-title">My Chart</h1>
-          <p className="my-chart-contextual-learn__hero-title">Contextual learning from one supplied chart fact.</p>
+          <p className="my-chart-contextual-learn__hero-title">{projection.reading.hook}</p>
           <p className="my-chart-contextual-learn__hero-copy">
-            Start with a stable astrology anchor, then move through meaning, an admitted
-            Foundations lesson, and the technical values behind the presentation.
+            {projection.reading.introduction}
           </p>
         </header>
 
-        {projection.unknownTime.presentationStatus === 'UNKNOWN_TIME_PRESENTATION' ? (
+        {projection.unknownTime.message !== null ? (
           <aside className="my-chart-contextual-learn__unknown-time" data-unknown-time-presentation="true">
-            <p className="my-chart-contextual-learn__section-kicker">Unknown-time presentation</p>
-            <p>
-              This research scenario keeps time-dependent facts out of the reading. It
-              demonstrates presentation behavior only; request-level unknown-time runtime
-              propagation is not available in the current mock boundary.
-            </p>
+            <p className="my-chart-contextual-learn__section-kicker">Unknown-time reading</p>
+            <p>{projection.unknownTime.message}</p>
           </aside>
         ) : null}
 
-        <section aria-labelledby="my-chart-fact-title" className="my-chart-contextual-learn__section my-chart-contextual-learn__section--fact">
-          <p className="my-chart-contextual-learn__section-kicker">Chart fact</p>
-          <h2 id="my-chart-fact-title">One supplied placement to study</h2>
-          <EvidenceFact projection={projection} />
-        </section>
-
-        <section aria-labelledby="my-chart-meaning-title" className="my-chart-contextual-learn__section">
-          <p className="my-chart-contextual-learn__section-kicker">Meaning</p>
-          <h2 id="my-chart-meaning-title">What this combination is used to explore</h2>
-          <p className="my-chart-contextual-learn__body-copy">{projection.meaning.text}</p>
-          <p className="my-chart-contextual-learn__source-line">
-            {projection.meaning.eligibility === 'BOUNDED_EXISTING_CONTENT'
-              ? 'Bounded meaning · existing interpretation content'
-              : 'Fact plus Learn · no admitted combined meaning'}
+        <section aria-labelledby="my-chart-reading-title" className="my-chart-contextual-learn__section my-chart-contextual-learn__section--reading">
+          <p className="my-chart-contextual-learn__section-kicker">Core personal themes</p>
+          <h2 id="my-chart-reading-title">What keeps showing up</h2>
+          <p className="my-chart-contextual-learn__body-copy">
+            These themes are the reading. Each one combines the supplied evidence
+            into a constructive pattern, an honest trade-off, and a useful lever.
           </p>
-        </section>
-
-        <section aria-labelledby="my-chart-learn-title" className="my-chart-contextual-learn__section my-chart-contextual-learn__section--learn">
-          <p className="my-chart-contextual-learn__section-kicker">Learn the concept</p>
-          <h2 id="my-chart-learn-title">Continue with Foundations</h2>
-          <p className="my-chart-contextual-learn__body-copy">{projection.learn.description}</p>
-          {learnHref !== null && projection.learn.contentAvailability === 'AVAILABLE' ? (
-            <a className="my-chart-contextual-learn__learn-link" href={learnHref}>
-              <span>{projection.learn.title}</span>
-              <span aria-hidden="true">→</span>
-            </a>
-          ) : (
-            <p className="my-chart-contextual-learn__source-line">No admitted lesson destination is available.</p>
-          )}
-          <p className="my-chart-contextual-learn__learn-note">
-            The link teaches the concept; it does not turn this sample into a personal
-            interpretation.
-          </p>
+          <div className="my-chart-contextual-learn__themes" data-core-personal-themes>
+            {projection.reading.themes.map((theme) => (
+              <ThemeCard key={theme.themeId} projection={projection} theme={theme} />
+            ))}
+          </div>
         </section>
 
         <section aria-labelledby="my-chart-technical-title" className="my-chart-contextual-learn__section my-chart-contextual-learn__section--technical">
@@ -250,9 +319,8 @@ export default function MyChartContextualLearnStageA({
         <footer className="my-chart-contextual-learn__footer">
           <p className="my-chart-contextual-learn__section-kicker">Research boundary</p>
           <p>
-            {projection.developmentDisclosure.evidence}. Configuration and provenance
-            identities are unavailable, so this Stage A slice cannot assert production
-            astronomy or a real personal chart.
+            {projection.developmentDisclosure.evidence}. This route is isolated
+            from production My Chart, Vault, BFF, Engine, and provider semantics.
           </p>
         </footer>
       </article>
