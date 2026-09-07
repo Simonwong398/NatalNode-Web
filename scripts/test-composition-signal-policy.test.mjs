@@ -28,6 +28,7 @@ const requiredRuleFields = [
   'requiredFactType',
   'placementEvidenceKey',
   'eligibleDomain',
+  'domainDerivation',
   'direction',
   'intensityPolicy',
   'confidencePolicy',
@@ -177,6 +178,39 @@ test('existing cross-matrix differentiation and rulership boundaries remain inta
   }
 });
 
+test('domain comes from integrated composition semantics, never body-only ownership', () => {
+  assert.equal(signal.domainPolicy.derivation, 'INTEGRATED_COMPOSITION_SEMANTICS');
+  assert.equal(signal.domainPolicy.bodyRole, 'SEMANTIC_SUBJECT_ANCHOR_ONLY');
+  assert.equal(signal.domainPolicy.signRole, 'OPERATING_CONDITIONS');
+  assert.equal(signal.domainPolicy.BODY_ONLY_DOMAIN_MAPPING, 'FORBIDDEN');
+  assert.equal(signal.domainPolicy.DOMAIN_FROM_COMPOSITION_SEMANTICS, 'REQUIRED');
+  assert.equal(signal.domainPolicy.bodyOnlyMappingFallback, 'NO_SIGNAL');
+  assert.equal(signal.domainPolicy.ambiguousCompositionOutcome, 'NO_SIGNAL');
+  assert.equal(signal.domainPolicy.unknownCompositionOutcome, 'NO_SIGNAL');
+  assert.match(signal.domainPolicy.futureCompositionRequirement, /INTEGRATED_SEMANTICS/);
+
+  const policyText = readText('docs/product/NATALNODE_COMPOSITION_SIGNAL_POLICY_V1.md');
+  const reviewText = readText('docs/research/personal-synthesis/COMPOSITION_SIGNAL_REPRESENTATIVE_V1_REVIEW.md');
+  assert.doesNotMatch(policyText, /domain is\s+owned by the body function/i);
+  assert.doesNotMatch(reviewText, /Moon rules use .* because Moon owns/i);
+
+  for (const rule of signal.rules) {
+    assert.equal(rule.domainDerivation.method, 'INTEGRATED_COMPOSITION_SEMANTICS', rule.ruleId);
+    assert.equal(rule.domainDerivation.bodyRole, 'SEMANTIC_SUBJECT_ANCHOR_ONLY', rule.ruleId);
+    assert.equal(rule.domainDerivation.signRole, 'OPERATING_CONDITIONS', rule.ruleId);
+    assert.equal(rule.domainDerivation.bodyOnlyMapping, 'FORBIDDEN', rule.ruleId);
+    assert.equal(rule.domainDerivation.ambiguousOutcome, 'NO_SIGNAL', rule.ruleId);
+    assert.match(rule.domainRationale, /integrated composition/i, rule.ruleId);
+    assert.match(rule.domainRationale, /specific life-question/i, rule.ruleId);
+    assert.ok(rule.domainDerivation.compositionQuestion.length > 0, rule.ruleId);
+  }
+
+  const unknownCompositionId = 'body.moon_x_sign.gemini';
+  assert.equal(signal.rules.some((rule) => rule.compositionId === unknownCompositionId), false);
+  assert.equal(signal.domainPolicy.unknownCompositionOutcome, 'NO_SIGNAL');
+  assert.equal(signal.domainPolicy.bodyOnlyMappingFallback, 'NO_SIGNAL');
+});
+
 test('domains, directions, intensity, and confidence stay within existing vocabularies', () => {
   assert.deepEqual(signal.signalTaxonomy.domains, [
     'SELF',
@@ -191,8 +225,13 @@ test('domains, directions, intensity, and confidence stay within existing vocabu
   assert.deepEqual(signal.signalTaxonomy.confidences, ['HIGH', 'MEDIUM', 'LOW']);
   assert.equal(signal.directionPolicy.defaultForTheseRules, 'NEUTRAL');
   assert.equal(signal.directionPolicy.constructiveAndTensionBecomeMixedAutomatically, false);
-  assert.deepEqual(signal.intensityPolicy.singlePlacementAllowedValues, ['SUBTLE', 'NOTICEABLE']);
-  assert.equal(signal.intensityPolicy.singlePlacementMaximum, 'NOTICEABLE');
+  assert.deepEqual(signal.intensityPolicy.singlePlacementAllowedValues, ['SUBTLE']);
+  assert.equal(signal.intensityPolicy.singlePlacementCandidateValue, 'SUBTLE');
+  assert.equal(signal.intensityPolicy.singlePlacementMaximum, 'SUBTLE');
+  assert.match(signal.intensityPolicy.noticeableRequires, /explicitly admitted promotion/i);
+  assert.equal(signal.intensityPolicy.noticeablePromotionAdmittedForTheseRules, false);
+  assert.match(signal.intensityPolicy.strongRequires, /none of these four rules may emit STRONG/i);
+  assert.match(signal.intensityPolicy.dominantRequires, /none of these four rules may emit DOMINANT/i);
   assert.equal(signal.confidencePolicy.singlePlacementCandidateValue, 'LOW');
   assert.equal(signal.confidencePolicy.factAuthorityEqualsInterpretiveConfidence, false);
   assert.equal(signal.confidencePolicy.isProbability, false);
@@ -201,8 +240,10 @@ test('domains, directions, intensity, and confidence stay within existing vocabu
   for (const rule of signal.rules) {
     assert.ok(signal.signalTaxonomy.domains.includes(rule.eligibleDomain), rule.ruleId);
     assert.equal(rule.direction, 'NEUTRAL', rule.ruleId);
-    assert.equal(rule.candidateIntensity, 'NOTICEABLE', rule.ruleId);
-    assert.equal(rule.intensityPolicy.maximum, 'NOTICEABLE', rule.ruleId);
+    assert.equal(rule.candidateIntensity, 'SUBTLE', rule.ruleId);
+    assert.deepEqual(rule.intensityPolicy.allowedSinglePlacementValues, ['SUBTLE'], rule.ruleId);
+    assert.equal(rule.intensityPolicy.maximum, 'SUBTLE', rule.ruleId);
+    assert.match(rule.intensityPolicy.noticeablePromotion, /Not admitted/i, rule.ruleId);
     assert.equal(rule.candidateConfidence, 'LOW', rule.ruleId);
     assert.match(rule.intensityPolicy.strongOrDominant, /Not eligible/);
   }
@@ -310,11 +351,14 @@ test('Personal Synthesis compatibility is explicit without runtime admission', (
 
 test('the structured policy remains deterministic and all source references resolve', () => {
   assert.equal(signal.artifactId, 'natalnode.composition-signal.representative-v1');
-  assert.equal(signal.status, 'REPRESENTATIVE_COMPOSITION_SIGNAL_POLICY_PASS');
-  assert.equal(signal.baseline, 'ce8ea09825dcc0d7063886249f3b07fcedc4e20d');
+  assert.equal(signal.status, 'REPRESENTATIVE_COMPOSITION_SIGNAL_POLICY_R1_PASS');
+  assert.equal(signal.baseline, '67ea9cb39c019bed2cb1453499695da01252c02e');
   assert.equal(signal.validationGates.SIGNAL_RULE_CONTRACT, 'PASS');
   assert.equal(signal.validationGates.PLACEMENT_EVIDENCE_PRESERVATION, 'PASS');
   assert.equal(signal.validationGates.ONE_PLACEMENT_ONE_PRIMARY_SIGNAL, 'PASS');
+  assert.equal(signal.validationGates.DOMAIN_SEMANTICS, 'PASS');
+  assert.equal(signal.validationGates.NO_BODY_ONLY_DOMAIN_COLLAPSE, 'PASS');
+  assert.equal(signal.validationGates.INTENSITY_BOUNDARY, 'PASS');
 
   for (const reference of signal.sourceReferences) {
     assert.ok(fs.existsSync(path.join(root, reference.path)), reference.path);

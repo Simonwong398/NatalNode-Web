@@ -3,8 +3,8 @@
 | Field | Value |
 | --- | --- |
 | Task | `WEB-P2-COMPOSITION-SIGNAL-001` |
-| Baseline | `ce8ea09825dcc0d7063886249f3b07fcedc4e20d` |
-| Review result | `REPRESENTATIVE_COMPOSITION_SIGNAL_POLICY_PASS` |
+| Baseline | `67ea9cb39c019bed2cb1453499695da01252c02e` |
+| Review result | `REPRESENTATIVE_COMPOSITION_SIGNAL_POLICY_R1_PASS` |
 | Scope | Exactly four admitted Western Tropical Body × Sign compositions |
 | Source state | `SOURCE_SUPPORTED_WITH_CONDITIONS` |
 | Policy state | `ADOPTED_WITH_CONDITIONS` |
@@ -31,10 +31,10 @@ Only these four rules are admitted:
 
 | Rule | Composition | Primary domain | Direction | Candidate intensity | Candidate confidence |
 | --- | --- | --- | --- | --- | --- |
-| `composition-signal.body.moon_x_sign.aries` | `body.moon_x_sign.aries` | `EMOTIONAL` | `NEUTRAL` | `NOTICEABLE` | `LOW` |
-| `composition-signal.body.mercury_x_sign.aries` | `body.mercury_x_sign.aries` | `COMMUNICATION` | `NEUTRAL` | `NOTICEABLE` | `LOW` |
-| `composition-signal.body.moon_x_sign.taurus` | `body.moon_x_sign.taurus` | `EMOTIONAL` | `NEUTRAL` | `NOTICEABLE` | `LOW` |
-| `composition-signal.body.mercury_x_sign.taurus` | `body.mercury_x_sign.taurus` | `COMMUNICATION` | `NEUTRAL` | `NOTICEABLE` | `LOW` |
+| `composition-signal.body.moon_x_sign.aries` | `body.moon_x_sign.aries` | `EMOTIONAL` | `NEUTRAL` | `SUBTLE` | `LOW` |
+| `composition-signal.body.mercury_x_sign.aries` | `body.mercury_x_sign.aries` | `COMMUNICATION` | `NEUTRAL` | `SUBTLE` | `LOW` |
+| `composition-signal.body.moon_x_sign.taurus` | `body.moon_x_sign.taurus` | `EMOTIONAL` | `NEUTRAL` | `SUBTLE` | `LOW` |
+| `composition-signal.body.mercury_x_sign.taurus` | `body.mercury_x_sign.taurus` | `COMMUNICATION` | `NEUTRAL` | `SUBTLE` | `LOW` |
 
 No other Body × Sign rule is implied. A missing or non-admitted rule returns
 `NO_SIGNAL`; it does not fall back to generic astrology, fixtures, or prose.
@@ -84,13 +84,28 @@ The artifact reuses the existing Signal vocabulary:
 There is no parallel taxonomy, numeric score, percentage, probability, or
 production priority in this POC.
 
-### Domain assignment
+### Domain derivation
 
-Moon rules use `EMOTIONAL` because Moon owns response, rhythm, receptivity,
-inner experience, and needs. Mercury rules use `COMMUNICATION` because Mercury
-owns naming, interpretation, comparison, learning, and exchange. Aries or
-Taurus qualifies the body subject; it does not move the rule into an unrelated
-domain. Exactly one candidate primary domain is assigned per composition.
+`BODY_ONLY_DOMAIN_MAPPING = FORBIDDEN` and
+`DOMAIN_FROM_COMPOSITION_SEMANTICS = REQUIRED`. The body anchors the semantic
+subject, the sign supplies operating conditions, and the integrated composition
+determines the eligible domain. The current outcomes are retained because the
+specific life-question in each integrated composition maps cleanly to one
+existing domain:
+
+- Moon × Aries asks how an inner response or need meets initiation, so it is
+  `EMOTIONAL`.
+- Mercury × Aries asks how naming or interpretation enters a first move, so it
+  is `COMMUNICATION`.
+- Moon × Taurus asks how response or need meets embodiment and continuity, so it
+  is `EMOTIONAL`.
+- Mercury × Taurus asks how meaning becomes tangible and sustained, so it is
+  `COMMUNICATION`.
+
+These are composition decisions, not universal Body → Domain mappings. A future
+composition that is ambiguous or cannot map cleanly to one closed domain fails
+closed with `NO_SIGNAL`; it does not inherit the body's usual domain and no new
+domain is invented.
 
 ### Direction
 
@@ -101,10 +116,12 @@ tone.
 
 ### Intensity
 
-The candidate value for one placement is `NOTICEABLE`, with a single-placement
-range of `SUBTLE` through `NOTICEABLE`. `STRONG` requires separately admitted
-independent evidence or structure; `DOMINANT` is not eligible from these four
-rules. Intensity is not importance.
+The default candidate value for one placement is `SUBTLE`. None of the four
+current rules has an admitted promotion to `NOTICEABLE`; that promotion would
+require an explicit admitted reason such as structural salience, independently
+supported convergence, or another future rule. `STRONG` and `DOMINANT` remain
+unavailable from these four rules alone. Intensity is not Signal existence and
+is not importance.
 
 ### Confidence
 
@@ -182,8 +199,11 @@ it is not a `PersonalTheme`, user-facing result, or production ranking.
 | `PLACEMENT_EVIDENCE_PRESERVATION` | `PASS` |
 | `ONE_PLACEMENT_ONE_PRIMARY_SIGNAL` | `PASS` |
 | `DOMAIN_ASSIGNMENT` | `PASS` |
+| `DOMAIN_SEMANTICS` | `PASS` |
+| `NO_BODY_ONLY_DOMAIN_COLLAPSE` | `PASS` |
 | `DIRECTION_POLICY` | `PASS` |
 | `INTENSITY_POLICY` | `PASS` |
+| `INTENSITY_BOUNDARY` | `PASS` |
 | `CONFIDENCE_POLICY` | `PASS` |
 | `NO_SELF_CONVERGENCE` | `PASS` |
 | `DUPLICATE_SUPPRESSION` | `PASS` |
@@ -209,7 +229,7 @@ The new policy regression suite passed:
 
 ```text
 npm run test:composition-signal-policy
-13 tests passed, 0 failed
+14 tests passed, 0 failed
 ```
 
 The structured Signal artifact and root `package.json` also parse as valid JSON,

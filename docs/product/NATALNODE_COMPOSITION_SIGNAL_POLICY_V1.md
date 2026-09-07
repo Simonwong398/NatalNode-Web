@@ -3,8 +3,8 @@
 | Field | Value |
 | --- | --- |
 | Task | `WEB-P2-COMPOSITION-SIGNAL-001` |
-| Baseline | `ce8ea09825dcc0d7063886249f3b07fcedc4e20d` |
-| Policy status | `REPRESENTATIVE_COMPOSITION_SIGNAL_POLICY_PASS` |
+| Baseline | `67ea9cb39c019bed2cb1453499695da01252c02e` |
+| Policy status | `REPRESENTATIVE_COMPOSITION_SIGNAL_POLICY_R1_PASS` |
 | Scope | Four admitted Body × Sign compositions only |
 | Signal authority | Research policy; provider-neutral |
 | Runtime eligibility | `RUNTIME_NOT_ADMITTED` |
@@ -82,7 +82,7 @@ it does not create a parallel one.
 | `placementEvidenceKey` | Stable identity for the one authoritative placement fact |
 | `eligibleDomain` | Exactly one existing domain per composition |
 | `direction` | One existing direction; `NEUTRAL` when the composition does not establish orientation |
-| `intensityPolicy` | Existing `SUBTLE`, `NOTICEABLE`, `STRONG`, `DOMINANT` vocabulary; single placement capped at `NOTICEABLE` |
+| `intensityPolicy` | Existing `SUBTLE`, `NOTICEABLE`, `STRONG`, `DOMINANT` vocabulary; single placement defaults to `SUBTLE` |
 | `confidencePolicy` | Existing `HIGH`, `MEDIUM`, `LOW` vocabulary; single composition evidence is `LOW` interpretive strength |
 | `semanticClaim` | Structured, source-backed editorial synthesis; not final reader prose |
 | `constructiveCapacity` | Conditional capacity preserved as structured meaning |
@@ -103,20 +103,35 @@ Confidence is structured interpretive evidence strength, not probability. Fact
 authority and interpretation confidence are separate fields and must not be
 collapsed.
 
-## 4. Domain assignment
+## 4. Domain derivation
 
-Each composition receives exactly one candidate primary domain. The domain is
-owned by the body function, while the sign supplies conditions:
+Each composition receives exactly one candidate primary domain only when its
+integrated semantics map cleanly to one of the six existing domains. The
+derivation is:
+
+```text
+BODY anchors the semantic subject
+SIGN supplies operating conditions
+INTEGRATED COMPOSITION determines the eligible primary domain
+```
+
+`BODY_ONLY_DOMAIN_MAPPING = FORBIDDEN` and
+`DOMAIN_FROM_COMPOSITION_SEMANTICS = REQUIRED`. A body may constrain candidate
+domains, but no universal `Body → Domain` lookup is authoritative. If a future
+composition is ambiguous or cannot map cleanly to one closed domain, it fails
+closed with `NO_SIGNAL`; it does not inherit the body's usual domain and no new
+domain is invented.
 
 | Composition | Domain | Reason |
 | --- | --- | --- |
-| Moon × Aries | `EMOTIONAL` | Moon's admitted subject is response, rhythm, receptivity, inner experience, and needs; Aries qualifies how that subject may meet initiation. |
-| Mercury × Aries | `COMMUNICATION` | Mercury's admitted subject is naming, interpretation, comparison, learning, and exchange; Aries qualifies how information enters a first move. |
-| Moon × Taurus | `EMOTIONAL` | Moon remains the primary response/need subject; Taurus qualifies embodiment, valuation, continuity, and maintenance. |
-| Mercury × Taurus | `COMMUNICATION` | Mercury remains the primary information-work subject; Taurus qualifies how meaning becomes tangible and sustained. |
+| Moon × Aries | `EMOTIONAL` | The integrated question is how response, rhythm, receptivity, or need meets Aries initiation; that specific life-question concerns an inner-response domain, not a universal Moon mapping. |
+| Mercury × Aries | `COMMUNICATION` | The integrated question is how naming, comparison, or interpretation enters an Aries first move; that specific life-question concerns information exchange, not a universal Mercury mapping. |
+| Moon × Taurus | `EMOTIONAL` | The integrated question is how response or need meets Taurus embodiment, valuation, and continuity; that specific life-question remains about inner response and needs. |
+| Mercury × Taurus | `COMMUNICATION` | The integrated question is how meaning, naming, or comparison becomes tangible and sustained through Taurus conditions; that specific life-question concerns information exchange. |
 
 No artificial domain diversity is introduced. A composition cannot change domain
-because a later UI needs another section.
+because a later UI needs another section, and it cannot fall back to a body's
+usual domain when its integrated semantics are unresolved.
 
 ## 5. Direction policy
 
@@ -137,14 +152,17 @@ Intensity is not astrological importance and is never exposed as a score.
 
 For a single placement rule:
 
-- the candidate value is `NOTICEABLE`;
-- the allowed single-placement range is `SUBTLE` to `NOTICEABLE`;
-- `STRONG` requires separately admitted convergence or another admitted
-  structural rule; and
-- `DOMINANT` is not produced by any of these four placement rules.
+- the default candidate value is `SUBTLE`;
+- the four current rules have no admitted promotion beyond `SUBTLE`;
+- `NOTICEABLE` requires an explicitly admitted promotion, such as structural
+  salience, independently supported convergence, or another future rule;
+- `STRONG` requires a separately admitted stronger structure and is unavailable
+  from these four rules alone; and
+- `DOMINANT` is unavailable from these four rules alone.
 
-The candidate value is a conservative editorial eligibility label, not a
-measurement of a person or a promise that the Signal will be selected.
+Intensity does not mean that a Signal exists or that a placement is important.
+It is a bounded policy label, not a measurement of a person and not a numeric
+weight.
 
 ## 7. Confidence policy
 
@@ -292,8 +310,11 @@ them.
 | `PLACEMENT_EVIDENCE_PRESERVATION` | `PASS` |
 | `ONE_PLACEMENT_ONE_PRIMARY_SIGNAL` | `PASS` |
 | `DOMAIN_ASSIGNMENT` | `PASS` |
+| `DOMAIN_SEMANTICS` | `PASS` |
+| `NO_BODY_ONLY_DOMAIN_COLLAPSE` | `PASS` |
 | `DIRECTION_POLICY` | `PASS` |
 | `INTENSITY_POLICY` | `PASS` |
+| `INTENSITY_BOUNDARY` | `PASS` |
 | `CONFIDENCE_POLICY` | `PASS` |
 | `NO_SELF_CONVERGENCE` | `PASS` |
 | `DUPLICATE_SUPPRESSION` | `PASS` |
