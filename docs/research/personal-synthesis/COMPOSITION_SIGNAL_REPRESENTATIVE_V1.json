@@ -1,0 +1,631 @@
+{
+  "artifactId": "natalnode.composition-signal.representative-v1",
+  "taskId": "WEB-P2-COMPOSITION-SIGNAL-001",
+  "baseline": "ce8ea09825dcc0d7063886249f3b07fcedc4e20d",
+  "status": "REPRESENTATIVE_COMPOSITION_SIGNAL_POLICY_PASS",
+  "sourceStatus": "SOURCE_SUPPORTED_WITH_CONDITIONS",
+  "policyState": "ADOPTED_WITH_CONDITIONS",
+  "runtimeEligibility": "RUNTIME_NOT_ADMITTED",
+  "scope": {
+    "zodiacModel": "WESTERN_TROPICAL",
+    "includedRuleCount": 4,
+    "includedCompositionIds": [
+      "body.moon_x_sign.aries",
+      "body.mercury_x_sign.aries",
+      "body.moon_x_sign.taurus",
+      "body.mercury_x_sign.taurus"
+    ],
+    "excluded": [
+      "all other Body × Sign compositions",
+      "production My Chart Signal wiring",
+      "production Weekly Signal wiring",
+      "PersonalTheme emission",
+      "runtime interpretation import",
+      "provider selection",
+      "AI generation",
+      "numeric probability or percentage",
+      "new Signal taxonomy"
+    ]
+  },
+  "signalTaxonomy": {
+    "sourceContract": "apps/web/src/features/interpretation/interpretation-signal-contracts.ts",
+    "parallelTaxonomyCreated": false,
+    "domains": [
+      "SELF",
+      "EMOTIONAL",
+      "RELATIONSHIP",
+      "COMMUNICATION",
+      "WORK_CREATION",
+      "ACTION_DECISION"
+    ],
+    "directions": ["SUPPORTIVE", "CHALLENGING", "MIXED", "NEUTRAL"],
+    "intensities": ["SUBTLE", "NOTICEABLE", "STRONG", "DOMINANT"],
+    "confidences": ["HIGH", "MEDIUM", "LOW"]
+  },
+  "evidencePolicy": {
+    "authoritativeFactType": "NATAL_BODY_POSITION",
+    "evidenceType": "BODY_SIGN_PLACEMENT",
+    "independentEvidenceUnitsPerPlacement": 1,
+    "bodyAndSignAreDistinctSemanticDimensions": true,
+    "bodyAndSignCreateSeparateEvidenceUnits": false,
+    "derivedSignLayers": ["element", "modality", "rulership"],
+    "derivedSignLayersCreateEvidence": false,
+    "samePlacementMaySelfConverge": false,
+    "repeatedPlacementReferencesIncreaseConfidence": false,
+    "repeatedPlacementReferencesIncreaseIntensity": false,
+    "repeatedPlacementReferencesIncreasePriority": false,
+    "independentConvergenceRequires": "A genuinely different authoritative ChartFact and a later semantic-overlap decision."
+  },
+  "primarySignalPolicy": {
+    "maxPrimarySignalsPerPlacement": 1,
+    "duplicatePlacementOutcome": "SUPPRESS_DUPLICATE",
+    "compositionAlternativesFromSamePlacement": "SUPPRESS",
+    "priorityAssignment": "DEFERRED_TO_PERSONAL_SYNTHESIS",
+    "proseFallback": "NO_SIGNAL"
+  },
+  "directionPolicy": {
+    "defaultForTheseRules": "NEUTRAL",
+    "constructiveAndTensionBecomeMixedAutomatically": false,
+    "orientationMayBeRaisedOnlyBy": "A separately admitted Signal rule and evidence with an explicit semantic orientation."
+  },
+  "intensityPolicy": {
+    "singlePlacementAllowedValues": ["SUBTLE", "NOTICEABLE"],
+    "singlePlacementCandidateValue": "NOTICEABLE",
+    "singlePlacementMaximum": "NOTICEABLE",
+    "strongRequires": "Separately admitted convergence or another admitted structural rule.",
+    "dominantRequires": "A separately admitted policy; none of these four rules may emit DOMINANT.",
+    "isImportanceScore": false
+  },
+  "confidencePolicy": {
+    "factAuthority": "AUTHORITATIVE_ENGINE_REQUIRED",
+    "singlePlacementInterpretiveEvidence": "LOW",
+    "singlePlacementCandidateValue": "LOW",
+    "higherConfidenceRequires": "Separately admitted independent evidence and later Personal Synthesis policy.",
+    "factAuthorityEqualsInterpretiveConfidence": false,
+    "isProbability": false,
+    "usesPercentages": false
+  },
+  "failClosedPolicy": {
+    "missingRuleOutcome": "NO_SIGNAL",
+    "unsupportedCompositionOutcome": "NO_SIGNAL",
+    "fallbackAstrology": false,
+    "conditions": [
+      "MISSING_AUTHORITATIVE_PLACEMENT",
+      "COMPOSITION_NOT_ADMITTED",
+      "SIGNAL_RULE_NOT_ADMITTED",
+      "UNSUPPORTED_ZODIAC_MODEL",
+      "INCOMPATIBLE_SCHOOL_OR_POLICY",
+      "DUPLICATE_SAME_PLACEMENT_SIGNAL",
+      "INSUFFICIENT_AUTHORITY",
+      "FORBIDDEN_TIME_DEPENDENCY",
+      "UNSUPPORTED_SEMANTIC_INFERENCE"
+    ]
+  },
+  "rules": [
+    {
+      "ruleId": "composition-signal.body.moon_x_sign.aries",
+      "ruleVersion": "1.0.0",
+      "compositionId": "body.moon_x_sign.aries",
+      "signalId": "signal.composition.body.moon_x_sign.aries",
+      "signalThemeKey": "moon-aries-response-initiation",
+      "requiredFactType": "NATAL_BODY_POSITION",
+      "placementEvidenceKey": "placement.body.moon.sign.aries",
+      "placementEvidence": {
+        "evidenceType": "BODY_SIGN_PLACEMENT",
+        "bodyId": "body.moon",
+        "signId": "sign.aries",
+        "independentEvidenceUnits": 1,
+        "semanticDimensions": ["body", "sign", "element", "modality", "rulership"]
+      },
+      "primarySignalPolicy": {
+        "slot": "PRIMARY_COMPOSITION_SIGNAL",
+        "maxSignalsPerPlacement": 1,
+        "duplicateOutcome": "SUPPRESS_DUPLICATE",
+        "samePlacementConvergence": "NOT_ELIGIBLE"
+      },
+      "eligibleDomain": "EMOTIONAL",
+      "domainRationale": "Moon owns response, rhythm, receptivity, inner experience, and needs; Aries qualifies how that subject may meet initiation without changing the primary subject to action marketing.",
+      "direction": "NEUTRAL",
+      "directionPolicy": "The composition supplies a question plus constructive capacity and tension; neither establishes a supportive or challenging orientation, so MIXED is not forced.",
+      "intensityPolicy": {
+        "candidateValue": "NOTICEABLE",
+        "allowedSinglePlacementValues": ["SUBTLE", "NOTICEABLE"],
+        "maximum": "NOTICEABLE",
+        "strongOrDominant": "Not eligible from this placement rule alone."
+      },
+      "candidateIntensity": "NOTICEABLE",
+      "confidencePolicy": {
+        "candidateValue": "LOW",
+        "interpretiveEvidence": "One authoritative placement fact with conditional editorial synthesis.",
+        "factAuthority": "AUTHORITATIVE_ENGINE_REQUIRED",
+        "higherConfidence": "Requires separately admitted independent evidence; repeated placement references do not qualify."
+      },
+      "candidateConfidence": "LOW",
+      "semanticClaim": "Moon response, rhythm, receptivity, or need may be explored through Aries initiation, activation, or assertion conditions without producing a fixed emotional style.",
+      "constructiveCapacity": "A recurring response or need may be observed as it takes an initial form, while the response remains available for review.",
+      "possibleTension": "A need for receptivity or familiar rhythm may meet a context that asks for initiation; the tension is how to begin without erasing the response that still needs attention.",
+      "semanticBasis": {
+        "bodyId": "body.moon",
+        "signId": "sign.aries",
+        "elementId": "element.fire",
+        "modalityId": "modality.cardinal",
+        "rulershipId": "rulership.basic",
+        "rulershipBodyId": "body.mars",
+        "derivedSignLayers": ["element", "modality", "rulership"],
+        "evidenceUnitCount": 1
+      },
+      "forbiddenInferences": [
+        "angry",
+        "impulsive",
+        "emotionally impulsive",
+        "unstable",
+        "emotionally unstable",
+        "aggressive",
+        "needs excitement",
+        "complete emotional personality",
+        "Aries equals Mars",
+        "Mars supplies the complete Moon meaning"
+      ],
+      "suppressionConditions": [
+        "MISSING_AUTHORITATIVE_PLACEMENT",
+        "COMPOSITION_NOT_ADMITTED",
+        "SIGNAL_RULE_NOT_ADMITTED",
+        "UNSUPPORTED_ZODIAC_MODEL",
+        "INCOMPATIBLE_SCHOOL_OR_POLICY",
+        "DUPLICATE_SAME_PLACEMENT_SIGNAL",
+        "INSUFFICIENT_AUTHORITY",
+        "FORBIDDEN_TIME_DEPENDENCY",
+        "UNSUPPORTED_SEMANTIC_INFERENCE"
+      ],
+      "authorityRequirements": {
+        "requiredSourceAuthority": "AUTHORITATIVE_ENGINE",
+        "allowedSourceAuthorities": ["AUTHORITATIVE_ENGINE"],
+        "developmentFixtureEligibility": "SUPPRESS",
+        "requiredCompositionAdmission": "BOUNDED_COMPOSITION_ADMISSION_PASS",
+        "requiredPolicyState": "ADOPTED_WITH_CONDITIONS"
+      },
+      "birthTimeRequirement": {
+        "status": "UNKNOWN_TIME_SAFE",
+        "requiresKnownBirthTime": false,
+        "condition": "The authoritative NATAL_BODY_POSITION must include the Moon sign placement.",
+        "forbiddenDependencies": ["ASC", "MC", "houses", "house-derived-domain", "angle-prominence", "fabricated-time"]
+      },
+      "provenance": {
+        "sourceRefs": ["COMPOSITION_ARTIFACT", "COMPOSITION_METHOD", "SIGNAL_CONTRACT", "SIGNAL_ENGINE", "PERSONAL_SYNTHESIS_POC", "EDITORIAL_ARCHITECTURE", "CONTENT_VALUE_ARCHITECTURE"],
+        "compositionArtifactPath": "docs/research/astrology-knowledge-canon/compositions/BODY_SIGN_COMPOSITION_REPRESENTATIVE_V1.json",
+        "compositionEvidenceStatus": "SOURCE_SUPPORTED_WITH_CONDITIONS",
+        "ruleEpistemicStatus": "EDITORIAL_SYNTHESIS",
+        "runtimeStatus": "RUNTIME_NOT_ADMITTED"
+      },
+      "whyReferences": {
+        "chartFact": "placement.body.moon.sign.aries",
+        "compositionId": "body.moon_x_sign.aries",
+        "rule": "composition-signal.body.moon_x_sign.aries@1.0.0",
+        "semanticBasis": ["body.moon", "sign.aries", "element.fire", "modality.cardinal", "rulership.basic"],
+        "authorityState": "AUTHORITATIVE_ENGINE_REQUIRED",
+        "birthTimeEligibility": "UNKNOWN_TIME_SAFE",
+        "sourcePolicyRefs": ["COMPOSITION_ARTIFACT", "COMPOSITION_METHOD", "PERSONAL_SYNTHESIS_POC"]
+      },
+      "learnReferences": [
+        {"objectId": "body.moon", "label": "Moon", "sourcePath": "docs/research/astrology-knowledge-canon/content/CORE_PRIMITIVE_EN_R2.json"},
+        {"objectId": "sign.aries", "label": "Aries", "sourcePath": "docs/research/astrology-knowledge-canon/content/CORE_PRIMITIVE_EN_R2.json"},
+        {"objectId": "element.fire", "label": "Fire", "sourcePath": "docs/research/astrology-knowledge-canon/primitives/elements/ELEMENTS.md"},
+        {"objectId": "modality.cardinal", "label": "Cardinal", "sourcePath": "docs/research/astrology-knowledge-canon/primitives/modalities/MODALITIES.md"},
+        {"objectId": "rulership.basic", "label": "Basic sign rulership", "sourcePath": "docs/research/astrology-knowledge-canon/primitives/rulership/RULERSHIP_POLICY.md"}
+      ],
+      "runtimeEligibility": "RUNTIME_NOT_ADMITTED",
+      "policyState": "ADOPTED_WITH_CONDITIONS",
+      "editorialReviewStatus": "REPRESENTATIVE_POLICY_REVIEWED"
+    },
+    {
+      "ruleId": "composition-signal.body.mercury_x_sign.aries",
+      "ruleVersion": "1.0.0",
+      "compositionId": "body.mercury_x_sign.aries",
+      "signalId": "signal.composition.body.mercury_x_sign.aries",
+      "signalThemeKey": "mercury-aries-information-initiation",
+      "requiredFactType": "NATAL_BODY_POSITION",
+      "placementEvidenceKey": "placement.body.mercury.sign.aries",
+      "placementEvidence": {
+        "evidenceType": "BODY_SIGN_PLACEMENT",
+        "bodyId": "body.mercury",
+        "signId": "sign.aries",
+        "independentEvidenceUnits": 1,
+        "semanticDimensions": ["body", "sign", "element", "modality", "rulership"]
+      },
+      "primarySignalPolicy": {
+        "slot": "PRIMARY_COMPOSITION_SIGNAL",
+        "maxSignalsPerPlacement": 1,
+        "duplicateOutcome": "SUPPRESS_DUPLICATE",
+        "samePlacementConvergence": "NOT_ELIGIBLE"
+      },
+      "eligibleDomain": "COMMUNICATION",
+      "domainRationale": "Mercury owns naming, interpretation, comparison, learning, and exchange; Aries qualifies how information enters a first move without turning the rule into an action or intelligence profile.",
+      "direction": "NEUTRAL",
+      "directionPolicy": "The composition supplies a question plus constructive capacity and tension; neither establishes a supportive or challenging orientation, so MIXED is not forced.",
+      "intensityPolicy": {
+        "candidateValue": "NOTICEABLE",
+        "allowedSinglePlacementValues": ["SUBTLE", "NOTICEABLE"],
+        "maximum": "NOTICEABLE",
+        "strongOrDominant": "Not eligible from this placement rule alone."
+      },
+      "candidateIntensity": "NOTICEABLE",
+      "confidencePolicy": {
+        "candidateValue": "LOW",
+        "interpretiveEvidence": "One authoritative placement fact with conditional editorial synthesis.",
+        "factAuthority": "AUTHORITATIVE_ENGINE_REQUIRED",
+        "higherConfidence": "Requires separately admitted independent evidence; repeated placement references do not qualify."
+      },
+      "candidateConfidence": "LOW",
+      "semanticClaim": "Mercury information work may be explored through Aries initiation, activation, or assertion conditions without producing a fixed thinking or communication type.",
+      "constructiveCapacity": "Naming and comparison may give an emerging distinction a first formulation while leaving room for further information and correction.",
+      "possibleTension": "An emerging interpretation may receive a first formulation before comparison is complete; the tension is how to enter a move while keeping the question open.",
+      "semanticBasis": {
+        "bodyId": "body.mercury",
+        "signId": "sign.aries",
+        "elementId": "element.fire",
+        "modalityId": "modality.cardinal",
+        "rulershipId": "rulership.basic",
+        "rulershipBodyId": "body.mars",
+        "derivedSignLayers": ["element", "modality", "rulership"],
+        "evidenceUnitCount": 1
+      },
+      "forbiddenInferences": [
+        "blunt",
+        "fast",
+        "fast speaker",
+        "argumentative",
+        "genius",
+        "poor listener",
+        "aggressive",
+        "complete intelligence or communication outcome",
+        "Aries equals Mars",
+        "Mars supplies the complete Mercury meaning"
+      ],
+      "suppressionConditions": [
+        "MISSING_AUTHORITATIVE_PLACEMENT",
+        "COMPOSITION_NOT_ADMITTED",
+        "SIGNAL_RULE_NOT_ADMITTED",
+        "UNSUPPORTED_ZODIAC_MODEL",
+        "INCOMPATIBLE_SCHOOL_OR_POLICY",
+        "DUPLICATE_SAME_PLACEMENT_SIGNAL",
+        "INSUFFICIENT_AUTHORITY",
+        "FORBIDDEN_TIME_DEPENDENCY",
+        "UNSUPPORTED_SEMANTIC_INFERENCE"
+      ],
+      "authorityRequirements": {
+        "requiredSourceAuthority": "AUTHORITATIVE_ENGINE",
+        "allowedSourceAuthorities": ["AUTHORITATIVE_ENGINE"],
+        "developmentFixtureEligibility": "SUPPRESS",
+        "requiredCompositionAdmission": "BOUNDED_COMPOSITION_ADMISSION_PASS",
+        "requiredPolicyState": "ADOPTED_WITH_CONDITIONS"
+      },
+      "birthTimeRequirement": {
+        "status": "UNKNOWN_TIME_SAFE",
+        "requiresKnownBirthTime": false,
+        "condition": "The authoritative NATAL_BODY_POSITION must include the Mercury sign placement.",
+        "forbiddenDependencies": ["ASC", "MC", "houses", "house-derived-domain", "angle-prominence", "fabricated-time"]
+      },
+      "provenance": {
+        "sourceRefs": ["COMPOSITION_ARTIFACT", "COMPOSITION_METHOD", "SIGNAL_CONTRACT", "SIGNAL_ENGINE", "PERSONAL_SYNTHESIS_POC", "EDITORIAL_ARCHITECTURE", "CONTENT_VALUE_ARCHITECTURE"],
+        "compositionArtifactPath": "docs/research/astrology-knowledge-canon/compositions/BODY_SIGN_COMPOSITION_REPRESENTATIVE_V1.json",
+        "compositionEvidenceStatus": "SOURCE_SUPPORTED_WITH_CONDITIONS",
+        "ruleEpistemicStatus": "EDITORIAL_SYNTHESIS",
+        "runtimeStatus": "RUNTIME_NOT_ADMITTED"
+      },
+      "whyReferences": {
+        "chartFact": "placement.body.mercury.sign.aries",
+        "compositionId": "body.mercury_x_sign.aries",
+        "rule": "composition-signal.body.mercury_x_sign.aries@1.0.0",
+        "semanticBasis": ["body.mercury", "sign.aries", "element.fire", "modality.cardinal", "rulership.basic"],
+        "authorityState": "AUTHORITATIVE_ENGINE_REQUIRED",
+        "birthTimeEligibility": "UNKNOWN_TIME_SAFE",
+        "sourcePolicyRefs": ["COMPOSITION_ARTIFACT", "COMPOSITION_METHOD", "PERSONAL_SYNTHESIS_POC"]
+      },
+      "learnReferences": [
+        {"objectId": "body.mercury", "label": "Mercury", "sourcePath": "docs/research/astrology-knowledge-canon/content/CORE_PRIMITIVE_EN_R2.json"},
+        {"objectId": "sign.aries", "label": "Aries", "sourcePath": "docs/research/astrology-knowledge-canon/content/CORE_PRIMITIVE_EN_R2.json"},
+        {"objectId": "element.fire", "label": "Fire", "sourcePath": "docs/research/astrology-knowledge-canon/primitives/elements/ELEMENTS.md"},
+        {"objectId": "modality.cardinal", "label": "Cardinal", "sourcePath": "docs/research/astrology-knowledge-canon/primitives/modalities/MODALITIES.md"},
+        {"objectId": "rulership.basic", "label": "Basic sign rulership", "sourcePath": "docs/research/astrology-knowledge-canon/primitives/rulership/RULERSHIP_POLICY.md"}
+      ],
+      "runtimeEligibility": "RUNTIME_NOT_ADMITTED",
+      "policyState": "ADOPTED_WITH_CONDITIONS",
+      "editorialReviewStatus": "REPRESENTATIVE_POLICY_REVIEWED"
+    },
+    {
+      "ruleId": "composition-signal.body.moon_x_sign.taurus",
+      "ruleVersion": "1.0.0",
+      "compositionId": "body.moon_x_sign.taurus",
+      "signalId": "signal.composition.body.moon_x_sign.taurus",
+      "signalThemeKey": "moon-taurus-response-embodiment",
+      "requiredFactType": "NATAL_BODY_POSITION",
+      "placementEvidenceKey": "placement.body.moon.sign.taurus",
+      "placementEvidence": {
+        "evidenceType": "BODY_SIGN_PLACEMENT",
+        "bodyId": "body.moon",
+        "signId": "sign.taurus",
+        "independentEvidenceUnits": 1,
+        "semanticDimensions": ["body", "sign", "element", "modality", "rulership"]
+      },
+      "primarySignalPolicy": {
+        "slot": "PRIMARY_COMPOSITION_SIGNAL",
+        "maxSignalsPerPlacement": 1,
+        "duplicateOutcome": "SUPPRESS_DUPLICATE",
+        "samePlacementConvergence": "NOT_ELIGIBLE"
+      },
+      "eligibleDomain": "EMOTIONAL",
+      "domainRationale": "Moon owns response, rhythm, receptivity, inner experience, and needs; Taurus qualifies how that subject may become embodied, valued, maintained, or tangible.",
+      "direction": "NEUTRAL",
+      "directionPolicy": "The composition supplies a question plus constructive capacity and tension; neither establishes a supportive or challenging orientation, so MIXED is not forced.",
+      "intensityPolicy": {
+        "candidateValue": "NOTICEABLE",
+        "allowedSinglePlacementValues": ["SUBTLE", "NOTICEABLE"],
+        "maximum": "NOTICEABLE",
+        "strongOrDominant": "Not eligible from this placement rule alone."
+      },
+      "candidateIntensity": "NOTICEABLE",
+      "confidencePolicy": {
+        "candidateValue": "LOW",
+        "interpretiveEvidence": "One authoritative placement fact with conditional editorial synthesis.",
+        "factAuthority": "AUTHORITATIVE_ENGINE_REQUIRED",
+        "higherConfidence": "Requires separately admitted independent evidence; repeated placement references do not qualify."
+      },
+      "candidateConfidence": "LOW",
+      "semanticClaim": "Moon response, rhythm, receptivity, or need may be explored through Taurus embodiment, valuation, continuity, and maintenance conditions without producing a fixed emotional identity.",
+      "constructiveCapacity": "A recurring need or response may be given a tangible, repeatable container that remains open to context.",
+      "possibleTension": "A valued or embodied rhythm may become a condition to preserve; the tension is how to honor continuity while checking whether revision is needed.",
+      "semanticBasis": {
+        "bodyId": "body.moon",
+        "signId": "sign.taurus",
+        "elementId": "element.earth",
+        "modalityId": "modality.fixed",
+        "rulershipId": "rulership.basic",
+        "rulershipBodyId": "body.venus",
+        "derivedSignLayers": ["element", "modality", "rulership"],
+        "evidenceUnitCount": 1
+      },
+      "forbiddenInferences": [
+        "stubborn",
+        "possessive",
+        "comfort-loving",
+        "sensual",
+        "financially security-oriented",
+        "stable",
+        "complete emotional or relationship outcome",
+        "Taurus equals Venus",
+        "Venus supplies the complete Moon meaning"
+      ],
+      "suppressionConditions": [
+        "MISSING_AUTHORITATIVE_PLACEMENT",
+        "COMPOSITION_NOT_ADMITTED",
+        "SIGNAL_RULE_NOT_ADMITTED",
+        "UNSUPPORTED_ZODIAC_MODEL",
+        "INCOMPATIBLE_SCHOOL_OR_POLICY",
+        "DUPLICATE_SAME_PLACEMENT_SIGNAL",
+        "INSUFFICIENT_AUTHORITY",
+        "FORBIDDEN_TIME_DEPENDENCY",
+        "UNSUPPORTED_SEMANTIC_INFERENCE"
+      ],
+      "authorityRequirements": {
+        "requiredSourceAuthority": "AUTHORITATIVE_ENGINE",
+        "allowedSourceAuthorities": ["AUTHORITATIVE_ENGINE"],
+        "developmentFixtureEligibility": "SUPPRESS",
+        "requiredCompositionAdmission": "BOUNDED_COMPOSITION_ADMISSION_PASS",
+        "requiredPolicyState": "ADOPTED_WITH_CONDITIONS"
+      },
+      "birthTimeRequirement": {
+        "status": "UNKNOWN_TIME_SAFE",
+        "requiresKnownBirthTime": false,
+        "condition": "The authoritative NATAL_BODY_POSITION must include the Moon sign placement.",
+        "forbiddenDependencies": ["ASC", "MC", "houses", "house-derived-domain", "angle-prominence", "fabricated-time"]
+      },
+      "provenance": {
+        "sourceRefs": ["COMPOSITION_ARTIFACT", "COMPOSITION_METHOD", "SIGNAL_CONTRACT", "SIGNAL_ENGINE", "PERSONAL_SYNTHESIS_POC", "EDITORIAL_ARCHITECTURE", "CONTENT_VALUE_ARCHITECTURE", "SUN_TAURUS_CONTROL"],
+        "compositionArtifactPath": "docs/research/astrology-knowledge-canon/compositions/BODY_SIGN_COMPOSITION_REPRESENTATIVE_V1.json",
+        "compositionEvidenceStatus": "SOURCE_SUPPORTED_WITH_CONDITIONS",
+        "ruleEpistemicStatus": "EDITORIAL_SYNTHESIS",
+        "runtimeStatus": "RUNTIME_NOT_ADMITTED"
+      },
+      "whyReferences": {
+        "chartFact": "placement.body.moon.sign.taurus",
+        "compositionId": "body.moon_x_sign.taurus",
+        "rule": "composition-signal.body.moon_x_sign.taurus@1.0.0",
+        "semanticBasis": ["body.moon", "sign.taurus", "element.earth", "modality.fixed", "rulership.basic"],
+        "authorityState": "AUTHORITATIVE_ENGINE_REQUIRED",
+        "birthTimeEligibility": "UNKNOWN_TIME_SAFE",
+        "sourcePolicyRefs": ["COMPOSITION_ARTIFACT", "COMPOSITION_METHOD", "PERSONAL_SYNTHESIS_POC", "SUN_TAURUS_CONTROL"]
+      },
+      "learnReferences": [
+        {"objectId": "body.moon", "label": "Moon", "sourcePath": "docs/research/astrology-knowledge-canon/content/CORE_PRIMITIVE_EN_R2.json"},
+        {"objectId": "sign.taurus", "label": "Taurus", "sourcePath": "docs/research/astrology-knowledge-canon/primitives/signs/SIGNS.md"},
+        {"objectId": "element.earth", "label": "Earth", "sourcePath": "docs/research/astrology-knowledge-canon/primitives/elements/ELEMENTS.md"},
+        {"objectId": "modality.fixed", "label": "Fixed", "sourcePath": "docs/research/astrology-knowledge-canon/primitives/modalities/MODALITIES.md"},
+        {"objectId": "rulership.basic", "label": "Basic sign rulership", "sourcePath": "docs/research/astrology-knowledge-canon/primitives/rulership/RULERSHIP_POLICY.md"}
+      ],
+      "runtimeEligibility": "RUNTIME_NOT_ADMITTED",
+      "policyState": "ADOPTED_WITH_CONDITIONS",
+      "editorialReviewStatus": "REPRESENTATIVE_POLICY_REVIEWED"
+    },
+    {
+      "ruleId": "composition-signal.body.mercury_x_sign.taurus",
+      "ruleVersion": "1.0.0",
+      "compositionId": "body.mercury_x_sign.taurus",
+      "signalId": "signal.composition.body.mercury_x_sign.taurus",
+      "signalThemeKey": "mercury-taurus-information-embodiment",
+      "requiredFactType": "NATAL_BODY_POSITION",
+      "placementEvidenceKey": "placement.body.mercury.sign.taurus",
+      "placementEvidence": {
+        "evidenceType": "BODY_SIGN_PLACEMENT",
+        "bodyId": "body.mercury",
+        "signId": "sign.taurus",
+        "independentEvidenceUnits": 1,
+        "semanticDimensions": ["body", "sign", "element", "modality", "rulership"]
+      },
+      "primarySignalPolicy": {
+        "slot": "PRIMARY_COMPOSITION_SIGNAL",
+        "maxSignalsPerPlacement": 1,
+        "duplicateOutcome": "SUPPRESS_DUPLICATE",
+        "samePlacementConvergence": "NOT_ELIGIBLE"
+      },
+      "eligibleDomain": "COMMUNICATION",
+      "domainRationale": "Mercury owns naming, interpretation, comparison, learning, and exchange; Taurus qualifies how meaning becomes embodied, valued, maintained, or tangible.",
+      "direction": "NEUTRAL",
+      "directionPolicy": "The composition supplies a question plus constructive capacity and tension; neither establishes a supportive or challenging orientation, so MIXED is not forced.",
+      "intensityPolicy": {
+        "candidateValue": "NOTICEABLE",
+        "allowedSinglePlacementValues": ["SUBTLE", "NOTICEABLE"],
+        "maximum": "NOTICEABLE",
+        "strongOrDominant": "Not eligible from this placement rule alone."
+      },
+      "candidateIntensity": "NOTICEABLE",
+      "confidencePolicy": {
+        "candidateValue": "LOW",
+        "interpretiveEvidence": "One authoritative placement fact with conditional editorial synthesis.",
+        "factAuthority": "AUTHORITATIVE_ENGINE_REQUIRED",
+        "higherConfidence": "Requires separately admitted independent evidence; repeated placement references do not qualify."
+      },
+      "candidateConfidence": "LOW",
+      "semanticClaim": "Mercury information work may be explored through Taurus embodiment, valuation, continuity, and maintenance conditions without producing a fixed thinking or communication type.",
+      "constructiveCapacity": "Information, comparison, or interpretation may be given a tangible form that can be developed and revisited.",
+      "possibleTension": "A tangible interpretation may become the reference point for later information; the tension is how to develop meaning without treating an established formulation as final.",
+      "semanticBasis": {
+        "bodyId": "body.mercury",
+        "signId": "sign.taurus",
+        "elementId": "element.earth",
+        "modalityId": "modality.fixed",
+        "rulershipId": "rulership.basic",
+        "rulershipBodyId": "body.venus",
+        "derivedSignLayers": ["element", "modality", "rulership"],
+        "evidenceUnitCount": 1
+      },
+      "forbiddenInferences": [
+        "slow thinker",
+        "slow",
+        "practical thinker",
+        "stubborn thinker",
+        "good with money",
+        "good money",
+        "methodical communicator",
+        "complete intelligence or communication outcome",
+        "Taurus equals Venus",
+        "Venus supplies the complete Mercury meaning"
+      ],
+      "suppressionConditions": [
+        "MISSING_AUTHORITATIVE_PLACEMENT",
+        "COMPOSITION_NOT_ADMITTED",
+        "SIGNAL_RULE_NOT_ADMITTED",
+        "UNSUPPORTED_ZODIAC_MODEL",
+        "INCOMPATIBLE_SCHOOL_OR_POLICY",
+        "DUPLICATE_SAME_PLACEMENT_SIGNAL",
+        "INSUFFICIENT_AUTHORITY",
+        "FORBIDDEN_TIME_DEPENDENCY",
+        "UNSUPPORTED_SEMANTIC_INFERENCE"
+      ],
+      "authorityRequirements": {
+        "requiredSourceAuthority": "AUTHORITATIVE_ENGINE",
+        "allowedSourceAuthorities": ["AUTHORITATIVE_ENGINE"],
+        "developmentFixtureEligibility": "SUPPRESS",
+        "requiredCompositionAdmission": "BOUNDED_COMPOSITION_ADMISSION_PASS",
+        "requiredPolicyState": "ADOPTED_WITH_CONDITIONS"
+      },
+      "birthTimeRequirement": {
+        "status": "UNKNOWN_TIME_SAFE",
+        "requiresKnownBirthTime": false,
+        "condition": "The authoritative NATAL_BODY_POSITION must include the Mercury sign placement.",
+        "forbiddenDependencies": ["ASC", "MC", "houses", "house-derived-domain", "angle-prominence", "fabricated-time"]
+      },
+      "provenance": {
+        "sourceRefs": ["COMPOSITION_ARTIFACT", "COMPOSITION_METHOD", "SIGNAL_CONTRACT", "SIGNAL_ENGINE", "PERSONAL_SYNTHESIS_POC", "EDITORIAL_ARCHITECTURE", "CONTENT_VALUE_ARCHITECTURE", "SUN_TAURUS_CONTROL"],
+        "compositionArtifactPath": "docs/research/astrology-knowledge-canon/compositions/BODY_SIGN_COMPOSITION_REPRESENTATIVE_V1.json",
+        "compositionEvidenceStatus": "SOURCE_SUPPORTED_WITH_CONDITIONS",
+        "ruleEpistemicStatus": "EDITORIAL_SYNTHESIS",
+        "runtimeStatus": "RUNTIME_NOT_ADMITTED"
+      },
+      "whyReferences": {
+        "chartFact": "placement.body.mercury.sign.taurus",
+        "compositionId": "body.mercury_x_sign.taurus",
+        "rule": "composition-signal.body.mercury_x_sign.taurus@1.0.0",
+        "semanticBasis": ["body.mercury", "sign.taurus", "element.earth", "modality.fixed", "rulership.basic"],
+        "authorityState": "AUTHORITATIVE_ENGINE_REQUIRED",
+        "birthTimeEligibility": "UNKNOWN_TIME_SAFE",
+        "sourcePolicyRefs": ["COMPOSITION_ARTIFACT", "COMPOSITION_METHOD", "PERSONAL_SYNTHESIS_POC", "SUN_TAURUS_CONTROL"]
+      },
+      "learnReferences": [
+        {"objectId": "body.mercury", "label": "Mercury", "sourcePath": "docs/research/astrology-knowledge-canon/content/CORE_PRIMITIVE_EN_R2.json"},
+        {"objectId": "sign.taurus", "label": "Taurus", "sourcePath": "docs/research/astrology-knowledge-canon/primitives/signs/SIGNS.md"},
+        {"objectId": "element.earth", "label": "Earth", "sourcePath": "docs/research/astrology-knowledge-canon/primitives/elements/ELEMENTS.md"},
+        {"objectId": "modality.fixed", "label": "Fixed", "sourcePath": "docs/research/astrology-knowledge-canon/primitives/modalities/MODALITIES.md"},
+        {"objectId": "rulership.basic", "label": "Basic sign rulership", "sourcePath": "docs/research/astrology-knowledge-canon/primitives/rulership/RULERSHIP_POLICY.md"}
+      ],
+      "runtimeEligibility": "RUNTIME_NOT_ADMITTED",
+      "policyState": "ADOPTED_WITH_CONDITIONS",
+      "editorialReviewStatus": "REPRESENTATIVE_POLICY_REVIEWED"
+    }
+  ],
+  "convergenceExamples": [
+    {
+      "exampleId": "same-sign-different-placement",
+      "placementEvidenceKeys": ["placement.body.moon.sign.aries", "placement.body.mercury.sign.aries"],
+      "evidenceUnitCount": 2,
+      "sameSign": true,
+      "samePlacement": false,
+      "eligibleForLaterConvergenceReview": true,
+      "automaticMerge": false,
+      "reason": "Two different authoritative placements may be independently considered, but shared Aries does not establish semantic claim overlap."
+    },
+    {
+      "exampleId": "same-placement-duplicate",
+      "placementEvidenceKeys": ["placement.body.moon.sign.aries", "placement.body.moon.sign.aries"],
+      "evidenceUnitCount": 1,
+      "sameSign": true,
+      "samePlacement": true,
+      "eligibleForLaterConvergenceReview": false,
+      "automaticMerge": false,
+      "outcome": "ONE_PRIMARY_SIGNAL_AND_DUPLICATE_SUPPRESSED",
+      "reason": "Repeated references to one placement cannot create independent evidence or increase confidence, intensity, or priority."
+    },
+    {
+      "exampleId": "different-placement-no-semantic-overlap",
+      "placementEvidenceKeys": ["placement.body.moon.sign.aries", "placement.body.mercury.sign.taurus"],
+      "evidenceUnitCount": 2,
+      "sameSign": false,
+      "samePlacement": false,
+      "eligibleForLaterConvergenceReview": false,
+      "automaticMerge": false,
+      "reason": "Different placements do not converge without an admitted semantic claim overlap."
+    }
+  ],
+  "validationGates": {
+    "SIGNAL_RULE_CONTRACT": "PASS",
+    "PLACEMENT_EVIDENCE_PRESERVATION": "PASS",
+    "ONE_PLACEMENT_ONE_PRIMARY_SIGNAL": "PASS",
+    "DOMAIN_ASSIGNMENT": "PASS",
+    "DIRECTION_POLICY": "PASS",
+    "INTENSITY_POLICY": "PASS",
+    "CONFIDENCE_POLICY": "PASS",
+    "NO_SELF_CONVERGENCE": "PASS",
+    "DUPLICATE_SUPPRESSION": "PASS",
+    "UNKNOWN_TIME_AUTHORITY": "PASS",
+    "ANTI_STEREOTYPE": "PASS",
+    "WHY_TRACEABILITY": "PASS",
+    "PERSONAL_SYNTHESIS_COMPATIBILITY": "PASS"
+  },
+  "readiness": {
+    "READY_FOR_BOUNDED_SIGNAL_ADMISSION": "YES",
+    "READY_FOR_MY_CHART_SIGNAL_POC": "NO",
+    "READY_FOR_BROAD_SCALE": "NO",
+    "RUNTIME_ADMISSION": "NO"
+  },
+  "sourceReferences": [
+    {"id": "COMPOSITION_METHOD", "path": "docs/product/NATALNODE_BODY_SIGN_COMPOSITION_METHOD_V1.md", "locator": "sections 2, 5, 8, and 9", "supports": "Placement evidence model, composition contract, Personal Synthesis boundary, and runtime exclusion."},
+    {"id": "COMPOSITION_ARTIFACT", "path": "docs/research/astrology-knowledge-canon/compositions/BODY_SIGN_COMPOSITION_REPRESENTATIVE_V1.json", "locator": "four admitted composition records and validation gates", "supports": "Admitted composition IDs, semantic dimensions, source state, policy state, and placement evidence keys."},
+    {"id": "COMPOSITION_REVIEW", "path": "docs/research/astrology-knowledge-canon/compositions/BODY_SIGN_COMPOSITION_REPRESENTATIVE_V1_REVIEW.md", "locator": "sections 5.2, 6, 7, and 9", "supports": "No double counting, unknown-time behavior, convergence distinction, and existing rulership boundary."},
+    {"id": "SIGNAL_CONTRACT", "path": "apps/web/src/features/interpretation/interpretation-signal-contracts.ts", "locator": "signal domains, directions, intensities, confidence, and provenance types", "supports": "Reuse of the existing Signal taxonomy and provider-neutral provenance contract."},
+    {"id": "SIGNAL_ENGINE", "path": "apps/web/src/features/interpretation/interpretation-signal-engine.ts", "locator": "rule prerequisites, source authority, and fail-closed skip behavior", "supports": "Authority, prerequisite, and no-synthetic-fallback boundaries."},
+    {"id": "PERSONAL_SYNTHESIS_POC", "path": "docs/research/personal-synthesis/PERSONAL_SYNTHESIS_POC_001_REVIEW.md", "locator": "sections 1-3, 6, and 8", "supports": "Independent evidence keys, domain/direction vocabulary, WHY/LEARN, ranking boundary, and runtime exclusion."},
+    {"id": "EDITORIAL_ARCHITECTURE", "path": "docs/product/NATALNODE_PERSONAL_EDITORIAL_ARCHITECTURE_V1.md", "locator": "Signal/candidate/ranking/editorial boundaries", "supports": "Structured candidates remain separate from prose and priority."},
+    {"id": "CONTENT_VALUE_ARCHITECTURE", "path": "docs/product/NATALNODE_CONTENT_VALUE_ARCHITECTURE_V1.md", "locator": "truth boundary, progressive depth, and unknown-time rules", "supports": "Evidence-connected content and omission-over-filler policy."},
+    {"id": "SUN_TAURUS_CONTROL", "path": "docs/research/astrology-knowledge-canon/sun-taurus/SUN_TAURUS_COMPOSITION.md", "locator": "bounded composition and negative boundary", "supports": "Existing Taurus control only; it is not expanded by this artifact."},
+    {"id": "HUMAN_KNOWLEDGE_R2", "path": "docs/research/astrology-knowledge-canon/content/CORE_PRIMITIVE_EN_R2_REVIEW.md", "locator": "scope, anti-Barnum, and primitive audit", "supports": "Forbidden inferences and reader concept boundaries; no runtime import."}
+  ]
+}

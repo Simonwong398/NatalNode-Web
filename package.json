@@ -15,6 +15,7 @@
     "check": "npm run check --workspaces --if-present",
     "test:engineering-integrity": "node --test scripts/test-engineering-integrity.test.mjs",
     "test:body-sign-composition": "node --test scripts/test-body-sign-composition.test.mjs",
+    "test:composition-signal-policy": "node --test scripts/test-composition-signal-policy.test.mjs",
     "preserver:start": "npm run build:server",
     "server:start": "npm run start --workspace=server",
     "predb:migrate": "npm run build:server",
