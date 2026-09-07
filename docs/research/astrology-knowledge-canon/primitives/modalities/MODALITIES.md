@@ -3,9 +3,9 @@
 Objects: Cardinal, Fixed, Mutable
 Source status: SOURCE_SUPPORTED_WITH_CONDITIONS for the bounded structural
 model.
-Policy status: READY_FOR_OWNER_ADMISSION; Fixed remains reconciled with the
-already admitted Taurus policy, but standalone modality policy is not yet
-admitted.
+Policy status: ADOPTED_WITH_CONDITIONS; Fixed remains reconciled with the
+already admitted Taurus policy, and standalone modality policy is now admitted
+with the conditions below.
 Runtime: RUNTIME_NOT_ADMITTED
 
 Modalities describe a conventional operating mode or phase of sign expression.
@@ -18,9 +18,9 @@ the layer is named.
 | Claim ID | Material claim | Source refs | Claim status | Policy status | Boundary |
 | --- | --- | --- | --- | --- | --- |
 | MODE-001 | The twelve signs are conventionally grouped into Cardinal, Fixed, and Mutable quadruplicities. | PC-12 | SOURCE_SUPPORTED | ADOPTED_WITH_CONDITIONS | The grouping is a symbolic convention, not a behavioral measurement. |
-| MODE-002 | Cardinal vocabulary can describe initiation, formation, turning, or movement into a new phase. | PC-01, PC-12 | SOURCE_SUPPORTED_WITH_CONDITIONS | UNRESOLVED | Cardinal does not mean impatient, dominant, or always active. |
-| MODE-003 | Fixed vocabulary can describe continuation, consolidation, settlement, maintenance, or stabilization. | PC-01, PC-12, PC-19 | SOURCE_SUPPORTED_WITH_CONDITIONS | UNRESOLVED | Fixed does not mean stubborn, immobile, loyal, or resistant in every context. |
-| MODE-004 | Mutable vocabulary can describe adaptation, transition, redistribution, translation, or integration between conditions. | PC-01, PC-12 | SOURCE_SUPPORTED_WITH_CONDITIONS | UNRESOLVED | Mutable does not mean inconsistent, indecisive, or unreliable. |
+| MODE-002 | Cardinal vocabulary can describe initiation, formation, turning, or movement into a new phase. | PC-01, PC-12 | SOURCE_SUPPORTED_WITH_CONDITIONS | ADOPTED_WITH_CONDITIONS | Cardinal does not mean impatient, dominant, or always active. |
+| MODE-003 | Fixed vocabulary can describe continuation, consolidation, settlement, maintenance, or stabilization. | PC-01, PC-12, PC-19 | SOURCE_SUPPORTED_WITH_CONDITIONS | ADOPTED_WITH_CONDITIONS | Fixed does not mean stubborn, immobile, loyal, or resistant in every context. |
+| MODE-004 | Mutable vocabulary can describe adaptation, transition, redistribution, translation, or integration between conditions. | PC-01, PC-12 | SOURCE_SUPPORTED_WITH_CONDITIONS | ADOPTED_WITH_CONDITIONS | Mutable does not mean inconsistent, indecisive, or unreliable. |
 | MODE-005 | Historical solid and bicorporeal terminology is identical to modern Fixed and Mutable psychological language. | PC-01, PC-12 | REJECTED | NOT_USED_FOR_PERSONAL_INTERPRETATION | Use an explicit historical-to-modern bridge; never imply unchanged doctrine. |
 | MODE-006 | A modality alone determines how a person behaves. | PC-12, PC-19 | REJECTED | NOT_USED_FOR_PERSONAL_INTERPRETATION | No standalone modality personality profile is admitted. |
 
@@ -28,13 +28,14 @@ the layer is named.
 
 | Modality | Signs | Structural question | Claim status | Policy status |
 | --- | --- | --- | --- | --- |
-| Cardinal | Aries, Cancer, Libra, Capricorn | What is beginning, forming, turning, or entering motion? | SOURCE_SUPPORTED_WITH_CONDITIONS | UNRESOLVED |
-| Fixed | Taurus, Leo, Scorpio, Aquarius | What is continuing, consolidating, stabilizing, or being held? | SOURCE_SUPPORTED_WITH_CONDITIONS | UNRESOLVED |
-| Mutable | Gemini, Virgo, Sagittarius, Pisces | What is adapting, translating, redistributing, or integrating? | SOURCE_SUPPORTED_WITH_CONDITIONS | UNRESOLVED |
+| Cardinal | Aries, Cancer, Libra, Capricorn | What is beginning, forming, turning, or entering motion? | SOURCE_SUPPORTED_WITH_CONDITIONS | ADOPTED_WITH_CONDITIONS |
+| Fixed | Taurus, Leo, Scorpio, Aquarius | What is continuing, consolidating, stabilizing, or being held? | SOURCE_SUPPORTED_WITH_CONDITIONS | ADOPTED_WITH_CONDITIONS |
+| Mutable | Gemini, Virgo, Sagittarius, Pisces | What is adapting, translating, redistributing, or integrating? | SOURCE_SUPPORTED_WITH_CONDITIONS | ADOPTED_WITH_CONDITIONS |
 
 The structural-question column is an editorial synthesis. It inherits claim
-status SOURCE_SUPPORTED_WITH_CONDITIONS and policy status UNRESOLVED until
-Product Owner admission.
+status SOURCE_SUPPORTED_WITH_CONDITIONS and policy status
+ADOPTED_WITH_CONDITIONS after this admission. It remains a bounded semantic
+input, not production content or a personality verdict.
 
 ## Element × modality model
 
@@ -46,7 +47,7 @@ The package admits a compositional rule for future research only:
 
 This is claim MODE-COMP-001, sourced as a bounded synthesis from PC-01, PC-11,
 PC-12, and PC-19. Its claim status is SOURCE_SUPPORTED_WITH_CONDITIONS; its
-policy status is UNRESOLVED.
+policy status is ADOPTED_WITH_CONDITIONS.
 
 The model is deliberately not a 12-cell interpretation matrix. The existing
 Taurus package may continue to use Earth plus Fixed with its already admitted
@@ -55,11 +56,11 @@ package, source review, and modifier rules.
 
 ## Bounded projection templates
 
-| Depth | Candidate template | Claim status | Policy status |
+| Depth | Candidate template | Claim status | Editorial readiness |
 | --- | --- | --- | --- |
-| QUICK | Modality describes a way a sign may operate: begin, sustain, or adapt. | SOURCE_SUPPORTED_WITH_CONDITIONS | UNRESOLVED |
-| PLAIN | Ask whether the chart factor is being read through initiation, continuation, or transition before making a personal statement. | SOURCE_SUPPORTED_WITH_CONDITIONS | UNRESOLVED |
-| LEARNER | Separate the modality from the element and body: mode is not domain, and neither is the whole chart. | SOURCE_SUPPORTED_WITH_CONDITIONS | UNRESOLVED |
+| QUICK | Modality describes a way a sign may operate: begin, sustain, or adapt. | SOURCE_SUPPORTED_WITH_CONDITIONS | READY_FOR_EDITORIAL_PACKAGE |
+| PLAIN | Ask whether the chart factor is being read through initiation, continuation, or transition before making a personal statement. | SOURCE_SUPPORTED_WITH_CONDITIONS | READY_FOR_EDITORIAL_PACKAGE |
+| LEARNER | Separate the modality from the element and body: mode is not domain, and neither is the whole chart. | SOURCE_SUPPORTED_WITH_CONDITIONS | READY_FOR_EDITORIAL_PACKAGE |
 
 ## Historical and negative boundary
 

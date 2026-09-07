@@ -3,7 +3,7 @@
 Objects: Sun, Moon, Mercury, Venus, Mars
 Source status: SOURCE_SUPPORTED_WITH_CONDITIONS for the new bodies; the
 existing Sun policy remains admitted and is not reopened.
-Policy status: READY_FOR_OWNER_ADMISSION for Moon, Mercury, Venus, and Mars;
+Policy status: ADOPTED_WITH_CONDITIONS for Moon, Mercury, Venus, and Mars;
 SUN_TAURUS_POLICY_ADMITTED remains the only expanded body/sign package already
 admitted.
 Runtime: RUNTIME_NOT_ADMITTED
@@ -25,26 +25,27 @@ Every body record must preserve:
 - explicit negative boundaries;
 - required modifiers and an explicit runtime state.
 
-The projection phrases below are research templates, not production copy. Until
-Product Owner admission, each new-body template has claim status
-SOURCE_SUPPORTED_WITH_CONDITIONS and policy status UNRESOLVED.
+The projection phrases below are bounded semantic templates, not production
+copy. After this admission, each admitted new-body dimension has policy status
+ADOPTED_WITH_CONDITIONS. Its QUICK, PLAIN, and LEARNER template has editorial
+readiness READY_FOR_EDITORIAL_PACKAGE and remains outside runtime.
 
 ## Claim register
 
 | Claim ID | Body | Material claim | Source refs | Claim status | Policy status | Boundary |
 | --- | --- | --- | --- | --- | --- | --- |
 | BODY-SUN-001 | Sun | Sun can be discussed through identity, vitality, agency, central/organizing function, self-development, and self-expression under a named modern lens. | PC-04, PC-05, PC-19 | SOURCE_SUPPORTED_WITH_CONDITIONS | ADOPTED_WITH_CONDITIONS | Existing Sun policy is preserved; one Sun placement is not a whole-person or scientific claim. |
-| BODY-MOON-001 | Moon | Moon vocabulary may cover rhythm, habit, response, need, receptivity, inner life, memory, and affective response when the school and context are named. | PC-06, PC-07 | SOURCE_SUPPORTED_WITH_CONDITIONS | UNRESOLVED | Do not reduce Moon to emotions; do not infer a complete personality. |
+| BODY-MOON-001 | Moon | Moon vocabulary may cover rhythm, habit, response, need, receptivity, inner life, memory, and affective response when the school and context are named. | PC-06, PC-07 | SOURCE_SUPPORTED_WITH_CONDITIONS | ADOPTED_WITH_CONDITIONS | Do not reduce Moon to emotions; do not infer a complete personality. |
 | BODY-MOON-002 | Moon | Traditional and mixed reference material includes body, mother, feminine, nurturing, and medical significations. | PC-03, PC-07, PC-18 | SOURCE_SUPPORTED_WITH_CONDITIONS | EDUCATIONAL_ONLY | Historical comparison only; not a default personal, medical, biological, or gender claim. |
 | BODY-MOON-003 | Moon | Moon phase or current-Moon timing belongs in this primitive package. | None in this package | SOURCE_RESEARCH_REQUIRED | UNRESOLVED | No Moon phase, transit, or current-sky content is admitted here. |
-| BODY-MERCURY-001 | Mercury | Mercury vocabulary may cover thinking, language, exchange, interpretation, learning, reasoning, movement, and commerce as named symbolic functions. | PC-06, PC-08, PC-15 | SOURCE_SUPPORTED_WITH_CONDITIONS | UNRESOLVED | Communication is one lane, not the whole Mercury record. |
-| BODY-MERCURY-002 | Mercury | Mercury is traditionally associated with Gemini and Virgo in the basic rulership scheme. | PC-13, PC-14 | SOURCE_SUPPORTED_WITH_CONDITIONS | UNRESOLVED | Rulership is a structural relation, not a deterministic character result. |
+| BODY-MERCURY-001 | Mercury | Mercury vocabulary may cover thinking, language, exchange, interpretation, learning, reasoning, movement, and commerce as named symbolic functions. | PC-06, PC-08, PC-15 | SOURCE_SUPPORTED_WITH_CONDITIONS | ADOPTED_WITH_CONDITIONS | Communication is one lane, not the whole Mercury record. |
+| BODY-MERCURY-002 | Mercury | Mercury is traditionally associated with Gemini and Virgo in the basic rulership scheme. | PC-13, PC-14 | SOURCE_SUPPORTED_WITH_CONDITIONS | ADOPTED_WITH_CONDITIONS | Rulership is a structural relation, not a deterministic character result. |
 | BODY-MERCURY-003 | Mercury | Mercury means communication only. | PC-08, PC-19 | REJECTED | NOT_USED_FOR_PERSONAL_INTERPRETATION | The claim is too narrow and cannot be used as a canonical definition. |
-| BODY-VENUS-001 | Venus | Venus vocabulary may cover relating, attraction, value, preference, pleasure, aesthetic response, harmony, and union. | PC-06, PC-09, PC-15 | SOURCE_SUPPORTED_WITH_CONDITIONS | UNRESOLVED | These are symbolic domains, not automatic romance, wealth, or beauty outcomes. |
-| BODY-VENUS-002 | Venus | Venus is traditionally associated with Taurus and Libra in the basic rulership scheme. | PC-13, PC-14, PC-18 | SOURCE_SUPPORTED_WITH_CONDITIONS | UNRESOLVED | Traditional and modern variants must remain named. |
+| BODY-VENUS-001 | Venus | Venus vocabulary may cover relating, attraction, value, preference, pleasure, aesthetic response, harmony, and union. | PC-06, PC-09, PC-15 | SOURCE_SUPPORTED_WITH_CONDITIONS | ADOPTED_WITH_CONDITIONS | These are symbolic domains, not automatic romance, wealth, or beauty outcomes. |
+| BODY-VENUS-002 | Venus | Venus is traditionally associated with Taurus and Libra in the basic rulership scheme. | PC-13, PC-14, PC-18 | SOURCE_SUPPORTED_WITH_CONDITIONS | ADOPTED_WITH_CONDITIONS | Traditional and modern variants must remain named. |
 | BODY-VENUS-003 | Venus | Venus alone proves romance, wealth, beauty, luxury, or relationship behavior. | PC-09, PC-19 | REJECTED | NOT_USED_FOR_PERSONAL_INTERPRETATION | No keyword bundle may be promoted to a personal conclusion. |
-| BODY-MARS-001 | Mars | Mars vocabulary may cover action, assertion, separation, conflict, drive, effort, heat, courage, and competition, with school and context labels. | PC-06, PC-10, PC-15, PC-18 | SOURCE_SUPPORTED_WITH_CONDITIONS | UNRESOLVED | Do not collapse Mars to anger; do not treat one symbolic domain as a behavior guarantee. |
-| BODY-MARS-002 | Mars | Mars is traditionally associated with Aries and Scorpio in the basic rulership scheme; modern references may add Pluto to Scorpio. | PC-13, PC-14 | SOURCE_SUPPORTED_WITH_CONDITIONS | UNRESOLVED | The modern outer-planet assignment is a named alternative, not a silent replacement. |
+| BODY-MARS-001 | Mars | Mars vocabulary may cover action, assertion, separation, conflict, drive, effort, heat, courage, and competition, with school and context labels. | PC-06, PC-10, PC-15, PC-18 | SOURCE_SUPPORTED_WITH_CONDITIONS | ADOPTED_WITH_CONDITIONS | Do not collapse Mars to anger; do not treat one symbolic domain as a behavior guarantee. |
+| BODY-MARS-002 | Mars | Mars is traditionally associated with Aries and Scorpio in the basic rulership scheme; modern references may add Pluto to Scorpio. | PC-13, PC-14 | SOURCE_SUPPORTED_WITH_CONDITIONS | ADOPTED_WITH_CONDITIONS | The modern outer-planet assignment is a named alternative, not a silent replacement. |
 | BODY-MARS-003 | Mars | Mars alone proves violence, criminality, dangerousness, or a fixed personality. | PC-10, PC-18, PC-19 | REJECTED | NOT_USED_FOR_PERSONAL_INTERPRETATION | Safety-sensitive, criminal, medical, and moral conclusions are outside this canon. |
 
 ## Bounded projection templates
@@ -71,7 +72,8 @@ content and must not be imported into runtime.
 
 ## Remaining body gaps
 
-- Product Owner admission is required for Moon, Mercury, Venus, and Mars.
+- Product Owner admission is complete for the bounded Moon, Mercury, Venus, and
+  Mars dimensions listed above.
 - A source-backed professional package for ASTROLOGER and TECHNICAL depth is not
   yet complete.
 - Moon phase/current-Moon material is explicitly deferred.

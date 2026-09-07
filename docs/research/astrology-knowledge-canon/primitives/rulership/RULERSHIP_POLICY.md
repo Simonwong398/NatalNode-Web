@@ -1,7 +1,7 @@
 # Basic Rulership — Primitive Research and Policy V1
 
 Source status: SOURCE_SUPPORTED_WITH_CONDITIONS
-Policy status: READY_FOR_OWNER_ADMISSION
+Policy status: ADOPTED_WITH_CONDITIONS
 Runtime: RUNTIME_NOT_ADMITTED
 
 This package defines only basic sign-to-ruler relationships and the boundary
@@ -17,25 +17,26 @@ strength score, a personality verdict, a causal claim, or permission to infer
 all meanings associated with the planet.
 
 Claim status: SOURCE_SUPPORTED_WITH_CONDITIONS from PC-13 and PC-14. Policy
-status: ADOPTED_WITH_CONDITIONS for the definition; the full sign mapping
-remains READY_FOR_POLICY_REVIEW.
+status: ADOPTED_WITH_CONDITIONS for the definition and the bounded sign
+mapping. The traditional baseline and modern alternatives remain explicitly
+labelled.
 
 ## Basic sign-to-ruler map
 
 | Sign | Traditional / classical ruler | Modern outer-planet variant | Source status | Policy status |
 | --- | --- | --- | --- | --- |
-| Aries | Mars | — | SOURCE_SUPPORTED_WITH_CONDITIONS | READY_FOR_POLICY_REVIEW |
+| Aries | Mars | — | SOURCE_SUPPORTED_WITH_CONDITIONS | ADOPTED_WITH_CONDITIONS |
 | Taurus | Venus | — | SOURCE_SUPPORTED_WITH_CONDITIONS | ADOPTED_WITH_CONDITIONS |
-| Gemini | Mercury | — | SOURCE_SUPPORTED_WITH_CONDITIONS | READY_FOR_POLICY_REVIEW |
-| Cancer | Moon | — | SOURCE_SUPPORTED_WITH_CONDITIONS | READY_FOR_POLICY_REVIEW |
-| Leo | Sun | — | SOURCE_SUPPORTED_WITH_CONDITIONS | READY_FOR_POLICY_REVIEW |
-| Virgo | Mercury | — | SOURCE_SUPPORTED_WITH_CONDITIONS | READY_FOR_POLICY_REVIEW |
-| Libra | Venus | — | SOURCE_SUPPORTED_WITH_CONDITIONS | READY_FOR_POLICY_REVIEW |
-| Scorpio | Mars | Pluto | SOURCE_SUPPORTED_WITH_CONDITIONS | READY_FOR_POLICY_REVIEW |
-| Sagittarius | Jupiter | — | SOURCE_SUPPORTED_WITH_CONDITIONS | READY_FOR_POLICY_REVIEW |
-| Capricorn | Saturn | — | SOURCE_SUPPORTED_WITH_CONDITIONS | READY_FOR_POLICY_REVIEW |
-| Aquarius | Saturn | Uranus | SOURCE_SUPPORTED_WITH_CONDITIONS | READY_FOR_POLICY_REVIEW |
-| Pisces | Jupiter | Neptune | SOURCE_SUPPORTED_WITH_CONDITIONS | READY_FOR_POLICY_REVIEW |
+| Gemini | Mercury | — | SOURCE_SUPPORTED_WITH_CONDITIONS | ADOPTED_WITH_CONDITIONS |
+| Cancer | Moon | — | SOURCE_SUPPORTED_WITH_CONDITIONS | ADOPTED_WITH_CONDITIONS |
+| Leo | Sun | — | SOURCE_SUPPORTED_WITH_CONDITIONS | ADOPTED_WITH_CONDITIONS |
+| Virgo | Mercury | — | SOURCE_SUPPORTED_WITH_CONDITIONS | ADOPTED_WITH_CONDITIONS |
+| Libra | Venus | — | SOURCE_SUPPORTED_WITH_CONDITIONS | ADOPTED_WITH_CONDITIONS |
+| Scorpio | Mars | Pluto | SOURCE_SUPPORTED_WITH_CONDITIONS | ADOPTED_WITH_CONDITIONS |
+| Sagittarius | Jupiter | — | SOURCE_SUPPORTED_WITH_CONDITIONS | ADOPTED_WITH_CONDITIONS |
+| Capricorn | Saturn | — | SOURCE_SUPPORTED_WITH_CONDITIONS | ADOPTED_WITH_CONDITIONS |
+| Aquarius | Saturn | Uranus | SOURCE_SUPPORTED_WITH_CONDITIONS | ADOPTED_WITH_CONDITIONS |
+| Pisces | Jupiter | Neptune | SOURCE_SUPPORTED_WITH_CONDITIONS | ADOPTED_WITH_CONDITIONS |
 
 The traditional mapping is the seven-visible-planet scheme. The outer-planet
 column records a modern reference variant for Scorpio, Aquarius, and Pisces; it
@@ -51,7 +52,7 @@ SOURCE_SUPPORTED_WITH_CONDITIONS and policy status SUPPORTED_AS_ALTERNATIVE.
 3. If a future product chooses a co-ruler convention, store both the
    traditional ruler and the modern variant as separate inputs. Do not collapse
    them into a single unlabelled ruler or silently choose one.
-4. A co-ruler policy is not yet admitted. RULER-003 is
+4. Default co-ruler policy is NOT_ADMITTED_FOR_V1_DEFAULT_CANON. RULER-003 is
    SOURCE_RESEARCH_REQUIRED with policy UNRESOLVED.
 
 ## Explicitly out of scope
@@ -67,8 +68,8 @@ runtime interpretation may be inferred from this research-only mapping.
 
 ## Depth templates
 
-| Depth | Candidate explanation | Claim status | Policy status |
+| Depth | Candidate explanation | Claim status | Editorial readiness |
 | --- | --- | --- | --- |
-| QUICK | A ruler is a named sign relationship, not a verdict about a person. | SOURCE_SUPPORTED_WITH_CONDITIONS | UNRESOLVED |
-| PLAIN | Ask which school’s ruler is being used and what that relationship contributes to the chart factor; do not substitute the ruler for the whole reading. | SOURCE_SUPPORTED_WITH_CONDITIONS | UNRESOLVED |
-| LEARNER | Keep sign, ruler, and body separate, then record traditional and modern variants rather than merging them. | SOURCE_SUPPORTED_WITH_CONDITIONS | UNRESOLVED |
+| QUICK | A ruler is a named sign relationship, not a verdict about a person. | SOURCE_SUPPORTED_WITH_CONDITIONS | READY_FOR_EDITORIAL_PACKAGE |
+| PLAIN | Ask which school’s ruler is being used and what that relationship contributes to the chart factor; do not substitute the ruler for the whole reading. | SOURCE_SUPPORTED_WITH_CONDITIONS | READY_FOR_EDITORIAL_PACKAGE |
+| LEARNER | Keep sign, ruler, and body separate, then record traditional and modern variants rather than merging them. | SOURCE_SUPPORTED_WITH_CONDITIONS | READY_FOR_EDITORIAL_PACKAGE |

@@ -2,7 +2,7 @@
 
 Package: WEB-P2-ASTROLOGY-KNOWLEDGE-EXPANSION-001
 Research status: PRIMITIVE_RESEARCH_COMPLETE_WITH_POLICY_GAPS
-Policy status: READY_FOR_OWNER_ADMISSION
+Policy status: CORE_PRIMITIVE_POLICY_ADMITTED
 Runtime status: RUNTIME_NOT_ADMITTED
 Review date: 2026-09-06
 Scope: Western tropical natal astrology; modern/psychological language is the
@@ -12,6 +12,23 @@ material remains explicitly named comparison or educational material.
 This register records the bounded source corpus used for the personal-body,
 element, modality, sign, and basic-rulership research package. It does not
 claim exhaustive scholarship, and it does not authorize runtime interpretation.
+
+## Policy admission record
+
+The Product Owner has admitted the bounded semantic package with conditions:
+
+- Moon, Mercury, Venus, and Mars are ADOPTED_WITH_CONDITIONS under the
+  modern/psychological Western default lens.
+- All twelve signs, four elements, three modalities, and Element × Modality
+  structure are ADOPTED_WITH_CONDITIONS as structural canon.
+- The traditional seven-visible-planet ruler mapping is the canonical baseline.
+  Modern outer-planet assignments remain named alternatives.
+- The default co-ruler policy is NOT_ADMITTED_FOR_V1_DEFAULT_CANON.
+- Gendered, parent/mother/father, masculine/feminine, and historical
+  medical/body material remains historical, educational, contested, or
+  unresolved and is not default personal interpretation.
+- The admission is semantic canon governance only. It does not make any record
+  production-content-ready or runtime-admitted.
 
 ## Source classes
 
