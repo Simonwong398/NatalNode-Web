@@ -1,0 +1,307 @@
+{
+  "packageId": "natalnode.human-knowledge-r2.representative-en",
+  "taskId": "WEB-P2-CONTENT-R2-001",
+  "canonicalLocale": "en",
+  "contentRevision": "r2.0",
+  "contentState": "EDITORIAL_REVIEW_PACKAGE",
+  "editorialPackageStatus": "REPRESENTATIVE_R2_INTERNAL_AUDIT_PASS",
+  "policyState": "ADOPTED_WITH_CONDITIONS",
+  "defaultLens": "MODERN_PSYCHOLOGICAL_WESTERN",
+  "sourcePackage": "docs/research/astrology-knowledge-canon/primitives/primitive-canon.v1.json",
+  "priorEditorialPackage": "docs/research/astrology-knowledge-canon/content/CORE_PRIMITIVE_EN_V1.json",
+  "runtimeEligibility": "RUNTIME_NOT_ADMITTED",
+  "providerPolicy": "PROVIDER DECISION DEFERRED",
+  "objectCount": 5,
+  "auditScope": "FIVE_REPRESENTATIVES_ONLY",
+  "scope": {
+    "includedPrimitiveIds": [
+      "body.moon",
+      "body.mercury",
+      "sign.aries",
+      "modality.fixed",
+      "rulership.basic"
+    ],
+    "excluded": [
+      "personal synthesis",
+      "My Chart rewriting",
+      "Weekly rewriting",
+      "full primitive rewrite",
+      "Planet × Sign composition",
+      "runtime interpretation",
+      "localization",
+      "AI generation"
+    ],
+    "methodSequence": [
+      "what",
+      "why",
+      "nearbyDistinction",
+      "example",
+      "chartRelevance",
+      "limitation",
+      "nextLearn"
+    ]
+  },
+  "contentModel": {
+    "what": "A first definition in ordinary reader-facing language.",
+    "why": "Why astrologers traditionally group, distinguish, or use the idea.",
+    "nearbyDistinction": "The closest commonly confused astrology concept.",
+    "example": "One concrete, non-personal example that teaches the structure.",
+    "chartRelevance": "The bounded question the concept can add to a chart discussion.",
+    "limitation": "One compact reader-facing limit; machine policy boundaries remain in metadata.",
+    "nextLearn": "The next concept or chart layer to study."
+  },
+  "objects": [
+    {
+      "id": "body.moon",
+      "canonicalName": "Moon",
+      "class": "BODY",
+      "sourceStatus": "SOURCE_SUPPORTED_WITH_CONDITIONS",
+      "epistemicStatus": "EDITORIAL_SYNTHESIS",
+      "policyState": "ADOPTED_WITH_CONDITIONS",
+      "runtimeEligibility": "RUNTIME_NOT_ADMITTED",
+      "what": "In astrology, the Moon is used to ask about recurring responses, familiar rhythms, receptivity, inner experience, and needs. It gives language to what is taken in and felt before a deliberate choice is fully formed; it is broader than a mood label.",
+      "why": "Astrologers keep these themes together because they describe the immediate and repeating side of experience: what becomes familiar, what is received, and what helps a pattern feel steady. The Moon's traditional symbolism gives this cluster a place in chart reading, alongside other questions rather than above them.",
+      "nearbyDistinction": {
+        "concept": "Sun",
+        "text": "The Moon asks about familiar response, receptivity, and need-related experience. The Sun asks about central direction, vitality, agency, and expression. They are different questions, and neither one describes a whole person by itself."
+      },
+      "example": {
+        "title": "A neutral example",
+        "text": "A repeated morning routine is a simple example of rhythm and habit. Deciding to lead a new project raises a different question about agency and direction. The contrast teaches the difference between Moon themes and Sun themes without making a personal claim."
+      },
+      "chartRelevance": "When the Moon is part of a chart discussion, it can add a question about how a theme is received, repeated, or experienced as needed for steadiness. Its sign can qualify the style, and house or aspect context can qualify where the question is explored when those chart facts are available.",
+      "limitation": "The Moon alone cannot diagnose emotional health or define a person's complete emotional life. Historical mother, gender, body, and medical associations need a named historical context and are not default personal claims.",
+      "nextLearn": "Next, compare the Moon with the Sun and Venus, then learn how sign, house, and aspect context can qualify a body. Moon phase and current-Moon timing belong to a separate topic.",
+      "commonMisconception": {
+        "claim": "The Moon simply means emotions or proves what a person is feeling.",
+        "correction": "The Moon is a bounded set of questions about response, rhythm, receptivity, inner experience, affect, and needs; it is not a clinical assessment or an emotions-only definition."
+      },
+      "limitations": [
+        "Memory, instinct, body-rhythm, and historical parent or mother language require explicit qualification.",
+        "Medical, biological, gendered, and psychological diagnosis claims are not admitted.",
+        "Moon phase, current-Moon, transit, and lunation content are excluded from this package."
+      ],
+      "semanticDependencies": ["body.moon"],
+      "relatedConcepts": ["body.sun", "body.venus", "element.water"],
+      "semanticDependencyNotes": [
+        "The related concepts are comparison anchors, not a new body composition.",
+        "Sign, house, and aspect context remain separate chart layers."
+      ],
+      "sourceRefs": ["PC-06", "PC-07", "PC-19"],
+      "schoolNotes": [
+        "Modern and psychological Western language is used for the bounded default layer.",
+        "Historical and mixed body, parent, feminine, and medical material remains educational or contested."
+      ],
+      "contentRevision": "r2.0",
+      "editorialReviewStatus": "EDITORIAL_READY_FOR_OWNER_REVIEW"
+    },
+    {
+      "id": "body.mercury",
+      "canonicalName": "Mercury",
+      "class": "BODY",
+      "sourceStatus": "SOURCE_SUPPORTED_WITH_CONDITIONS",
+      "epistemicStatus": "EDITORIAL_SYNTHESIS",
+      "policyState": "ADOPTED_WITH_CONDITIONS",
+      "runtimeEligibility": "RUNTIME_NOT_ADMITTED",
+      "what": "Mercury is used for thinking, naming, interpreting, learning, comparing, translating, and exchanging information. Communication is one part of that range, not the whole meaning of Mercury and not a score for intelligence.",
+      "why": "Astrologers group these activities because they all involve movement between experience and meaning: taking something in, giving it form, comparing it, translating it, or passing it on. That is why Mercury can be relevant to learning or interpretation even when nobody is speaking.",
+      "nearbyDistinction": {
+        "concept": "Sun and general intelligence",
+        "text": "Mercury asks how information is handled. The Sun concerns central direction, vitality, agency, and expression, while intelligence is a broad human capacity that cannot be measured by one chart placement. Mercury is not the same thing as either one."
+      },
+      "example": {
+        "title": "A neutral example",
+        "text": "Reading two sets of instructions and turning them into a short checklist is an example of taking in, comparing, and translating information. It teaches a Mercury question without measuring how intelligent the reader is or predicting the result."
+      },
+      "chartRelevance": "In a chart discussion, Mercury can frame how information is named, compared, interpreted, learned, or exchanged. Its sign can qualify the style, while house and aspect context can qualify where or with what other function the question is explored when those chart facts are available.",
+      "limitation": "Mercury alone cannot measure intelligence, education, fluency, or communication skill, and it cannot diagnose a person's way of thinking.",
+      "nextLearn": "Next, compare Mercury with the Air element and the Sun, then learn how sign, house, and aspect context narrow the question. Keep Mercury's rulership of Gemini and Virgo as a separate relationship to study.",
+      "commonMisconception": {
+        "claim": "Mercury means communication only, or a Mercury placement measures intelligence.",
+        "correction": "Mercury covers information work such as thinking, interpretation, language, learning, and exchange; it does not provide an intelligence score or guarantee communication skill."
+      },
+      "limitations": [
+        "No intelligence score, educational outcome, language ability, or communication diagnosis follows from Mercury alone.",
+        "Commerce and movement are bounded symbolic domains, not financial or mobility predictions.",
+        "House, aspect, sign, school, and lived context remain required for any more specific interpretation."
+      ],
+      "semanticDependencies": ["body.mercury"],
+      "relatedConcepts": ["body.sun", "element.air", "sign.gemini", "sign.virgo"],
+      "semanticDependencyNotes": [
+        "The related concepts are comparison and rulership anchors, not a new body-plus-sign composition.",
+        "Air is a broad sign field and is not another name for Mercury."
+      ],
+      "sourceRefs": ["PC-06", "PC-08", "PC-13", "PC-14", "PC-19"],
+      "schoolNotes": [
+        "The modern Western reference layer supports a multidimensional Mercury vocabulary.",
+        "Traditional rulership is retained as a named relationship, not a character verdict."
+      ],
+      "contentRevision": "r2.0",
+      "editorialReviewStatus": "EDITORIAL_READY_FOR_OWNER_REVIEW"
+    },
+    {
+      "id": "sign.aries",
+      "canonicalName": "Aries",
+      "class": "SIGN",
+      "sourceStatus": "SOURCE_SUPPORTED_WITH_CONDITIONS",
+      "epistemicStatus": "EDITORIAL_SYNTHESIS",
+      "policyState": "ADOPTED_WITH_CONDITIONS",
+      "runtimeEligibility": "RUNTIME_NOT_ADMITTED",
+      "structuralIdentity": {
+        "element": "element.fire",
+        "modality": "modality.cardinal",
+        "traditionalRuler": "Mars",
+        "modernRulerVariant": null
+      },
+      "what": "Aries is a Fire sign with a Cardinal mode and Mars as its traditional ruler. When a chart factor is in Aries, the sign can raise a question about beginning, activation, assertion, and movement into action; it is not an Aries-person profile.",
+      "why": "Astrologers read a sign through more than one dimension. Fire names a broad field of activation and expression, Cardinal names initiation and formation, and Mars is a named relationship with action and assertion. Together they explain why Aries is not simply another word for action.",
+      "nearbyDistinction": {
+        "concept": "Mars",
+        "text": "Aries is a sign context; Mars is a body function. Aries can qualify how a chart factor begins or asserts, but it does not import every Mars theme into the sign. A sign's ruler and a planet's function answer related but different questions."
+      },
+      "example": {
+        "title": "A neutral example",
+        "text": "Opening a new class, starting a discussion, or taking the first step in a process is a neutral example of initiation. It illustrates a question Aries can organize without predicting that someone naturally leads, acts quickly, or wins."
+      },
+      "chartRelevance": "Aries can qualify a returned planet or chart factor by asking what it initiates, activates, or asserts. If a later question depends on a house, aspect, degree, or exact birth time, those chart facts must be available before a narrower statement is made.",
+      "limitation": "Aries alone cannot define impatience, leadership, aggression, career, health, relationship behavior, or an outcome. Mars rulership is a named relationship, not a cause or strength score.",
+      "nextLearn": "Next, learn Fire, Cardinal, and Mars separately, then compare Aries with the other Cardinal signs and with Leo and Sagittarius. Keep each layer distinct before considering a chart factor in Aries.",
+      "commonMisconception": {
+        "claim": "Aries people are always impatient, dominant, aggressive, or natural leaders.",
+        "correction": "Aries is a sign context whose admitted vocabulary concerns activation and initiation; it does not define a person or guarantee behavior."
+      },
+      "limitations": [
+        "No personality, leadership, aggression, career, relationship, health, or destiny claim follows from Aries alone.",
+        "Mars rulership is a named structural relation, not a strength score or causal force.",
+        "The full chart, school, and lived context may reinforce or redirect the sign question."
+      ],
+      "semanticDependencies": [
+        "sign.aries",
+        "element.fire",
+        "modality.cardinal",
+        "rulership.basic"
+      ],
+      "relatedConcepts": ["body.mars", "sign.leo", "sign.sagittarius", "sign.cancer", "sign.libra", "sign.capricorn"],
+      "semanticDependencyNotes": [
+        "Element supplies a field, modality supplies a mode, and rulership supplies a named relationship; no component replaces the sign.",
+        "No Planet × Sign composition is created by this representative package."
+      ],
+      "sourceRefs": ["PC-11", "PC-12", "PC-13", "PC-14", "PC-19"],
+      "schoolNotes": [
+        "Western tropical grouping is the admitted structural scope.",
+        "Traditional and modern associations are retained as named layers rather than universal personality doctrine."
+      ],
+      "contentRevision": "r2.0",
+      "editorialReviewStatus": "EDITORIAL_READY_FOR_OWNER_REVIEW"
+    },
+    {
+      "id": "modality.fixed",
+      "canonicalName": "Fixed",
+      "class": "MODALITY",
+      "sourceStatus": "SOURCE_SUPPORTED_WITH_CONDITIONS",
+      "epistemicStatus": "EDITORIAL_SYNTHESIS",
+      "policyState": "ADOPTED_WITH_CONDITIONS",
+      "runtimeEligibility": "RUNTIME_NOT_ADMITTED",
+      "membership": ["sign.taurus", "sign.leo", "sign.scorpio", "sign.aquarius"],
+      "what": "Fixed is one of the three sign modes. It describes continuation, consolidation, settlement, maintenance, and stabilization after something has formed. It is not shorthand for a stubborn or immovable person.",
+      "why": "Astrologers distinguish Cardinal, Fixed, and Mutable because signs can be grouped by different phases in the seasonal sequence: beginning, continuing, and changing or redistributing. Fixed names the continuing and consolidating phase, while the element describes the kind of field being continued.",
+      "nearbyDistinction": {
+        "concept": "Earth and the other sign modes",
+        "text": "Fixed is a mode, not an element. Taurus is Fixed Earth, Leo is Fixed Fire, Scorpio is Fixed Water, and Aquarius is Fixed Air. Compared with Cardinal formation and Mutable adaptation, Fixed asks what is being held, developed, or stabilized within that sign's own field."
+      },
+      "example": {
+        "title": "A neutral example",
+        "text": "A project moving from launch into a maintained working process is an example of continuation and stabilization. The same mode can apply to different kinds of work, so the example does not mean stubbornness or an inability to change."
+      },
+      "chartRelevance": "When a chart factor is in a Fixed sign, the mode can add a question about what that factor continues, consolidates, or holds. The sign's element and ruler still determine the field and relationship being discussed; Fixed does not make the four Fixed signs interchangeable.",
+      "limitation": "Fixed alone cannot establish stubbornness, immobility, loyalty, resistance, or a relationship or career outcome. Historical solid terminology is a related comparison, not unchanged modern psychology.",
+      "nextLearn": "Next, compare Fixed with Cardinal formation and Mutable adaptation, then study the element and ruler of each Fixed sign. Taurus is a useful example of how a sign's element, mode, and ruler meet, but the four Fixed signs should not be treated as one type.",
+      "commonMisconception": {
+        "claim": "Fixed means stubborn, immobile, resistant, or loyal in every situation.",
+        "correction": "Fixed is a bounded mode of continuation and stabilization. It does not guarantee a behavior or prevent revision."
+      },
+      "limitations": [
+        "No stubbornness, immobility, loyalty, resistance, career, or relationship outcome follows from Fixed alone.",
+        "Historical solid terminology is a named comparison and not an unchanged psychological category.",
+        "Taurus remains the only admitted sign composition exemplar; no full Fixed matrix is created."
+      ],
+      "semanticDependencies": [
+        "modality.fixed",
+        "sign.taurus",
+        "sign.leo",
+        "sign.scorpio",
+        "sign.aquarius"
+      ],
+      "relatedConcepts": ["modality.cardinal", "modality.mutable", "element.earth"],
+      "semanticDependencyNotes": [
+        "Fixed is shared by four different elements and sign identities.",
+        "Scorpio and Aquarius remain depth-limited at the sign level, so the shared mode cannot fill their research gaps."
+      ],
+      "sourceRefs": ["PC-01", "PC-12", "PC-19"],
+      "schoolNotes": [
+        "Modern Fixed language is admitted with an explicit historical solid bridge.",
+        "Ptolemaic solid and modern Fixed are related layers, not a single universal doctrine."
+      ],
+      "contentRevision": "r2.0",
+      "editorialReviewStatus": "EDITORIAL_READY_FOR_OWNER_REVIEW"
+    },
+    {
+      "id": "rulership.basic",
+      "canonicalName": "Basic sign rulership",
+      "class": "RULERSHIP",
+      "sourceStatus": "SOURCE_SUPPORTED_WITH_CONDITIONS",
+      "epistemicStatus": "EDITORIAL_SYNTHESIS",
+      "policyState": "ADOPTED_WITH_CONDITIONS",
+      "runtimeEligibility": "RUNTIME_NOT_ADMITTED",
+      "what": "In Western astrology, rulership is the relationship a tradition assigns between a sign and a planet. It answers which planet is named as the sign's ruler in that school; it does not mean that the planet controls a person.",
+      "why": "Astrologers use rulers to connect a sign with a planet's area of symbolism while keeping the tradition being used visible. The relationship is useful because a sign and a planet answer different questions: a ruler can be a bridge for study, but it cannot replace the sign or import the planet's whole meaning.",
+      "nearbyDistinction": {
+        "concept": "A planet being in a sign",
+        "text": "A planet in Aries is a placement; Mars ruling Aries is a sign-to-planet relationship. A planet can be in a sign without ruling it, and a sign's ruler can be elsewhere in the chart. Rulership is not the same as location, automatic strength, or importance."
+      },
+      "example": {
+        "title": "A neutral example",
+        "text": "In the traditional seven-visible-planet baseline, Aries is ruled by Mars and Taurus by Venus. A chart note that records Aries–Mars is recording a tradition-specific relationship; it is not saying that Mars is located in Aries or that Mars controls the person. A modern Western source may name Pluto for Scorpio, but that is recorded as an alternative while Mars remains the traditional baseline."
+      },
+      "chartRelevance": "Once the tradition is named, rulership can help a reader record which planet is associated with a sign and ask what that relationship contributes to a chart discussion. It must remain separate from the sign, the planet's own placement, the school, and the evidence required for a narrower conclusion.",
+      "limitation": "Rulership is not a strength score, causal force, destiny claim, or personal prediction. Advanced dignity, dispositor, mutual-reception, triplicity, bounds, faces, exaltation, fall, and detriment rules are outside this package.",
+      "nextLearn": "Next, learn the sign and planet separately, then compare the traditional baseline with named modern alternatives. Treat advanced dignity and dispositor techniques as separate topics with their own history and method.",
+      "commonMisconception": {
+        "claim": "The ruler controls the sign, is automatically the strongest planet, or decides the sign's personality and outcome.",
+        "correction": "Rulership is a named tradition-specific relationship. It contributes a recordable association but cannot replace the sign, the planet, the chart context, or the evidence required for a conclusion."
+      },
+      "limitations": [
+        "The default co-ruler policy is NOT_ADMITTED_FOR_V1_DEFAULT_CANON.",
+        "Modern outer-planet assignments remain named alternatives and must not silently replace the traditional baseline.",
+        "Advanced dignity, dispositor, mutual reception, triplicity, bounds, faces, exaltation, fall, and detriment are not admitted.",
+        "Rulership does not create a causal scientific claim, strength score, or personal prediction."
+      ],
+      "semanticDependencies": [
+        "rulership.basic",
+        "sign.aries",
+        "sign.taurus",
+        "sign.gemini",
+        "sign.cancer",
+        "sign.leo",
+        "sign.virgo",
+        "sign.libra",
+        "sign.scorpio",
+        "sign.sagittarius",
+        "sign.capricorn",
+        "sign.aquarius",
+        "sign.pisces"
+      ],
+      "semanticDependencyNotes": [
+        "The seven-visible-planet traditional baseline is the canonical V1 reference.",
+        "Modern outer assignments are stored as named alternatives; no new co-ruler or dispositor object is created."
+      ],
+      "sourceRefs": ["PC-13", "PC-14", "PC-19"],
+      "schoolNotes": [
+        "Traditional and modern Western mappings are recorded as separate named layers.",
+        "The package does not select one universal doctrine across schools."
+      ],
+      "contentRevision": "r2.0",
+      "editorialReviewStatus": "EDITORIAL_READY_FOR_OWNER_REVIEW"
+    }
+  ]
+}
