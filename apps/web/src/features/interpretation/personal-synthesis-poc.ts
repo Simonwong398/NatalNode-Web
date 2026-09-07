@@ -12,9 +12,11 @@ import type {
   InterpretationFactInput,
   InterpretationFactReference,
   InterpretationSignal,
+  InterpretationSignalComposition,
   InterpretationSignalDirection,
   InterpretationSignalIntensity,
   InterpretationSignalRankingMetadata,
+  InterpretationSignalProvenance,
   InterpretationRuleIdentity,
   InterpretationSignalRule
 } from './interpretation-signal-contracts.js';
@@ -104,6 +106,67 @@ export interface PersonalSynthesisCandidateDefinition {
   readonly requiresKnownBirthTime: boolean;
 }
 
+/**
+ * Common candidate metadata used after a Signal has already been admitted.
+ * The existing fixture path adds ranking metadata before the Signal exists;
+ * the representative Signal path deliberately does not.
+ */
+export type PersonalSynthesisCandidateMetadata = Omit<
+  PersonalSynthesisCandidateDefinition,
+  'internalStrength' | 'priority' | 'ranking'
+>;
+
+/**
+ * A structured research Signal accepted by the downstream synthesis POC.
+ * This is intentionally not an InterpretationSignal: the representative
+ * policy does not provide internalStrength, priority, or ranking metadata, and
+ * the adapter must not invent those values to satisfy the older fixture path.
+ */
+export interface PersonalSynthesisStructuredSignalInput {
+  readonly sourceType: 'RESEARCH_REPRESENTATIVE_SIGNAL';
+  readonly signalId: string;
+  readonly compositionId: string;
+  readonly signalThemeKey: string;
+  readonly rule: InterpretationRuleIdentity;
+  readonly domain: InterpretationSignal['domain'];
+  readonly direction: InterpretationSignalDirection;
+  readonly intensity: InterpretationSignalIntensity;
+  readonly confidence: InterpretationConfidence;
+  readonly provenance: InterpretationSignalProvenance;
+  readonly authority: 'DEVELOPMENT_ONLY';
+  readonly placementEvidenceKey: string;
+  readonly evidenceUnitCount: 1;
+  readonly semanticClaim: string;
+  readonly constructiveCapacity: string;
+  readonly possibleTension: string;
+  readonly semanticBasis: Readonly<Record<string, unknown>>;
+  readonly whyReferences: Readonly<Record<string, unknown>>;
+  readonly learnReferences: readonly {
+    readonly objectId: string;
+    readonly label: string;
+    readonly sourcePath: string;
+  }[];
+  readonly birthTimeRequirement: {
+    readonly status: 'UNKNOWN_TIME_SAFE' | 'REQUIRES_KNOWN';
+    readonly requiresKnownBirthTime: boolean;
+    readonly forbiddenDependencies: readonly string[];
+  };
+  readonly suppressionConditions: readonly string[];
+  readonly suppressionState: 'ELIGIBLE';
+}
+
+export type PersonalSynthesisSignalForTheme = {
+  readonly signalId: string;
+  readonly domain: InterpretationSignal['domain'];
+  readonly direction: InterpretationSignalDirection;
+  readonly intensity: InterpretationSignalIntensity;
+  readonly confidence: InterpretationConfidence;
+  readonly theme: string;
+  readonly rule: InterpretationRuleIdentity;
+  readonly provenance: InterpretationSignalProvenance;
+  readonly authority: 'AUTHORITATIVE' | 'DEVELOPMENT_ONLY';
+} | PersonalSynthesisStructuredSignalInput;
+
 export interface PersonalSynthesisFixture {
   readonly scenarioId: string;
   readonly title: string;
@@ -154,6 +217,8 @@ export interface PersonalSynthesisWhyTrace {
   readonly requiresKnownBirthTime: boolean;
   readonly confidence: InterpretationConfidence;
   readonly learnReferences: readonly PersonalSynthesisLearnReference[];
+  /** Preserved only when the input was a structured representative Signal. */
+  readonly representativeSignalTraces?: readonly PersonalSynthesisStructuredSignalInput[];
 }
 
 export interface PersonalSynthesisEditorialProjection {
@@ -208,6 +273,8 @@ export interface PersonalSynthesisPersonalTheme {
   };
   readonly lifeQuestions: readonly PersonalSynthesisLifeQuestion[];
   readonly editorial: PersonalSynthesisEditorialProjection;
+  /** Full upstream Signal-policy trace for research-input synthesis. */
+  readonly representativeSignalTraces?: readonly PersonalSynthesisStructuredSignalInput[];
 }
 
 export type PersonalSynthesisCandidateDecision =
@@ -240,12 +307,26 @@ export interface PersonalSynthesisResult {
   readonly birthTimeAuthority: 'KNOWN' | 'UNKNOWN';
   readonly fixtureVersion: typeof PERSONAL_SYNTHESIS_POC_FIXTURE_VERSION;
   readonly semanticBasisStatus: 'RUNTIME_NOT_ADMITTED';
-  readonly evaluatedSignals: readonly InterpretationSignal[];
+  readonly evaluatedSignals: readonly PersonalSynthesisSignalForTheme[];
   readonly skippedRules: readonly { readonly ruleId: string; readonly reason: string }[];
   readonly candidateTrace: readonly PersonalSynthesisCandidateTrace[];
   readonly coreThemes: readonly PersonalSynthesisPersonalTheme[];
   /** Explicit comparison material for the review dossier, not a reading output. */
   readonly naiveFactDump: readonly string[];
+}
+
+export interface PersonalSynthesisStructuredSuppression {
+  readonly signalId: string;
+  readonly placementEvidenceKey: string;
+  readonly reason: 'DUPLICATE_SAME_PLACEMENT';
+}
+
+export interface PersonalSynthesisStructuredResult {
+  readonly sourceType: 'RESEARCH_REPRESENTATIVE_SIGNAL';
+  readonly inputSignals: readonly PersonalSynthesisStructuredSignalInput[];
+  readonly eligibleSignals: readonly PersonalSynthesisStructuredSignalInput[];
+  readonly suppressedSignals: readonly PersonalSynthesisStructuredSuppression[];
+  readonly synthesis: PersonalSynthesisResult;
 }
 
 interface PersonalEditorialTemplate {
@@ -503,7 +584,7 @@ function ruleIdentity(ruleId: string): InterpretationRuleIdentity {
 }
 
 function validateCandidateDefinition(
-  definition: PersonalSynthesisCandidateDefinition
+  definition: PersonalSynthesisCandidateMetadata
 ): PersonalEditorialTemplate {
   nonEmpty(definition.candidateKey, 'Candidate key');
   nonEmpty(definition.semanticThemeKey, 'Candidate semanticThemeKey');
@@ -596,9 +677,9 @@ interface PersonalThemeGroup {
   readonly semanticThemeKey: string;
   readonly convergenceKey: string;
   readonly redundancyKey: string;
-  readonly signals: readonly InterpretationSignal[];
-  readonly definitions: readonly PersonalSynthesisCandidateDefinition[];
-  readonly composition: NonNullable<ReturnType<typeof composeInterpretationSignalGroup>>;
+  readonly signals: readonly PersonalSynthesisSignalForTheme[];
+  readonly definitions: readonly PersonalSynthesisCandidateMetadata[];
+  readonly composition: InterpretationSignalComposition;
   readonly primarySignalId: string;
   readonly primarySignalRank: number;
   readonly template: PersonalEditorialTemplate;
@@ -609,8 +690,71 @@ interface PersonalThemeGroup {
   readonly ranking: PersonalSynthesisRankingRationale;
 }
 
+function isStructuredSignal(
+  signal: PersonalSynthesisSignalForTheme
+): signal is PersonalSynthesisStructuredSignalInput {
+  return 'sourceType' in signal && signal.sourceType === 'RESEARCH_REPRESENTATIVE_SIGNAL';
+}
+
+function synthesisThemeKey(signal: PersonalSynthesisSignalForTheme): string {
+  return isStructuredSignal(signal) ? signal.signalThemeKey : signal.theme;
+}
+
+type SynthesisSignalComposer = (
+  signals: readonly PersonalSynthesisSignalForTheme[]
+) => InterpretationSignalComposition | null;
+
+function composeFixtureSignalGroup(
+  signals: readonly PersonalSynthesisSignalForTheme[]
+): InterpretationSignalComposition | null {
+  return composeInterpretationSignalGroup(signals as readonly InterpretationSignal[]);
+}
+
+function composeStructuredSignalGroup(
+  signals: readonly PersonalSynthesisSignalForTheme[]
+): InterpretationSignalComposition | null {
+  if (signals.length === 0) {
+    return null;
+  }
+
+  const directionSet = new Set(signals.map((signal) => signal.direction));
+  const direction = directionSet.has('MIXED') ||
+      (directionSet.has('SUPPORTIVE') && directionSet.has('CHALLENGING'))
+    ? 'MIXED'
+    : directionSet.has('SUPPORTIVE')
+      ? 'SUPPORTIVE'
+      : directionSet.has('CHALLENGING')
+        ? 'CHALLENGING'
+        : 'NEUTRAL';
+  const sourceFactRefs: InterpretationFactReference[] = [];
+  const seenFactRefs = new Set<string>();
+  for (const signal of signals) {
+    for (const reference of signal.provenance.sourceFactRefs) {
+      const key = factReferenceKey(reference);
+      if (!seenFactRefs.has(key)) {
+        seenFactRefs.add(key);
+        sourceFactRefs.push(reference);
+      }
+    }
+  }
+
+  return Object.freeze({
+    direction,
+    dominantSignalId: signals[0].signalId,
+    supportingSignalIds: freezeArray(signals.slice(1).map((signal) => signal.signalId)),
+    sourceSignalIds: freezeArray(signals.map((signal) => signal.signalId)),
+    supportiveSignalIds: freezeArray(
+      signals.filter((signal) => signal.direction === 'SUPPORTIVE').map((signal) => signal.signalId)
+    ),
+    challengingSignalIds: freezeArray(
+      signals.filter((signal) => signal.direction === 'CHALLENGING').map((signal) => signal.signalId)
+    ),
+    sourceFactRefs: freezeArray(sourceFactRefs)
+  });
+}
+
 function combineConfidence(
-  definitions: readonly PersonalSynthesisCandidateDefinition[]
+  definitions: readonly PersonalSynthesisCandidateMetadata[]
 ): InterpretationConfidence {
   const weakest = Math.min(...definitions.map((definition) => CONFIDENCE_ORDER[definition.confidence]));
   return weakest >= CONFIDENCE_ORDER.HIGH
@@ -621,12 +765,14 @@ function combineConfidence(
 }
 
 function createGroup(
-  signals: readonly InterpretationSignal[],
-  definitionBySignalId: ReadonlyMap<string, PersonalSynthesisCandidateDefinition>,
+  signals: readonly PersonalSynthesisSignalForTheme[],
+  definitionBySignalId: ReadonlyMap<string, PersonalSynthesisCandidateMetadata>,
   signalRankById: ReadonlyMap<string, number>,
-  userQuestion: PersonalSynthesisLifeQuestion | undefined
+  userQuestion: PersonalSynthesisLifeQuestion | undefined,
+  composeSignals: SynthesisSignalComposer = composeFixtureSignalGroup,
+  rankingTieBreakLabel = 'existing Signal rank tie-break'
 ): PersonalThemeGroup {
-  const composition = composeInterpretationSignalGroup(signals);
+  const composition = composeSignals(signals);
   if (composition === null) {
     throw new Error('A Personal Synthesis theme cannot be composed without signals.');
   }
@@ -651,7 +797,7 @@ function createGroup(
     redundancyKeys.size !== 1
   ) {
     throw new Error(
-      `Theme ${signals[0].theme} combines incompatible editorial, domain, convergence, or redundancy metadata.`
+      `Theme ${synthesisThemeKey(signals[0])} combines incompatible editorial, domain, convergence, or redundancy metadata.`
     );
   }
 
@@ -679,7 +825,7 @@ function createGroup(
       return left.signalId.localeCompare(right.signalId);
     })[0];
   if (primarySignal === undefined) {
-    throw new Error(`Theme ${signals[0].theme} has no primary signal.`);
+    throw new Error(`Theme ${synthesisThemeKey(signals[0])} has no primary signal.`);
   }
   const userQuestionRelevance = userQuestion !== undefined &&
       template.lifeQuestions.includes(userQuestion)
@@ -724,12 +870,12 @@ function createGroup(
       birthTimeDependency === 'UNKNOWN_TIME_SAFE'
         ? 'safe without known birth time'
         : 'requires known birth time',
-      `existing Signal rank tie-break ${globalPrimaryRank}`
+      `${rankingTieBreakLabel} ${globalPrimaryRank}`
     ])
   });
 
   return Object.freeze({
-    semanticThemeKey: signals[0].theme,
+    semanticThemeKey: synthesisThemeKey(signals[0]),
     convergenceKey: definitions[0].convergenceKey,
     redundancyKey: definitions[0].redundancyKey,
     signals: freezeArray(signals),
@@ -805,27 +951,37 @@ function compareGroups(left: PersonalThemeGroup, right: PersonalThemeGroup): num
 }
 
 function groupByTheme(
-  signals: readonly InterpretationSignal[],
-  definitionBySignalId: ReadonlyMap<string, PersonalSynthesisCandidateDefinition>,
+  signals: readonly PersonalSynthesisSignalForTheme[],
+  definitionBySignalId: ReadonlyMap<string, PersonalSynthesisCandidateMetadata>,
   signalRankById: ReadonlyMap<string, number>,
-  userQuestion: PersonalSynthesisLifeQuestion | undefined
+  userQuestion: PersonalSynthesisLifeQuestion | undefined,
+  composeSignals: SynthesisSignalComposer = composeFixtureSignalGroup,
+  rankingTieBreakLabel = 'existing Signal rank tie-break'
 ): readonly PersonalThemeGroup[] {
-  const grouped = new Map<string, InterpretationSignal[]>();
+  const grouped = new Map<string, PersonalSynthesisSignalForTheme[]>();
   for (const signal of signals) {
-    const group = grouped.get(signal.theme) ?? [];
+    const themeKey = synthesisThemeKey(signal);
+    const group = grouped.get(themeKey) ?? [];
     group.push(signal);
-    grouped.set(signal.theme, group);
+    grouped.set(themeKey, group);
   }
 
   return freezeArray(
     [...grouped.values()]
-      .map((group) => createGroup(group, definitionBySignalId, signalRankById, userQuestion))
+      .map((group) => createGroup(
+        group,
+        definitionBySignalId,
+        signalRankById,
+        userQuestion,
+        composeSignals,
+        rankingTieBreakLabel
+      ))
       .sort(compareGroups)
   );
 }
 
 function combineFactReferences(
-  signals: readonly InterpretationSignal[]
+  signals: readonly PersonalSynthesisSignalForTheme[]
 ): readonly InterpretationFactReference[] {
   const references: InterpretationFactReference[] = [];
   const seen = new Set<string>();
@@ -880,7 +1036,7 @@ const WHY_READER_FACTORS: Readonly<
 });
 
 function readerWhyFactors(
-  definitions: readonly PersonalSynthesisCandidateDefinition[]
+  definitions: readonly PersonalSynthesisCandidateMetadata[]
 ): readonly PersonalSynthesisWhyReaderFactor[] {
   const seen = new Set<PersonalSynthesisSemanticBasisId>();
   const factors: PersonalSynthesisWhyReaderFactor[] = [];
@@ -901,7 +1057,7 @@ function readerWhyFactors(
 
 function createTheme(
   group: PersonalThemeGroup,
-  fixture: PersonalSynthesisFixture,
+  birthTimeAuthority: 'KNOWN' | 'UNKNOWN',
   rank: number,
   suppressedThemeKeys: readonly string[]
 ): PersonalSynthesisPersonalTheme {
@@ -932,6 +1088,7 @@ function createTheme(
   const tensionText = tensionStatus === 'MIXED'
     ? 'Supportive and challenging evidence remain together, so the trade-off is not hidden.'
     : 'No mixed direction is claimed for this theme.';
+  const representativeSignalTraces = group.signals.filter(isStructuredSignal);
   const why: PersonalSynthesisWhyTrace = Object.freeze({
     text: `${group.template.whyLead} ${convergenceText} ${tensionText}`,
     reader: Object.freeze({
@@ -953,10 +1110,13 @@ function createTheme(
       supportiveSignalIds,
       challengingSignalIds
     }),
-    birthTimeAuthority: fixture.chartFacts.birthTimeAuthority,
+    birthTimeAuthority,
     requiresKnownBirthTime: group.birthTimeDependency === 'REQUIRES_KNOWN',
     confidence: group.confidence,
-    learnReferences: combineLearnReferences(group.template)
+    learnReferences: combineLearnReferences(group.template),
+    ...(representativeSignalTraces.length > 0
+      ? { representativeSignalTraces: freezeArray(representativeSignalTraces) }
+      : {})
   });
   const primarySignal = group.signals.find((signal) => signal.signalId === group.primarySignalId);
   if (primarySignal === undefined) {
@@ -1004,7 +1164,10 @@ function createTheme(
       suppressedThemeKeys: freezeArray(suppressedThemeKeys)
     }),
     lifeQuestions: group.template.lifeQuestions,
-    editorial
+    editorial,
+    ...(representativeSignalTraces.length > 0
+      ? { representativeSignalTraces: freezeArray(representativeSignalTraces) }
+      : {})
   });
 }
 
@@ -1113,17 +1276,17 @@ function decisionForSkippedRule(
 
 function traceSelectedGroup(
   group: PersonalThemeGroup,
-  fixtureId: string,
   selected: boolean,
   suppressedByRedundancy: boolean,
   retainedThemeKey: string | null,
   signalRankById: ReadonlyMap<string, number>,
-  maxThemes: number
+  maxThemes: number,
+  signalIdForDefinition: (definition: PersonalSynthesisCandidateMetadata) => string
 ): readonly PersonalSynthesisCandidateTrace[] {
   if (suppressedByRedundancy) {
     return freezeArray(group.definitions.map((definition) => Object.freeze({
       candidateKey: definition.candidateKey,
-      signalId: `personal-synthesis.${fixtureId}.${definition.candidateKey}`,
+      signalId: signalIdForDefinition(definition),
       semanticThemeKey: group.semanticThemeKey,
       convergenceKey: group.convergenceKey,
       factReference: definition.fact.reference,
@@ -1139,7 +1302,7 @@ function traceSelectedGroup(
   if (!selected) {
     return freezeArray(group.definitions.map((definition) => Object.freeze({
       candidateKey: definition.candidateKey,
-      signalId: `personal-synthesis.${fixtureId}.${definition.candidateKey}`,
+      signalId: signalIdForDefinition(definition),
       semanticThemeKey: group.semanticThemeKey,
       convergenceKey: group.convergenceKey,
       factReference: definition.fact.reference,
@@ -1256,7 +1419,7 @@ export function synthesizePersonalThemes(
   const selection = selectGroups(groups, maxThemes);
   const selectedThemes = selection.selected.map((group, index) => createTheme(
     group,
-    fixtureDefinition,
+    fixtureDefinition.chartFacts.birthTimeAuthority,
     index + 1,
     selection.suppressed.get(group.semanticThemeKey) ?? []
   ));
@@ -1285,14 +1448,14 @@ export function synthesizePersonalThemes(
     }
     const groupTrace = traceSelectedGroup(
       group,
-      fixtureDefinition.scenarioId,
       selectedThemeKeys.has(group.semanticThemeKey),
       suppressedThemeKeys.has(group.semanticThemeKey),
       [...selection.suppressed.entries()].find(([, suppressed]) =>
         suppressed.includes(group.semanticThemeKey)
       )?.[0] ?? null,
       signalRankById,
-      maxThemes
+      maxThemes,
+      (definition) => `personal-synthesis.${fixtureDefinition.scenarioId}.${definition.candidateKey}`
     );
     const trace = groupTrace.find((entry) => entry.candidateKey === definition.candidateKey);
     if (trace === undefined) {
@@ -1321,6 +1484,234 @@ export function synthesizePersonalThemes(
     candidateTrace: freezeArray(candidateTrace),
     coreThemes: freezeArray(selectedThemes),
     naiveFactDump: freezeArray(naiveFactDump)
+  });
+}
+
+function structuredTemplateForSignal(
+  signal: PersonalSynthesisStructuredSignalInput
+): { readonly editorialTemplateId: PersonalSynthesisEditorialTemplateId; readonly semanticBasisId: string } {
+  const bodyId = signal.semanticBasis.bodyId;
+  if (signal.domain === 'EMOTIONAL' && bodyId === 'body.moon') {
+    return { editorialTemplateId: 'emotional-pacing', semanticBasisId: 'body.moon' };
+  }
+  if (signal.domain === 'COMMUNICATION' && bodyId === 'body.mercury') {
+    return { editorialTemplateId: 'communication-clarity', semanticBasisId: 'body.mercury' };
+  }
+  throw new Error(
+    `Research Signal ${signal.signalId} has no bounded Personal Synthesis template for ${signal.domain} and ${String(bodyId)}.`
+  );
+}
+
+function validateStructuredSignalInput(
+  signal: PersonalSynthesisStructuredSignalInput
+): void {
+  nonEmpty(signal.signalId, 'Structured Signal signalId');
+  nonEmpty(signal.compositionId, 'Structured Signal compositionId');
+  nonEmpty(signal.signalThemeKey, 'Structured Signal signalThemeKey');
+  nonEmpty(signal.placementEvidenceKey, 'Structured Signal placementEvidenceKey');
+  nonEmpty(signal.semanticClaim, 'Structured Signal semanticClaim');
+  nonEmpty(signal.constructiveCapacity, 'Structured Signal constructiveCapacity');
+  nonEmpty(signal.possibleTension, 'Structured Signal possibleTension');
+
+  if (signal.sourceType !== 'RESEARCH_REPRESENTATIVE_SIGNAL') {
+    throw new Error(`Structured Signal ${signal.signalId} has an unsupported source type.`);
+  }
+  if (signal.authority !== 'DEVELOPMENT_ONLY') {
+    throw new Error(`Structured Signal ${signal.signalId} cannot claim authoritative output.`);
+  }
+  if (signal.provenance.sourceAuthority !== 'INCOMPLETE_RESEARCH') {
+    throw new Error(
+      `Structured Signal ${signal.signalId} must remain INCOMPLETE_RESEARCH; AUTHORITATIVE_ENGINE is not accepted by this adapter.`
+    );
+  }
+  if (signal.evidenceUnitCount !== 1) {
+    throw new Error(`Structured Signal ${signal.signalId} must preserve one evidence unit.`);
+  }
+  if (signal.suppressionState !== 'ELIGIBLE') {
+    throw new Error(`Structured Signal ${signal.signalId} is already suppressed.`);
+  }
+  if (signal.provenance.sourceFactRefs.length === 0) {
+    throw new Error(`Structured Signal ${signal.signalId} must preserve a research provenance reference.`);
+  }
+  if (
+    signal.birthTimeRequirement.status === 'UNKNOWN_TIME_SAFE' &&
+    signal.birthTimeRequirement.requiresKnownBirthTime
+  ) {
+    throw new Error(`Structured Signal ${signal.signalId} has inconsistent birth-time requirements.`);
+  }
+  if (
+    Object.prototype.hasOwnProperty.call(signal, 'internalStrength') ||
+    Object.prototype.hasOwnProperty.call(signal, 'priority') ||
+    Object.prototype.hasOwnProperty.call(signal, 'ranking')
+  ) {
+    throw new Error(
+      `Structured Signal ${signal.signalId} must not invent Personal Synthesis ranking metadata.`
+    );
+  }
+  structuredTemplateForSignal(signal);
+}
+
+function structuredCandidate(
+  signal: PersonalSynthesisStructuredSignalInput
+): PersonalSynthesisCandidateMetadata {
+  const template = structuredTemplateForSignal(signal);
+  const factReference: InterpretationFactReference = Object.freeze({
+    factKind: 'OTHER',
+    canonicalPath: `/research/composition-signals/${signal.placementEvidenceKey}`,
+    canonicalFactIdentity: signal.placementEvidenceKey
+  });
+  const factInput: InterpretationFactInput = Object.freeze({
+    reference: factReference,
+    available: true,
+    attributes: Object.freeze({
+      sourceType: signal.sourceType,
+      compositionId: signal.compositionId,
+      placementEvidenceKey: signal.placementEvidenceKey
+    })
+  });
+
+  return Object.freeze({
+    candidateKey: signal.signalId,
+    semanticThemeKey: signal.signalThemeKey,
+    editorialTemplateId: template.editorialTemplateId,
+    fact: factInput,
+    factLabel: signal.placementEvidenceKey,
+    semanticBasisId: template.semanticBasisId,
+    compositionRuleId: `${signal.rule.ruleId}@${signal.rule.ruleVersion}`,
+    convergenceKey: `composition-signal:${signal.signalThemeKey}`,
+    redundancyKey: `composition-signal:${signal.signalThemeKey}`,
+    independentEvidenceKey: signal.placementEvidenceKey,
+    domain: signal.domain,
+    direction: signal.direction,
+    intensity: signal.intensity,
+    confidence: signal.confidence,
+    structuralCentrality: 'SUPPORTING',
+    domainRelevance: 'CONTEXTUAL',
+    userQuestionRelevance: 'NOT_SPECIFIED',
+    requiresKnownBirthTime: signal.birthTimeRequirement.requiresKnownBirthTime
+  });
+}
+
+/**
+ * Downstream-only bridge for already-structured research Signals. It bypasses
+ * the ChartFact → Signal registry because no authoritative Engine fact exists
+ * in this POC, then reuses the same Personal Synthesis grouping, selection,
+ * ranking, and editorial projection path as the fixture POC.
+ */
+export function synthesizePersonalThemesFromStructuredSignals(
+  inputSignals: readonly PersonalSynthesisStructuredSignalInput[],
+  options: {
+    readonly maxThemes?: number;
+    readonly userQuestion?: PersonalSynthesisLifeQuestion;
+  } = {}
+): PersonalSynthesisStructuredResult {
+  if (inputSignals.length === 0) {
+    throw new Error('Structured Signal synthesis requires at least one input Signal.');
+  }
+  inputSignals.forEach(validateStructuredSignalInput);
+
+  const maxThemes = options.maxThemes ?? 5;
+  if (!Number.isInteger(maxThemes) || maxThemes < 1 || maxThemes > 5) {
+    throw new Error('Personal Synthesis POC maxThemes must be an integer from 1 through 5.');
+  }
+
+  const orderedSignals = inputSignals
+    .slice()
+    .sort((left, right) => left.signalId.localeCompare(right.signalId));
+  const eligibleSignals: PersonalSynthesisStructuredSignalInput[] = [];
+  const suppressedSignals: PersonalSynthesisStructuredSuppression[] = [];
+  const seenPlacementEvidence = new Set<string>();
+  for (const signal of orderedSignals) {
+    if (seenPlacementEvidence.has(signal.placementEvidenceKey)) {
+      suppressedSignals.push(Object.freeze({
+        signalId: signal.signalId,
+        placementEvidenceKey: signal.placementEvidenceKey,
+        reason: 'DUPLICATE_SAME_PLACEMENT'
+      }));
+      continue;
+    }
+    seenPlacementEvidence.add(signal.placementEvidenceKey);
+    eligibleSignals.push(signal);
+  }
+
+  const definitionBySignalId = new Map<string, PersonalSynthesisCandidateMetadata>();
+  const signalRankById = new Map<string, number>();
+  const definitions = eligibleSignals.map((signal, index) => {
+    const definition = structuredCandidate(signal);
+    definitionBySignalId.set(signal.signalId, definition);
+    signalRankById.set(signal.signalId, index + 1);
+    return definition;
+  });
+  const groups = groupByTheme(
+    eligibleSignals,
+    definitionBySignalId,
+    signalRankById,
+    options.userQuestion,
+    composeStructuredSignalGroup,
+    'stable research Signal identity order; no priority inferred'
+  );
+  const selection = selectGroups(groups, maxThemes);
+  const selectedThemes = selection.selected.map((group, index) => createTheme(
+    group,
+    'UNKNOWN',
+    index + 1,
+    selection.suppressed.get(group.semanticThemeKey) ?? []
+  ));
+  const selectedThemeKeys = new Set(selection.selected.map((group) => group.semanticThemeKey));
+  const suppressedThemeKeys = new Set<string>();
+  for (const suppressed of selection.suppressed.values()) {
+    for (const key of suppressed) {
+      suppressedThemeKeys.add(key);
+    }
+  }
+
+  const candidateTrace: PersonalSynthesisCandidateTrace[] = [];
+  for (const definition of definitions) {
+    const group = groups.find((candidateGroup) =>
+      candidateGroup.definitions.some((candidate) => candidate.candidateKey === definition.candidateKey)
+    );
+    if (group === undefined) {
+      throw new Error(`Structured Signal ${definition.candidateKey} was neither selected nor suppressed.`);
+    }
+    const groupTrace = traceSelectedGroup(
+      group,
+      selectedThemeKeys.has(group.semanticThemeKey),
+      suppressedThemeKeys.has(group.semanticThemeKey),
+      [...selection.suppressed.entries()].find(([, suppressed]) =>
+        suppressed.includes(group.semanticThemeKey)
+      )?.[0] ?? null,
+      signalRankById,
+      maxThemes,
+      (candidate) => candidate.candidateKey
+    );
+    const trace = groupTrace.find((entry) => entry.candidateKey === definition.candidateKey);
+    if (trace === undefined) {
+      throw new Error(`Structured Signal trace missing for ${definition.candidateKey}.`);
+    }
+    candidateTrace.push(trace);
+  }
+
+  const synthesis: PersonalSynthesisResult = Object.freeze({
+    scenarioId: 'COMPOSITION_SIGNAL_REPRESENTATIVE_SYNTHESIS',
+    title: 'Representative Composition Signal synthesis',
+    purpose: 'Downstream compatibility proof from admitted research Signals to bounded PersonalTheme candidates.',
+    authority: 'DEVELOPMENT_ONLY',
+    birthTimeAuthority: 'UNKNOWN',
+    fixtureVersion: PERSONAL_SYNTHESIS_POC_FIXTURE_VERSION,
+    semanticBasisStatus: 'RUNTIME_NOT_ADMITTED',
+    evaluatedSignals: freezeArray(eligibleSignals),
+    skippedRules: freezeArray([]),
+    candidateTrace: freezeArray(candidateTrace),
+    coreThemes: freezeArray(selectedThemes),
+    naiveFactDump: freezeArray(inputSignals.map((signal) => signal.placementEvidenceKey))
+  });
+
+  return Object.freeze({
+    sourceType: 'RESEARCH_REPRESENTATIVE_SIGNAL',
+    inputSignals: freezeArray(inputSignals),
+    eligibleSignals: freezeArray(eligibleSignals),
+    suppressedSignals: freezeArray(suppressedSignals),
+    synthesis
   });
 }
 
