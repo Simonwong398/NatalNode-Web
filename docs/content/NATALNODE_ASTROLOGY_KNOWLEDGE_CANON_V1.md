@@ -821,9 +821,9 @@ The quality review result is:
   inputs; the Element × modality rule is explicitly not a full matrix;
 - limitation quality: historical medical, gendered, predictive, deterministic,
   financial, relationship, and moral overclaims are rejected or educational-only;
-- learnability: admitted QUICK, PLAIN, and LEARNER templates are
-  READY_FOR_EDITORIAL_PACKAGE while ASTROLOGER and TECHNICAL depth remain
-  incomplete;
+- learnability: the admitted QUICK, PLAIN, and LEARNER projections now have a
+  canonical English editorial package ready for Product Owner review, while
+  ASTROLOGER and TECHNICAL depth remain incomplete;
 - Barnum defense and non-determinism: no primitive is admitted as a person label,
   complete personality, diagnosis, or outcome guarantee;
 - localization neutrality: no locale or translation was changed;
@@ -832,20 +832,33 @@ The quality review result is:
 
 The full readiness view is maintained in
 docs/research/astrology-knowledge-canon/primitives/PRIMITIVE_COVERAGE_MATRIX.md.
+The canonical English package and its migration boundary are maintained in
+docs/research/astrology-knowledge-canon/content/.
 The package does not reopen the existing SUN_POLICY_ADOPTED_WITH_CONDITIONS,
 TAURUS_POLICY_ADOPTED_WITH_CONDITIONS, or
 SUN_TAURUS_COMPOSITION_ADOPTED_WITH_CONDITIONS decisions.
 
-## 43. Exact next task
+## 43. Current content-package status and next task
 
-WEB-P2-ASTROLOGY-KNOWLEDGE-CONTENT-EXPANSION-003 — Build the bounded canonical
-English package for the admitted primitive vocabulary
+WEB-P2-ASTROLOGY-KNOWLEDGE-CONTENT-EXPANSION-003 is complete at the editorial
+package boundary.
 
-The next task may prepare canonical English editorial records for the admitted
-semantic subset and must preserve the modern psychological default lens,
-historical comparison boundary, scientific trust boundary, provider-neutral
-Engine boundary, and PROVIDER DECISION DEFERRED policy. It must keep
-ASTROLOGER and TECHNICAL depth explicit, retain Scorpio/Aquarius/Pisces deep
-research gaps, and not begin UI integration, interpretation runtime migration,
-localization, AI generation, provider selection, or a full Planet × Sign matrix
-without a separately admitted task.
+The structured package is
+docs/research/astrology-knowledge-canon/content/CORE_PRIMITIVE_EN_V1.json and
+the human review dossier is
+docs/research/astrology-knowledge-canon/content/CORE_PRIMITIVE_EN_V1_REVIEW.md.
+Both remain editorial-only and carry RUNTIME_NOT_ADMITTED. The migration note
+records the blocked runtime, localization, composition, and provider gates.
+
+The next task is:
+
+WEB-P2-ASTROLOGY-KNOWLEDGE-CONTENT-REVIEW-004 — Product Owner review of the
+canonical primitive English package
+
+That review must preserve the modern psychological default lens, historical
+comparison boundary, scientific trust boundary, provider-neutral Engine
+boundary, and PROVIDER DECISION DEFERRED policy. It must keep ASTROLOGER and
+TECHNICAL depth explicit, retain Scorpio/Aquarius/Pisces deep research gaps,
+and not begin UI integration, interpretation runtime migration, localization,
+AI generation, provider selection, or a full Planet × Sign matrix without a
+separately admitted task.

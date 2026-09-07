@@ -61,3 +61,20 @@ content is complete or runtime is enabled.
   deeper psychological vocabulary remains SOURCE_RESEARCH_REQUIRED.
 - The matrix does not authorize a Planet × Sign matrix, a runtime import, or
   localization. Those are separate policy and acceptance decisions.
+
+## Canonical English content package
+
+The bounded editorial package for the admitted 25-object vocabulary is now
+available for Product Owner review:
+
+- Structured package: [`../content/CORE_PRIMITIVE_EN_V1.json`](../content/CORE_PRIMITIVE_EN_V1.json)
+- Human review dossier: [`../content/CORE_PRIMITIVE_EN_V1_REVIEW.md`](../content/CORE_PRIMITIVE_EN_V1_REVIEW.md)
+- Migration boundary: [`../content/CONTENT_MIGRATION_READINESS.md`](../content/CONTENT_MIGRATION_READINESS.md)
+- Package status: `CORE_PRIMITIVE_EDITORIAL_PACKAGE_READY_FOR_OWNER_REVIEW`
+- QUICK: 25/25; PLAIN: 25/25; LEARNER: 25/25 with documented limitations
+- Runtime: `RUNTIME_NOT_ADMITTED`
+- Localization: not in scope
+
+The matrix rows above retain their finite admission vocabulary. The linked
+package is a subsequent editorial artifact and does not change the policy or
+runtime gates represented by this matrix.
