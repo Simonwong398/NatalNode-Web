@@ -182,13 +182,13 @@ const FOUNDATIONS_LESSON_BY_OBJECT_ID: Readonly<
 });
 
 const BODY_COMPOSITION_LANGUAGE: Readonly<Record<string, string>> = Object.freeze({
-  'body.moon': 'response, rhythm, receptivity, or need',
-  'body.mercury': 'information, comparison, or interpretation'
+  'body.moon': 'emotional rhythms, instincts, and needs',
+  'body.mercury': 'the way you take in, sort, and express information'
 });
 
 const SIGN_COMPOSITION_LANGUAGE: Readonly<Record<string, string>> = Object.freeze({
-  'sign.aries': 'initiation, activation, and a first move',
-  'sign.taurus': 'embodiment, valuation, continuity, and maintenance'
+  'sign.aries': 'directness, initiative, and a willingness to begin',
+  'sign.taurus': 'steadiness, embodiment, and attention to lasting value'
 });
 
 type SignalReaderCopy = Readonly<{
@@ -197,6 +197,7 @@ type SignalReaderCopy = Readonly<{
   pattern: string;
   tension: string;
   lever: string;
+  whySynthesis: string;
 }>;
 
 const SIGNAL_READER_COPY: Readonly<Record<string, SignalReaderCopy>> = Object.freeze({
@@ -205,28 +206,32 @@ const SIGNAL_READER_COPY: Readonly<Record<string, SignalReaderCopy>> = Object.fr
     strength: 'You can give a recurring need an initial form without treating that first movement as the whole answer.',
     pattern: 'When something matters, feeling may arrive with a wish to begin; the useful work is staying in contact with the need while the first step takes shape.',
     tension: 'A need for receptivity or rhythm may meet pressure to initiate, so beginning can feel like leaving the response behind.',
-    lever: 'Name the first response, then choose one small, reversible action that lets the need stay in the conversation.'
+    lever: 'Name the first response, then choose one small, reversible action that lets the need stay in the conversation.',
+    whySynthesis: 'Together, this can describe a response that wants to become a first move: feeling may ask for action before every detail is settled. That can help a need find form, while the tension is beginning without leaving the need behind.'
   }),
   'body.mercury_x_sign.taurus': Object.freeze({
     recognition: 'An idea may become easier to trust when you can give it a tangible form and return to it.',
     strength: 'You can make information usable by giving it continuity without pretending the first formulation is final.',
     pattern: 'When meaning is still forming, you may return to comparison, wording, and the practical shape that lets an idea be revisited.',
     tension: 'A useful formulation can become a fixed reference point, making later information harder to admit.',
-    lever: 'Give the idea a working form, then mark what new information would make you revise it.'
+    lever: 'Give the idea a working form, then mark what new information would make you revise it.',
+    whySynthesis: 'Together, this can describe thinking that becomes clearer through tangible form: an idea can grow through careful wording, comparison, and something you can return to. The tension is keeping a settled formulation open to new information.'
   }),
   'body.moon_x_sign.taurus': Object.freeze({
     recognition: 'You may notice familiar rhythms or tangible steadiness helping you identify what you need.',
     strength: 'You can give a response a repeatable container while leaving room for the situation to change.',
     pattern: 'When something matters, feeling may return to what is familiar, valued, or physically grounding before it is ready to move.',
     tension: 'A steady rhythm can become something to preserve even after the context asks for revision.',
-    lever: 'Create a steady container for the response, then check whether it still fits what is happening now.'
+    lever: 'Create a steady container for the response, then check whether it still fits what is happening now.',
+    whySynthesis: 'Together, this can describe emotional steadiness built through familiar rhythms and tangible care. That can give a response a reliable container, while the tension is checking whether what feels safe still fits the moment.'
   }),
   'body.mercury_x_sign.aries': Object.freeze({
     recognition: 'An idea may become easier to work with once you give it a first, direct formulation.',
     strength: 'You can start a line of thought clearly while leaving its next version open to comparison.',
     pattern: 'When information is active, you may name the first distinction or question and use it to get the exchange moving.',
     tension: 'A first formulation can arrive before comparison is complete, making an opening sound more final than it is.',
-    lever: 'State the first formulation, then leave a deliberate pause for comparison or correction.'
+    lever: 'State the first formulation, then leave a deliberate pause for comparison or correction.',
+    whySynthesis: 'Together, this can describe thinking that gets moving through a direct first question or formulation. That can open a line of thought, while the tension is leaving room for comparison before the first answer hardens.'
   })
 });
 
@@ -338,10 +343,6 @@ function stringArrayReference(
     : freezeArray([]);
 }
 
-function lowerFirst(value: string): string {
-  return value.length === 0 ? value : `${value[0]?.toLowerCase() ?? ''}${value.slice(1)}`;
-}
-
 function whyForSignals(
   signals: readonly PersonalSynthesisStructuredSignalInput[]
 ): MyChartPersonalContentTheme['why'] {
@@ -365,14 +366,19 @@ function whyForSignals(
       seenFactors.add(signFactorKey);
       factors.push(Object.freeze({
         label: sign,
-        contribution: `${sign} supplies ${signLanguage}.`
+        contribution: `${sign} adds ${signLanguage}.`
       }));
     }
-    return `${body} brings ${bodyLanguage}, while ${sign} brings ${signLanguage}. Together, this composition keeps the question conditional: ${signal.semanticClaim} ${signal.constructiveCapacity} The possible trade-off is that ${lowerFirst(signal.possibleTension)}`;
+    return signalCopy(signal).whySynthesis;
   });
 
+  const firstSignal = signals[0];
+  if (firstSignal === undefined) {
+    throw new Error('A reader-facing WHY explanation requires at least one Signal.');
+  }
+
   return Object.freeze({
-    summary: 'This placement brings a body function and the conditions supplied by its sign into one question. It is a pattern worth noticing, not a fixed description of who you are.',
+    summary: `A placement shows how ${bodyLabel(firstSignal.bodyId)} themes take shape through ${signLabel(firstSignal.signId)}. It is one thread in the chart, not a complete description of who you are.`,
     factors: freezeArray(factors),
     synthesis: compositionExplanations.join(' ')
   });
@@ -581,10 +587,12 @@ export function projectMyChartPersonalContent(
       evidence: 'RESEARCH_REPRESENTATIVE_SIGNAL / INCOMPLETE_RESEARCH / DEVELOPMENT_ONLY'
     }),
     reading: Object.freeze({
-      hook: 'Two placement-level questions worth noticing.',
+      hook: scenario === 'unknown-time'
+        ? 'Two patterns still in view.'
+        : 'Two patterns worth noticing.',
       introduction: scenario === 'unknown-time'
-        ? 'With birth time unknown, this research preview stays with Moon and Mercury placements that remain usable without a known time.'
-        : 'This research preview follows two coherent placements: how a response meets initiation, and how meaning takes a tangible form.',
+        ? 'With birth time unknown, this reading stays with Moon and Mercury placements that can be read without time-sensitive chart layers.'
+        : 'Notice how a response meets initiation, and how an idea becomes more tangible.',
       themes: freezeArray(themes)
     }),
     unknownTime: Object.freeze({

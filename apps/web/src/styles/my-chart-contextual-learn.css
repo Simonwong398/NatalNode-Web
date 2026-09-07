@@ -33,8 +33,7 @@
 .my-chart-contextual-learn__section-kicker,
 .my-chart-contextual-learn__fact-label,
 .my-chart-contextual-learn__source-line,
-.my-chart-contextual-learn__learn-note,
-.my-chart-contextual-learn__footer p {
+.my-chart-contextual-learn__learn-note {
   margin: 0;
 }
 
@@ -156,8 +155,7 @@
 .my-chart-contextual-learn__fact-note,
 .my-chart-contextual-learn__learn-note,
 .my-chart-contextual-learn__unknown-time p,
-.my-chart-contextual-learn__technical-note,
-.my-chart-contextual-learn__footer p:last-child {
+.my-chart-contextual-learn__technical-note {
   max-width: 44rem;
   margin: 0.9rem 0 0;
   color: var(--nn-text-secondary);
@@ -642,16 +640,6 @@
   margin-top: 1rem;
   padding-left: 0.9rem;
   border-left: 2px solid var(--nn-status-warning);
-  font-size: 0.875rem;
-}
-
-.my-chart-contextual-learn__footer {
-  padding: 1.75rem clamp(1.1rem, 6vw, 4.75rem) 2.5rem;
-  border-top: 1px solid var(--my-chart-line-subtle);
-}
-
-.my-chart-contextual-learn__footer p:last-child {
-  margin-top: 0.55rem;
   font-size: 0.875rem;
 }
 

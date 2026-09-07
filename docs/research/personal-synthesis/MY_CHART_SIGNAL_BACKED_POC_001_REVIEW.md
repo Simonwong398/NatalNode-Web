@@ -205,3 +205,51 @@ RUNTIME_ADMISSION NO
 
 `OWNER_BROWSER_PASS` is intentionally not claimed; owner screenshot review
 remains authoritative.
+
+## R1 editorial revision — isolate research language
+
+| Field | Value |
+| --- | --- |
+| Task | `WEB-P2-MY-CHART-SIGNAL-001-R1` |
+| Baseline | `3ff7c75ca8fa8d97655f3b52821c8d3677e8a4ff` |
+| Scope | Reader-facing hero and WHY copy only |
+| Owner result | `REVISION_REQUIRED` addressed |
+
+The semantic architecture, Signal rules, scenarios, Personal Synthesis path,
+provenance, and unknown-time policy were retained. The primary reading now
+opens with `Your chart in context`, `My Chart`, and `Two patterns worth
+noticing.` for known time. The unknown-time hero stays human while naming the
+time boundary without using research-fixture language.
+
+The WHY section now explains the astrology directly: the body describes the
+life function, the sign adds its style, and the combined text describes how
+that placement may be lived. It retains one concise restraint sentence — one
+thread in the chart, not a complete description — without exposing engine
+terms such as evidence units, rule identity, or semantic basis.
+
+Research authority, development status, Signal IDs, policy references,
+intensity, confidence, and selection metadata remain in the outer DEV banner
+or collapsed `Technical boundary` / `Astrologer's view` sections. The removed
+primary-page Research boundary footer was duplicate governance copy.
+
+R1 targeted result:
+
+```text
+READER_LANGUAGE_ISOLATION PASS
+HUMAN_HERO PASS
+ASTROLOGY_FIRST_WHY PASS
+UNKNOWN_TIME_UX PASS
+TECHNICAL_DISCLOSURE_COLLAPSED PASS
+```
+
+The two browser URLs remain:
+
+```text
+known-time:
+http://127.0.0.1:4322/dev/my-chart-contextual-learn/?scenario=known-time
+
+unknown-time:
+http://127.0.0.1:4322/dev/my-chart-contextual-learn/?scenario=unknown-time
+```
+
+`OWNER_BROWSER_PASS` remains intentionally unclaimed.

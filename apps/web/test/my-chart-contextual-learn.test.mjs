@@ -48,7 +48,7 @@ const readerProjection = (projection) => projection.reading.themes.map((theme) =
   pattern: theme.pattern,
   tension: theme.tension,
   lever: theme.lever,
-  evidence: theme.evidence,
+  evidence: theme.evidence.map((evidence) => evidence.label),
   why: theme.why
 }));
 
@@ -103,12 +103,17 @@ test('surviving Signals remain differentiated, one theme each, without fake conv
 
 test('reader prose remains restrained while the internal Signal bounds survive', () => {
   const projection = project('known-time');
-  const readerText = JSON.stringify(readerProjection(projection));
+  const readerText = JSON.stringify({
+    hook: projection.reading.hook,
+    introduction: projection.reading.introduction,
+    themes: readerProjection(projection)
+  });
 
   assert.doesNotMatch(readerText, /AUTHORITATIVE_ENGINE|INCOMPLETE_RESEARCH|DEVELOPMENT_ONLY/iu);
   assert.doesNotMatch(readerText, /\bLOW\b|\bSUBTLE\b|confidence|dominant|guarantee|certain|diagnos/iu);
   assert.doesNotMatch(readerText, /major life theme|objective truth|fixed personality/iu);
-  assert.match(readerText, /pattern worth noticing/u);
+  assert.doesNotMatch(readerText, /placement-level|research preview|coherent placements|representative signal|evidence unit|semantic basis|rule version|body function|conditions supplied|composition object|semantic engine/iu);
+  assert.match(readerText, /patterns worth noticing/u);
 });
 
 test('WHY preserves body, sign, and integrated composition semantics', () => {
@@ -119,10 +124,37 @@ test('WHY preserves body, sign, and integrated composition semantics', () => {
     assert.ok(evidence);
     assert.ok(theme.why.factors.some((factor) => factor.label === evidence.label.split(' in ')[0]));
     assert.ok(theme.why.factors.some((factor) => factor.label === evidence.label.split(' in ')[1]));
-    assert.match(theme.why.synthesis, /Together, this composition/iu);
-    assert.match(theme.why.synthesis, /may be explored through/iu);
-    assert.match(theme.why.synthesis, /possible trade-off/iu);
+    assert.match(theme.why.summary, /themes take shape through/iu);
+    assert.match(theme.why.summary, /one thread in the chart/iu);
+    assert.match(theme.why.factors.find((factor) => factor.label === evidence.label.split(' in ')[0]).contribution, /describes/iu);
+    assert.match(theme.why.factors.find((factor) => factor.label === evidence.label.split(' in ')[1]).contribution, /adds/iu);
+    assert.match(theme.why.synthesis, /Together, this/iu);
+    assert.doesNotMatch(theme.why.synthesis, /composition keeps the question conditional|semantic basis|evidence unit|rule version/iu);
   }
+});
+
+test('research language stays in the development banner and collapsed technical inspection', () => {
+  const componentSource = readFileSync(
+    new URL('../src/features/my-chart/MyChartContextualLearnStageA.tsx', import.meta.url),
+    'utf8'
+  );
+  const projection = project('known-time');
+  const readerText = JSON.stringify({
+    hook: projection.reading.hook,
+    introduction: projection.reading.introduction,
+    themes: readerProjection(projection)
+  });
+  const technicalText = JSON.stringify({
+    disclosure: projection.developmentDisclosure,
+    technical: projection.technical,
+    themes: projection.reading.themes.map((theme) => theme.technical)
+  });
+
+  assert.doesNotMatch(readerText, /research|development|fixture|authority|policy|rule|signal/iu);
+  assert.match(technicalText, /RESEARCH_REPRESENTATIVE_SIGNAL|INCOMPLETE_RESEARCH|DEVELOPMENT_ONLY/u);
+  assert.match(componentSource, /data-my-chart-technical/u);
+  assert.match(componentSource, /projection\.developmentDisclosure\.evidence/u);
+  assert.doesNotMatch(componentSource, /Research boundary/u);
 });
 
 test('technical provenance is available under collapsed inspection, not in primary order', () => {

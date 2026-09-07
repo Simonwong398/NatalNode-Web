@@ -361,7 +361,7 @@ export default function MyChartContextualLearnStageA({
         </nav>
 
         <header className="my-chart-contextual-learn__hero">
-          <p className="my-chart-contextual-learn__eyebrow">Development personal reading</p>
+          <p className="my-chart-contextual-learn__eyebrow">Your chart in context</p>
           <h1 id="my-chart-contextual-learn-title">My Chart</h1>
           <p className="my-chart-contextual-learn__hero-title">{projection.reading.hook}</p>
           <p className="my-chart-contextual-learn__hero-copy">
@@ -395,13 +395,6 @@ export default function MyChartContextualLearnStageA({
           <TechnicalInspection projection={projection} />
         </section>
 
-        <footer className="my-chart-contextual-learn__footer">
-          <p className="my-chart-contextual-learn__section-kicker">Research boundary</p>
-          <p>
-            {projection.developmentDisclosure.evidence}. This route is isolated
-            from production My Chart, Vault, BFF, Engine, and provider semantics.
-          </p>
-        </footer>
       </article>
     </div>
   );
