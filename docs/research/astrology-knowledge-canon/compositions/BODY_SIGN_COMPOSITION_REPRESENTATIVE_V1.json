@@ -11,12 +11,15 @@
       "EARLY_MODERN",
       "NAMED_MODERN_SCHOOL"
     ],
-    "includedCompositionCount": 4,
+    "includedCompositionCount": 7,
     "includedCompositionIds": [
       "body.moon_x_sign.aries",
       "body.mercury_x_sign.aries",
       "body.moon_x_sign.taurus",
-      "body.mercury_x_sign.taurus"
+      "body.mercury_x_sign.taurus",
+      "body.sun_x_sign.aries",
+      "body.venus_x_sign.taurus",
+      "body.mars_x_sign.aries"
     ],
     "excluded": [
       "full Planet × Sign matrix",
@@ -1072,6 +1075,328 @@
       "policyState": "ADOPTED_WITH_CONDITIONS",
       "runtimeEligibility": "RUNTIME_NOT_ADMITTED",
       "editorialReviewStatus": "EDITORIAL_READY_FOR_OWNER_REVIEW"
+    },
+    {
+      "compositionId": "body.sun_x_sign.aries",
+      "compositionType": "BODY_X_SIGN",
+      "bodyId": "body.sun",
+      "signId": "sign.aries",
+      "bodyFunction": "Sun supplies questions about identity, vitality, agency, central direction, organizing purpose, and self-expression. It is a function to explore, not a complete identity or status claim.",
+      "signContribution": "Aries supplies a Western Tropical sign context concerned with what is initiated, activated, asserted, or brought into motion. It is a structural context, not a person type.",
+      "elementContribution": {
+        "elementId": "element.fire",
+        "role": "Fire supplies a broad field of activation, initiative, visibility, energy, and expression to the Aries structure.",
+        "derivedFromSign": true,
+        "independentEvidence": false
+      },
+      "modalityContribution": {
+        "modalityId": "modality.cardinal",
+        "role": "Cardinal supplies an operating mode of initiation, formation, turning, or movement into a new phase within Aries.",
+        "derivedFromSign": true,
+        "independentEvidence": false
+      },
+      "rulershipContext": {
+        "tradition": "TRADITIONAL_CLASSICAL",
+        "rulerBodyId": "body.mars",
+        "relation": "Aries is assigned Mars as its traditional ruler in the seven-visible-planet baseline.",
+        "structuralUse": "Records a named relation that can qualify study of the sign; it does not replace Aries or import the complete Mars function.",
+        "importsCompleteRulerSemantics": false,
+        "independentEvidence": false,
+        "modernAlternatives": [],
+        "defaultCoRuler": false
+      },
+      "integratedMeaning": "A Sun function may be explored through Aries structure as a question about how central direction, agency, or self-expression meets initiation and activation: an organizing impulse may take a first form without becoming a complete identity claim.",
+      "boundedChartQuestion": "When an authoritative chart fact places the Sun in Aries, what central direction or self-expression is being asked to take an initial form, and what context would show whether initiating or organizing is more relevant?",
+      "constructivePotential": "Notice what helps a central intention move into a first visible expression while keeping the direction revisable and distinct from a verdict about status or character.",
+      "possibleTradeOff": "A wish for coherent direction may meet a context that asks for immediate initiation; the useful tension is how to begin without treating the first move as the whole identity.",
+      "nearbyDistinctions": [
+        {
+          "comparison": "Sun versus Moon",
+          "distinction": "Sun organizes questions about central direction, agency, vitality, and self-expression; Moon organizes questions about response, rhythm, receptivity, and need.",
+          "whyItMatters": "The same Aries structure produces a different question when it qualifies an organizing function than when it qualifies an inner-response function."
+        },
+        {
+          "comparison": "Aries versus Mars",
+          "distinction": "Aries is a sign context for initiation and activation; Mars is the named ruler relation and a separate body function. Aries does not become Mars by rulership.",
+          "whyItMatters": "The sign may frame how a central function begins without importing every Mars association."
+        },
+        {
+          "comparison": "Fire versus Cardinal",
+          "distinction": "Fire names a broad field; Cardinal names an operating mode within that field.",
+          "whyItMatters": "The two layers clarify Aries without creating two extra independent inputs."
+        }
+      ],
+      "modifierRequirements": [
+        {"modifier": "authoritative_body_sign_fact", "status": "REQUIRED", "requirement": "The Sun-in-Aries placement must be returned by an authoritative chart result or explicitly admitted source fact."},
+        {"modifier": "zodiac_model", "status": "REQUIRED", "requirement": "The Western Tropical model must be explicit."},
+        {"modifier": "school_choice", "status": "REQUIRED_FOR_NARROWER_READING", "requirement": "Traditional/classical and modern/psychological language must remain labelled."},
+        {"modifier": "birth_time_authority", "status": "CONDITIONAL", "requirement": "Unknown birth time does not block an authoritative body × sign fact but blocks time-dependent claims."},
+        {"modifier": "house_and_house_system", "status": "OPTIONAL_FOR_PLACEMENT_LEVEL", "requirement": "Required before a house-specific question; never guessed."},
+        {"modifier": "aspects_orb_and_phase", "status": "OPTIONAL_FOR_PLACEMENT_LEVEL", "requirement": "Required if used to reinforce, redirect, or complicate the composition; never inferred."},
+        {"modifier": "degrees_or_decans", "status": "NOT_ADMITTED_UNLESS_SEPARATELY_REVIEWED", "requirement": "No degree-specific language is permitted from this record alone."},
+        {"modifier": "other_chart_factors_and_counterevidence", "status": "REQUIRED_FOR_PERSONAL_NARROWING", "requirement": "The wider chart and lived context may redirect the question."},
+        {"modifier": "temporal_context", "status": "NOT_APPLICABLE_TO_NATAL_PLACEMENT", "requirement": "Do not substitute transit or calendar timing for the natal placement."}
+      ],
+      "forbiddenInferences": ["self-centered", "natural leader", "dominant", "guaranteed success", "aggressive", "complete identity", "Aries equals Mars", "Mars supplies the complete Sun meaning"],
+      "placementEvidence": {
+        "evidenceType": "BODY_SIGN_PLACEMENT",
+        "evidenceId": "placement.body.sun.sign.aries",
+        "bodyId": "body.sun",
+        "signId": "sign.aries",
+        "independentEvidenceUnits": 1,
+        "samePlacementMaySelfConverge": false,
+        "independentConvergenceRequires": "A different authoritative ChartFact, such as a different body-sign placement or a separately authoritative admitted aspect."
+      },
+      "semanticDimensions": {
+        "body": {"id": "body.sun", "semanticDimension": true, "independentEvidence": false},
+        "sign": {"id": "sign.aries", "semanticDimension": true, "independentEvidence": false},
+        "element": {"id": "element.fire", "derivedSignLayer": true, "derivedFrom": "sign.aries", "independentEvidence": false},
+        "modality": {"id": "modality.cardinal", "derivedSignLayer": true, "derivedFrom": "sign.aries", "independentEvidence": false},
+        "rulership": {"id": "rulership.basic", "derivedSignLayer": true, "derivedFrom": "sign.aries", "independentEvidence": false}
+      },
+      "semanticDependencies": {
+        "body": {"id": "body.sun", "role": "body_semantic_dimension_of_placement", "independentEvidence": false},
+        "sign": {"id": "sign.aries", "role": "sign_semantic_dimension_of_placement", "independentEvidence": false},
+        "element": {"id": "element.fire", "derivedFrom": "sign.aries", "independentEvidence": false},
+        "modality": {"id": "modality.cardinal", "derivedFrom": "sign.aries", "independentEvidence": false},
+        "rulership": {"id": "rulership.basic", "derivedFrom": "sign.aries", "independentEvidence": false}
+      },
+      "sourceRefs": [
+        {"refId": "BODY-SUN", "path": "docs/research/astrology-knowledge-canon/primitives/bodies/PERSONAL_BODIES.md", "locator": "BODY-SUN-001", "sourceClass": "ESTABLISHED_REFERENCE", "supports": "Bounded Sun vocabulary for identity, vitality, agency, central direction, and self-expression."},
+        {"refId": "PC-11", "path": "docs/research/astrology-knowledge-canon/primitives/elements/ELEMENTS.md", "locator": "ELEMENT-001 and ELEMENT-002", "sourceClass": "ESTABLISHED_REFERENCE", "supports": "Western Fire grouping and bounded activation/initiative field."},
+        {"refId": "PC-12", "path": "docs/research/astrology-knowledge-canon/primitives/modalities/MODALITIES.md", "locator": "MODE-001 and MODE-002", "sourceClass": "ESTABLISHED_REFERENCE", "supports": "Western Cardinal grouping and bounded initiation/formation mode."},
+        {"refId": "PC-13-PC-14", "path": "docs/research/astrology-knowledge-canon/primitives/rulership/RULERSHIP_POLICY.md", "locator": "RULER-001 and Aries row of Basic sign-to-ruler map", "sourceClass": "ESTABLISHED_REFERENCE", "supports": "Traditional Aries–Mars structural relation and no-import rulership boundary."},
+        {"refId": "PC-19", "path": "docs/content/NATALNODE_ASTROLOGY_KNOWLEDGE_CANON_V1.md", "locator": "sections 2, 15, 16, 19-21, 27, and 29", "sourceClass": "INTERNAL_POLICY", "supports": "Composition order, modifiers, counterevidence, unknown inputs, anti-Barnum language, and provenance."},
+        {"refId": "SUN-TAURUS-CONTROL", "path": "docs/research/astrology-knowledge-canon/sun-taurus/SUN_TAURUS_COMPOSITION.md", "locator": "sections 3-11", "sourceClass": "EDITORIAL_SYNTHESIS", "supports": "Existing bounded Sun vocabulary and comparison-control boundary; this record does not rewrite the Sun × Taurus package."},
+        {"refId": "R2-REVIEW", "path": "docs/research/astrology-knowledge-canon/content/CORE_PRIMITIVE_EN_R2_REVIEW.md", "locator": "R2 learning and anti-stereotype audit notes", "sourceClass": "EDITORIAL_SYNTHESIS", "supports": "Human-readable distinctions and prohibition on a Sun/Aries person profile."}
+      ],
+      "schoolNotes": {
+        "zodiacModel": "WESTERN_TROPICAL",
+        "defaultLens": "MODERN_PSYCHOLOGICAL_WESTERN",
+        "traditionalClassical": "Aries–Mars is retained as a named traditional relation; classical material is comparison or education, not silently merged personal doctrine.",
+        "modernPsychological": "The bounded default uses Sun direction/agency vocabulary and Aries activation/initiation vocabulary as a conditional reflective lens.",
+        "modernAlternatives": "No outer-planet alternative is applicable to Aries in the basic mapping.",
+        "excludedSystems": ["Jyotish/Vedic", "Chinese astrology", "sidereal personal doctrine", "Human Design", "tarot", "numerology"]
+      },
+      "epistemicStatus": "EDITORIAL_SYNTHESIS",
+      "sourceStatus": "SOURCE_SUPPORTED_WITH_CONDITIONS",
+      "policyState": "ADOPTED_WITH_CONDITIONS",
+      "runtimeEligibility": "RUNTIME_NOT_ADMITTED",
+      "editorialReviewStatus": "EDITORIAL_READY_FOR_OWNER_REVIEW"
+    },
+    {
+      "compositionId": "body.venus_x_sign.taurus",
+      "compositionType": "BODY_X_SIGN",
+      "bodyId": "body.venus",
+      "signId": "sign.taurus",
+      "bodyFunction": "Venus supplies questions about relating, attraction, value, preference, pleasure, aesthetic response, harmony, and union. It is a function to explore, not a romance, beauty, or wealth verdict.",
+      "signContribution": "Taurus supplies a Western Tropical sign context concerned with embodiment, continuity, tangible value, maintenance, and what can be developed over time. It is a structural context, not a person type.",
+      "elementContribution": {
+        "elementId": "element.earth",
+        "role": "Earth supplies a broad field of embodiment, materialization, continuity, and valuation to the Taurus structure.",
+        "derivedFromSign": true,
+        "independentEvidence": false
+      },
+      "modalityContribution": {
+        "modalityId": "modality.fixed",
+        "role": "Fixed supplies an operating mode of continuation, consolidation, maintenance, or deepening within Taurus.",
+        "derivedFromSign": true,
+        "independentEvidence": false
+      },
+      "rulershipContext": {
+        "tradition": "TRADITIONAL_CLASSICAL",
+        "rulerBodyId": "body.venus",
+        "relation": "Taurus is assigned Venus as its traditional ruler in the seven-visible-planet baseline.",
+        "structuralUse": "Records a named relation that can qualify study of the sign; it does not collapse the Venus body function into the sign or import a complete ruler doctrine.",
+        "importsCompleteRulerSemantics": false,
+        "independentEvidence": false,
+        "modernAlternatives": [],
+        "defaultCoRuler": false
+      },
+      "integratedMeaning": "A Venus function may be explored through Taurus structure as a question about how relating, preference, attraction, or value meets embodiment and continuity: what is valued may be made tangible and sustained without becoming a fixed preference or relationship verdict.",
+      "boundedChartQuestion": "When an authoritative chart fact places Venus in Taurus, what value or relating process is being asked to become tangible and sustained, and what context would show whether continuity or revision is more relevant?",
+      "constructivePotential": "Notice what helps a preference or relating value become tangible through care and repetition while leaving room for consent, change, and context.",
+      "possibleTradeOff": "A wish for continuity and tangible value may meet the need to revise a preference or agreement; the useful tension is how to sustain what matters without treating continuation as proof.",
+      "nearbyDistinctions": [
+        {
+          "comparison": "Venus versus Moon",
+          "distinction": "Venus organizes questions about value, preference, attraction, and relating; Moon organizes questions about response, rhythm, receptivity, and need.",
+          "whyItMatters": "The same Taurus structure produces a different question when it qualifies valuation and relating than when it qualifies inner response and need."
+        },
+        {
+          "comparison": "Venus body versus Taurus ruler relation",
+          "distinction": "Venus is the body function in this placement; Venus as Taurus ruler is a named structural relation. The relation does not create a second evidence unit or import a complete Venus doctrine.",
+          "whyItMatters": "The body and sign remain distinct semantic dimensions even when the named ruler body and placement body share an identifier."
+        },
+        {
+          "comparison": "Earth versus Fixed",
+          "distinction": "Earth names a broad field; Fixed names an operating mode within that field.",
+          "whyItMatters": "The two layers clarify Taurus without creating two extra independent inputs."
+        }
+      ],
+      "modifierRequirements": [
+        {"modifier": "authoritative_body_sign_fact", "status": "REQUIRED", "requirement": "The Venus-in-Taurus placement must be returned by an authoritative chart result or explicitly admitted source fact."},
+        {"modifier": "zodiac_model", "status": "REQUIRED", "requirement": "The Western Tropical model must be explicit."},
+        {"modifier": "school_choice", "status": "REQUIRED_FOR_NARROWER_READING", "requirement": "Traditional/classical and modern/psychological language must remain labelled."},
+        {"modifier": "birth_time_authority", "status": "CONDITIONAL", "requirement": "Unknown birth time does not block an authoritative body × sign fact but blocks time-dependent claims."},
+        {"modifier": "house_and_house_system", "status": "OPTIONAL_FOR_PLACEMENT_LEVEL", "requirement": "Required before a house-specific question; never guessed."},
+        {"modifier": "aspects_orb_and_phase", "status": "OPTIONAL_FOR_PLACEMENT_LEVEL", "requirement": "Required if used to reinforce, redirect, or complicate the composition; never inferred."},
+        {"modifier": "degrees_or_decans", "status": "NOT_ADMITTED_UNLESS_SEPARATELY_REVIEWED", "requirement": "No degree-specific language is permitted from this record alone."},
+        {"modifier": "other_chart_factors_and_counterevidence", "status": "REQUIRED_FOR_PERSONAL_NARROWING", "requirement": "The wider chart and lived context may redirect the question."},
+        {"modifier": "temporal_context", "status": "NOT_APPLICABLE_TO_NATAL_PLACEMENT", "requirement": "Do not substitute transit or calendar timing for the natal placement."}
+      ],
+      "forbiddenInferences": ["romantic", "beautiful", "wealthy", "possessive", "luxury", "guaranteed relationship", "fixed preference", "Venus equals Taurus", "Taurus guarantees harmony"],
+      "placementEvidence": {
+        "evidenceType": "BODY_SIGN_PLACEMENT",
+        "evidenceId": "placement.body.venus.sign.taurus",
+        "bodyId": "body.venus",
+        "signId": "sign.taurus",
+        "independentEvidenceUnits": 1,
+        "samePlacementMaySelfConverge": false,
+        "independentConvergenceRequires": "A different authoritative ChartFact, such as a different body-sign placement or a separately authoritative admitted aspect."
+      },
+      "semanticDimensions": {
+        "body": {"id": "body.venus", "semanticDimension": true, "independentEvidence": false},
+        "sign": {"id": "sign.taurus", "semanticDimension": true, "independentEvidence": false},
+        "element": {"id": "element.earth", "derivedSignLayer": true, "derivedFrom": "sign.taurus", "independentEvidence": false},
+        "modality": {"id": "modality.fixed", "derivedSignLayer": true, "derivedFrom": "sign.taurus", "independentEvidence": false},
+        "rulership": {"id": "rulership.basic", "derivedSignLayer": true, "derivedFrom": "sign.taurus", "independentEvidence": false}
+      },
+      "semanticDependencies": {
+        "body": {"id": "body.venus", "role": "body_semantic_dimension_of_placement", "independentEvidence": false},
+        "sign": {"id": "sign.taurus", "role": "sign_semantic_dimension_of_placement", "independentEvidence": false},
+        "element": {"id": "element.earth", "derivedFrom": "sign.taurus", "independentEvidence": false},
+        "modality": {"id": "modality.fixed", "derivedFrom": "sign.taurus", "independentEvidence": false},
+        "rulership": {"id": "rulership.basic", "derivedFrom": "sign.taurus", "independentEvidence": false}
+      },
+      "sourceRefs": [
+        {"refId": "BODY-VENUS", "path": "docs/research/astrology-knowledge-canon/primitives/bodies/PERSONAL_BODIES.md", "locator": "BODY-VENUS-001", "sourceClass": "ESTABLISHED_REFERENCE", "supports": "Bounded Venus vocabulary for relating, attraction, value, preference, pleasure, harmony, and union."},
+        {"refId": "PC-11", "path": "docs/research/astrology-knowledge-canon/primitives/elements/ELEMENTS.md", "locator": "ELEMENT-001, ELEMENT-003, and Taurus membership row", "sourceClass": "ESTABLISHED_REFERENCE", "supports": "Western Earth grouping and bounded embodiment, continuity, materialization, and valuation field."},
+        {"refId": "PC-12", "path": "docs/research/astrology-knowledge-canon/primitives/modalities/MODALITIES.md", "locator": "MODE-001, MODE-003, and Taurus membership row", "sourceClass": "ESTABLISHED_REFERENCE", "supports": "Western Fixed grouping and bounded continuation/consolidation mode."},
+        {"refId": "PC-13-PC-14", "path": "docs/research/astrology-knowledge-canon/primitives/rulership/RULERSHIP_POLICY.md", "locator": "RULER-001 and Taurus row of Basic sign-to-ruler map", "sourceClass": "ESTABLISHED_REFERENCE", "supports": "Traditional Taurus–Venus structural relation and no-import rulership boundary."},
+        {"refId": "PC-19", "path": "docs/content/NATALNODE_ASTROLOGY_KNOWLEDGE_CANON_V1.md", "locator": "sections 2, 15, 16, 19-21, 27, and 29", "sourceClass": "INTERNAL_POLICY", "supports": "Composition order, modifiers, counterevidence, unknown inputs, anti-Barnum language, and provenance."},
+        {"refId": "R2-REVIEW", "path": "docs/research/astrology-knowledge-canon/content/CORE_PRIMITIVE_EN_R2_REVIEW.md", "locator": "R2 learning and Venus/Taurus audit notes", "sourceClass": "EDITORIAL_SYNTHESIS", "supports": "Human-readable distinctions and prohibition on a Venus/Taurus person profile."}
+      ],
+      "schoolNotes": {
+        "zodiacModel": "WESTERN_TROPICAL",
+        "defaultLens": "MODERN_PSYCHOLOGICAL_WESTERN",
+        "traditionalClassical": "Taurus–Venus is retained as a named traditional relation; classical material is comparison or education, not silently merged personal doctrine.",
+        "modernPsychological": "The bounded default uses Venus value/relating vocabulary and Taurus embodiment/continuity vocabulary as a conditional reflective lens.",
+        "modernAlternatives": "No outer-planet alternative is applicable to Taurus in the basic mapping.",
+        "excludedSystems": ["Jyotish/Vedic", "Chinese astrology", "sidereal personal doctrine", "Human Design", "tarot", "numerology"]
+      },
+      "epistemicStatus": "EDITORIAL_SYNTHESIS",
+      "sourceStatus": "SOURCE_SUPPORTED_WITH_CONDITIONS",
+      "policyState": "ADOPTED_WITH_CONDITIONS",
+      "runtimeEligibility": "RUNTIME_NOT_ADMITTED",
+      "editorialReviewStatus": "EDITORIAL_READY_FOR_OWNER_REVIEW"
+    },
+    {
+      "compositionId": "body.mars_x_sign.aries",
+      "compositionType": "BODY_X_SIGN",
+      "bodyId": "body.mars",
+      "signId": "sign.aries",
+      "bodyFunction": "Mars supplies questions about action, assertion, separation, conflict, drive, effort, heat, courage, and competition. It is a function to explore, not an anger, danger, or moral-character verdict.",
+      "signContribution": "Aries supplies a Western Tropical sign context concerned with what is initiated, activated, asserted, or brought into motion. It is a structural context, not a person type.",
+      "elementContribution": {
+        "elementId": "element.fire",
+        "role": "Fire supplies a broad field of activation, initiative, visibility, energy, and expression to the Aries structure.",
+        "derivedFromSign": true,
+        "independentEvidence": false
+      },
+      "modalityContribution": {
+        "modalityId": "modality.cardinal",
+        "role": "Cardinal supplies an operating mode of initiation, formation, turning, or movement into a new phase within Aries.",
+        "derivedFromSign": true,
+        "independentEvidence": false
+      },
+      "rulershipContext": {
+        "tradition": "TRADITIONAL_CLASSICAL",
+        "rulerBodyId": "body.mars",
+        "relation": "Aries is assigned Mars as its traditional ruler in the seven-visible-planet baseline.",
+        "structuralUse": "Records a named relation that can qualify study of the sign; it does not replace Aries or import the complete Mars function.",
+        "importsCompleteRulerSemantics": false,
+        "independentEvidence": false,
+        "modernAlternatives": [],
+        "defaultCoRuler": false
+      },
+      "integratedMeaning": "A Mars function may be explored through Aries structure as a question about how action, assertion, effort, or separation meets initiation and activation: momentum may be directed into a first move without turning it into a fixed behavioral verdict.",
+      "boundedChartQuestion": "When an authoritative chart fact places Mars in Aries, what action or effort is being asked to begin, and what context would show whether direct initiation or deliberate adjustment is more relevant?",
+      "constructivePotential": "Notice what helps effort become a deliberate first move with a clear boundary, while leaving room to adjust direction and account for other people and conditions.",
+      "possibleTradeOff": "A drive to act may meet a context that rewards immediate initiation; the useful tension is how to begin decisively without treating momentum as the whole strategy.",
+      "nearbyDistinctions": [
+        {
+          "comparison": "Mars versus Sun",
+          "distinction": "Mars organizes questions about action, effort, assertion, and separation; Sun organizes questions about central direction, agency, vitality, and self-expression.",
+          "whyItMatters": "The same Aries structure produces a different question when it qualifies directed effort than when it qualifies an organizing function."
+        },
+        {
+          "comparison": "Mars body versus Aries ruler relation",
+          "distinction": "Mars is the body function in this placement; Mars as Aries ruler is a named structural relation. The relation does not create a second evidence unit or import a complete Mars doctrine.",
+          "whyItMatters": "The body and sign remain distinct semantic dimensions even when the named ruler body and placement body share an identifier."
+        },
+        {
+          "comparison": "Fire versus Cardinal",
+          "distinction": "Fire names a broad field; Cardinal names an operating mode within that field.",
+          "whyItMatters": "The two layers clarify Aries without creating two extra independent inputs."
+        }
+      ],
+      "modifierRequirements": [
+        {"modifier": "authoritative_body_sign_fact", "status": "REQUIRED", "requirement": "The Mars-in-Aries placement must be returned by an authoritative chart result or explicitly admitted source fact."},
+        {"modifier": "zodiac_model", "status": "REQUIRED", "requirement": "The Western Tropical model must be explicit."},
+        {"modifier": "school_choice", "status": "REQUIRED_FOR_NARROWER_READING", "requirement": "Traditional/classical and modern/psychological language must remain labelled."},
+        {"modifier": "birth_time_authority", "status": "CONDITIONAL", "requirement": "Unknown birth time does not block an authoritative body × sign fact but blocks time-dependent claims."},
+        {"modifier": "house_and_house_system", "status": "OPTIONAL_FOR_PLACEMENT_LEVEL", "requirement": "Required before a house-specific question; never guessed."},
+        {"modifier": "aspects_orb_and_phase", "status": "OPTIONAL_FOR_PLACEMENT_LEVEL", "requirement": "Required if used to reinforce, redirect, or complicate the composition; never inferred."},
+        {"modifier": "degrees_or_decans", "status": "NOT_ADMITTED_UNLESS_SEPARATELY_REVIEWED", "requirement": "No degree-specific language is permitted from this record alone."},
+        {"modifier": "other_chart_factors_and_counterevidence", "status": "REQUIRED_FOR_PERSONAL_NARROWING", "requirement": "The wider chart and lived context may redirect the question."},
+        {"modifier": "temporal_context", "status": "NOT_APPLICABLE_TO_NATAL_PLACEMENT", "requirement": "Do not substitute transit or calendar timing for the natal placement."}
+      ],
+      "forbiddenInferences": ["angry", "violent", "dangerous", "aggressive", "warrior", "guaranteed success", "complete behavioral outcome", "Mars equals Aries", "Aries supplies the complete Mars meaning"],
+      "placementEvidence": {
+        "evidenceType": "BODY_SIGN_PLACEMENT",
+        "evidenceId": "placement.body.mars.sign.aries",
+        "bodyId": "body.mars",
+        "signId": "sign.aries",
+        "independentEvidenceUnits": 1,
+        "samePlacementMaySelfConverge": false,
+        "independentConvergenceRequires": "A different authoritative ChartFact, such as a different body-sign placement or a separately authoritative admitted aspect."
+      },
+      "semanticDimensions": {
+        "body": {"id": "body.mars", "semanticDimension": true, "independentEvidence": false},
+        "sign": {"id": "sign.aries", "semanticDimension": true, "independentEvidence": false},
+        "element": {"id": "element.fire", "derivedSignLayer": true, "derivedFrom": "sign.aries", "independentEvidence": false},
+        "modality": {"id": "modality.cardinal", "derivedSignLayer": true, "derivedFrom": "sign.aries", "independentEvidence": false},
+        "rulership": {"id": "rulership.basic", "derivedSignLayer": true, "derivedFrom": "sign.aries", "independentEvidence": false}
+      },
+      "semanticDependencies": {
+        "body": {"id": "body.mars", "role": "body_semantic_dimension_of_placement", "independentEvidence": false},
+        "sign": {"id": "sign.aries", "role": "sign_semantic_dimension_of_placement", "independentEvidence": false},
+        "element": {"id": "element.fire", "derivedFrom": "sign.aries", "independentEvidence": false},
+        "modality": {"id": "modality.cardinal", "derivedFrom": "sign.aries", "independentEvidence": false},
+        "rulership": {"id": "rulership.basic", "derivedFrom": "sign.aries", "independentEvidence": false}
+      },
+      "sourceRefs": [
+        {"refId": "BODY-MARS", "path": "docs/research/astrology-knowledge-canon/primitives/bodies/PERSONAL_BODIES.md", "locator": "BODY-MARS-001", "sourceClass": "ESTABLISHED_REFERENCE", "supports": "Bounded Mars vocabulary for action, assertion, effort, separation, drive, courage, and competition."},
+        {"refId": "PC-11", "path": "docs/research/astrology-knowledge-canon/primitives/elements/ELEMENTS.md", "locator": "ELEMENT-001 and ELEMENT-002", "sourceClass": "ESTABLISHED_REFERENCE", "supports": "Western Fire grouping and bounded activation/initiative field."},
+        {"refId": "PC-12", "path": "docs/research/astrology-knowledge-canon/primitives/modalities/MODALITIES.md", "locator": "MODE-001 and MODE-002", "sourceClass": "ESTABLISHED_REFERENCE", "supports": "Western Cardinal grouping and bounded initiation/formation mode."},
+        {"refId": "PC-13-PC-14", "path": "docs/research/astrology-knowledge-canon/primitives/rulership/RULERSHIP_POLICY.md", "locator": "RULER-001 and Aries row of Basic sign-to-ruler map", "sourceClass": "ESTABLISHED_REFERENCE", "supports": "Traditional Aries–Mars structural relation and no-import rulership boundary."},
+        {"refId": "PC-19", "path": "docs/content/NATALNODE_ASTROLOGY_KNOWLEDGE_CANON_V1.md", "locator": "sections 2, 15, 16, 19-21, 27, and 29", "sourceClass": "INTERNAL_POLICY", "supports": "Composition order, modifiers, counterevidence, unknown inputs, anti-Barnum language, and provenance."},
+        {"refId": "R2-REVIEW", "path": "docs/research/astrology-knowledge-canon/content/CORE_PRIMITIVE_EN_R2_REVIEW.md", "locator": "R2 learning and Mars/Aries audit notes", "sourceClass": "EDITORIAL_SYNTHESIS", "supports": "Human-readable distinctions and prohibition on a Mars/Aries person profile."}
+      ],
+      "schoolNotes": {
+        "zodiacModel": "WESTERN_TROPICAL",
+        "defaultLens": "MODERN_PSYCHOLOGICAL_WESTERN",
+        "traditionalClassical": "Aries–Mars is retained as a named traditional relation; classical material is comparison or education, not silently merged personal doctrine.",
+        "modernPsychological": "The bounded default uses Mars action/effort vocabulary and Aries activation/initiation vocabulary as a conditional reflective lens.",
+        "modernAlternatives": "No outer-planet alternative is applicable to Aries in the basic mapping.",
+        "excludedSystems": ["Jyotish/Vedic", "Chinese astrology", "sidereal personal doctrine", "Human Design", "tarot", "numerology"]
+      },
+      "epistemicStatus": "EDITORIAL_SYNTHESIS",
+      "sourceStatus": "SOURCE_SUPPORTED_WITH_CONDITIONS",
+      "policyState": "ADOPTED_WITH_CONDITIONS",
+      "runtimeEligibility": "RUNTIME_NOT_ADMITTED",
+      "editorialReviewStatus": "EDITORIAL_READY_FOR_OWNER_REVIEW"
     }
   ],
   "comparisonControl": {
@@ -1132,6 +1457,78 @@
       "sharedStructure": "sign.taurus / Earth / Fixed / traditional Venus relation",
       "meaningfulDifference": "Moon asks what helps a recurring response or need take tangible form; Mercury asks how meaning, comparison, or interpretation takes a sustained tangible form.",
       "notCosmetic": "The same Taurus structure qualifies different body functions and therefore different chart questions."
+    },
+    {
+      "comparisonId": "sun-aries-vs-moon-aries",
+      "left": "body.sun_x_sign.aries",
+      "right": "body.moon_x_sign.aries",
+      "sharedStructure": "sign.aries / Fire / Cardinal / traditional Mars relation",
+      "meaningfulDifference": "Sun asks how central direction and self-expression enter initiation; Moon asks how response, receptivity, rhythm, and need meet initiation.",
+      "notCosmetic": "The body function changes the subject of the chart question from organizing direction to recurring response."
+    },
+    {
+      "comparisonId": "sun-aries-vs-mercury-aries",
+      "left": "body.sun_x_sign.aries",
+      "right": "body.mercury_x_sign.aries",
+      "sharedStructure": "sign.aries / Fire / Cardinal / traditional Mars relation",
+      "meaningfulDifference": "Sun asks how central direction takes a first form; Mercury asks how information, naming, and interpretation enter a first move.",
+      "notCosmetic": "The integrated subject changes from agency and expression to information handling."
+    },
+    {
+      "comparisonId": "sun-aries-vs-venus-taurus",
+      "left": "body.sun_x_sign.aries",
+      "right": "body.venus_x_sign.taurus",
+      "sharedStructure": "none beyond the general body × sign method",
+      "meaningfulDifference": "Sun × Aries concerns central direction meeting initiation; Venus × Taurus concerns value and relating becoming tangible and sustained.",
+      "notCosmetic": "Both body function and sign conditions change the life-question domain and operating context."
+    },
+    {
+      "comparisonId": "sun-aries-vs-mars-aries",
+      "left": "body.sun_x_sign.aries",
+      "right": "body.mars_x_sign.aries",
+      "sharedStructure": "sign.aries / Fire / Cardinal / traditional Mars relation",
+      "meaningfulDifference": "Sun asks how an organizing direction becomes visible; Mars asks how directed effort and assertion begin.",
+      "notCosmetic": "The same sign context qualifies different body functions and does not reduce agency to action."
+    },
+    {
+      "comparisonId": "venus-taurus-vs-moon-taurus",
+      "left": "body.venus_x_sign.taurus",
+      "right": "body.moon_x_sign.taurus",
+      "sharedStructure": "sign.taurus / Earth / Fixed / traditional Venus relation",
+      "meaningfulDifference": "Venus asks how value and relating become tangible; Moon asks how response and need become embodied and sustained.",
+      "notCosmetic": "The body subject changes from valuation/relating to response/need while Taurus conditions remain visible."
+    },
+    {
+      "comparisonId": "venus-taurus-vs-mercury-taurus",
+      "left": "body.venus_x_sign.taurus",
+      "right": "body.mercury_x_sign.taurus",
+      "sharedStructure": "sign.taurus / Earth / Fixed / traditional Venus relation",
+      "meaningfulDifference": "Venus asks how preferences and agreements become tangible; Mercury asks how meaning and comparison become a sustained process.",
+      "notCosmetic": "The same Taurus structure qualifies relating/value differently from information/interpretation."
+    },
+    {
+      "comparisonId": "venus-taurus-vs-mars-aries",
+      "left": "body.venus_x_sign.taurus",
+      "right": "body.mars_x_sign.aries",
+      "sharedStructure": "none beyond the general body × sign method",
+      "meaningfulDifference": "Venus × Taurus concerns sustaining value and relating; Mars × Aries concerns initiating action and effort.",
+      "notCosmetic": "The integrated subject, operating mode, and candidate life question all differ."
+    },
+    {
+      "comparisonId": "mars-aries-vs-moon-aries",
+      "left": "body.mars_x_sign.aries",
+      "right": "body.moon_x_sign.aries",
+      "sharedStructure": "sign.aries / Fire / Cardinal / traditional Mars relation",
+      "meaningfulDifference": "Mars asks how effort and assertion begin; Moon asks how response and need meet beginning.",
+      "notCosmetic": "Action and inner response remain distinct semantic subjects under the same sign conditions."
+    },
+    {
+      "comparisonId": "mars-aries-vs-mercury-aries",
+      "left": "body.mars_x_sign.aries",
+      "right": "body.mercury_x_sign.aries",
+      "sharedStructure": "sign.aries / Fire / Cardinal / traditional Mars relation",
+      "meaningfulDifference": "Mars asks how directed effort begins; Mercury asks how information and interpretation enter a first move.",
+      "notCosmetic": "The body function changes the relevant action/decision question versus information question."
     }
   ],
   "personalSynthesisCompatibility": {

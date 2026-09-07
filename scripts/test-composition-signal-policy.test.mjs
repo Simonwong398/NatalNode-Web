@@ -19,6 +19,9 @@ const expectedCompositionIds = [
   'body.mercury_x_sign.aries',
   'body.moon_x_sign.taurus',
   'body.mercury_x_sign.taurus',
+  'body.sun_x_sign.aries',
+  'body.venus_x_sign.taurus',
+  'body.mars_x_sign.aries',
 ];
 
 const requiredRuleFields = [
@@ -52,11 +55,11 @@ const ruleByCompositionId = (compositionId) => {
   return rule;
 };
 
-test('the representative artifact contains exactly the four admitted rules', () => {
+test('the representative artifact contains exactly the seven admitted rules', () => {
   assert.deepEqual(signal.scope.includedCompositionIds, expectedCompositionIds);
   assert.deepEqual(signal.rules.map((rule) => rule.compositionId), expectedCompositionIds);
-  assert.equal(signal.rules.length, 4);
-  assert.equal(signal.scope.includedRuleCount, 4);
+  assert.equal(signal.rules.length, 7);
+  assert.equal(signal.scope.includedRuleCount, 7);
   assert.deepEqual(composition.compositions.map((item) => item.compositionId), expectedCompositionIds);
 });
 
@@ -211,6 +214,29 @@ test('domain comes from integrated composition semantics, never body-only owners
   assert.equal(signal.domainPolicy.bodyOnlyMappingFallback, 'NO_SIGNAL');
 });
 
+test('targeted Sun, Venus, and Mars rules derive distinct domains from integrated semantics', () => {
+  const expected = new Map([
+    ['body.sun_x_sign.aries', ['SELF', 'body.sun', 'sign.aries']],
+    ['body.venus_x_sign.taurus', ['RELATIONSHIP', 'body.venus', 'sign.taurus']],
+    ['body.mars_x_sign.aries', ['ACTION_DECISION', 'body.mars', 'sign.aries']]
+  ]);
+
+  for (const [compositionId, [domain, bodyId, signId]] of expected) {
+    const rule = ruleByCompositionId(compositionId);
+    assert.equal(rule.eligibleDomain, domain, compositionId);
+    assert.equal(rule.semanticBasis.bodyId, bodyId, compositionId);
+    assert.equal(rule.semanticBasis.signId, signId, compositionId);
+    assert.equal(rule.placementEvidence.independentEvidenceUnits, 1, compositionId);
+    assert.equal(rule.direction, 'NEUTRAL', compositionId);
+    assert.equal(rule.candidateIntensity, 'SUBTLE', compositionId);
+    assert.equal(rule.candidateConfidence, 'LOW', compositionId);
+    assert.match(rule.domainRationale, /integrated composition/i, compositionId);
+    assert.match(rule.domainRationale, /specific life-question/i, compositionId);
+  }
+
+  assert.equal(new Set([...expected.values()].map(([domain]) => domain)).size, 3);
+});
+
 test('domains, directions, intensity, and confidence stay within existing vocabularies', () => {
   assert.deepEqual(signal.signalTaxonomy.domains, [
     'SELF',
@@ -230,8 +256,8 @@ test('domains, directions, intensity, and confidence stay within existing vocabu
   assert.equal(signal.intensityPolicy.singlePlacementMaximum, 'SUBTLE');
   assert.match(signal.intensityPolicy.noticeableRequires, /explicitly admitted promotion/i);
   assert.equal(signal.intensityPolicy.noticeablePromotionAdmittedForTheseRules, false);
-  assert.match(signal.intensityPolicy.strongRequires, /none of these four rules may emit STRONG/i);
-  assert.match(signal.intensityPolicy.dominantRequires, /none of these four rules may emit DOMINANT/i);
+  assert.match(signal.intensityPolicy.strongRequires, /none of these seven rules may emit STRONG/i);
+  assert.match(signal.intensityPolicy.dominantRequires, /none of these seven rules may emit DOMINANT/i);
   assert.equal(signal.confidencePolicy.singlePlacementCandidateValue, 'LOW');
   assert.equal(signal.confidencePolicy.factAuthorityEqualsInterpretiveConfidence, false);
   assert.equal(signal.confidencePolicy.isProbability, false);
@@ -286,6 +312,9 @@ test('anti-stereotype boundaries and WHY / LEARN traceability are explicit', () 
     'body.mercury_x_sign.aries': ['blunt', 'fast speaker', 'argumentative', 'genius', 'poor listener'],
     'body.moon_x_sign.taurus': ['stubborn', 'possessive', 'comfort-loving', 'sensual', 'financially security-oriented'],
     'body.mercury_x_sign.taurus': ['slow thinker', 'practical thinker', 'good with money', 'methodical communicator'],
+    'body.sun_x_sign.aries': ['self-centered', 'natural leader', 'dominant', 'guaranteed success', 'aggressive'],
+    'body.venus_x_sign.taurus': ['romantic', 'beautiful', 'wealthy', 'possessive', 'luxury', 'guaranteed relationship'],
+    'body.mars_x_sign.aries': ['angry', 'violent', 'dangerous', 'aggressive', 'warrior', 'guaranteed success'],
   };
 
   for (const rule of signal.rules) {
@@ -335,6 +364,9 @@ test('Personal Synthesis compatibility is explicit without runtime admission', (
     'composition-signal.body.mercury_x_sign.aries',
     'composition-signal.body.moon_x_sign.taurus',
     'composition-signal.body.mercury_x_sign.taurus',
+    'composition-signal.body.sun_x_sign.aries',
+    'composition-signal.body.venus_x_sign.taurus',
+    'composition-signal.body.mars_x_sign.aries',
   ];
   for (const sourceFile of sourceFiles) {
     const source = readText(sourceFile);
@@ -368,5 +400,8 @@ test('the structured policy remains deterministic and all source references reso
     'composition-signal.body.mercury_x_sign.aries',
     'composition-signal.body.moon_x_sign.taurus',
     'composition-signal.body.mercury_x_sign.taurus',
+    'composition-signal.body.sun_x_sign.aries',
+    'composition-signal.body.venus_x_sign.taurus',
+    'composition-signal.body.mars_x_sign.aries',
   ]);
 });

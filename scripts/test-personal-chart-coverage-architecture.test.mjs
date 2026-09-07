@@ -49,7 +49,7 @@ const requiredFields = [
 test('the coverage matrix is valid JSON with the required audit shape', () => {
   assert.equal(matrix.status, 'ARCHITECTURE_FROZEN_WITH_CONDITIONS');
   assert.equal(matrix.scope.runtimeEligibility, 'RUNTIME_NOT_ADMITTED');
-  assert.equal(matrix.capabilities.length >= 25, true);
+  assert.equal(matrix.capabilities.length, 35);
   assert.deepEqual(matrix.readinessDimensionOrder, [
     'SOURCE_READINESS',
     'SEMANTIC_METHOD_READINESS',
@@ -130,6 +130,30 @@ test('representative proof is distinct from mature target and production authori
   assert.equal(futureHouse.policyAdmission.status, 'FUTURE_SCOPE');
   assert.equal(futureHouse.readiness.semanticMethod, 'FUTURE_SCOPE');
   assert.equal(futureHouse.readiness.signalPolicy, 'FUTURE_SCOPE');
+});
+
+test('targeted Sun, Venus, and Mars Body × Sign expansion is bounded to composition and Signal POC', () => {
+  for (const [body, compositionId] of [
+    ['sun', 'composition.sun-aries'],
+    ['venus', 'composition.venus-taurus'],
+    ['mars', 'composition.mars-aries']
+  ]) {
+    const placement = capabilityById(`placement.${body}`);
+    assert.equal(placement.policyAdmission.status, 'BOUNDED_POC_ONLY');
+    assert.equal(placement.implementationState.status, 'BOUNDED_RESEARCH_POC');
+    assert.equal(placement.readiness.semanticMethod, 'BOUNDED_POC_READY');
+    assert.equal(placement.readiness.signalPolicy, 'BOUNDED_POC_READY');
+    assert.equal(placement.readiness.synthesis, 'NOT_READY');
+    assert.notEqual(placement.readiness.productionFactAuthority, 'BOUNDED_POC_READY');
+
+    const composition = capabilityById(compositionId);
+    assert.equal(composition.policyAdmission.status, 'BOUNDED_POC_ONLY');
+    assert.equal(composition.implementationState.status, 'BOUNDED_RESEARCH_POC');
+    assert.equal(composition.readiness.semanticMethod, 'BOUNDED_POC_READY');
+    assert.equal(composition.readiness.signalPolicy, 'BOUNDED_POC_READY');
+    assert.equal(composition.readiness.synthesis, 'NOT_READY');
+    assert.equal(composition.productionAuthorityState.status, 'NOT_AVAILABLE_PROVIDER_DEFERRED');
+  }
 });
 
 test('selection budget, hierarchy, and anti-card-explosion policies are explicit', () => {

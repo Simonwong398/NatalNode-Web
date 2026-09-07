@@ -5,7 +5,7 @@
 | Task | `WEB-P2-COMPOSITION-001` |
 | Baseline | `18e639e8118559c9efeca8716fa564e65672ae71` |
 | Review result | `REPRESENTATIVE_COMPOSITION_METHOD_PASS` |
-| Scope | Exactly four new Western Tropical body × sign research compositions |
+| Scope | Seven targeted Western Tropical body × sign research compositions |
 | Source state | `SOURCE_SUPPORTED_WITH_CONDITIONS` |
 | Epistemic state | `EDITORIAL_SYNTHESIS` |
 | Policy state | `ADOPTED_WITH_CONDITIONS` |
@@ -28,9 +28,9 @@ runtime admission.
 | `docs/architecture/NATALNODE_INTERPRETATION_SYSTEM_V1.md` | FACT → SIGNAL → INTERPRETATION → PRESENTATION remains the authority chain; no provider, Engine, UI, or runtime import is introduced. |
 | `docs/product/NATALNODE_CONTENT_VALUE_ARCHITECTURE_V1.md` | Any later projection must preserve personal meaning, explanation, Learn context, omission over filler, and unknown-time fail-closed behavior. |
 | `docs/content/NATALNODE_ASTROLOGY_KNOWLEDGE_CANON_V1.md` | Body and sign answer different questions; composition is ordered and source/policy/modifier aware; it cannot be a keyword concatenation. |
-| Primitive source register and policy files | Moon, Mercury, Aries, Taurus, Fire, Earth, Cardinal, Fixed, and basic rulership are bounded structural inputs with conditions, not person labels. |
+| Primitive source register and policy files | Sun, Moon, Mercury, Venus, Mars, Aries, Taurus, Fire, Earth, Cardinal, Fixed, and basic rulership are bounded structural inputs with conditions, not person labels. |
 | Human Knowledge R2 review | Use WHAT/WHY/NEARBY DISTINCTION/EXAMPLE/WHY IT MATTERS/LIMIT/NEXT LEARN if later projected to readers; keep body, sign, element, mode, and ruler distinct. |
-| Existing Sun × Taurus package | Remains the comparison control and is not rewritten or copied into the four-record inventory. |
+| Existing Sun × Taurus package | Remains the comparison control and is not rewritten or copied into the seven-record inventory. |
 | Personal Synthesis POC | Future Signals need independent evidence keys, closed domains/directions, provenance, birth-time eligibility, limitations, and WHY/LEARN traces. |
 
 ## 2. Frozen method
@@ -379,6 +379,103 @@ developed and revisited.
 `SUN-TAURUS-CONTROL`, and `R2-REVIEW`. The composed sentence is
 `EDITORIAL_SYNTHESIS`; no source is claimed to quote the sentence.
 
+### 3.5 Sun × Aries
+
+**Composition ID:** `body.sun_x_sign.aries`
+
+**BODY INPUT**
+
+Sun supplies questions about identity, vitality, agency, central direction,
+organizing purpose, and self-expression. This is a symbolic function, not a
+complete identity, status, or leadership result.
+
+**INTEGRATED COMPOSITION**
+
+Sun direction and self-expression meet Aries initiation, activation, and
+assertion. The bounded question is how an organizing impulse enters a first
+visible form without becoming the whole identity. Fire and Cardinal remain
+derived Aries layers; traditional Mars remains a named relation and does not
+replace the Sun function.
+
+**FORBIDDEN INFERENCES**
+
+This does not entail a self-centered person, natural leader, dominance,
+guaranteed success, aggression, or a complete identity outcome.
+
+**MODIFIERS AND SOURCE TRACE**
+
+The authoritative placement, Western Tropical model, school choice, wider
+chart, counterevidence, and lived context remain required or conditional before
+narrower use. Unknown birth time leaves the placement available but blocks ASC,
+MC, houses, and other time-dependent claims. Sources are `BODY-SUN-001`,
+`ELEMENT-001`, `MODE-001`, `RULER-001`, `PC-19`, `SUN-TAURUS-CONTROL`, and
+`R2-REVIEW`; the composed sentence is `EDITORIAL_SYNTHESIS`.
+
+### 3.6 Venus × Taurus
+
+**Composition ID:** `body.venus_x_sign.taurus`
+
+**BODY INPUT**
+
+Venus supplies questions about relating, attraction, value, preference,
+pleasure, aesthetic response, harmony, and union. This is a symbolic function,
+not a romance, beauty, wealth, or relationship-certainty result.
+
+**INTEGRATED COMPOSITION**
+
+Venus value and relating meet Taurus embodiment, continuity, maintenance, and
+tangible value. The bounded question is how a preference or agreement becomes
+tangible while remaining open to consent and revision. Earth and Fixed remain
+derived Taurus layers. Venus as the named Taurus ruler is a structural relation;
+it does not create a second evidence unit even though the placement body and
+ruler body share an identifier.
+
+**FORBIDDEN INFERENCES**
+
+This does not entail romance, beauty, wealth, possessiveness, luxury, a fixed
+preference, or a guaranteed relationship.
+
+**MODIFIERS AND SOURCE TRACE**
+
+The authoritative placement, Western Tropical model, school choice, wider
+chart, counterevidence, and lived context remain required or conditional before
+narrower use. Unknown birth time leaves the placement available but blocks ASC,
+MC, houses, and other time-dependent claims. Sources are `BODY-VENUS-001`,
+`ELEMENT-001`, `MODE-001`, `RULER-001`, `PC-19`, and `R2-REVIEW`; the composed
+sentence is `EDITORIAL_SYNTHESIS`.
+
+### 3.7 Mars × Aries
+
+**Composition ID:** `body.mars_x_sign.aries`
+
+**BODY INPUT**
+
+Mars supplies questions about action, assertion, separation, conflict, drive,
+effort, heat, courage, and competition. This is a symbolic function, not an
+anger, danger, or moral-character result.
+
+**INTEGRATED COMPOSITION**
+
+Mars action and effort meet Aries initiation, activation, and assertion. The
+bounded question is how directed effort begins with a clear boundary without
+turning momentum into a fixed behavior verdict. Fire and Cardinal remain
+derived Aries layers. Mars as the named Aries ruler is a structural relation;
+it does not create a second evidence unit or import a complete Mars doctrine.
+
+**FORBIDDEN INFERENCES**
+
+This does not entail anger, violence, danger, warrior identity, aggression, or
+guaranteed success.
+
+**MODIFIERS AND SOURCE TRACE**
+
+The authoritative placement, Western Tropical model, school choice, wider
+chart, counterevidence, and lived context remain required or conditional before
+narrower use. Unknown birth time leaves the placement available but blocks ASC,
+MC, houses, and other time-dependent claims. Sources are `BODY-MARS-001`,
+`ELEMENT-001`, `MODE-001`, `RULER-001`, `PC-19`, and `R2-REVIEW`; the composed
+sentence is `EDITORIAL_SYNTHESIS`.
+
 ## 4. Cross-matrix differentiation
 
 | Pair | Required distinction |
@@ -389,6 +486,14 @@ developed and revisited.
 | Mercury × Aries / Moon × Taurus | Both body and sign change; first-form information work is not embodied response/need. |
 | Mercury × Aries / Mercury × Taurus | Same Mercury function, different sign condition: entering a first move versus developing a tangible, sustained process. |
 | Moon × Taurus / Mercury × Taurus | Same Taurus structure, different body subject: recurring response/need versus information, comparison, and interpretation. |
+| Sun × Aries / Moon × Aries | Same Aries structure, different body subject: central direction/self-expression versus response/need. |
+| Sun × Aries / Mercury × Aries | Same Aries structure, different body subject: organizing direction versus information handling. |
+| Sun × Aries / Mars × Aries | Same Aries structure, different body subject: agency/self-expression versus directed effort/action. |
+| Venus × Taurus / Moon × Taurus | Same Taurus structure, different body subject: value/relating versus response/need. |
+| Venus × Taurus / Mercury × Taurus | Same Taurus structure, different body subject: value/relating versus information/interpretation. |
+| Venus × Taurus / Mars × Aries | Body and sign conditions both differ: sustaining value/relating versus initiating action/effort. |
+| Mars × Aries / Moon × Aries | Same Aries structure, different body subject: directed effort versus inner response/need. |
+| Mars × Aries / Mercury × Aries | Same Aries structure, different body subject: action/effort versus information/interpretation. |
 
 The matrix is semantic, not cosmetic. Every pair changes either the body
 question, the sign operating condition, or both.
@@ -445,7 +550,7 @@ the narrower interpretation; it never creates a fake default.
 
 ## 7. Personal Synthesis compatibility
 
-The four records are not final PersonalThemes, production priorities, or
+The seven records are not final PersonalThemes, production priorities, or
 runtime signals. A future bounded Signal rule may refer to one only after it
 adds an authoritative placement-evidence reference, rule identity/version,
 closed domain and direction, birth-time requirement, limitations and
@@ -464,7 +569,7 @@ bounded inputs. The canon and R2 review provide the source/policy, school,
 anti-stereotype, Human Knowledge rhythm, and runtime boundaries. The Sun ×
 Taurus package provides a control comparison only.
 
-The four composed meanings are editorial synthesis. The package does not claim
+The seven composed meanings are editorial synthesis. The package does not claim
 that any source directly states the complete composed sentences. Historical,
 modern, and NatalNode policy lanes remain visible rather than being flattened.
 
@@ -478,7 +583,7 @@ modern, and NatalNode policy lanes remain visible rather than being flattened.
 | `RULERSHIP_BOUNDARY` | **PASS** | Mars/Venus are relation-only; complete ruler semantics, co-rulers, and advanced techniques are excluded. |
 | `NO_SEMANTIC_DOUBLE_COUNTING` | **PASS** | Body, sign, element, modality, and rulership are not counted as separate evidence inside one placement. |
 | `PLACEMENT_EVIDENCE_MODEL` | **PASS** | Every composition has one `BODY_SIGN_PLACEMENT` evidence unit; body and sign remain separate semantic dimensions. |
-| `CROSS_MATRIX_DIFFERENTIATION` | **PASS** | All six pairwise distinctions change a semantic axis. |
+| `CROSS_MATRIX_DIFFERENTIATION` | **PASS** | All 15 recorded pairwise distinctions change a semantic axis. |
 | `ANTI_STEREOTYPE` | **PASS** | Required forbidden inferences are explicit and absent from bounded reader-facing meaning fields. |
 | `SOURCE_TRACEABILITY` | **PASS** | Each composition has source IDs, repository locators, source classes, and supported claims. |
 | `SCHOOL_POLICY` | **PASS** | Western Tropical scope and traditional/classical versus modern/psychological layers remain named. |

@@ -5,7 +5,7 @@
 | Task | `WEB-P2-COMPOSITION-SIGNAL-001` |
 | Baseline | `67ea9cb39c019bed2cb1453499695da01252c02e` |
 | Policy status | `REPRESENTATIVE_COMPOSITION_SIGNAL_POLICY_R1_PASS` |
-| Scope | Four admitted Body × Sign compositions only |
+| Scope | Seven targeted Body × Sign compositions only |
 | Signal authority | Research policy; provider-neutral |
 | Runtime eligibility | `RUNTIME_NOT_ADMITTED` |
 | Broad-scale readiness | `NO` |
@@ -38,8 +38,11 @@ The only admitted candidate rules are:
 2. Mercury × Aries
 3. Moon × Taurus
 4. Mercury × Taurus
+5. Sun × Aries
+6. Venus × Taurus
+7. Mars × Aries
 
-No other Body × Sign rule is created and no matrix expansion is implied.
+No other Body × Sign rule is created and no full matrix expansion is implied.
 
 ## 2. One placement, one evidence unit, one primary Signal
 
@@ -77,7 +80,7 @@ it does not create a parallel one.
 | Rule field | Contract |
 | --- | --- |
 | `ruleId` / `ruleVersion` | Stable composition Signal rule identity and revision |
-| `compositionId` | One of the four admitted Body × Sign IDs |
+| `compositionId` | One of the seven admitted Body × Sign IDs |
 | `requiredFactType` | `NATAL_BODY_POSITION` |
 | `placementEvidenceKey` | Stable identity for the one authoritative placement fact |
 | `eligibleDomain` | Exactly one existing domain per composition |
@@ -128,6 +131,9 @@ domain is invented.
 | Mercury × Aries | `COMMUNICATION` | The integrated question is how naming, comparison, or interpretation enters an Aries first move; that specific life-question concerns information exchange, not a universal Mercury mapping. |
 | Moon × Taurus | `EMOTIONAL` | The integrated question is how response or need meets Taurus embodiment, valuation, and continuity; that specific life-question remains about inner response and needs. |
 | Mercury × Taurus | `COMMUNICATION` | The integrated question is how meaning, naming, or comparison becomes tangible and sustained through Taurus conditions; that specific life-question concerns information exchange. |
+| Sun × Aries | `SELF` | The integrated question is how central direction and self-expression meet Aries initiation; that specific life-question concerns organizing identity and agency, not a universal Sun mapping. |
+| Venus × Taurus | `RELATIONSHIP` | The integrated question is how value, preference, and relating meet Taurus embodiment and continuity; that specific life-question concerns relational value, not a universal Venus mapping. |
+| Mars × Aries | `ACTION_DECISION` | The integrated question is how action, assertion, and effort meet Aries initiation; that specific life-question concerns directed action, not a universal Mars mapping. |
 
 No artificial domain diversity is introduced. A composition cannot change domain
 because a later UI needs another section, and it cannot fall back to a body's
@@ -135,7 +141,7 @@ usual domain when its integrated semantics are unresolved.
 
 ## 5. Direction policy
 
-All four representative rules use `NEUTRAL`.
+All seven representative rules use `NEUTRAL`.
 
 The constructive capacity and possible tension are both retained as structured
 fields, but their coexistence does not automatically mean `MIXED`. The
@@ -153,12 +159,12 @@ Intensity is not astrological importance and is never exposed as a score.
 For a single placement rule:
 
 - the default candidate value is `SUBTLE`;
-- the four current rules have no admitted promotion beyond `SUBTLE`;
+- the seven current rules have no admitted promotion beyond `SUBTLE`;
 - `NOTICEABLE` requires an explicitly admitted promotion, such as structural
   salience, independently supported convergence, or another future rule;
 - `STRONG` requires a separately admitted stronger structure and is unavailable
-  from these four rules alone; and
-- `DOMINANT` is unavailable from these four rules alone.
+  from these seven rules alone; and
+- `DOMINANT` is unavailable from these seven rules alone.
 
 Intensity does not mean that a Signal exists or that a placement is important.
 It is a bounded policy label, not a measurement of a person and not a numeric
@@ -176,7 +182,7 @@ An authoritative Engine fact can be high-authority while a single
 composition-derived personal Signal remains `LOW` confidence because it has
 one placement evidence unit and a conditional symbolic interpretation.
 
-For these four rules:
+For these seven rules:
 
 - required source authority is `AUTHORITATIVE_ENGINE`;
 - development fixtures and incomplete research are not eligible authorities;
@@ -192,7 +198,7 @@ Repeated references to the same placement do not change confidence.
 A rule matches only when all of these are true:
 
 1. the placement fact is available and authoritative;
-2. the composition ID is one of the four admitted IDs;
+2. the composition ID is one of the seven admitted IDs;
 3. the exact Signal rule is admitted and version-compatible;
 4. the zodiac model is Western Tropical;
 5. the school and policy state are compatible with the admitted rule;
@@ -217,7 +223,7 @@ fixtures, guessed houses, or prose fallback.
 
 ## 9. Unknown birth time
 
-All four placement rules are `UNKNOWN_TIME_SAFE` only when the underlying
+All seven placement rules are `UNKNOWN_TIME_SAFE` only when the underlying
 planetary sign placement remains authoritative. Unknown birth time does not
 add or infer:
 
@@ -236,7 +242,7 @@ aspect, degree, or angle rule needs its own admitted prerequisites.
 A Signal may preserve both a constructive capacity and a possible tension
 without becoming flattering or `MIXED`. Neither field is final personal prose.
 
-The four rules preserve the existing forbidden inferences:
+The seven rules preserve the existing forbidden inferences:
 
 - Moon × Aries: angry, impulsive, unstable, aggressive, or excitement-seeking
   claims are not admitted.
@@ -246,6 +252,12 @@ The four rules preserve the existing forbidden inferences:
   security-oriented claims are not admitted.
 - Mercury × Taurus: slow thinker, practical thinker, good with money, or
   methodical communicator claims are not admitted.
+- Sun × Aries: self-centered, natural leader, dominant, guaranteed success, or
+  aggressive claims are not admitted.
+- Venus × Taurus: romance, beauty, wealth, possessiveness, luxury, or a
+  guaranteed relationship are not admitted.
+- Mars × Aries: anger, violence, danger, warrior identity, aggression, or
+  guaranteed success are not admitted.
 
 Softened synonyms do not bypass this boundary.
 

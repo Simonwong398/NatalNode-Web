@@ -5,7 +5,7 @@
 | Task | `WEB-P2-COMPOSITION-SIGNAL-001` |
 | Baseline | `67ea9cb39c019bed2cb1453499695da01252c02e` |
 | Review result | `REPRESENTATIVE_COMPOSITION_SIGNAL_POLICY_R1_PASS` |
-| Scope | Exactly four admitted Western Tropical Body × Sign compositions |
+| Scope | Seven targeted Western Tropical Body × Sign compositions |
 | Source state | `SOURCE_SUPPORTED_WITH_CONDITIONS` |
 | Policy state | `ADOPTED_WITH_CONDITIONS` |
 | Runtime | `RUNTIME_NOT_ADMITTED` |
@@ -27,7 +27,7 @@ AUTHORITATIVE CHART FACT
   -> later Personal Synthesis
 ```
 
-Only these four rules are admitted:
+Only these seven rules are admitted:
 
 | Rule | Composition | Primary domain | Direction | Candidate intensity | Candidate confidence |
 | --- | --- | --- | --- | --- | --- |
@@ -35,6 +35,9 @@ Only these four rules are admitted:
 | `composition-signal.body.mercury_x_sign.aries` | `body.mercury_x_sign.aries` | `COMMUNICATION` | `NEUTRAL` | `SUBTLE` | `LOW` |
 | `composition-signal.body.moon_x_sign.taurus` | `body.moon_x_sign.taurus` | `EMOTIONAL` | `NEUTRAL` | `SUBTLE` | `LOW` |
 | `composition-signal.body.mercury_x_sign.taurus` | `body.mercury_x_sign.taurus` | `COMMUNICATION` | `NEUTRAL` | `SUBTLE` | `LOW` |
+| `composition-signal.body.sun_x_sign.aries` | `body.sun_x_sign.aries` | `SELF` | `NEUTRAL` | `SUBTLE` | `LOW` |
+| `composition-signal.body.venus_x_sign.taurus` | `body.venus_x_sign.taurus` | `RELATIONSHIP` | `NEUTRAL` | `SUBTLE` | `LOW` |
+| `composition-signal.body.mars_x_sign.aries` | `body.mars_x_sign.aries` | `ACTION_DECISION` | `NEUTRAL` | `SUBTLE` | `LOW` |
 
 No other Body × Sign rule is implied. A missing or non-admitted rule returns
 `NO_SIGNAL`; it does not fall back to generic astrology, fixtures, or prose.
@@ -101,6 +104,12 @@ existing domain:
   is `EMOTIONAL`.
 - Mercury × Taurus asks how meaning becomes tangible and sustained, so it is
   `COMMUNICATION`.
+- Sun × Aries asks how central direction and self-expression meet initiation,
+  so it is `SELF`.
+- Venus × Taurus asks how value and relating become tangible and sustained, so
+  it is `RELATIONSHIP`.
+- Mars × Aries asks how action and effort enter initiation, so it is
+  `ACTION_DECISION`.
 
 These are composition decisions, not universal Body → Domain mappings. A future
 composition that is ambiguous or cannot map cleanly to one closed domain fails
@@ -109,18 +118,18 @@ domain is invented.
 
 ### Direction
 
-All four candidates are `NEUTRAL`. Constructive capacity and possible tension
+All seven candidates are `NEUTRAL`. Constructive capacity and possible tension
 are preserved as separate structured fields. Their coexistence does not force
 `MIXED`, and no direction is inferred from positive, cautionary, or negative
 tone.
 
 ### Intensity
 
-The default candidate value for one placement is `SUBTLE`. None of the four
+The default candidate value for one placement is `SUBTLE`. None of the seven
 current rules has an admitted promotion to `NOTICEABLE`; that promotion would
 require an explicit admitted reason such as structural salience, independently
 supported convergence, or another future rule. `STRONG` and `DOMINANT` remain
-unavailable from these four rules alone. Intensity is not Signal existence and
+unavailable from these seven rules alone. Intensity is not Signal existence and
 is not importance.
 
 ### Confidence
@@ -138,7 +147,7 @@ duplicate same-placement Signal, insufficient authority, forbidden time
 dependency, and unsupported semantic inference. No fake default, fixture, or
 reader-facing filler is substituted.
 
-The four rules are `UNKNOWN_TIME_SAFE` when the authoritative planetary sign
+The seven rules are `UNKNOWN_TIME_SAFE` when the authoritative planetary sign
 placement is available. They never infer ASC, MC, houses, house-derived
 domains, angle prominence, noon/midnight, fabricated time, or temporal content.
 Any later time-dependent rule needs its own admitted prerequisites.
@@ -151,6 +160,11 @@ stubborn, possessive, comfort-loving, sensual, or financially
 security-oriented. Mercury × Taurus does not imply slow thinker, practical
 thinker, good with money, or methodical communicator. Derived layers and
 rulership do not import a complete ruler meaning.
+Sun × Aries does not imply self-centered, natural leader, dominant, guaranteed
+success, or aggressive outcomes. Venus × Taurus does not imply romance, beauty,
+wealth, possessiveness, luxury, or a guaranteed relationship. Mars × Aries does
+not imply anger, violence, danger, warrior identity, aggression, or guaranteed
+success.
 
 ## 5. Convergence and duplicate policy
 

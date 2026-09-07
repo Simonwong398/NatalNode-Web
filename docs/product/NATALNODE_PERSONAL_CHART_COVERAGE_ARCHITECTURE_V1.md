@@ -74,7 +74,7 @@ The architecture is constrained by the following existing authorities:
 | `docs/product/NATALNODE_CONTENT_VALUE_ARCHITECTURE_V1.md` | More content is not more value; one semantic meaning has one visible owner; progressive depth and omission over filler are required. |
 | `docs/architecture/NATALNODE_INTERPRETATION_SYSTEM_V1.md` | Fact, Signal, Interpretation, and Presentation stay separate; the six Signal domains and closed direction/intensity/confidence vocabularies remain authoritative. |
 | `docs/product/NATALNODE_BODY_SIGN_COMPOSITION_METHOD_V1.md` | A placement is one evidence unit with distinct body/sign dimensions and derived sign layers; the method is representative and runtime-unadmitted. |
-| `docs/product/NATALNODE_COMPOSITION_SIGNAL_POLICY_V1.md` | The four placement rules are bounded Signals with integrated domain derivation, `NEUTRAL`, `SUBTLE`, `LOW`, and fail-closed admission. |
+| `docs/product/NATALNODE_COMPOSITION_SIGNAL_POLICY_V1.md` | The seven targeted placement rules are bounded Signals with integrated domain derivation, `NEUTRAL`, `SUBTLE`, `LOW`, and fail-closed admission. |
 | `docs/product/NATALNODE_BODY_ASPECT_BODY_COMPOSITION_METHOD_V1.md` | A relational fact preserves body A, body B, and the aspect operator as one relational unit over dependent roots. |
 | `docs/product/NATALNODE_ASPECT_SIGNAL_POLICY_V1.md` | Four Moon–Mercury aspect rules are bounded research Signals; relation meaning does not create a new independent root. |
 | `docs/research/personal-synthesis/PERSONAL_SYNTHESIS_POC_001_REVIEW.md` | Synthesis is deterministic, traceable, authority-aware, and separate from production. |
@@ -89,8 +89,8 @@ coverage system:
 
 | Proven slice | What it proves | What it does not prove |
 | --- | --- | --- |
-| Body × Sign representative method | Four integrated placement meanings, one placement evidence unit, and cross-matrix differentiation. | A complete Planet × Sign matrix or production content. |
-| Composition → Signal policy | Four placement Signals with integrated domain semantics, `NEUTRAL`, `SUBTLE`, `LOW`, and duplicate suppression. | Production Signal emission or a chart-level selector. |
+| Body × Sign representative method | Seven targeted integrated placement meanings, one placement evidence unit, and cross-matrix differentiation. | A complete Planet × Sign matrix or production content. |
+| Composition → Signal policy | Seven targeted placement Signals with integrated domain semantics, `NEUTRAL`, `SUBTLE`, `LOW`, and duplicate suppression. | Production Signal emission or a chart-level selector. |
 | Body × Aspect × Body method | Four Moon–Mercury relational meanings with explicit root lineage. | A full aspect/body inventory or a universal orb/phase doctrine. |
 | Aspect Signal policy | Four relational Signal rules with one semantic unit, three dimensions, and two roots. | Production aspect Signal wiring or all aspect pairs/types. |
 | Personal Synthesis POC | Deterministic candidate handling, coherence checks, duplicate suppression, and bounded selection. | A mature chart-wide coverage selector or production authority. |
@@ -155,9 +155,11 @@ SEMANTIC READINESS != FACT AUTHORITY
 EDITORIAL PRIORITY != INTERPRETIVE CONFIDENCE
 ```
 
-The four Body × Sign rules are the narrow case where the first four dimensions
-are bounded-PoC-ready. Their production fact authority remains unavailable for
-this architecture because the provider/scientific configuration gate is open.
+The four original Moon/Mercury Body × Sign rules remain bounded-PoC-ready
+through research synthesis. The targeted Sun/Venus/Mars expansion is currently
+bounded-PoC-ready through source, semantic method, and Signal policy; its
+chart-level synthesis remains intentionally pending. Production fact authority
+remains unavailable because the provider/scientific configuration gate is open.
 
 ## 5. Mature chart data and semantic-unit model
 
@@ -244,9 +246,12 @@ equally mature. The matrix records the outer-planet placement layer as future
 scope rather than fabricating coverage.
 
 Sun, Moon, Mercury, Venus, and Mars may eventually participate in Body × Sign,
-Body × House, and relational compositions. The current Body × Sign method is
-only the four representative Moon/Mercury × Aries/Taurus records, with the
-existing Sun × Taurus material retained as a comparison control.
+Body × House, and relational compositions. The current Body × Sign method
+contains the four original Moon/Mercury × Aries/Taurus records plus a targeted
+Sun × Aries, Venus × Taurus, and Mars × Aries expansion. The existing Sun ×
+Taurus material remains a comparison control. The three new records have
+composition and placement-Signal policy coverage, but are not yet admitted to
+chart-level synthesis or runtime.
 
 ### 6.2 Angles and houses
 
@@ -464,24 +469,24 @@ and `RUNTIME_ADMISSION` remain `NO`.
 
 ## 12. Prioritized next gates
 
-The next coverage expansion should proceed in this order:
+The first targeted Body × Sign expansion is complete. The next coverage gates
+should proceed in this order:
 
 1. **Chart-level selector contract** — freeze the ordinal selector, theme
    hierarchy, cap behavior, redundancy/subsumption decisions, and the
    distinction between editorial priority and confidence.
-2. **Personal Body × Sign expansion** — extend the bounded method from the four
-   Moon/Mercury representative rules to the admitted personal-body scope,
-   starting with Sun, Moon, Mercury, Venus, and Mars only where each integrated
-   composition earns source and policy review.
-3. **House composition method** — define a bounded `BODY × SIGN × HOUSE`
-   method, house-system requirements, context limits, and unknown-time behavior
-   before admitting house-based personal themes.
-4. **Aspect coverage expansion** — admit additional body pairs and decide the
+2. **Targeted personal Body × Sign expansion** — continue only where a body/sign
+   composition earns source and policy review; the current first expansion is
+   Sun × Aries, Venus × Taurus, and Mars × Aries.
+3. **Aspect coverage expansion** — admit additional body pairs and decide the
    sextile boundary through the existing taxonomy; retain orb/phase authority
    and relational-unit accounting.
-5. **Counterevidence and chart-level convergence policy** — define how separate
+4. **Counterevidence and chart-level convergence policy** — define how separate
    units qualify, split, support, or suppress a theme, then connect that policy
    to the selector and WHY trace.
+5. **House composition method** — define a bounded `BODY × SIGN × HOUSE`
+   method, house-system requirements, context limits, and unknown-time behavior
+   before admitting house-based personal themes.
 
 Provider/scientific authority, production fact identity, and production My
 Chart admission remain separate later gates. They are not bypassed by

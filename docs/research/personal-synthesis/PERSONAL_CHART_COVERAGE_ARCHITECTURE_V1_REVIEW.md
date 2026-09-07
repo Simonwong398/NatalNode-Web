@@ -59,9 +59,10 @@ The following bounded evidence is reused without upgrading its authority:
 
 | Evidence | Current state in matrix |
 | --- | --- |
-| Sun, Moon, Mercury, Venus, Mars primitive vocabulary | `SOURCE_READY`; only Moon/Mercury representative Body × Sign rules are policy-admitted. |
-| Moon/Mercury × Aries/Taurus placement compositions | `BOUNDED_POC_ONLY`; four placement units, one evidence unit each. |
-| Four placement Signal rules | `BOUNDED_POC_ONLY`; `NEUTRAL`, `SUBTLE`, `LOW`, fail closed. |
+| Sun, Moon, Mercury, Venus, Mars primitive vocabulary | `SOURCE_READY`; the targeted Sun/Venus/Mars records now join the original Moon/Mercury Body × Sign proof without implying full matrix coverage. |
+| Moon/Mercury × Aries/Taurus placement compositions | `BOUNDED_POC_ONLY`; four original placement units, one evidence unit each. |
+| Sun × Aries, Venus × Taurus, Mars × Aries expansion | `BOUNDED_POC_ONLY`; three targeted placement units, one evidence unit each, with distinct body functions and derived sign layers. |
+| Seven placement Signal rules | `BOUNDED_POC_ONLY`; `NEUTRAL`, `SUBTLE`, `LOW`, fail closed, and no chart-level selector admission. |
 | Moon–Mercury conjunction/trine/square/opposition methods and Signals | `BOUNDED_POC_ONLY`; no broader pair or production catalog. |
 | Shared-root relational synthesis | `BOUNDED_POC_ONLY`; one coherent conjunction bundle proves enrichment and subsumption. |
 | Relational My Chart reader projection | `BOUNDED_POC_ONLY`; development-only route and research disclosure. |
@@ -85,10 +86,10 @@ PRODUCTION_FACT_AUTHORITY
 ```
 
 The representative Moon × Aries, Moon × Taurus, Mercury × Aries, and Mercury ×
-Taurus rows are the expected bounded example: their source, semantic method,
-Signal, and research synthesis dimensions are bounded-ready, while production
-fact authority remains unavailable because the provider/scientific
-configuration gate is not closed.
+Taurus rows remain bounded-ready through research synthesis. The targeted Sun ×
+Aries, Venus × Taurus, and Mars × Aries rows are source, semantic-method, and
+Signal-policy ready, while chart-level synthesis and production fact authority
+remain unavailable because those gates are not closed.
 
 The following distinctions are explicit and tested:
 

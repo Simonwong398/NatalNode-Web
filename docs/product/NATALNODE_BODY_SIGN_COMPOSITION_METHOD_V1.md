@@ -29,13 +29,18 @@ The composition must remain conditional, source-traceable, and open to chart
 context. A single body × sign placement is not a whole-person description,
 diagnosis, prediction, moral judgement, or scientific result.
 
-The representative artifact is intentionally limited to exactly four new
-compositions:
+The representative artifact is intentionally limited to seven new
+compositions. The original four-record proof remains intact, and the targeted
+expansion adds one representative composition for each of Sun, Venus, and Mars
+using existing Aries/Taurus sign structures:
 
 1. Moon × Aries
 2. Mercury × Aries
 3. Moon × Taurus
 4. Mercury × Taurus
+5. Sun × Aries
+6. Venus × Taurus
+7. Mars × Aries
 
 The existing Sun × Taurus package remains a comparison control. It is not
 rewritten, copied into the new inventory, or silently promoted to runtime.
@@ -61,7 +66,7 @@ question becomes available at their intersection.
 
 | Layer | Owns | Does not own |
 | --- | --- | --- |
-| Body | Response, rhythm, receptivity, inner experience, needs (Moon); thinking, naming, interpreting, comparing, translating, learning, and exchange (Mercury) | The sign's operating context, a complete personality, or an intelligence/emotion score |
+| Body | Identity, vitality, agency, central direction, and self-expression (Sun); response, rhythm, receptivity, inner experience, and needs (Moon); thinking, naming, interpreting, comparing, translating, learning, and exchange (Mercury); relating, attraction, value, preference, pleasure, harmony, and union (Venus); action, assertion, separation, effort, drive, courage, and competition (Mars) | The sign's operating context, a complete personality, or an intelligence/emotion/relationship/action verdict |
 | Sign | Aries initiation, activation, assertion; Taurus embodiment, valuation, continuity, maintenance, tangibility | A person type, a guaranteed behavior, or the complete meaning of its ruler |
 | Element | A broad field supplied by the sign: Fire for activation; Earth for embodiment and valuation | An independent second chart fact or a temperament test |
 | Modality | An operating mode supplied by the sign: Cardinal for initiation; Fixed for continuation and consolidation | A synonym for the element or a behavior guarantee |
@@ -125,10 +130,9 @@ The structured artifact uses:
   question; and
 - `policyState: ADOPTED_WITH_CONDITIONS` for the bounded research projection.
 
-No consulted source is represented as quoting a complete Moon × Aries,
-Mercury × Aries, Moon × Taurus, or Mercury × Taurus sentence. The source refs
-support the inputs and the policy boundary; the integrated wording is
-NatalNode editorial synthesis.
+No consulted source is represented as quoting a complete sentence for any of
+the seven records. The source refs support the inputs and the policy boundary;
+the integrated wording is NatalNode editorial synthesis.
 
 The method inherits the Human Knowledge R2 reader rhythm for any later
 reader-facing projection: WHAT, WHY, NEARBY DISTINCTION, CONCRETE EXAMPLE,
@@ -170,7 +174,7 @@ The machine-auditable representative artifact is:
 
 `docs/research/astrology-knowledge-canon/compositions/BODY_SIGN_COMPOSITION_REPRESENTATIVE_V1.json`
 
-Its `compositions` array contains exactly four records. The control sample,
+Its `compositions` array contains exactly seven records. The control sample,
 comparison matrix, and validation gates are metadata outside that inventory;
 they are not additional compositions.
 
@@ -209,7 +213,7 @@ A record passes only when it can answer all of the following:
 7. Which chart, school, authority, and context facts are required for a
    narrower statement?
 
-The four representative distinctions are frozen as follows:
+The seven representative distinctions are frozen as follows:
 
 | Composition | Distinct interaction |
 | --- | --- |
@@ -217,13 +221,16 @@ The four representative distinctions are frozen as follows:
 | Mercury × Aries | An information-handling function meets initiation, activation, and assertion. The question concerns how a distinction, name, or interpretation enters a first move. |
 | Moon × Taurus | A response/rhythm/receptivity/need function meets embodiment, valuation, continuity, and maintenance. The question concerns how a recurring inner pattern takes a tangible or sustained form. |
 | Mercury × Taurus | An information-handling function meets embodiment, valuation, continuity, and maintenance. The question concerns how meaning or comparison becomes a tangible process that can be developed and revisited. |
+| Sun × Aries | A central-direction and self-expression function meets initiation, activation, and assertion. The question concerns how an organizing impulse enters a first visible form without becoming the whole identity. |
+| Venus × Taurus | A value and relating function meets embodiment, continuity, and maintenance. The question concerns how preference or agreement becomes tangible while remaining open to consent and revision. |
+| Mars × Aries | An action and effort function meets initiation, activation, and assertion. The question concerns how directed effort begins with a clear boundary without turning momentum into a fixed behavior verdict. |
 
 The body contrast and the sign contrast must both remain legible. Cosmetic
 synonym swaps do not satisfy the cross-matrix gate.
 
 ## 7. Forbidden inference policy
 
-The following are explicit non-inferences for the four records:
+The following are explicit non-inferences for the seven records:
 
 - Moon × Aries does not entail emotionally impulsive, angry, impatient,
   aggressive, unstable, or excitement-seeking behaviour.
@@ -233,6 +240,12 @@ The following are explicit non-inferences for the four records:
   sensual, or financially security-oriented behaviour.
 - Mercury × Taurus does not entail a slow or practical thinker, a stubborn
   thinker, good money, or a methodical communicator.
+- Sun × Aries does not entail a self-centered person, natural leader,
+  dominance, guaranteed success, or aggressive behavior.
+- Venus × Taurus does not entail romance, beauty, wealth, possessiveness,
+  luxury, or a guaranteed relationship.
+- Mars × Aries does not entail anger, violence, danger, warrior identity,
+  aggression, or guaranteed success.
 
 The general boundary also rejects complete personality, health, diagnostic,
 relationship, career, wealth, moral, destiny, and scientific conclusions from
@@ -308,4 +321,5 @@ This method reconciles:
 
 Those documents remain the authorities for their respective source, policy,
 editorial, and synthesis boundaries. This document adds only the bounded
-Body × Sign method and its four representative research records.
+Body × Sign method and its seven representative research records; it does not
+admit a full Planet × Sign matrix.

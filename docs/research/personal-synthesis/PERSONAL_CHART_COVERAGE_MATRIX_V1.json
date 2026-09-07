@@ -172,21 +172,21 @@
         "notes": "Sun body vocabulary is admitted with conditions; the current Sun × Taurus package is a comparison control."
       },
       "policyAdmission": {
-        "status": "NOT_ADMITTED",
-        "scope": "No general Sun × Sign composition or Signal package is admitted by this matrix."
+        "status": "BOUNDED_POC_ONLY",
+        "scope": "Only Sun × Aries is admitted in the targeted body × sign expansion; chart-level synthesis remains separate."
       },
       "implementationState": {
-        "status": "CURRENT_FACT_AND_CONTROL_ONLY",
-        "notes": "Existing bounded interpretation/content and Sun × Taurus control do not constitute mature PersonalTheme coverage."
+        "status": "BOUNDED_RESEARCH_POC",
+        "notes": "Sun × Aries composition and placement Signal are covered; no chart-level selector or PersonalTheme synthesis is admitted."
       },
       "productionAuthorityState": {
         "status": "CONTRACT_ONLY_NOT_PRODUCTION_AUTHORITY",
         "notes": "ChartResult has a body fact shape; provider/scientific configuration admission remains open."
       },
-      "currentUsability": "PRIMITIVE_OR_COMPARISON_CONTROL_ONLY",
-      "missingDependencies": ["ADMITTED_SUN_BODY_SIGN_METHOD", "ADMITTED_SUN_SIGNAL_RULE", "CHART_LEVEL_SELECTOR"],
+      "currentUsability": "TARGETED_COMPOSITION_SIGNAL_ONLY",
+      "missingDependencies": ["FULL_PERSONAL_BODY_SIGN_SCOPE", "CHART_LEVEL_SELECTOR", "PRODUCTION_SCIENTIFIC_AUTHORITY"],
       "recommendedNextGate": "EXPAND_PERSONAL_BODY_SIGN_METHOD",
-      "readiness": {"source": "SOURCE_READY", "semanticMethod": "NOT_READY", "signalPolicy": "NOT_READY", "synthesis": "NOT_READY", "productionFactAuthority": "CONTRACT_ONLY_NOT_PRODUCTION_AUTHORITY"}
+      "readiness": {"source": "SOURCE_READY", "semanticMethod": "BOUNDED_POC_READY", "signalPolicy": "BOUNDED_POC_READY", "synthesis": "NOT_READY", "productionFactAuthority": "CONTRACT_ONLY_NOT_PRODUCTION_AUTHORITY"}
     },
     {
       "capabilityId": "placement.moon",
@@ -268,18 +268,21 @@
         "notes": "Venus is admitted as a bounded symbolic function, not automatic romance, wealth, beauty, or relationship certainty."
       },
       "policyAdmission": {
-        "status": "NOT_ADMITTED",
-        "scope": "No Venus Body × Sign composition or Signal rule is currently admitted."
+        "status": "BOUNDED_POC_ONLY",
+        "scope": "Only Venus × Taurus is admitted in the targeted body × sign expansion; chart-level synthesis remains separate."
       },
-      "implementationState": {"status": "NOT_IMPLEMENTED"},
+      "implementationState": {
+        "status": "BOUNDED_RESEARCH_POC",
+        "notes": "Venus × Taurus composition and placement Signal are covered; no chart-level selector or PersonalTheme synthesis is admitted."
+      },
       "productionAuthorityState": {
         "status": "CONTRACT_ONLY_NOT_PRODUCTION_AUTHORITY",
         "notes": "The chart contract can carry a body fact; provider/scientific configuration admission remains open."
       },
-      "currentUsability": "PRIMITIVE_ONLY_NOT_PERSONAL_THEME_READY",
-      "missingDependencies": ["ADMITTED_VENUS_BODY_SIGN_METHOD", "ADMITTED_VENUS_SIGNAL_RULE", "CHART_LEVEL_SELECTOR"],
+      "currentUsability": "TARGETED_COMPOSITION_SIGNAL_ONLY",
+      "missingDependencies": ["FULL_PERSONAL_BODY_SIGN_SCOPE", "CHART_LEVEL_SELECTOR", "PRODUCTION_SCIENTIFIC_AUTHORITY"],
       "recommendedNextGate": "EXPAND_PERSONAL_BODY_SIGN_METHOD",
-      "readiness": {"source": "SOURCE_READY", "semanticMethod": "NOT_READY", "signalPolicy": "NOT_READY", "synthesis": "NOT_READY", "productionFactAuthority": "CONTRACT_ONLY_NOT_PRODUCTION_AUTHORITY"}
+      "readiness": {"source": "SOURCE_READY", "semanticMethod": "BOUNDED_POC_READY", "signalPolicy": "BOUNDED_POC_READY", "synthesis": "NOT_READY", "productionFactAuthority": "CONTRACT_ONLY_NOT_PRODUCTION_AUTHORITY"}
     },
     {
       "capabilityId": "placement.mars",
@@ -297,18 +300,21 @@
         "notes": "Mars is bounded against anger, danger, criminality, or moral character claims."
       },
       "policyAdmission": {
-        "status": "NOT_ADMITTED",
-        "scope": "No Mars Body × Sign composition or Signal rule is currently admitted."
+        "status": "BOUNDED_POC_ONLY",
+        "scope": "Only Mars × Aries is admitted in the targeted body × sign expansion; chart-level synthesis remains separate."
       },
-      "implementationState": {"status": "NOT_IMPLEMENTED"},
+      "implementationState": {
+        "status": "BOUNDED_RESEARCH_POC",
+        "notes": "Mars × Aries composition and placement Signal are covered; no chart-level selector or PersonalTheme synthesis is admitted."
+      },
       "productionAuthorityState": {
         "status": "CONTRACT_ONLY_NOT_PRODUCTION_AUTHORITY",
         "notes": "The chart contract can carry a body fact; provider/scientific configuration admission remains open."
       },
-      "currentUsability": "PRIMITIVE_ONLY_NOT_PERSONAL_THEME_READY",
-      "missingDependencies": ["ADMITTED_MARS_BODY_SIGN_METHOD", "ADMITTED_MARS_SIGNAL_RULE", "CHART_LEVEL_SELECTOR"],
+      "currentUsability": "TARGETED_COMPOSITION_SIGNAL_ONLY",
+      "missingDependencies": ["FULL_PERSONAL_BODY_SIGN_SCOPE", "CHART_LEVEL_SELECTOR", "PRODUCTION_SCIENTIFIC_AUTHORITY"],
       "recommendedNextGate": "EXPAND_PERSONAL_BODY_SIGN_METHOD",
-      "readiness": {"source": "SOURCE_READY", "semanticMethod": "NOT_READY", "signalPolicy": "NOT_READY", "synthesis": "NOT_READY", "productionFactAuthority": "CONTRACT_ONLY_NOT_PRODUCTION_AUTHORITY"}
+      "readiness": {"source": "SOURCE_READY", "semanticMethod": "BOUNDED_POC_READY", "signalPolicy": "BOUNDED_POC_READY", "synthesis": "NOT_READY", "productionFactAuthority": "CONTRACT_ONLY_NOT_PRODUCTION_AUTHORITY"}
     },
     {
       "capabilityId": "placement.outer-planets",
@@ -408,6 +414,63 @@
       "missingDependencies": ["MATURE_BODY_SIGN_COVERAGE", "PRODUCTION_SCIENTIFIC_AUTHORITY", "CHART_LEVEL_SELECTOR"],
       "recommendedNextGate": "CHART_LEVEL_SELECTOR_CONTRACT",
       "readiness": {"source": "SOURCE_READY", "semanticMethod": "BOUNDED_POC_READY", "signalPolicy": "BOUNDED_POC_READY", "synthesis": "BOUNDED_POC_READY", "productionFactAuthority": "NOT_AVAILABLE_PROVIDER_DEFERRED"}
+    },
+    {
+      "capabilityId": "composition.sun-aries",
+      "maturityRequirement": "NEEDED_FOR_MATURE_PRODUCT",
+      "conceptualLayer": "CORE_IDENTITY_ORIENTATION",
+      "readerValue": "A representative integrated question about central direction and self-expression entering Aries initiation without becoming a complete identity claim.",
+      "requiredChartFacts": ["NATAL_BODY_POSITION"],
+      "requiredSemanticMethod": "BODY_SIGN_COMPOSITION_METHOD_V1",
+      "requiredSignalPolicy": "COMPOSITION_SIGNAL_POLICY_V1",
+      "synthesisRole": ["THEME_CANDIDATE", "SIGNAL_POLICY_INPUT"],
+      "birthTimeDependency": "UNKNOWN_TIME_SAFE_IF_FACT_IS_AUTHORIZED",
+      "sourceSupport": {"status": "SOURCE_READY", "authorities": ["BODY_SIGN_REPRESENTATIVE_ARTIFACT", "PERSONAL_BODIES", "PRIMITIVES"]},
+      "policyAdmission": {"status": "BOUNDED_POC_ONLY", "compositionId": "body.sun_x_sign.aries", "runtime": "RUNTIME_NOT_ADMITTED"},
+      "implementationState": {"status": "BOUNDED_RESEARCH_POC", "notes": "Targeted composition and placement Signal are covered; chart-level synthesis remains unexpanded."},
+      "productionAuthorityState": {"status": "NOT_AVAILABLE_PROVIDER_DEFERRED"},
+      "currentUsability": "RESEARCH_SIGNAL_INPUT_ONLY",
+      "missingDependencies": ["CHART_LEVEL_SELECTOR", "PERSONAL_SYNTHESIS_INPUT_EXPANSION", "PRODUCTION_SCIENTIFIC_AUTHORITY"],
+      "recommendedNextGate": "CHART_LEVEL_SELECTOR_CONTRACT",
+      "readiness": {"source": "SOURCE_READY", "semanticMethod": "BOUNDED_POC_READY", "signalPolicy": "BOUNDED_POC_READY", "synthesis": "NOT_READY", "productionFactAuthority": "NOT_AVAILABLE_PROVIDER_DEFERRED"}
+    },
+    {
+      "capabilityId": "composition.venus-taurus",
+      "maturityRequirement": "NEEDED_FOR_MATURE_PRODUCT",
+      "conceptualLayer": "RELATING_VALUING",
+      "readerValue": "A representative integrated question about value and relating becoming tangible and sustained without a relationship-certainty claim.",
+      "requiredChartFacts": ["NATAL_BODY_POSITION"],
+      "requiredSemanticMethod": "BODY_SIGN_COMPOSITION_METHOD_V1",
+      "requiredSignalPolicy": "COMPOSITION_SIGNAL_POLICY_V1",
+      "synthesisRole": ["THEME_CANDIDATE", "SIGNAL_POLICY_INPUT"],
+      "birthTimeDependency": "UNKNOWN_TIME_SAFE_IF_FACT_IS_AUTHORIZED",
+      "sourceSupport": {"status": "SOURCE_READY", "authorities": ["BODY_SIGN_REPRESENTATIVE_ARTIFACT", "PERSONAL_BODIES", "PRIMITIVES"]},
+      "policyAdmission": {"status": "BOUNDED_POC_ONLY", "compositionId": "body.venus_x_sign.taurus", "runtime": "RUNTIME_NOT_ADMITTED"},
+      "implementationState": {"status": "BOUNDED_RESEARCH_POC", "notes": "Targeted composition and placement Signal are covered; chart-level synthesis remains unexpanded."},
+      "productionAuthorityState": {"status": "NOT_AVAILABLE_PROVIDER_DEFERRED"},
+      "currentUsability": "RESEARCH_SIGNAL_INPUT_ONLY",
+      "missingDependencies": ["CHART_LEVEL_SELECTOR", "PERSONAL_SYNTHESIS_INPUT_EXPANSION", "PRODUCTION_SCIENTIFIC_AUTHORITY"],
+      "recommendedNextGate": "CHART_LEVEL_SELECTOR_CONTRACT",
+      "readiness": {"source": "SOURCE_READY", "semanticMethod": "BOUNDED_POC_READY", "signalPolicy": "BOUNDED_POC_READY", "synthesis": "NOT_READY", "productionFactAuthority": "NOT_AVAILABLE_PROVIDER_DEFERRED"}
+    },
+    {
+      "capabilityId": "composition.mars-aries",
+      "maturityRequirement": "NEEDED_FOR_MATURE_PRODUCT",
+      "conceptualLayer": "ACTION_DESIRE",
+      "readerValue": "A representative integrated question about directed action and effort entering Aries initiation without an anger or moral-character claim.",
+      "requiredChartFacts": ["NATAL_BODY_POSITION"],
+      "requiredSemanticMethod": "BODY_SIGN_COMPOSITION_METHOD_V1",
+      "requiredSignalPolicy": "COMPOSITION_SIGNAL_POLICY_V1",
+      "synthesisRole": ["THEME_CANDIDATE", "SIGNAL_POLICY_INPUT"],
+      "birthTimeDependency": "UNKNOWN_TIME_SAFE_IF_FACT_IS_AUTHORIZED",
+      "sourceSupport": {"status": "SOURCE_READY", "authorities": ["BODY_SIGN_REPRESENTATIVE_ARTIFACT", "PERSONAL_BODIES", "PRIMITIVES"]},
+      "policyAdmission": {"status": "BOUNDED_POC_ONLY", "compositionId": "body.mars_x_sign.aries", "runtime": "RUNTIME_NOT_ADMITTED"},
+      "implementationState": {"status": "BOUNDED_RESEARCH_POC", "notes": "Targeted composition and placement Signal are covered; chart-level synthesis remains unexpanded."},
+      "productionAuthorityState": {"status": "NOT_AVAILABLE_PROVIDER_DEFERRED"},
+      "currentUsability": "RESEARCH_SIGNAL_INPUT_ONLY",
+      "missingDependencies": ["CHART_LEVEL_SELECTOR", "PERSONAL_SYNTHESIS_INPUT_EXPANSION", "PRODUCTION_SCIENTIFIC_AUTHORITY"],
+      "recommendedNextGate": "CHART_LEVEL_SELECTOR_CONTRACT",
+      "readiness": {"source": "SOURCE_READY", "semanticMethod": "BOUNDED_POC_READY", "signalPolicy": "BOUNDED_POC_READY", "synthesis": "NOT_READY", "productionFactAuthority": "NOT_AVAILABLE_PROVIDER_DEFERRED"}
     },
     {
       "capabilityId": "angle.asc",

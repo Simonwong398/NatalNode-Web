@@ -13,7 +13,10 @@ const EXPECTED_COMPOSITION_IDS = [
   'body.moon_x_sign.aries',
   'body.mercury_x_sign.aries',
   'body.moon_x_sign.taurus',
-  'body.mercury_x_sign.taurus'
+  'body.mercury_x_sign.taurus',
+  'body.sun_x_sign.aries',
+  'body.venus_x_sign.taurus',
+  'body.mars_x_sign.aries'
 ];
 
 const REQUIRED_FIELDS = [
@@ -93,12 +96,12 @@ const artifact = readJson(ARTIFACT_PATH);
 test('representative composition JSON has the required schema and exact inventory', () => {
   assert.equal(artifact.artifactId, 'natalnode.body-sign-composition.representative-v1');
   assert.equal(artifact.taskId, 'WEB-P2-COMPOSITION-001');
-  assert.equal(artifact.scope.includedCompositionCount, 4);
+  assert.equal(artifact.scope.includedCompositionCount, 7);
   assert.deepEqual(
     artifact.compositions.map((composition) => composition.compositionId),
     EXPECTED_COMPOSITION_IDS
   );
-  assert.equal(new Set(artifact.compositions.map((composition) => composition.compositionId)).size, 4);
+  assert.equal(new Set(artifact.compositions.map((composition) => composition.compositionId)).size, 7);
   assert.deepEqual(artifact.requiredFields, REQUIRED_FIELDS);
 
   for (const composition of artifact.compositions) {
@@ -137,12 +140,12 @@ test('body and sign contributions remain semantically differentiated', () => {
   const constructivePotentials = artifact.compositions.map((composition) => composition.constructivePotential);
   const tradeOffs = artifact.compositions.map((composition) => composition.possibleTradeOff);
 
-  assert.equal(new Set(integratedMeanings).size, 4);
-  assert.equal(new Set(chartQuestions).size, 4);
-  assert.equal(new Set(constructivePotentials).size, 4);
-  assert.equal(new Set(tradeOffs).size, 4);
-  assert.equal(artifact.comparisonMatrix.length, 6);
-  assert.equal(new Set(artifact.comparisonMatrix.map((entry) => entry.comparisonId)).size, 6);
+  assert.equal(new Set(integratedMeanings).size, 7);
+  assert.equal(new Set(chartQuestions).size, 7);
+  assert.equal(new Set(constructivePotentials).size, 7);
+  assert.equal(new Set(tradeOffs).size, 7);
+  assert.equal(artifact.comparisonMatrix.length, 15);
+  assert.equal(new Set(artifact.comparisonMatrix.map((entry) => entry.comparisonId)).size, 15);
 
   const moonCompositions = artifact.compositions.filter((composition) => composition.bodyId === 'body.moon');
   const mercuryCompositions = artifact.compositions.filter((composition) => composition.bodyId === 'body.mercury');
@@ -151,12 +154,32 @@ test('body and sign contributions remain semantically differentiated', () => {
 
   assert.equal(moonCompositions.length, 2);
   assert.equal(mercuryCompositions.length, 2);
-  assert.equal(ariesCompositions.length, 2);
-  assert.equal(taurusCompositions.length, 2);
+  assert.equal(ariesCompositions.length, 4);
+  assert.equal(taurusCompositions.length, 3);
+  assert.equal(artifact.compositions.filter((composition) => composition.bodyId === 'body.sun').length, 1);
+  assert.equal(artifact.compositions.filter((composition) => composition.bodyId === 'body.venus').length, 1);
+  assert.equal(artifact.compositions.filter((composition) => composition.bodyId === 'body.mars').length, 1);
   assert.match(moonCompositions[0].bodyFunction, /response|rhythm|receptivity|needs/u);
   assert.match(mercuryCompositions[0].bodyFunction, /thinking|naming|interpreting|comparing|learning|information/u);
   assert.match(ariesCompositions[0].signContribution, /initiated|activated|asserted|motion/u);
   assert.match(taurusCompositions[0].signContribution, /embodied|valued|maintained|tangible/u);
+});
+
+test('targeted Sun, Venus, and Mars expansion preserves distinct body functions', () => {
+  const expectedFunctions = new Map([
+    ['body.sun_x_sign.aries', /identity|vitality|agency|direction|self-expression/u],
+    ['body.venus_x_sign.taurus', /relating|attraction|value|preference|harmony/u],
+    ['body.mars_x_sign.aries', /action|assertion|effort|drive|courage/u]
+  ]);
+
+  for (const [compositionId, bodyFunctionPattern] of expectedFunctions) {
+    const composition = artifact.compositions.find((candidate) => candidate.compositionId === compositionId);
+    assert.ok(composition, compositionId);
+    assert.match(composition.bodyFunction, bodyFunctionPattern, compositionId);
+    assert.equal(composition.placementEvidence.independentEvidenceUnits, 1, compositionId);
+    assert.notEqual(composition.semanticDimensions.body.id, composition.semanticDimensions.sign.id, compositionId);
+    assert.equal(composition.runtimeEligibility, 'RUNTIME_NOT_ADMITTED', compositionId);
+  }
 });
 
 test('required anti-stereotype boundaries are absent from bounded meaning fields', () => {
@@ -191,6 +214,29 @@ test('required anti-stereotype boundaries are absent from bounded meaning fields
       'stubborn thinker',
       'good money',
       'methodical communicator'
+    ],
+    'body.sun_x_sign.aries': [
+      'self-centered',
+      'natural leader',
+      'dominant',
+      'guaranteed success',
+      'aggressive'
+    ],
+    'body.venus_x_sign.taurus': [
+      'romantic',
+      'beautiful',
+      'wealthy',
+      'possessive',
+      'luxury',
+      'guaranteed relationship'
+    ],
+    'body.mars_x_sign.aries': [
+      'angry',
+      'violent',
+      'dangerous',
+      'aggressive',
+      'warrior',
+      'guaranteed success'
     ]
   };
 
@@ -345,11 +391,16 @@ test('production/runtime entrypoint semantics remain unchanged and the artifact 
     'body.moon_x_sign.aries',
     'body.mercury_x_sign.aries',
     'body.moon_x_sign.taurus',
-    'body.mercury_x_sign.taurus'
+    'body.mercury_x_sign.taurus',
+    'body.sun_x_sign.aries',
+    'body.venus_x_sign.taurus',
+    'body.mars_x_sign.aries'
   ];
 
   const sourceRoots = [
-    join(REPOSITORY_ROOT, 'apps', 'web', 'src'),
+    // The development-only My Chart POC intentionally contains research IDs;
+    // production interpretation code is the runtime boundary under test.
+    join(REPOSITORY_ROOT, 'apps', 'web', 'src', 'features', 'interpretation'),
     join(REPOSITORY_ROOT, 'server', 'src'),
     join(REPOSITORY_ROOT, 'packages', 'contracts', 'src'),
     join(REPOSITORY_ROOT, 'packages', 'engine-client', 'src')
@@ -390,7 +441,15 @@ test('method and review dossier record the same bounded decision', () => {
     assert.match(review, new RegExp(escapeRegExp(marker), 'u'));
   }
 
-  for (const compositionName of ['Moon × Aries', 'Mercury × Aries', 'Moon × Taurus', 'Mercury × Taurus']) {
+  for (const compositionName of [
+    'Moon × Aries',
+    'Mercury × Aries',
+    'Moon × Taurus',
+    'Mercury × Taurus',
+    'Sun × Aries',
+    'Venus × Taurus',
+    'Mars × Aries'
+  ]) {
     assert.match(review, new RegExp(escapeRegExp(compositionName), 'u'));
   }
 });
