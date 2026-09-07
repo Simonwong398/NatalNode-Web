@@ -1,0 +1,51 @@
+---
+import SiteLayout from '@/layouts/SiteLayout.astro';
+import MyChartRelationalPoc from '@/features/my-chart/MyChartRelationalPoc';
+import type { CompositionSignalPolicyRuleRecord } from '@/features/interpretation/composition-signal-personal-synthesis-poc';
+import type { AspectSignalPolicyRuleRecord } from '@/features/interpretation/shared-root-relational-synthesis-poc';
+import compositionSignalArtifact from '../../../../../docs/research/personal-synthesis/COMPOSITION_SIGNAL_REPRESENTATIVE_V1.json';
+import aspectSignalArtifact from '../../../../../docs/research/personal-synthesis/ASPECT_SIGNAL_REPRESENTATIVE_V1.json';
+import type { SeoMetadata } from '@/lib/seo';
+import '@/styles/my-chart-contextual-learn.css';
+
+const isPreviewAvailable =
+  import.meta.env.DEV ||
+  import.meta.env.MODE === 'local-integration' ||
+  process.env.NATALNODE_LOCAL_DEV_PREVIEW === 'true';
+
+const requestedScenario = Astro.url.searchParams.get('scenario');
+const initialScenario = requestedScenario === 'placement-only'
+  ? 'placement-only'
+  : requestedScenario === 'unknown-time'
+    ? 'unknown-time'
+    : 'relational-known-time';
+
+const placementRules = compositionSignalArtifact.rules as CompositionSignalPolicyRuleRecord[];
+const aspectRules = aspectSignalArtifact.rules as AspectSignalPolicyRuleRecord[];
+
+const seo: SeoMetadata = {
+  title: 'My Chart Relational Reading POC | NatalNode',
+  description: 'Development-only relationally enriched My Chart reading preview.',
+  canonical: '/dev/my-chart-relational',
+  robots: 'noindex,nofollow'
+};
+---
+
+<SiteLayout seo={seo} mode="editorial">
+  <main class="nn-container max-w-[78rem] pb-16 pt-8 sm:pb-24 sm:pt-12">
+    {isPreviewAvailable ? (
+      <MyChartRelationalPoc
+        initialScenario={initialScenario}
+        placementRules={placementRules}
+        aspectRules={aspectRules}
+        client:load
+      />
+    ) : (
+      <section class="mx-auto max-w-2xl" aria-labelledby="my-chart-relational-unavailable-title">
+        <p class="nn-eyebrow">Development only</p>
+        <h1 class="nn-type-page-title mt-3" id="my-chart-relational-unavailable-title">My Chart relational reading</h1>
+        <p class="nn-type-body mt-4">This development preview is unavailable in production builds.</p>
+      </section>
+    )}
+</main>
+</SiteLayout>
