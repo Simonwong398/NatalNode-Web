@@ -1,0 +1,738 @@
+{
+  "artifactId": "natalnode.body-aspect-body.representative-v1",
+  "taskId": "WEB-P2-ASPECT-COMPOSITION-001",
+  "baseline": "aa64238340ec6abe403545ba6aed0c4536d2c8af",
+  "status": "REPRESENTATIVE_ASPECT_COMPOSITION_METHOD_PASS",
+  "scope": {
+    "zodiacModel": "WESTERN_TROPICAL",
+    "defaultCandidateLens": "MODERN_PSYCHOLOGICAL_WESTERN",
+    "comparisonLenses": [
+      "TRADITIONAL_CLASSICAL",
+      "EARLY_MODERN",
+      "NAMED_MODERN_SCHOOL"
+    ],
+    "bodyPair": ["body.moon", "body.mercury"],
+    "includedCompositionCount": 4,
+    "includedCompositionIds": [
+      "body.moon_x_aspect.conjunction_x_body.mercury",
+      "body.moon_x_aspect.trine_x_body.mercury",
+      "body.moon_x_aspect.square_x_body.mercury",
+      "body.moon_x_aspect.opposition_x_body.mercury"
+    ],
+    "excluded": [
+      "sextile from this representative inventory",
+      "quincunx and minor aspects",
+      "declination aspects",
+      "nodes and angles",
+      "outer planets",
+      "other body pairs",
+      "aspect patterns",
+      "production Signals",
+      "PersonalTheme emission",
+      "numeric orb policy",
+      "applying/separating interpretation rule",
+      "runtime wiring"
+    ]
+  },
+  "sourceStatus": "SOURCE_SUPPORTED_WITH_CONDITIONS",
+  "epistemicStatus": "EDITORIAL_SYNTHESIS",
+  "policyState": "ADOPTED_WITH_CONDITIONS",
+  "runtimeEligibility": "RUNTIME_NOT_ADMITTED",
+  "readiness": {
+    "READY_FOR_BOUNDED_ASPECT_COMPOSITION_ADMISSION": "YES",
+    "READY_FOR_ASPECT_SIGNAL_POLICY": "NO",
+    "READY_FOR_BROAD_SCALE": "NO",
+    "RUNTIME_ADMISSION": "NO"
+  },
+  "method": {
+    "methodDocument": "docs/product/NATALNODE_BODY_ASPECT_BODY_COMPOSITION_METHOD_V1.md",
+    "sequence": [
+      "BODY_A_FUNCTION",
+      "BODY_B_FUNCTION",
+      "ASPECT_RELATIONAL_OPERATOR",
+      "STRUCTURAL_INTERACTION",
+      "BOUNDED_CHART_QUESTION",
+      "CONSTRUCTIVE_POTENTIAL",
+      "POSSIBLE_TRADE_OFF",
+      "MODIFIERS_AND_LIMITATIONS"
+    ],
+    "bodyRole": "Each body supplies a distinct symbolic function; neither body is a cause of the other.",
+    "aspectRole": "The aspect supplies a relational operator that changes how the two body functions are considered together.",
+    "canonicalOrdering": "Moon precedes Mercury in stable IDs only; the semantic relation is not directional or causal.",
+    "compositionRule": "The integrated meaning must preserve both body functions and the aspect operator, then produce a bounded relational question rather than a keyword bundle.",
+    "semanticDistinctnessIsNotEvidenceRootIndependence": true,
+    "evidenceLineageRule": "A relational fact depends on the two position roots, adds relational semantics, and does not create a third independent evidence root.",
+    "unknownTimeRule": "Unknown birth time suppresses aspect eligibility by default unless an authoritative Engine result explicitly certifies the relation under the available time uncertainty.",
+    "numericScoring": "NOT_USED",
+    "historicalConjunctionClassification": "UNRESOLVED_IN_REPOSITORY; the broader aspect-relation data model is used without claiming that all schools classify conjunction identically."
+  },
+  "aspectRelationVocabulary": {
+    "conjunction": {
+      "operator": "CO_PRESENCE_CONCENTRATION_CLOSE_COUPLING",
+      "sourceVocabulary": ["concentration", "combination", "close merging"],
+      "automaticValence": "NOT_ASSIGNED",
+      "automaticImportance": "NOT_ASSIGNED"
+    },
+    "trine": {
+      "operator": "RELATIVELY_EASIER_CIRCULATION_COMPATIBILITY",
+      "sourceVocabulary": ["ease", "flow", "readily available connection"],
+      "automaticValence": "NOT_ASSIGNED",
+      "automaticImportance": "NOT_ASSIGNED"
+    },
+    "square": {
+      "operator": "ACTIVE_FRICTION_PRESSURE_ADJUSTMENT",
+      "sourceVocabulary": ["friction", "pressure", "challenge", "action"],
+      "automaticValence": "NOT_ASSIGNED",
+      "automaticImportance": "NOT_ASSIGNED"
+    },
+    "opposition": {
+      "operator": "POLARITY_FACING_ALTERNATION_NEGOTIATION",
+      "sourceVocabulary": ["polarity", "tension", "awareness", "perspective"],
+      "automaticValence": "NOT_ASSIGNED",
+      "automaticImportance": "NOT_ASSIGNED"
+    }
+  },
+  "valencePolicy": {
+    "aspectTypeAloneDeterminesDirection": false,
+    "directionAssignment": "NOT_ASSIGNED",
+    "intensityAssignment": "NOT_ASSIGNED",
+    "confidenceAssignment": "NOT_ASSIGNED",
+    "forbiddenMechanicalMappings": [
+      "square -> CHALLENGING",
+      "trine -> SUPPORTIVE",
+      "conjunction -> STRONG",
+      "opposition -> MIXED"
+    ]
+  },
+  "futureSignalBoundary": {
+    "createsSignalRule": false,
+    "createsPersonalTheme": false,
+    "direction": "NOT_ASSIGNED",
+    "intensity": "NOT_ASSIGNED",
+    "confidence": "NOT_ASSIGNED",
+    "priority": "NOT_ASSIGNED",
+    "futureRequirement": "A separate admitted aspect Signal policy must define its own domain, direction, evidence, provenance, suppression, and birth-time eligibility."
+  },
+  "unknownBirthTimePolicy": {
+    "status": "FAIL_CLOSED_BY_DEFAULT",
+    "aspectEligibility": "SUPPRESS_UNLESS_AUTHORITATIVE_ENGINE_CERTIFIES_TIME_UNCERTAINTY",
+    "moonPositionMayVaryAcrossUnknownWindow": true,
+    "orbAndExactnessMayChange": true,
+    "forbiddenFallbacks": [
+      "noon",
+      "midnight",
+      "default time",
+      "average time",
+      "guessed birth time",
+      "fake degrees",
+      "synthetic angular separation"
+    ]
+  },
+  "sourceGapRegister": [
+    {
+      "gapId": "ASPECT_MOON_MERCURY_PAIR_DOCTRINE",
+      "status": "SOURCE_GAP",
+      "result": "No repository source provides a Moon–Mercury-specific historical doctrine; pair-specific integrated wording remains EDITORIAL_SYNTHESIS."
+    },
+    {
+      "gapId": "ASPECT_NUMERIC_ORB_POLICY",
+      "status": "SOURCE_GAP",
+      "result": "No universal aspect-specific orb table is admitted; no numeric orb value or strength rule is created."
+    },
+    {
+      "gapId": "ASPECT_PHASE_INTERPRETATION",
+      "status": "SOURCE_GAP",
+      "result": "The repository supports returned phase vocabulary but does not admit a phase-to-meaning rule for these compositions."
+    },
+    {
+      "gapId": "HISTORICAL_CONJUNCTION_CLASSIFICATION",
+      "status": "UNRESOLVED",
+      "result": "The broader data model permits conjunction as an aspect relation, but this package does not claim historical equivalence across schools."
+    }
+  ],
+  "personalSynthesisCompatibility": {
+    "compositionObjectsAreSignals": false,
+    "compositionObjectsArePersonalThemes": false,
+    "createsProductionPriority": false,
+    "directionIntensityConfidence": "NOT_ASSIGNED",
+    "requiresFutureAdmittedSignalRule": true,
+    "requiresIndependentRootDeduplication": true,
+    "requiresBirthTimeEligibility": true,
+    "requiresSuppressionAndLimitations": true,
+    "requiresWhyAndLearnTrace": true,
+    "runtimeWiring": "NONE"
+  },
+  "requiredFields": [
+    "compositionId",
+    "compositionType",
+    "bodyAId",
+    "bodyBId",
+    "aspectType",
+    "bodyAFunction",
+    "bodyBFunction",
+    "aspectRelation",
+    "integratedMeaning",
+    "boundedChartQuestion",
+    "constructivePotential",
+    "possibleTradeOff",
+    "nearbyDistinctions",
+    "modifierRequirements",
+    "forbiddenInferences",
+    "evidenceLineage",
+    "semanticDependencies",
+    "sourceRefs",
+    "schoolNotes",
+    "authorityRequirements",
+    "epistemicStatus",
+    "policyState",
+    "runtimeEligibility",
+    "editorialReviewStatus"
+  ],
+  "sourceCatalog": [
+    {
+      "refId": "FOUNDATIONS_ASPECTS_EN",
+      "path": "docs/content/foundations/v1/en/09-aspects-relationships-between-planets.md",
+      "locator": "Core Concept / The five major aspects; Orb; Applying, exact, and separating",
+      "sourceClass": "ESTABLISHED_REFERENCE",
+      "tradition": "SHARED_BEGINNER_VOCABULARY",
+      "supports": "Cautious aspect relation vocabulary and separation of geometry from interpretation."
+    },
+    {
+      "refId": "KNOWLEDGE_CANON_ASPECT_SCHEMA",
+      "path": "docs/content/NATALNODE_ASTROLOGY_KNOWLEDGE_CANON_V1.md",
+      "locator": "Sections 13, 15, 18, and 19",
+      "sourceClass": "INTERNAL_POLICY",
+      "tradition": "NATALNODE_POLICY",
+      "supports": "Aspect record contract, Planet × Planet through Aspect requirements, and explicit modifiers."
+    },
+    {
+      "refId": "CHART_ASPECT_FACT_CONTRACT",
+      "path": "packages/contracts/src/chart.ts",
+      "locator": "AspectFact and AspectPhaseState",
+      "sourceClass": "INTERNAL_POLICY",
+      "tradition": "CALCULATION_BOUNDARY",
+      "supports": "Supplied aspect fields and the rule that Web consumes rather than calculates them."
+    },
+    {
+      "refId": "EXISTING_ASPECT_DYNAMICS_REFERENCE",
+      "path": "apps/web/src/features/interpretation/interpretation-content.ts",
+      "locator": "ASPECT_DYNAMICS",
+      "sourceClass": "INTERNAL_POLICY",
+      "tradition": "MODERN_PSYCHOLOGICAL_WESTERN_CANDIDATE",
+      "supports": "Existing bounded presentation vocabulary; not a new runtime rule or authority."
+    },
+    {
+      "refId": "EXISTING_ASPECT_TAXONOMY",
+      "path": "apps/web/src/core/astrology-taxonomy/chart-taxonomy.ts",
+      "locator": "SUPPORTED_ASPECT_TYPES",
+      "sourceClass": "INTERNAL_POLICY",
+      "tradition": "WESTERN_TROPICAL_PRODUCT_TAXONOMY",
+      "supports": "Existing aspect IDs; no parallel taxonomy is introduced."
+    },
+    {
+      "refId": "PERSONAL_BODIES_PRIMITIVE",
+      "path": "docs/research/astrology-knowledge-canon/primitives/bodies/PERSONAL_BODIES.md",
+      "locator": "BODY-MOON-001 and BODY-MERCURY-001",
+      "sourceClass": "ESTABLISHED_REFERENCE",
+      "tradition": "MODERN_PSYCHOLOGICAL_WESTERN_WITH_NAMED_COMPARISONS",
+      "supports": "Bounded Moon and Mercury functions and negative boundaries."
+    },
+    {
+      "refId": "SOURCE_REGISTER",
+      "path": "docs/research/astrology-knowledge-canon/primitives/SOURCE_REGISTER.md",
+      "locator": "Source classes and registered sources",
+      "sourceClass": "INTERNAL_POLICY",
+      "tradition": "NATALNODE_POLICY",
+      "supports": "Source class, school, and historical separation rules."
+    },
+    {
+      "refId": "BODY_SIGN_METHOD",
+      "path": "docs/product/NATALNODE_BODY_SIGN_COMPOSITION_METHOD_V1.md",
+      "locator": "Decision boundary, evidence accounting, and Personal Synthesis compatibility",
+      "sourceClass": "INTERNAL_POLICY",
+      "tradition": "NATALNODE_POLICY",
+      "supports": "Composition method and semantic-distinctness/evidence-lineage boundary."
+    },
+    {
+      "refId": "PERSONAL_EDITORIAL_ARCHITECTURE",
+      "path": "docs/product/NATALNODE_PERSONAL_EDITORIAL_ARCHITECTURE_V1.md",
+      "locator": "ChartFacts, WHY/evidence, unknown birth time, and anti-Barnum policy",
+      "sourceClass": "INTERNAL_POLICY",
+      "tradition": "NATALNODE_POLICY",
+      "supports": "Bounded personal meaning, agency, evidence, and limitation rules."
+    },
+    {
+      "refId": "CONTENT_VALUE_ARCHITECTURE",
+      "path": "docs/product/NATALNODE_CONTENT_VALUE_ARCHITECTURE_V1.md",
+      "locator": "FACT/SIGNAL/INTERPRETATION/EDUCATION boundaries and technical depth",
+      "sourceClass": "INTERNAL_POLICY",
+      "tradition": "NATALNODE_POLICY",
+      "supports": "Progressive depth and no authority upgrade from presentation."
+    },
+    {
+      "refId": "INTERPRETATION_SYSTEM",
+      "path": "docs/architecture/NATALNODE_INTERPRETATION_SYSTEM_V1.md",
+      "locator": "Scope, fact authority, and four semantic layers",
+      "sourceClass": "INTERNAL_POLICY",
+      "tradition": "NATALNODE_POLICY",
+      "supports": "Fact → Signal → Interpretation → Presentation boundary and no Web astronomy."
+    },
+    {
+      "refId": "PERSONAL_SYNTHESIS_POC",
+      "path": "docs/research/personal-synthesis/PERSONAL_SYNTHESIS_POC_001_REVIEW.md",
+      "locator": "Evidence, convergence, unknown-time, and provenance sections",
+      "sourceClass": "INTERNAL_POLICY",
+      "tradition": "NATALNODE_POLICY",
+      "supports": "Future synthesis compatibility and independent-root accounting."
+    }
+  ],
+  "comparisonMatrix": [
+    {
+      "comparisonId": "conjunction_vs_trine",
+      "left": "body.moon_x_aspect.conjunction_x_body.mercury",
+      "right": "body.moon_x_aspect.trine_x_body.mercury",
+      "whatChanges": "Conjunction concentrates the functions in close coupling; trine describes relatively easier circulation between them.",
+      "whyItMatters": "The same Moon and Mercury functions can require differentiation in one relation and deliberate use of ease in the other; neither relation receives an automatic value score."
+    },
+    {
+      "comparisonId": "conjunction_vs_square",
+      "left": "body.moon_x_aspect.conjunction_x_body.mercury",
+      "right": "body.moon_x_aspect.square_x_body.mercury",
+      "whatChanges": "Conjunction brings co-presence and concentration; square introduces active friction and pressure for adjustment.",
+      "whyItMatters": "Close coupling is not the same semantic operation as a mismatch that asks for translation or pacing."
+    },
+    {
+      "comparisonId": "conjunction_vs_opposition",
+      "left": "body.moon_x_aspect.conjunction_x_body.mercury",
+      "right": "body.moon_x_aspect.opposition_x_body.mercury",
+      "whatChanges": "Conjunction holds functions in one concentrated field; opposition places them in a polarity that may alternate attention and invite negotiation.",
+      "whyItMatters": "Concentration and facing are different relational structures even when the two body functions do not change."
+    },
+    {
+      "comparisonId": "trine_vs_square",
+      "left": "body.moon_x_aspect.trine_x_body.mercury",
+      "right": "body.moon_x_aspect.square_x_body.mercury",
+      "whatChanges": "Trine describes easier circulation; square describes active friction and adjustment.",
+      "whyItMatters": "Ease is not virtue and friction is not failure; the operator changes the chart question rather than assigning a moral result."
+    },
+    {
+      "comparisonId": "trine_vs_opposition",
+      "left": "body.moon_x_aspect.trine_x_body.mercury",
+      "right": "body.moon_x_aspect.opposition_x_body.mercury",
+      "whatChanges": "Trine describes a readily available connection; opposition describes polarity, perspective, and negotiation.",
+      "whyItMatters": "A connection that circulates easily is not the same as one that asks two perspectives to remain visible."
+    },
+    {
+      "comparisonId": "square_vs_opposition",
+      "left": "body.moon_x_aspect.square_x_body.mercury",
+      "right": "body.moon_x_aspect.opposition_x_body.mercury",
+      "whatChanges": "Square centers pressure for adjustment within the relationship; opposition centers facing, alternation, and negotiation across a polarity.",
+      "whyItMatters": "Adjustment pressure must not be collapsed into polarity, and polarity must not be converted into inevitable conflict."
+    }
+  ],
+  "compositions": [
+    {
+      "compositionId": "body.moon_x_aspect.conjunction_x_body.mercury",
+      "compositionType": "BODY_X_ASPECT_X_BODY",
+      "bodyAId": "body.moon",
+      "bodyBId": "body.mercury",
+      "aspectType": "conjunction",
+      "bodyAFunction": "Moon supplies questions about recurring response, rhythm, receptivity, inner experience, and needs. It remains a symbolic function rather than an emotions-only identity.",
+      "bodyBFunction": "Mercury supplies questions about thinking, naming, interpretation, comparison, learning, reasoning, and exchange. It remains a symbolic function rather than an intelligence or communication verdict.",
+      "aspectRelation": {
+        "operatorId": "aspect.relation.conjunction",
+        "structuralQuality": "co-presence, concentration, combination, and close coupling",
+        "integrates": "The two functions occupy a concentrated relational field.",
+        "relationalNotCausal": true,
+        "automaticValence": "NOT_ASSIGNED",
+        "automaticImportance": "NOT_ASSIGNED"
+      },
+      "integratedMeaning": "Moon response and Mercury naming may be explored in close coupling: felt experience can make language more immediate, while language can give recurring response a form that can be examined. The two functions remain distinct even when they are concentrated together.",
+      "boundedChartQuestion": "How can recurring response and naming occupy the same field without one being mistaken for the whole of the other?",
+      "constructivePotential": "Practice translating a response into words while letting the response remain more than its first explanation; allow language to clarify experience without closing it too quickly.",
+      "possibleTradeOff": "Close coupling may let one function crowd out the other: an immediate feeling may be treated as a settled interpretation, or interpretation may move ahead of receptivity.",
+      "nearbyDistinctions": [
+        {
+          "comparison": "conjunction versus trine",
+          "distinction": "Conjunction concentrates the functions; trine describes easier circulation between them.",
+          "whyItMatters": "Close contact is not the same operator as flow and does not automatically mean more strength."
+        },
+        {
+          "comparison": "conjunction versus square",
+          "distinction": "Conjunction describes co-presence; square describes pressure that asks for adjustment.",
+          "whyItMatters": "The need to differentiate a concentrated field is not the same as a friction-based translation problem."
+        },
+        {
+          "comparison": "conjunction versus opposition",
+          "distinction": "Conjunction holds the functions close; opposition keeps two perspectives facing across a polarity.",
+          "whyItMatters": "Concentration must not be rewritten as alternation or a forced choice."
+        }
+      ],
+      "modifierRequirements": [
+        {"modifier": "authoritative_body_position_roots", "status": "REQUIRED", "requirement": "Both Moon and Mercury positions must be supplied by an admitted chart result."},
+        {"modifier": "authoritative_aspect_fact", "status": "REQUIRED", "requirement": "The conjunction must be returned/admitted; Web does not calculate it."},
+        {"modifier": "aspect_type", "status": "REQUIRED", "requirement": "The returned relation must be conjunction."},
+        {"modifier": "angular_relation_authority", "status": "REQUIRED", "requirement": "The upstream calculation boundary must own the geometric relation."},
+        {"modifier": "orb_policy", "status": "REQUIRED_FOR_ASPECT_ADMISSION", "requirement": "An upstream method identity/result is required; this record supplies no numeric value."},
+        {"modifier": "phase_state", "status": "OPTIONAL_IF_RETURNED", "requirement": "Applying, exact, or separating remains unresolved when not supplied."},
+        {"modifier": "zodiac_model", "status": "REQUIRED", "requirement": "Western Tropical is required for this bounded scope."},
+        {"modifier": "school_choice", "status": "REQUIRED_FOR_NARROWER_READING", "requirement": "Traditional/classical, early-modern, and modern/psychological lenses must remain named."},
+        {"modifier": "sign_placements", "status": "OPTIONAL_FOR_CORE_RELATION", "requirement": "Use only when an authoritative sign-qualified question is admitted."},
+        {"modifier": "house_and_house_system", "status": "REQUIRED_WHEN_USED", "requirement": "Do not infer houses or a house system."},
+        {"modifier": "exact_geometry", "status": "OPTIONAL_IF_RETURNED", "requirement": "Use only returned geometry; no degrees are calculated here."},
+        {"modifier": "other_chart_factors_and_counterevidence", "status": "REQUIRED_FOR_PERSONAL_NARROWING", "requirement": "The relation alone is not a whole-chart conclusion."},
+        {"modifier": "birth_time_authority", "status": "REQUIRED", "requirement": "Unknown birth time suppresses eligibility by default."},
+        {"modifier": "temporal_context", "status": "NOT_APPLICABLE_TO_NATAL_CORE", "requirement": "No transit or forecast meaning is introduced."}
+      ],
+      "forbiddenInferences": [
+        "says exactly what they feel",
+        "emotional thinker",
+        "subjective thinker",
+        "emotionally intelligent",
+        "cannot separate feelings from thoughts",
+        "strong communication",
+        "special intuition",
+        "complete personality",
+        "diagnosis",
+        "guaranteed outcome"
+      ],
+      "evidenceLineage": {
+        "relationalFactId": "relational.body.moon_aspect.conjunction_body.mercury",
+        "relationalSemanticUnit": "BODY_A_ASPECT_BODY_B",
+        "dependentPositionFactKeys": ["body.moon.position", "body.mercury.position"],
+        "evidenceRootKeys": ["body.moon.position", "body.mercury.position"],
+        "independentRootCount": 2,
+        "semanticDimensionCount": 3,
+        "relationalFactIsIndependentRoot": false,
+        "relationalFactAddsSemanticInformation": true,
+        "relationalFactIndependentEvidenceIncrement": 0,
+        "countsAsThreeIndependentRoots": false,
+        "deduplicationRule": "A later convergence layer must deduplicate the two position root keys across placement and aspect records."
+      },
+      "semanticDependencies": {
+        "bodyA": {"objectId": "body.moon", "dependencyType": "POSITION_ROOT", "semanticFunction": "response and need"},
+        "bodyB": {"objectId": "body.mercury", "dependencyType": "POSITION_ROOT", "semanticFunction": "naming and interpretation"},
+        "aspectRelation": {"operatorId": "aspect.relation.conjunction", "dependencyType": "RELATIONAL_DERIVED_FROM_POSITION_ROOTS", "independentEvidence": false}
+      },
+      "sourceRefs": ["FOUNDATIONS_ASPECTS_EN", "KNOWLEDGE_CANON_ASPECT_SCHEMA", "CHART_ASPECT_FACT_CONTRACT", "EXISTING_ASPECT_DYNAMICS_REFERENCE", "PERSONAL_BODIES_PRIMITIVE", "BODY_SIGN_METHOD", "PERSONAL_EDITORIAL_ARCHITECTURE", "INTERPRETATION_SYSTEM"],
+      "schoolNotes": {
+        "defaultLens": "MODERN_PSYCHOLOGICAL_WESTERN",
+        "comparisonLenses": ["TRADITIONAL_CLASSICAL", "EARLY_MODERN"],
+        "conjunctionClassificationNuance": "UNRESOLVED_IN_REPOSITORY",
+        "schoolsAreNotSilentlyMerged": true
+      },
+      "authorityRequirements": {
+        "requiredAspectAuthority": "AUTHORITATIVE_ENGINE_REQUIRED",
+        "developmentFixtureEligibility": "SUPPRESS",
+        "fixtureDoesNotClaimAuthority": true,
+        "unknownTimeDefault": "SUPPRESS"
+      },
+      "epistemicStatus": "EDITORIAL_SYNTHESIS",
+      "policyState": "ADOPTED_WITH_CONDITIONS",
+      "runtimeEligibility": "RUNTIME_NOT_ADMITTED",
+      "editorialReviewStatus": "REPRESENTATIVE_POLICY_REVIEWED"
+    },
+    {
+      "compositionId": "body.moon_x_aspect.trine_x_body.mercury",
+      "compositionType": "BODY_X_ASPECT_X_BODY",
+      "bodyAId": "body.moon",
+      "bodyBId": "body.mercury",
+      "aspectType": "trine",
+      "bodyAFunction": "Moon supplies questions about recurring response, rhythm, receptivity, inner experience, and needs. It remains a symbolic function rather than an emotions-only identity.",
+      "bodyBFunction": "Mercury supplies questions about thinking, naming, interpretation, comparison, learning, reasoning, and exchange. It remains a symbolic function rather than an intelligence or communication verdict.",
+      "aspectRelation": {
+        "operatorId": "aspect.relation.trine",
+        "structuralQuality": "relatively easier circulation, flow, and compatibility",
+        "integrates": "The two functions have a comparatively readily available channel for informing one another.",
+        "relationalNotCausal": true,
+        "automaticValence": "NOT_ASSIGNED",
+        "automaticImportance": "NOT_ASSIGNED"
+      },
+      "integratedMeaning": "Moon response and Mercury naming may be explored through a relatively easy channel of circulation: felt information can be noticed, translated, and compared with less deliberate friction. Ease makes the connection available; it does not guarantee skill, virtue, or an outcome.",
+      "boundedChartQuestion": "Where can felt information and language move readily, and where does that ease still need deliberate checking?",
+      "constructivePotential": "Let response inform language and let language clarify response, using the available circulation intentionally while leaving room to test whether the first understanding still fits.",
+      "possibleTradeOff": "A readily available connection may be taken for granted. Familiar flow can reduce the impulse to check what was omitted, assumed, or left unspoken.",
+      "nearbyDistinctions": [
+        {
+          "comparison": "trine versus conjunction",
+          "distinction": "Trine emphasizes circulation and compatibility; conjunction emphasizes concentration and close coupling.",
+          "whyItMatters": "An easy channel is not a fused field and does not imply a stronger relation."
+        },
+        {
+          "comparison": "trine versus square",
+          "distinction": "Trine describes relatively easy movement; square describes pressure that calls for adjustment.",
+          "whyItMatters": "Ease is not virtue and pressure is not failure; each relation asks a different question."
+        },
+        {
+          "comparison": "trine versus opposition",
+          "distinction": "Trine describes a readily available connection; opposition describes facing and negotiation across polarity.",
+          "whyItMatters": "Circulation and alternation are not interchangeable relationship structures."
+        }
+      ],
+      "modifierRequirements": [
+        {"modifier": "authoritative_body_position_roots", "status": "REQUIRED", "requirement": "Both Moon and Mercury positions must be supplied by an admitted chart result."},
+        {"modifier": "authoritative_aspect_fact", "status": "REQUIRED", "requirement": "The trine must be returned/admitted; Web does not calculate it."},
+        {"modifier": "aspect_type", "status": "REQUIRED", "requirement": "The returned relation must be trine."},
+        {"modifier": "angular_relation_authority", "status": "REQUIRED", "requirement": "The upstream calculation boundary must own the geometric relation."},
+        {"modifier": "orb_policy", "status": "REQUIRED_FOR_ASPECT_ADMISSION", "requirement": "An upstream method identity/result is required; this record supplies no numeric value."},
+        {"modifier": "phase_state", "status": "OPTIONAL_IF_RETURNED", "requirement": "Applying, exact, or separating remains unresolved when not supplied."},
+        {"modifier": "zodiac_model", "status": "REQUIRED", "requirement": "Western Tropical is required for this bounded scope."},
+        {"modifier": "school_choice", "status": "REQUIRED_FOR_NARROWER_READING", "requirement": "Traditional/classical, early-modern, and modern/psychological lenses must remain named."},
+        {"modifier": "sign_placements", "status": "OPTIONAL_FOR_CORE_RELATION", "requirement": "Use only when an authoritative sign-qualified question is admitted."},
+        {"modifier": "house_and_house_system", "status": "REQUIRED_WHEN_USED", "requirement": "Do not infer houses or a house system."},
+        {"modifier": "exact_geometry", "status": "OPTIONAL_IF_RETURNED", "requirement": "Use only returned geometry; no degrees are calculated here."},
+        {"modifier": "other_chart_factors_and_counterevidence", "status": "REQUIRED_FOR_PERSONAL_NARROWING", "requirement": "The relation alone is not a whole-chart conclusion."},
+        {"modifier": "birth_time_authority", "status": "REQUIRED", "requirement": "Unknown birth time suppresses eligibility by default."},
+        {"modifier": "temporal_context", "status": "NOT_APPLICABLE_TO_NATAL_CORE", "requirement": "No transit or forecast meaning is introduced."}
+      ],
+      "forbiddenInferences": [
+        "gifted communicator",
+        "emotionally intelligent",
+        "naturally eloquent",
+        "easy childhood communication",
+        "excellent memory",
+        "psychologically healthy",
+        "guaranteed talent",
+        "guaranteed success",
+        "complete personality",
+        "diagnosis"
+      ],
+      "evidenceLineage": {
+        "relationalFactId": "relational.body.moon_aspect.trine_body.mercury",
+        "relationalSemanticUnit": "BODY_A_ASPECT_BODY_B",
+        "dependentPositionFactKeys": ["body.moon.position", "body.mercury.position"],
+        "evidenceRootKeys": ["body.moon.position", "body.mercury.position"],
+        "independentRootCount": 2,
+        "semanticDimensionCount": 3,
+        "relationalFactIsIndependentRoot": false,
+        "relationalFactAddsSemanticInformation": true,
+        "relationalFactIndependentEvidenceIncrement": 0,
+        "countsAsThreeIndependentRoots": false,
+        "deduplicationRule": "A later convergence layer must deduplicate the two position root keys across placement and aspect records."
+      },
+      "semanticDependencies": {
+        "bodyA": {"objectId": "body.moon", "dependencyType": "POSITION_ROOT", "semanticFunction": "response and need"},
+        "bodyB": {"objectId": "body.mercury", "dependencyType": "POSITION_ROOT", "semanticFunction": "naming and interpretation"},
+        "aspectRelation": {"operatorId": "aspect.relation.trine", "dependencyType": "RELATIONAL_DERIVED_FROM_POSITION_ROOTS", "independentEvidence": false}
+      },
+      "sourceRefs": ["FOUNDATIONS_ASPECTS_EN", "KNOWLEDGE_CANON_ASPECT_SCHEMA", "CHART_ASPECT_FACT_CONTRACT", "EXISTING_ASPECT_DYNAMICS_REFERENCE", "PERSONAL_BODIES_PRIMITIVE", "BODY_SIGN_METHOD", "PERSONAL_EDITORIAL_ARCHITECTURE", "INTERPRETATION_SYSTEM"],
+      "schoolNotes": {
+        "defaultLens": "MODERN_PSYCHOLOGICAL_WESTERN",
+        "comparisonLenses": ["TRADITIONAL_CLASSICAL", "EARLY_MODERN"],
+        "conjunctionClassificationNuance": "UNRESOLVED_IN_REPOSITORY",
+        "schoolsAreNotSilentlyMerged": true
+      },
+      "authorityRequirements": {
+        "requiredAspectAuthority": "AUTHORITATIVE_ENGINE_REQUIRED",
+        "developmentFixtureEligibility": "SUPPRESS",
+        "fixtureDoesNotClaimAuthority": true,
+        "unknownTimeDefault": "SUPPRESS"
+      },
+      "epistemicStatus": "EDITORIAL_SYNTHESIS",
+      "policyState": "ADOPTED_WITH_CONDITIONS",
+      "runtimeEligibility": "RUNTIME_NOT_ADMITTED",
+      "editorialReviewStatus": "REPRESENTATIVE_POLICY_REVIEWED"
+    },
+    {
+      "compositionId": "body.moon_x_aspect.square_x_body.mercury",
+      "compositionType": "BODY_X_ASPECT_X_BODY",
+      "bodyAId": "body.moon",
+      "bodyBId": "body.mercury",
+      "aspectType": "square",
+      "bodyAFunction": "Moon supplies questions about recurring response, rhythm, receptivity, inner experience, and needs. It remains a symbolic function rather than an emotions-only identity.",
+      "bodyBFunction": "Mercury supplies questions about thinking, naming, interpretation, comparison, learning, reasoning, and exchange. It remains a symbolic function rather than an intelligence or communication verdict.",
+      "aspectRelation": {
+        "operatorId": "aspect.relation.square",
+        "structuralQuality": "active friction, pressure, and adjustment",
+        "integrates": "The two functions make a mismatch or pressure for translation more noticeable.",
+        "relationalNotCausal": true,
+        "automaticValence": "NOT_ASSIGNED",
+        "automaticImportance": "NOT_ASSIGNED"
+      },
+      "integratedMeaning": "Moon response and Mercury naming may be explored through active friction: felt experience and interpretation can press against one another, making translation, pacing, and adjustment more visible. The pressure is a chart question, not a verdict that either function is defective.",
+      "boundedChartQuestion": "What needs to be slowed, distinguished, or reworded when response and interpretation press against each other?",
+      "constructivePotential": "Use mismatch as feedback: pause between response and explanation, distinguish what was felt from what was concluded, and let revision improve the exchange.",
+      "possibleTradeOff": "Pressure for adjustment can produce premature naming or make it easier to retreat into explanation instead of staying with the response that needs attention.",
+      "nearbyDistinctions": [
+        {
+          "comparison": "square versus conjunction",
+          "distinction": "Square emphasizes friction and adjustment; conjunction emphasizes concentration and close coupling.",
+          "whyItMatters": "A translation problem is not the same as a concentrated field and must not be reduced to closeness."
+        },
+        {
+          "comparison": "square versus trine",
+          "distinction": "Square asks for deliberate adjustment; trine describes comparatively easier circulation.",
+          "whyItMatters": "Pressure is not failure and ease is not virtue; neither operator decides an outcome alone."
+        },
+        {
+          "comparison": "square versus opposition",
+          "distinction": "Square centers active friction within the relation; opposition centers facing and negotiation across polarity.",
+          "whyItMatters": "Adjustment pressure must not become a split or an inevitable conflict story."
+        }
+      ],
+      "modifierRequirements": [
+        {"modifier": "authoritative_body_position_roots", "status": "REQUIRED", "requirement": "Both Moon and Mercury positions must be supplied by an admitted chart result."},
+        {"modifier": "authoritative_aspect_fact", "status": "REQUIRED", "requirement": "The square must be returned/admitted; Web does not calculate it."},
+        {"modifier": "aspect_type", "status": "REQUIRED", "requirement": "The returned relation must be square."},
+        {"modifier": "angular_relation_authority", "status": "REQUIRED", "requirement": "The upstream calculation boundary must own the geometric relation."},
+        {"modifier": "orb_policy", "status": "REQUIRED_FOR_ASPECT_ADMISSION", "requirement": "An upstream method identity/result is required; this record supplies no numeric value."},
+        {"modifier": "phase_state", "status": "OPTIONAL_IF_RETURNED", "requirement": "Applying, exact, or separating remains unresolved when not supplied."},
+        {"modifier": "zodiac_model", "status": "REQUIRED", "requirement": "Western Tropical is required for this bounded scope."},
+        {"modifier": "school_choice", "status": "REQUIRED_FOR_NARROWER_READING", "requirement": "Traditional/classical, early-modern, and modern/psychological lenses must remain named."},
+        {"modifier": "sign_placements", "status": "OPTIONAL_FOR_CORE_RELATION", "requirement": "Use only when an authoritative sign-qualified question is admitted."},
+        {"modifier": "house_and_house_system", "status": "REQUIRED_WHEN_USED", "requirement": "Do not infer houses or a house system."},
+        {"modifier": "exact_geometry", "status": "OPTIONAL_IF_RETURNED", "requirement": "Use only returned geometry; no degrees are calculated here."},
+        {"modifier": "other_chart_factors_and_counterevidence", "status": "REQUIRED_FOR_PERSONAL_NARROWING", "requirement": "The relation alone is not a whole-chart conclusion."},
+        {"modifier": "birth_time_authority", "status": "REQUIRED", "requirement": "Unknown birth time suppresses eligibility by default."},
+        {"modifier": "temporal_context", "status": "NOT_APPLICABLE_TO_NATAL_CORE", "requirement": "No transit or forecast meaning is introduced."}
+      ],
+      "forbiddenInferences": [
+        "irrational",
+        "anxious",
+        "emotionally unstable",
+        "poor communicator",
+        "head versus heart",
+        "mental health problem",
+        "family trauma",
+        "pathology",
+        "complete personality",
+        "diagnosis"
+      ],
+      "evidenceLineage": {
+        "relationalFactId": "relational.body.moon_aspect.square_body.mercury",
+        "relationalSemanticUnit": "BODY_A_ASPECT_BODY_B",
+        "dependentPositionFactKeys": ["body.moon.position", "body.mercury.position"],
+        "evidenceRootKeys": ["body.moon.position", "body.mercury.position"],
+        "independentRootCount": 2,
+        "semanticDimensionCount": 3,
+        "relationalFactIsIndependentRoot": false,
+        "relationalFactAddsSemanticInformation": true,
+        "relationalFactIndependentEvidenceIncrement": 0,
+        "countsAsThreeIndependentRoots": false,
+        "deduplicationRule": "A later convergence layer must deduplicate the two position root keys across placement and aspect records."
+      },
+      "semanticDependencies": {
+        "bodyA": {"objectId": "body.moon", "dependencyType": "POSITION_ROOT", "semanticFunction": "response and need"},
+        "bodyB": {"objectId": "body.mercury", "dependencyType": "POSITION_ROOT", "semanticFunction": "naming and interpretation"},
+        "aspectRelation": {"operatorId": "aspect.relation.square", "dependencyType": "RELATIONAL_DERIVED_FROM_POSITION_ROOTS", "independentEvidence": false}
+      },
+      "sourceRefs": ["FOUNDATIONS_ASPECTS_EN", "KNOWLEDGE_CANON_ASPECT_SCHEMA", "CHART_ASPECT_FACT_CONTRACT", "EXISTING_ASPECT_DYNAMICS_REFERENCE", "PERSONAL_BODIES_PRIMITIVE", "BODY_SIGN_METHOD", "PERSONAL_EDITORIAL_ARCHITECTURE", "INTERPRETATION_SYSTEM"],
+      "schoolNotes": {
+        "defaultLens": "MODERN_PSYCHOLOGICAL_WESTERN",
+        "comparisonLenses": ["TRADITIONAL_CLASSICAL", "EARLY_MODERN"],
+        "conjunctionClassificationNuance": "UNRESOLVED_IN_REPOSITORY",
+        "schoolsAreNotSilentlyMerged": true
+      },
+      "authorityRequirements": {
+        "requiredAspectAuthority": "AUTHORITATIVE_ENGINE_REQUIRED",
+        "developmentFixtureEligibility": "SUPPRESS",
+        "fixtureDoesNotClaimAuthority": true,
+        "unknownTimeDefault": "SUPPRESS"
+      },
+      "epistemicStatus": "EDITORIAL_SYNTHESIS",
+      "policyState": "ADOPTED_WITH_CONDITIONS",
+      "runtimeEligibility": "RUNTIME_NOT_ADMITTED",
+      "editorialReviewStatus": "REPRESENTATIVE_POLICY_REVIEWED"
+    },
+    {
+      "compositionId": "body.moon_x_aspect.opposition_x_body.mercury",
+      "compositionType": "BODY_X_ASPECT_X_BODY",
+      "bodyAId": "body.moon",
+      "bodyBId": "body.mercury",
+      "aspectType": "opposition",
+      "bodyAFunction": "Moon supplies questions about recurring response, rhythm, receptivity, inner experience, and needs. It remains a symbolic function rather than an emotions-only identity.",
+      "bodyBFunction": "Mercury supplies questions about thinking, naming, interpretation, comparison, learning, reasoning, and exchange. It remains a symbolic function rather than an intelligence or communication verdict.",
+      "aspectRelation": {
+        "operatorId": "aspect.relation.opposition",
+        "structuralQuality": "polarity, facing, alternation, perspective, and negotiation",
+        "integrates": "The two functions remain visible as complementary perspectives that may alternate attention.",
+        "relationalNotCausal": true,
+        "automaticValence": "NOT_ASSIGNED",
+        "automaticImportance": "NOT_ASSIGNED"
+      },
+      "integratedMeaning": "Moon response and Mercury naming may be explored across a polarity: attention can alternate between felt need and interpretation, making perspective and negotiation more visible. The relation asks that both functions remain in conversation rather than declaring one the winner.",
+      "boundedChartQuestion": "How can felt response and interpretation be held as two perspectives in conversation without forcing one to win?",
+      "constructivePotential": "Name both the response and the explanation, then alternate listening and interpretation long enough to find a workable relationship between them.",
+      "possibleTradeOff": "Polarity may become a pendulum between feeling and explanation; one perspective can be pushed away, projected into the other, or treated as the only legitimate account.",
+      "nearbyDistinctions": [
+        {
+          "comparison": "opposition versus conjunction",
+          "distinction": "Opposition keeps functions facing across polarity; conjunction holds them in close concentration.",
+          "whyItMatters": "Facing and co-presence are different relational structures and do not imply the same personal question."
+        },
+        {
+          "comparison": "opposition versus trine",
+          "distinction": "Opposition emphasizes perspective and negotiation; trine emphasizes relatively easier circulation.",
+          "whyItMatters": "A need to hold two views is not the same as a readily available channel."
+        },
+        {
+          "comparison": "opposition versus square",
+          "distinction": "Opposition centers polarity and alternation; square centers active friction and adjustment.",
+          "whyItMatters": "Polarity must not be turned into inevitable conflict or a split identity."
+        }
+      ],
+      "modifierRequirements": [
+        {"modifier": "authoritative_body_position_roots", "status": "REQUIRED", "requirement": "Both Moon and Mercury positions must be supplied by an admitted chart result."},
+        {"modifier": "authoritative_aspect_fact", "status": "REQUIRED", "requirement": "The opposition must be returned/admitted; Web does not calculate it."},
+        {"modifier": "aspect_type", "status": "REQUIRED", "requirement": "The returned relation must be opposition."},
+        {"modifier": "angular_relation_authority", "status": "REQUIRED", "requirement": "The upstream calculation boundary must own the geometric relation."},
+        {"modifier": "orb_policy", "status": "REQUIRED_FOR_ASPECT_ADMISSION", "requirement": "An upstream method identity/result is required; this record supplies no numeric value."},
+        {"modifier": "phase_state", "status": "OPTIONAL_IF_RETURNED", "requirement": "Applying, exact, or separating remains unresolved when not supplied."},
+        {"modifier": "zodiac_model", "status": "REQUIRED", "requirement": "Western Tropical is required for this bounded scope."},
+        {"modifier": "school_choice", "status": "REQUIRED_FOR_NARROWER_READING", "requirement": "Traditional/classical, early-modern, and modern/psychological lenses must remain named."},
+        {"modifier": "sign_placements", "status": "OPTIONAL_FOR_CORE_RELATION", "requirement": "Use only when an authoritative sign-qualified question is admitted."},
+        {"modifier": "house_and_house_system", "status": "REQUIRED_WHEN_USED", "requirement": "Do not infer houses or a house system."},
+        {"modifier": "exact_geometry", "status": "OPTIONAL_IF_RETURNED", "requirement": "Use only returned geometry; no degrees are calculated here."},
+        {"modifier": "other_chart_factors_and_counterevidence", "status": "REQUIRED_FOR_PERSONAL_NARROWING", "requirement": "The relation alone is not a whole-chart conclusion."},
+        {"modifier": "birth_time_authority", "status": "REQUIRED", "requirement": "Unknown birth time suppresses eligibility by default."},
+        {"modifier": "temporal_context", "status": "NOT_APPLICABLE_TO_NATAL_CORE", "requirement": "No transit or forecast meaning is introduced."}
+      ],
+      "forbiddenInferences": [
+        "split personality",
+        "bipolarity",
+        "chronic indecision",
+        "relationship conflict",
+        "emotional contradiction",
+        "inability to integrate thought and feeling",
+        "inevitable conflict",
+        "complete personality",
+        "diagnosis"
+      ],
+      "evidenceLineage": {
+        "relationalFactId": "relational.body.moon_aspect.opposition_body.mercury",
+        "relationalSemanticUnit": "BODY_A_ASPECT_BODY_B",
+        "dependentPositionFactKeys": ["body.moon.position", "body.mercury.position"],
+        "evidenceRootKeys": ["body.moon.position", "body.mercury.position"],
+        "independentRootCount": 2,
+        "semanticDimensionCount": 3,
+        "relationalFactIsIndependentRoot": false,
+        "relationalFactAddsSemanticInformation": true,
+        "relationalFactIndependentEvidenceIncrement": 0,
+        "countsAsThreeIndependentRoots": false,
+        "deduplicationRule": "A later convergence layer must deduplicate the two position root keys across placement and aspect records."
+      },
+      "semanticDependencies": {
+        "bodyA": {"objectId": "body.moon", "dependencyType": "POSITION_ROOT", "semanticFunction": "response and need"},
+        "bodyB": {"objectId": "body.mercury", "dependencyType": "POSITION_ROOT", "semanticFunction": "naming and interpretation"},
+        "aspectRelation": {"operatorId": "aspect.relation.opposition", "dependencyType": "RELATIONAL_DERIVED_FROM_POSITION_ROOTS", "independentEvidence": false}
+      },
+      "sourceRefs": ["FOUNDATIONS_ASPECTS_EN", "KNOWLEDGE_CANON_ASPECT_SCHEMA", "CHART_ASPECT_FACT_CONTRACT", "EXISTING_ASPECT_DYNAMICS_REFERENCE", "PERSONAL_BODIES_PRIMITIVE", "BODY_SIGN_METHOD", "PERSONAL_EDITORIAL_ARCHITECTURE", "INTERPRETATION_SYSTEM"],
+      "schoolNotes": {
+        "defaultLens": "MODERN_PSYCHOLOGICAL_WESTERN",
+        "comparisonLenses": ["TRADITIONAL_CLASSICAL", "EARLY_MODERN"],
+        "conjunctionClassificationNuance": "UNRESOLVED_IN_REPOSITORY",
+        "schoolsAreNotSilentlyMerged": true
+      },
+      "authorityRequirements": {
+        "requiredAspectAuthority": "AUTHORITATIVE_ENGINE_REQUIRED",
+        "developmentFixtureEligibility": "SUPPRESS",
+        "fixtureDoesNotClaimAuthority": true,
+        "unknownTimeDefault": "SUPPRESS"
+      },
+      "epistemicStatus": "EDITORIAL_SYNTHESIS",
+      "policyState": "ADOPTED_WITH_CONDITIONS",
+      "runtimeEligibility": "RUNTIME_NOT_ADMITTED",
+      "editorialReviewStatus": "REPRESENTATIVE_POLICY_REVIEWED"
+    }
+  ]
+}
