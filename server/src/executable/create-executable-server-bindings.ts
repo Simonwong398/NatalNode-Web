@@ -1,7 +1,5 @@
-import {
-  MockEngineClient,
-  type EngineClient
-} from '@natalnode/engine-client';
+import type { EngineClient } from '@natalnode/engine-client';
+import { MockEngineClient } from '@natalnode/engine-client/mock';
 import {
   createResendEmailMagicLinkDelivery,
   type ServerBootstrapBindings

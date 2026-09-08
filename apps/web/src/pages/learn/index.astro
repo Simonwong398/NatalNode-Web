@@ -1,6 +1,5 @@
 ---
 import { getCollection } from 'astro:content';
-import EditorialPlanetHero from '@/components/EditorialPlanetHero.astro';
 import FoundationsCourseSummary from '@/features/learn/foundations/FoundationsCourseSummary';
 import { getFoundationsUiMessages } from '@/features/learn/foundations/ui';
 import { getAstrologyGlyph, getAstrologyNotation } from '@/core/astrology-taxonomy/AstrologyGlyph';
@@ -14,10 +13,6 @@ import {
 import { createPublicSeo } from '@/lib/public-seo';
 import type { SeoMetadata } from '@/lib/seo';
 import { formatUiMessage, getUiMessage, type UiMessageKey } from '@/lib/ui-catalog';
-import {
-  getEducationalChart,
-  getEducationalChartPresentationPolicy
-} from '@/features/learn/educational-chart-source';
 
 interface Props {
   readonly locale?: SupportedLocale;
@@ -35,8 +30,6 @@ const articles = (await getCollection('learn', ({ data }) =>
   (first, second) => second.data.publishedAt.getTime() - first.data.publishedAt.getTime()
 );
 
-const educationalChart = await getEducationalChart();
-const educationalChartPresentationPolicy = getEducationalChartPresentationPolicy();
 const localize = (path: string): string => getLocalizedPath(locale, path);
 const foundationsUi = getFoundationsUiMessages(locale);
 const t = (key: UiMessageKey): string => getUiMessage(locale, key);
@@ -99,15 +92,13 @@ function formatDate(date: Date): string {
 
 <SiteLayout seo={seo}>
   <main class="nn-container nn-container--editorial pb-20 pt-12 sm:pb-24 sm:pt-16">
-    <EditorialPlanetHero
-      eyebrow={t('learn.landing.eyebrow')}
-      title={t('learn.landing.title')}
-      description={t('learn.landing.description')}
-      titleId="learn-hero-title"
-      chart={educationalChart}
-      locale={locale}
-      presentationPolicy={educationalChartPresentationPolicy}
-    />
+    <section class="nn-editorial-hero" aria-labelledby="learn-hero-title">
+      <div class="nn-editorial-hero__content">
+        <p class="nn-eyebrow">{t('learn.landing.eyebrow')}</p>
+        <h1 class="nn-type-page-title mt-3" id="learn-hero-title">{t('learn.landing.title')}</h1>
+        <p class="nn-type-body mt-4 max-w-2xl">{t('learn.landing.description')}</p>
+      </div>
+    </section>
 
     <FoundationsCourseSummary client:load locale={locale} ui={foundationsUi} />
 

@@ -3,7 +3,7 @@ import test from 'node:test';
 
 import {
   MockEngineClient
-} from '@natalnode/engine-client';
+} from '@natalnode/engine-client/mock';
 import {
   SKY_EVENTS_FIXTURE_V1,
   SKY_FIXTURE_END_UTC,

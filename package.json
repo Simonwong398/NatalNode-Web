@@ -14,6 +14,7 @@
     "build:server": "npm run build --workspace=packages/contracts --workspace=packages/test-fixtures --workspace=packages/engine-client --workspace=server",
     "check": "npm run check --workspaces --if-present",
     "test:engineering-integrity": "node --test scripts/test-engineering-integrity.test.mjs",
+    "test:production-architecture-boundaries": "node --test scripts/test-production-architecture-boundaries.test.mjs",
     "test:body-sign-composition": "node --test scripts/test-body-sign-composition.test.mjs",
     "test:body-aspect-composition": "node --test scripts/test-body-aspect-body-composition.test.mjs",
     "test:aspect-signal-policy": "node --test scripts/test-aspect-signal-policy.test.mjs",

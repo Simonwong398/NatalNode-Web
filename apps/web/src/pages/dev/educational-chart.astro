@@ -1,0 +1,45 @@
+---
+import EditorialPlanetHero from '@/components/EditorialPlanetHero.astro';
+import {
+  getEducationalChart,
+  getEducationalChartPresentationPolicy
+} from '@/features/learn/educational-chart-source';
+import SiteLayout from '@/layouts/SiteLayout.astro';
+import { getPresentationLocale } from '@/lib/localization';
+import type { SeoMetadata } from '@/lib/seo';
+
+const locale = getPresentationLocale(Astro.url.pathname, Astro.locals.locale);
+const isEducationalChartPreviewAvailable =
+  import.meta.env.DEV || process.env.NATALNODE_LOCAL_DEV_PREVIEW === 'true';
+const educationalChart = await getEducationalChart();
+const presentationPolicy = getEducationalChartPresentationPolicy();
+
+const seo: SeoMetadata = {
+  title: 'Educational Chart Preview | NatalNode',
+  description: 'Development-only preview for the educational chart instrument.',
+  canonical: '/dev/educational-chart',
+  robots: 'noindex,nofollow'
+};
+---
+
+<SiteLayout seo={seo} mode="editorial">
+  <main class="nn-container nn-container--editorial pb-20 pt-12 sm:pb-24 sm:pt-16">
+    {isEducationalChartPreviewAvailable ? (
+      <EditorialPlanetHero
+        eyebrow="Development only"
+        title="Educational chart preview"
+        description="Fixture-backed educational chart instrument for development and test use."
+        titleId="educational-chart-preview-title"
+        chart={educationalChart}
+        locale={locale}
+        presentationPolicy={presentationPolicy}
+      />
+    ) : (
+      <section class="nn-surface p-5 sm:p-7" aria-labelledby="educational-chart-preview-unavailable-title">
+        <p class="nn-eyebrow">Development only</p>
+        <h1 class="nn-type-page-title mt-3" id="educational-chart-preview-unavailable-title">Educational chart preview</h1>
+        <p class="nn-type-body mt-4">This development preview is unavailable in production builds.</p>
+      </section>
+    )}
+  </main>
+</SiteLayout>

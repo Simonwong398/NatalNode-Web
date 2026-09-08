@@ -14,5 +14,4 @@ export interface EngineClient {
 }
 
 export { HttpEngineClient } from './http-engine-client.js';
-export { MockEngineClient } from './mock-engine-client.js';
 export { isChartResult } from './chart-result-validation.js';

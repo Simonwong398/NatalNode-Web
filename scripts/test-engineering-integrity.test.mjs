@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { existsSync, readdirSync, readFileSync } from 'node:fs';
-import { join, relative, sep } from 'node:path';
+import { join, relative } from 'node:path';
 import test from 'node:test';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 
@@ -51,43 +51,6 @@ function assertNoTestSemanticBranch(source, label) {
   }
 }
 
-function decodeHtmlAttribute(value) {
-  return value
-    .replaceAll('&quot;', '"')
-    .replaceAll('&#x26;', '&')
-    .replaceAll('&amp;', '&');
-}
-
-function findChartExperienceBundle(indexHtml) {
-  const islandMatch = indexHtml.match(
-    /<astro-island\b[^>]*component-url="([^"]+)"[^>]*component-export="ChartExperience"/su
-  );
-
-  if (islandMatch?.[1] !== undefined) {
-    const relativeAssetPath = decodeURIComponent(
-      decodeHtmlAttribute(islandMatch[1]).split('?')[0]
-    ).replace(/^\/+/, '').replaceAll('/', sep);
-    const bundlePath = join(DIST_ROOT, relativeAssetPath);
-    if (existsSync(bundlePath)) {
-      return bundlePath;
-    }
-  }
-
-  const astroDirectory = join(DIST_ROOT, '_astro');
-  const candidates = readdirSync(astroDirectory)
-    .filter((name) => name.endsWith('.js'))
-    .map((name) => join(astroDirectory, name));
-
-  const matchingBundle = candidates.find((candidate) => {
-    const source = readFileSync(candidate, 'utf8');
-    return source.includes('/api/location/search') &&
-      source.includes('CANDIDATES_ACCEPTED');
-  });
-
-  assert.ok(matchingBundle, 'ChartExperience location bundle is unavailable.');
-  return matchingBundle;
-}
-
 test('local integration build is explicit and serves the regular static output', () => {
   const rootPackage = readJson('package.json');
   const webPackage = readJson('apps/web/package.json');
@@ -118,6 +81,7 @@ test('local integration build is explicit and serves the regular static output',
 test('browser and server production paths keep development doubles explicit', () => {
   const browserEngineClient = readText('apps/web/src/lib/engine-client.ts');
   const chartPage = readText('apps/web/src/pages/index.astro');
+  const developmentChartPage = readText('apps/web/src/pages/dev/chart.astro');
   const educationalChartSource = readText(
     'apps/web/src/features/learn/educational-chart-source.ts'
   );
@@ -126,7 +90,10 @@ test('browser and server production paths keep development doubles explicit', ()
   );
 
   assert.match(browserEngineClient, /new HttpEngineClient\(\)/u);
-  assert.match(chartPage, /requireResolvedLocation=\{true\}/u);
+  assert.doesNotMatch(chartPage, /ChartExperience|development-resolver/u);
+  assert.match(developmentChartPage, /ChartExperience/u);
+  assert.match(developmentChartPage, /requireResolvedLocation=\{false\}/u);
+  assert.match(developmentChartPage, /NATALNODE_LOCAL_DEV_PREVIEW/u);
   assert.match(educationalChartSource, /MockEngineClient/u);
   assert.match(educationalChartSource, /EDUCATIONAL_CHART_FIXTURE/u);
   assert.match(developmentResolver, /UI DEVELOPMENT ONLY/u);
@@ -153,7 +120,6 @@ test('browser and server production paths keep development doubles explicit', ()
       'executable',
       'public-development-dependencies.ts'
     ),
-    join('packages', 'engine-client', 'src', 'index.ts'),
     join('packages', 'engine-client', 'src', 'mock-engine-client.ts')
   ]);
 
@@ -286,37 +252,15 @@ test('startup failures are reported with bounded, secret-safe diagnostics', asyn
   );
 });
 
-test('the production Astro artifact contains the real location flow without development UI', () => {
+test('the production Astro home artifact excludes the development chart composition', () => {
   const indexPath = join(DIST_ROOT, 'en', 'index.html');
   assert.ok(existsSync(indexPath), 'Build the web application before running integrity guards.');
 
   const indexHtml = readFileSync(indexPath, 'utf8');
-  const chartExperienceBundlePath = findChartExperienceBundle(indexHtml);
-  const chartExperienceBundle = readFileSync(chartExperienceBundlePath, 'utf8');
-
-  assert.match(indexHtml, /component-export="ChartExperience"/u);
-  assert.match(indexHtml, /requireResolvedLocation[^<]*true/u);
+  assert.doesNotMatch(indexHtml, /component-export="ChartExperience"/u);
+  assert.doesNotMatch(indexHtml, /requireResolvedLocation/u);
   assert.doesNotMatch(indexHtml, /data-location-diagnostic-state|LOCATION DIAGNOSTICS/u);
-  assert.match(chartExperienceBundle, /\/api\/location\/search/u);
-  assert.match(chartExperienceBundle, /\/api\/location\/resolve/u);
-  assert.match(chartExperienceBundle, /AbortController/u);
-  assert.match(chartExperienceBundle, /CANDIDATES_ACCEPTED/u);
-  assert.match(chartExperienceBundle, /RESOLVED_ACCEPTED/u);
-  assert.match(chartExperienceBundle, /NETWORK_FAILED/u);
-  assert.match(chartExperienceBundle, /data-location-candidates/u);
-  assert.match(chartExperienceBundle, /data-location-canonical/u);
-  assert.match(chartExperienceBundle, /LocationResolutionClientError/u);
-  assert.match(chartExperienceBundle, /DEV:\s*!1|DEV:\s*false/u);
-  assert.match(
-    chartExperienceBundle,
-    /["'`]\/api\/location\/(?:search|resolve)["'`]/u
-  );
-  assert.doesNotMatch(
-    chartExperienceBundle,
-    /https?:\/\/(?:localhost|127\.0\.0\.1)(?::\d+)?\/api\/location\/(?:search|resolve)/u
-  );
-  assert.doesNotMatch(chartExperienceBundle, /MockEngineClient|WEB_UI_FIXTURE_V1/u);
-  assert.doesNotMatch(chartExperienceBundle, /https?:\/\/api\.geonames\.org/u);
+  assert.doesNotMatch(indexHtml, /MockEngineClient|WEB_UI_FIXTURE_V1/u);
 });
 
 test('the built local public edge serves the exact static artifact with revalidation', async () => {
@@ -350,19 +294,6 @@ test('the built local public edge serves the exact static artifact with revalida
     assert.equal(indexResponse.status, 200);
     assert.equal(indexResponse.headers.get('cache-control'), 'no-cache');
     assert.equal(servedIndex, readFileSync(indexPath, 'utf8'));
-
-    const bundleMatch = servedIndex.match(
-      /component-url="(\/_astro\/[^"?]+\.js)"[^>]*component-export="ChartExperience"/u
-    );
-    assert.ok(bundleMatch?.[1], 'Served page does not identify ChartExperience bundle.');
-    const bundleResponse = await fetch(
-      `http://localhost:${runtime.publicPort}${bundleMatch[1]}`
-    );
-    assert.equal(bundleResponse.status, 200);
-    assert.match(
-      bundleResponse.headers.get('content-type') ?? '',
-      /javascript/u
-    );
 
     const origin = `http://localhost:${runtime.publicPort}`;
     const locationResponse = await fetch(

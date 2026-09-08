@@ -1,0 +1,37 @@
+---
+import SiteLayout from '@/layouts/SiteLayout.astro';
+import { ChartExperience } from '@/features/chart-experience';
+import { getPresentationLocale } from '@/lib/localization';
+import type { SeoMetadata } from '@/lib/seo';
+
+const locale = getPresentationLocale(Astro.url.pathname, Astro.locals.locale);
+const isChartPreviewAvailable =
+  import.meta.env.DEV || process.env.NATALNODE_LOCAL_DEV_PREVIEW === 'true';
+const initialVaultRecordId = Astro.url.searchParams.get('vaultRecordId');
+
+const seo: SeoMetadata = {
+  title: 'Chart Experience Preview | NatalNode',
+  description: 'Development-only preview for the bounded chart experience.',
+  canonical: '/dev/chart',
+  robots: 'noindex,nofollow'
+};
+---
+
+<SiteLayout seo={seo} mode="observatory">
+  <main class="nn-container nn-container--calculate nn-calculate-page min-h-screen pb-12 pt-10 sm:pt-14">
+    {isChartPreviewAvailable ? (
+      <ChartExperience
+        initialVaultRecordId={initialVaultRecordId}
+        locale={locale}
+        requireResolvedLocation={false}
+        client:load
+      />
+    ) : (
+      <section class="nn-surface p-5 sm:p-7" aria-labelledby="chart-preview-unavailable-title">
+        <p class="nn-eyebrow">Development only</p>
+        <h1 class="nn-type-page-title mt-3" id="chart-preview-unavailable-title">Chart experience preview</h1>
+        <p class="nn-type-body mt-4">This development preview is unavailable in production builds.</p>
+      </section>
+    )}
+  </main>
+</SiteLayout>

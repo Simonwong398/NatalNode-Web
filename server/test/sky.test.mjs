@@ -1,10 +1,8 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import {
-  HttpEngineClient,
-  MockEngineClient
-} from '@natalnode/engine-client';
+import { HttpEngineClient } from '@natalnode/engine-client';
+import { MockEngineClient } from '@natalnode/engine-client/mock';
 import {
   SKY_EVENTS_FIXTURE_V1,
   SKY_FIXTURE_AT_UTC,

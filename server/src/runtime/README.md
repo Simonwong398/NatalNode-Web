@@ -167,8 +167,9 @@ runtime work.
 The repository compiles executable Node.js ESM with the existing TypeScript
 compiler. The supported root commands are:
 
-- `npm run server:start` — compile the server runtime and start the internal
-  Hono listener through `runServerProcess(...)`.
+- `npm run server:start` — compile and enter the production-only executable
+  boundary. It fails closed until a production EngineClient composition is
+  separately admitted.
 - `npm run db:migrate` — compile the server runtime and run the existing
   PostgreSQL migration runner as a separate operation.
 - `npm run dev:local` — build the static Astro artifact and server runtime, then
@@ -178,16 +179,17 @@ compiler. The supported root commands are:
   that uses the existing development fixtures without PostgreSQL or email
   credentials.
 
-`npm run server:start`, `npm run db:migrate`, and `npm run dev:local` use the
-existing required server environment variables listed above. API and local
-execution additionally require:
+`npm run db:migrate` and `npm run dev:local` use the existing required server
+environment variables listed above. Local API execution additionally requires:
 
 - `RESEND_API_KEY`
 - `AUTH_EMAIL_FROM`
 - `ENGINE_CLIENT_MODE=development-mock`
 
-The only accepted Engine mode is deliberately development-only and constructs
-the existing `MockEngineClient`. It is not a production astronomy selection.
+The only currently implemented Engine mode is deliberately development-only
+and constructs the existing `MockEngineClient` through development entrypoints.
+The production `server:start` entrypoint cannot import or select that mode and
+fails closed because no production Engine composition is admitted.
 `PROVIDER DECISION DEFERRED` remains in force.
 
 Local composition additionally requires `LOCAL_PUBLIC_PORT` and requires

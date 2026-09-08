@@ -1,7 +1,6 @@
 ---
 import LocaleNegotiationShell from '@/components/LocaleNegotiationShell.astro';
 import SiteLayout from '@/layouts/SiteLayout.astro';
-import { ChartExperience } from '@/features/chart-experience';
 import { CurrentSkyInstrument } from '@/features/public-sky';
 import { getPresentationLocale, type SupportedLocale } from '@/lib/localization';
 import { getUiMessage, type UiMessageKey } from '@/lib/ui-catalog';
@@ -16,12 +15,10 @@ const isLocalizedPage = localizedLocale !== undefined;
 
 const CURRENT_SKY_AT_UTC = '2026-09-01T12:00:00.000Z';
 
-const initialVaultRecordId = Astro.url.searchParams.get('vaultRecordId');
 const seo: SeoMetadata = {
   title: 'NatalNode — Natal Chart Calculator',
   description: 'Calculate and understand a natal chart with clear uncertainty handling, structured interpretation, and inspectable calculation details.',
-  canonical: '/',
-  ...(initialVaultRecordId === null ? {} : { robots: 'noindex,nofollow' })
+  canonical: '/'
 } as const;
 const locale = localizedLocale ?? getPresentationLocale(Astro.url.pathname, Astro.locals.locale);
 const t = (key: UiMessageKey) => getUiMessage(locale, key);
@@ -47,7 +44,16 @@ const t = (key: UiMessageKey) => getUiMessage(locale, key);
         <p class="nn-type-body max-w-xl">{t('calculate.description')}</p>
       </header>
       <div class="grid gap-8 md:grid-cols-[minmax(0,1fr)_minmax(20rem,0.78fr)]">
-        <aside class="order-1 min-w-0 md:order-2" aria-label={t('sky.currentTitle')}>
+        <section class="nn-surface mt-8 p-5 sm:p-7" aria-labelledby="production-calculation-boundary-title">
+          <p class="nn-eyebrow">{t('calculate.eyebrow')}</p>
+          <h2 class="nn-type-section-title mt-1" id="production-calculation-boundary-title">
+            {t('calculate.status.ready')}
+          </h2>
+          <p class="nn-type-body-small mt-3 max-w-xl">
+            {t('calculate.status.readyHelp')}
+          </p>
+        </section>
+        <aside class="min-w-0" aria-label={t('sky.currentTitle')}>
           <section class="nn-surface nn-surface--instrument nn-public-sky-showcase mt-8 p-3 sm:p-5" aria-labelledby="homepage-current-sky-title">
             <p class="nn-eyebrow">{t('sky.currentTitle')}</p>
             <h2 class="nn-type-section-title mt-1" id="homepage-current-sky-title">{t('sky.currentEyebrow')}</h2>
@@ -59,14 +65,6 @@ const t = (key: UiMessageKey) => getUiMessage(locale, key);
             />
           </section>
         </aside>
-        <div class="order-2 min-w-0 md:order-1">
-          <ChartExperience
-            initialVaultRecordId={initialVaultRecordId}
-            locale={locale}
-            requireResolvedLocation={true}
-            client:load
-          />
-        </div>
       </div>
     </main>
   </SiteLayout>

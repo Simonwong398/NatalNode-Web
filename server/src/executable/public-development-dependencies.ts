@@ -1,4 +1,4 @@
-import { MockEngineClient } from '@natalnode/engine-client';
+import { MockEngineClient } from '@natalnode/engine-client/mock';
 import type {
   AccountDataExportRepository,
   AccountErasureRepository,

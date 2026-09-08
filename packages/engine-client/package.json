@@ -13,6 +13,11 @@
       "types": "./src/http-engine-client.ts",
       "node": "./dist/http-engine-client.js",
       "default": "./src/http-engine-client.ts"
+    },
+    "./mock": {
+      "types": "./src/mock-engine-client.ts",
+      "node": "./dist/mock-engine-client.js",
+      "default": "./src/mock-engine-client.ts"
     }
   },
   "scripts": {
