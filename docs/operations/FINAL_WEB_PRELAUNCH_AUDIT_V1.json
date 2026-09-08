@@ -1,0 +1,565 @@
+{
+  "schemaVersion": "FINAL_WEB_PRELAUNCH_AUDIT_V1",
+  "auditId": "WEB-P0-FINAL-PRELAUNCH-AUDIT-001",
+  "scope": "Final NatalNode Web prelaunch audit and release baseline freeze. This artifact records Web code readiness separately from Engine, scientific authority, external infrastructure, legal, and owner gates.",
+  "baseline": {
+    "commit": "cf740d724520b9b9a8a3bae629cc27d0beecde53",
+    "branch": "master",
+    "origin": "https://github.com/Simonwong398/NatalNode-Web.git",
+    "node": "v24.18.0",
+    "npm": "11.16.0",
+    "packageManager": "npm; packageManager field absent; package-lock.json is tracked",
+    "workspaces": [
+      "apps/web",
+      "packages/*",
+      "server"
+    ],
+    "buildCommand": "npm run build",
+    "releaseCheckCommand": "npm run release:check",
+    "migrationCommand": "npm run db:migrate",
+    "worktreeAtAuditStart": "?? env",
+    "untrackedEnvPolicy": "Preserved untouched; not read, modified, staged, or committed."
+  },
+  "status": "PASS_WITH_NONBLOCKING_TECH_DEBT",
+  "releasePosture": {
+    "webP0Blockers": 0,
+    "webP1Blockers": 0,
+    "materialWebPrelaunchBlocker": false,
+    "materialEngineDependency": true,
+    "materialExternalDeploymentGap": true,
+    "codePrelaunchReadiness": true,
+    "engineDependencyOpen": true,
+    "externalDeploymentGatesOpen": true,
+    "readyToFreezeWebAndWaitForEngine": true,
+    "publicRelease": "BLOCKED",
+    "providerDecision": "PROVIDER DECISION DEFERRED",
+    "runtimeAdmission": false
+  },
+  "items": [
+    {
+      "id": "WEB-ARCHITECTURE-001",
+      "category": "CLOSED / VERIFIED",
+      "severity": "NONE",
+      "status": "PASS",
+      "launchBlocking": false,
+      "engineDependent": false,
+      "externalActionRequired": false,
+      "ownerDecisionRequired": false,
+      "evidence": [
+        "docs/ARCHITECTURE.md",
+        "scripts/test-production-architecture-boundaries.test.mjs",
+        "12/12 production architecture boundary tests passed"
+      ],
+      "nextAction": "Retain the Website API / BFF to Engine Public API boundary; no Web astronomy/provider implementation is admitted."
+    },
+    {
+      "id": "WEB-ROUTE-ARTIFACT-001",
+      "category": "CLOSED / VERIFIED",
+      "severity": "NONE",
+      "status": "PASS",
+      "launchBlocking": false,
+      "engineDependent": false,
+      "externalActionRequired": false,
+      "ownerDecisionRequired": false,
+      "evidence": [
+        "npm run test:production-build-boundaries",
+        "apps/web/dist",
+        "1281 files; 1203 HTML files; excluded route artifacts 0; sitemap leaks 0; link leaks 0; missing production artifacts 0"
+      ],
+      "nextAction": "Keep development/research/POC routes outside the production artifact boundary."
+    },
+    {
+      "id": "WEB-RUNTIME-001",
+      "category": "CLOSED / VERIFIED",
+      "severity": "NONE",
+      "status": "PASS",
+      "launchBlocking": false,
+      "engineDependent": false,
+      "externalActionRequired": false,
+      "ownerDecisionRequired": false,
+      "evidence": [
+        "server/src/runtime/production-runtime-config.ts",
+        "server/src/runtime/runtime-preflight.ts",
+        "server/test/production-runtime-hardening.test.mjs",
+        "7/7 production runtime hardening tests passed"
+      ],
+      "nextAction": "Inject and verify the complete production configuration during external deployment."
+    },
+    {
+      "id": "WEB-CONFIGURATION-001",
+      "category": "CLOSED / VERIFIED",
+      "severity": "NONE",
+      "status": "PASS",
+      "launchBlocking": false,
+      "engineDependent": false,
+      "externalActionRequired": false,
+      "ownerDecisionRequired": false,
+      "evidence": [
+        "server/src/runtime/environment/parse-server-environment.ts",
+        "server/test/local-environment-bootstrap.test.mjs",
+        "local bootstrap tests proved root .env loading, explicit process.env precedence, missing-file validation, and production explicit-environment-only semantics"
+      ],
+      "nextAction": "Do not export local variables globally and do not make production consume .env."
+    },
+    {
+      "id": "WEB-UNKNOWN-TIME-001",
+      "category": "CLOSED / VERIFIED",
+      "severity": "NONE",
+      "status": "PASS",
+      "launchBlocking": false,
+      "engineDependent": false,
+      "externalActionRequired": false,
+      "ownerDecisionRequired": false,
+      "evidence": [
+        "packages/contracts/src/chart-authority.ts",
+        "server/test/unknown-time-authority.test.mjs",
+        "10/10 unknown-time authority tests passed"
+      ],
+      "nextAction": "Keep UNKNOWN_TIME request/result certification fail-closed; never infer time, houses, angles, aspects, or provider facts in Web code."
+    },
+    {
+      "id": "WEB-VAULT-001",
+      "category": "CLOSED / VERIFIED",
+      "severity": "NONE",
+      "status": "PASS",
+      "launchBlocking": false,
+      "engineDependent": false,
+      "externalActionRequired": false,
+      "ownerDecisionRequired": false,
+      "evidence": [
+        "server/src/vault/vault-record-domain.ts",
+        "server/test/vault.test.mjs",
+        "26/26 Vault tests passed"
+      ],
+      "nextAction": "Use the canonical migration/schema compatibility checks against an owner-approved non-production or production target during deployment."
+    },
+    {
+      "id": "WEB-AUTH-001",
+      "category": "CLOSED / VERIFIED",
+      "severity": "NONE",
+      "status": "PASS",
+      "launchBlocking": false,
+      "engineDependent": false,
+      "externalActionRequired": false,
+      "ownerDecisionRequired": false,
+      "evidence": [
+        "server/src/auth-runtime",
+        "server/test/auth-problem-details.test.mjs",
+        "server/test/google-auth.test.mjs",
+        "56/56 focused auth lifecycle, capability, Google OAuth, and transaction tests passed"
+      ],
+      "nextAction": "Complete external sender/domain, OAuth console, callback, secret, and cookie verification before release."
+    },
+    {
+      "id": "WEB-DATABASE-MIGRATION-001",
+      "category": "CLOSED / VERIFIED",
+      "severity": "NONE",
+      "status": "PASS",
+      "launchBlocking": false,
+      "engineDependent": false,
+      "externalActionRequired": false,
+      "ownerDecisionRequired": false,
+      "evidence": [
+        "server/src/runtime/postgres/migrations/run-postgres-migrations.ts",
+        "server/test/postgres-migration-runner.test.mjs",
+        "4/4 migration runner tests passed"
+      ],
+      "nextAction": "Run npm run db:migrate only against an owner-approved target during external pre-deploy; no user database was touched by this audit."
+    },
+    {
+      "id": "WEB-OPERATIONS-001",
+      "category": "CLOSED / VERIFIED",
+      "severity": "NONE",
+      "status": "PASS",
+      "launchBlocking": false,
+      "engineDependent": false,
+      "externalActionRequired": false,
+      "ownerDecisionRequired": false,
+      "evidence": [
+        "docs/operations/PRODUCTION_RELEASE_GATES_V1.json",
+        "docs/operations/NATALNODE_PRODUCTION_RUNBOOK_V1.md",
+        "npm run release:check: RELEASE_CHECK=PASS; CODE_GATES=PASS; EXTERNAL_GATES=INCOMPLETE; PUBLIC_RELEASE=BLOCKED",
+        "npm run test:production-release-readiness: 6/6 passed"
+      ],
+      "nextAction": "Use the existing externalPrelaunchChecklist as the single operational checklist and obtain owner evidence for every launch-blocking item."
+    },
+    {
+      "id": "WEB-LEGAL-TRACKING-001",
+      "category": "CLOSED / VERIFIED",
+      "severity": "NONE",
+      "status": "PASS",
+      "launchBlocking": false,
+      "engineDependent": false,
+      "externalActionRequired": false,
+      "ownerDecisionRequired": false,
+      "evidence": [
+        "docs/legal/NATALNODE_LEGAL_PUBLICATION_GATE_V1.md",
+        "apps/web/test/legal.test.mjs",
+        "apps/web/test/legal-built.test.mjs",
+        "4/4 source legal tests and 1/1 built legal artifact test passed"
+      ],
+      "nextAction": "Keep unresolved legal values explicit and fail closed until the product/privacy/legal owner supplies approved production values."
+    },
+    {
+      "id": "WEB-DEPENDENCY-AUDIT-001",
+      "category": "CLOSED / VERIFIED",
+      "severity": "NONE",
+      "status": "PASS",
+      "launchBlocking": false,
+      "engineDependent": false,
+      "externalActionRequired": false,
+      "ownerDecisionRequired": false,
+      "evidence": [
+        "package-lock.json",
+        "root and workspace package manifests",
+        "npm ls --workspaces --depth=0",
+        "no dependency manifest, lockfile, upgrade, or Node-version change in this audit"
+      ],
+      "nextAction": "Run any organization-required vulnerability or license scan at the release boundary; do not add upgrades to this freeze."
+    },
+    {
+      "id": "WEB-FINAL-VALIDATION-001",
+      "category": "CLOSED / VERIFIED",
+      "severity": "NONE",
+      "status": "PASS",
+      "launchBlocking": false,
+      "engineDependent": false,
+      "externalActionRequired": false,
+      "ownerDecisionRequired": false,
+      "evidence": [
+        "npm run check: 318 files, 0 errors, 0 warnings, 1 existing test-only hint",
+        "npm run test:engineering-integrity: 6/6 passed",
+        "node --test server/test/p0-closure-boundaries.test.mjs and related closure tests: 31/31 passed",
+        "npm run test:localization and npm run test:locale-preference: 13/13 passed",
+        "npm run test:share and npm run test:legal: 10/10 passed",
+        "built share and legal tests: 3/3 passed"
+      ],
+      "nextAction": "No further broad Web suite is required for this freeze; owner browser and external production evidence remain separate gates."
+    },
+    {
+      "id": "EXT-001-DATABASE",
+      "category": "PRELAUNCH_EXTERNAL_GATE",
+      "severity": "P0",
+      "status": "REVISION_REQUIRED",
+      "launchBlocking": true,
+      "engineDependent": false,
+      "externalActionRequired": true,
+      "ownerDecisionRequired": false,
+      "evidence": [
+        "docs/operations/PRODUCTION_RELEASE_GATES_V1.json EXT-001",
+        "docs/operations/NATALNODE_PRODUCTION_RUNBOOK_V1.md §4"
+      ],
+      "nextAction": "Provision a private PostgreSQL target, inject approved configuration, run the canonical migration, and retain release evidence."
+    },
+    {
+      "id": "EXT-002-BACKUP-RESTORE",
+      "category": "PRELAUNCH_EXTERNAL_GATE",
+      "severity": "P0",
+      "status": "REVISION_REQUIRED",
+      "launchBlocking": true,
+      "engineDependent": false,
+      "externalActionRequired": true,
+      "ownerDecisionRequired": true,
+      "evidence": [
+        "docs/operations/PRODUCTION_RELEASE_GATES_V1.json EXT-002",
+        "docs/operations/NATALNODE_PRODUCTION_RUNBOOK_V1.md §5"
+      ],
+      "nextAction": "Select backup ownership and complete a restore verification into a non-production isolated database; record RPO/RTO only after owner decision."
+    },
+    {
+      "id": "EXT-003-RATE-LIMIT",
+      "category": "PRELAUNCH_EXTERNAL_GATE",
+      "severity": "P0",
+      "status": "REVISION_REQUIRED",
+      "launchBlocking": true,
+      "engineDependent": false,
+      "externalActionRequired": true,
+      "ownerDecisionRequired": true,
+      "evidence": [
+        "docs/operations/PRODUCTION_RELEASE_GATES_V1.json EXT-003",
+        "server/src/app/security/api-rate-limiting.ts"
+      ],
+      "nextAction": "Admit and prove a distributed or edge rate-limit authority for production traffic."
+    },
+    {
+      "id": "EXT-004-SECRETS",
+      "category": "PRELAUNCH_EXTERNAL_GATE",
+      "severity": "P0",
+      "status": "REVISION_REQUIRED",
+      "launchBlocking": true,
+      "engineDependent": false,
+      "externalActionRequired": true,
+      "ownerDecisionRequired": true,
+      "evidence": [
+        "docs/operations/PRODUCTION_RELEASE_GATES_V1.json EXT-004",
+        "docs/operations/NATALNODE_PRODUCTION_RUNBOOK_V1.md §2"
+      ],
+      "nextAction": "Select the deployment secret owner, access policy, rotation path, and rollback access without exposing credentials."
+    },
+    {
+      "id": "EXT-005-EMAIL",
+      "category": "PRELAUNCH_EXTERNAL_GATE",
+      "severity": "P0",
+      "status": "REVISION_REQUIRED",
+      "launchBlocking": true,
+      "engineDependent": false,
+      "externalActionRequired": true,
+      "ownerDecisionRequired": false,
+      "evidence": [
+        "docs/operations/PRODUCTION_RELEASE_GATES_V1.json EXT-005",
+        "docs/legal/NATALNODE_LEGAL_PUBLICATION_GATE_V1.md",
+        "local placeholder values are not treated as production credentials"
+      ],
+      "nextAction": "Verify production sender/domain/DNS and configure a real provider secret and callback origin; do not send email in this audit."
+    },
+    {
+      "id": "EXT-006-AUTH-CONSOLE",
+      "category": "PRELAUNCH_EXTERNAL_GATE",
+      "severity": "P0",
+      "status": "REVISION_REQUIRED",
+      "launchBlocking": true,
+      "engineDependent": false,
+      "externalActionRequired": true,
+      "ownerDecisionRequired": false,
+      "evidence": [
+        "docs/operations/PRODUCTION_RELEASE_GATES_V1.json EXT-006",
+        "server/test/google-auth.test.mjs"
+      ],
+      "nextAction": "Complete Google authentication console registration, exact redirect URI, credentials, secure cookie policy, and production session verification."
+    },
+    {
+      "id": "EXT-007-OBSERVABILITY",
+      "category": "PRELAUNCH_EXTERNAL_GATE",
+      "severity": "P0",
+      "status": "REVISION_REQUIRED",
+      "launchBlocking": true,
+      "engineDependent": false,
+      "externalActionRequired": true,
+      "ownerDecisionRequired": true,
+      "evidence": [
+        "docs/operations/PRODUCTION_RELEASE_GATES_V1.json EXT-007",
+        "server/src/app/observability/api-request-observability.ts"
+      ],
+      "nextAction": "Connect durable privacy-safe logs and alerts, assign operators, and prove signal delivery without sensitive data."
+    },
+    {
+      "id": "EXT-008-LEGAL-RETENTION",
+      "category": "PRELAUNCH_EXTERNAL_GATE",
+      "severity": "P0",
+      "status": "REVISION_REQUIRED",
+      "launchBlocking": true,
+      "engineDependent": false,
+      "externalActionRequired": true,
+      "ownerDecisionRequired": true,
+      "evidence": [
+        "docs/operations/PRODUCTION_RELEASE_GATES_V1.json EXT-008",
+        "docs/legal/NATALNODE_LEGAL_PUBLICATION_GATE_V1.md",
+        "seven production legal variables remain explicitly unresolved and blocking"
+      ],
+      "nextAction": "Approve retention classes, deletion/hold rules, legal configuration, public notices, and regional obligations."
+    },
+    {
+      "id": "EXT-009-DNS-TLS",
+      "category": "PRELAUNCH_EXTERNAL_GATE",
+      "severity": "P0",
+      "status": "REVISION_REQUIRED",
+      "launchBlocking": true,
+      "engineDependent": false,
+      "externalActionRequired": true,
+      "ownerDecisionRequired": false,
+      "evidence": [
+        "docs/operations/PRODUCTION_RELEASE_GATES_V1.json EXT-009",
+        "docs/operations/NATALNODE_PRODUCTION_RUNBOOK_V1.md §3"
+      ],
+      "nextAction": "Verify DNS/TLS, one canonical public HTTPS origin, secure host-only cookies, rollback routing, and liveness/readiness traffic gating."
+    },
+    {
+      "id": "EXT-011-RELEASE-CERTIFICATION",
+      "category": "PRELAUNCH_EXTERNAL_GATE",
+      "severity": "P0",
+      "status": "REVISION_REQUIRED",
+      "launchBlocking": true,
+      "engineDependent": false,
+      "externalActionRequired": true,
+      "ownerDecisionRequired": true,
+      "evidence": [
+        "docs/operations/PRODUCTION_RELEASE_GATES_V1.json EXT-011",
+        "npm run release:check"
+      ],
+      "nextAction": "Record final release certification only after every launch-blocking external item has evidence and rollback/abort ownership is staffed."
+    },
+    {
+      "id": "ENGINE-001",
+      "category": "BLOCKED_BY_ENGINE",
+      "severity": "P0",
+      "status": "REVISION_REQUIRED",
+      "launchBlocking": true,
+      "engineDependent": true,
+      "externalActionRequired": true,
+      "ownerDecisionRequired": true,
+      "evidence": [
+        "docs/operations/PRODUCTION_RELEASE_GATES_V1.json ENGINE-001",
+        "server/src/executable/server-main.ts",
+        "PROVIDER DECISION DEFERRED"
+      ],
+      "nextAction": "Resolve the independent Engine production contract and admit it only through approved integration and validation; no Engine access was made by this audit."
+    },
+    {
+      "id": "SCIENTIFIC-AUTHORITY-001",
+      "category": "BLOCKED_BY_ENGINE",
+      "severity": "P0",
+      "status": "REVISION_REQUIRED",
+      "launchBlocking": true,
+      "engineDependent": true,
+      "externalActionRequired": true,
+      "ownerDecisionRequired": true,
+      "evidence": [
+        "docs/operations/PRODUCTION_RELEASE_GATES_V1.json SCIENTIFIC-AUTHORITY-001",
+        "docs/architecture/NATALNODE_PRODUCTION_RUNTIME_COMPOSITION_V1.md",
+        "PROVIDER DECISION DEFERRED"
+      ],
+      "nextAction": "Select and independently validate scientific/provider authority outside this Web freeze; Web must not calculate astronomy or fabricate production facts."
+    },
+    {
+      "id": "TECH-001-ASTRO-HINT",
+      "category": "NON_BLOCKING_TECH_DEBT",
+      "severity": "P2",
+      "status": "PASS_WITH_NONBLOCKING_TECH_DEBT",
+      "launchBlocking": false,
+      "engineDependent": false,
+      "externalActionRequired": false,
+      "ownerDecisionRequired": false,
+      "evidence": [
+        "npm run check",
+        "apps/web/test/learn-foundations.test.mjs:42:3 unused parseFoundationsAssessment hint"
+      ],
+      "nextAction": "Optionally remove the unused test-only import in a later maintenance change; it does not block this Web freeze."
+    },
+    {
+      "id": "TECH-002-LARGE-MODULES",
+      "category": "NON_BLOCKING_TECH_DEBT",
+      "severity": "P2",
+      "status": "PASS_WITH_NONBLOCKING_TECH_DEBT",
+      "launchBlocking": false,
+      "engineDependent": false,
+      "externalActionRequired": false,
+      "ownerDecisionRequired": false,
+      "evidence": [
+        "docs/ARCHITECTURE.md",
+        "Proactive Large-File Decomposition Program = PAUSED",
+        "existing oversized modules are grandfathered and are not standalone release blockers"
+      ],
+      "nextAction": "Revisit only when active product work, repeated defects, security/privacy/scientific correctness, or explicit owner authorization creates a natural boundary."
+    }
+  ],
+  "validation": {
+    "productionBuild": {
+      "command": "npm run build",
+      "status": "PASS",
+      "artifactAudit": {
+        "totalFiles": 1281,
+        "htmlFiles": 1203,
+        "localeCounts": {
+          "en": 152,
+          "es": 152,
+          "fr": 152,
+          "de": 152,
+          "ja": 152,
+          "ko": 152,
+          "zh-Hant": 152
+        },
+        "excludedRouteArtifacts": 0,
+        "sitemapLeaks": 0,
+        "linkLeaks": 0,
+        "missingProductionArtifacts": 0,
+        "devArtifacts": 0,
+        "researchArtifacts": 0,
+        "pocArtifacts": 0,
+        "zhHansArtifacts": 0,
+        "sitemapHasZhHans": false
+      }
+    },
+    "commands": [
+      {
+        "command": "npm run check",
+        "status": "PASS_WITH_NONBLOCKING_TECH_DEBT",
+        "result": "318 files; 0 errors; 0 warnings; 1 existing test-only hint"
+      },
+      {
+        "command": "npm run release:check",
+        "status": "PASS",
+        "result": "RELEASE_CHECK=PASS; CODE_GATES=PASS; EXTERNAL_GATES=INCOMPLETE; PUBLIC_RELEASE=BLOCKED"
+      },
+      {
+        "command": "npm run test:engineering-integrity",
+        "status": "PASS",
+        "result": "6/6 passed"
+      },
+      {
+        "command": "node --test scripts/test-production-architecture-boundaries.test.mjs",
+        "status": "PASS",
+        "result": "12/12 passed"
+      },
+      {
+        "command": "node --test server/test/production-runtime-hardening.test.mjs",
+        "status": "PASS",
+        "result": "7/7 passed"
+      },
+      {
+        "command": "node --test server/test/local-environment-bootstrap.test.mjs server/test/public-development.test.mjs server/test/observability.test.mjs server/test/p0-closure-boundaries.test.mjs",
+        "status": "PASS",
+        "result": "31/31 passed"
+      },
+      {
+        "command": "node --test server/test/postgres-migration-runner.test.mjs",
+        "status": "PASS",
+        "result": "4/4 passed"
+      },
+      {
+        "command": "node --test server/test/unknown-time-authority.test.mjs",
+        "status": "PASS",
+        "result": "10/10 passed"
+      },
+      {
+        "command": "node --test server/test/vault.test.mjs",
+        "status": "PASS",
+        "result": "26/26 passed"
+      },
+      {
+        "command": "node --test server/test/auth-problem-details.test.mjs server/test/auth-lifecycle.test.mjs server/test/auth-lifecycle-cleanup.test.mjs server/test/auth-lifecycle-maintenance.test.mjs server/test/google-auth-account-session-lifecycle.test.mjs server/test/google-auth-capability.test.mjs server/test/google-auth.test.mjs server/test/google-oauth-transaction.test.mjs",
+        "status": "PASS",
+        "result": "56/56 passed"
+      },
+      {
+        "command": "npm run test:localization --workspace=@natalnode/web; npm run test:locale-preference --workspace=@natalnode/web",
+        "status": "PASS",
+        "result": "13/13 passed"
+      },
+      {
+        "command": "npm run test:share --workspace=@natalnode/web; npm run test:legal --workspace=@natalnode/web; npm run test:share-built --workspace=@natalnode/web; npm run test:legal-built --workspace=@natalnode/web",
+        "status": "PASS",
+        "result": "13/13 passed"
+      },
+      {
+        "command": "npm run test:production-build-boundaries",
+        "status": "PASS",
+        "result": "production build boundary suite passed"
+      },
+      {
+        "command": "npm run test:production-release-readiness",
+        "status": "PASS",
+        "result": "6/6 passed"
+      }
+    ],
+    "intentionallyNotRun": [
+      "npm run db:migrate against a user or production database",
+      "real email delivery",
+      "OAuth console operations",
+      "backup/restore drill",
+      "external deployment, DNS/TLS, secret-manager, durable observability, or distributed rate-limit provisioning",
+      "Engine/provider/scientific authority access",
+      "owner browser QA and public launch certification"
+    ],
+    "safety": "No DATABASE_URL, RESEND_API_KEY, or other secret value was printed or recorded."
+  }
+}
