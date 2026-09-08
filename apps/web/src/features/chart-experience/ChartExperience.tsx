@@ -1,5 +1,9 @@
 import { useEffect, useRef, useState } from 'react';
-import type { ChartRequest } from '@natalnode/contracts';
+import {
+  getChartRequestAuthorityIssue,
+  type BirthRequest,
+  type ChartRequest
+} from '@natalnode/contracts';
 import {
   BirthInputForm,
   type CanonicalResolvedLocation,
@@ -38,28 +42,54 @@ function isChartRequest(value: unknown): value is ChartRequest {
 
   const birth = value.birth;
 
-  return (
-    typeof value.houseSystem === 'string' &&
-    value.houseSystem.trim() !== '' &&
-    typeof birth.localDate === 'string' &&
-    (typeof birth.localTime === 'string' || birth.localTime === null) &&
-    typeof birth.locationLabel === 'string' &&
-    (birth.locationResolutionId === undefined ||
-      (typeof birth.locationResolutionId === 'string' &&
-        birth.locationResolutionId !== '')) &&
-    isFiniteNumber(birth.latitude) &&
-    isFiniteNumber(birth.longitude) &&
-    typeof birth.ianaTimeZone === 'string' &&
-    (typeof birth.resolvedUtcInstant === 'string' ||
-      birth.resolvedUtcInstant === null) &&
-    (isFiniteNumber(birth.utcOffsetSeconds) || birth.utcOffsetSeconds === null) &&
-    typeof birth.timezoneDatabaseVersion === 'string' &&
-    typeof birth.timezoneResolutionMethod === 'string' &&
-    (birth.ambiguityStatus === 'EXACT' ||
-      birth.ambiguityStatus === 'AMBIGUOUS' ||
-      birth.ambiguityStatus === 'NONEXISTENT' ||
-      birth.ambiguityStatus === 'UNKNOWN_TIME')
-  );
+  if (
+    typeof value.houseSystem !== 'string' ||
+    value.houseSystem.trim() === '' ||
+    typeof birth.localDate !== 'string' ||
+    (typeof birth.localTime !== 'string' && birth.localTime !== null) ||
+    typeof birth.locationLabel !== 'string' ||
+    (birth.locationResolutionId !== undefined &&
+      (typeof birth.locationResolutionId !== 'string' ||
+        birth.locationResolutionId === '')) ||
+    !isFiniteNumber(birth.latitude) ||
+    !isFiniteNumber(birth.longitude) ||
+    typeof birth.ianaTimeZone !== 'string' ||
+    (typeof birth.resolvedUtcInstant !== 'string' &&
+      birth.resolvedUtcInstant !== null) ||
+    (!isFiniteNumber(birth.utcOffsetSeconds) &&
+      birth.utcOffsetSeconds !== null) ||
+    typeof birth.timezoneDatabaseVersion !== 'string' ||
+    typeof birth.timezoneResolutionMethod !== 'string' ||
+    (birth.ambiguityStatus !== 'EXACT' &&
+      birth.ambiguityStatus !== 'AMBIGUOUS' &&
+      birth.ambiguityStatus !== 'NONEXISTENT' &&
+      birth.ambiguityStatus !== 'UNKNOWN_TIME')
+  ) {
+    return false;
+  }
+
+  const request: ChartRequest = {
+    birth: {
+      localDate: birth.localDate,
+      localTime: birth.localTime,
+      locationLabel: birth.locationLabel,
+      locationResolutionId:
+        typeof birth.locationResolutionId === 'string'
+          ? birth.locationResolutionId
+          : undefined,
+      latitude: birth.latitude,
+      longitude: birth.longitude,
+      ianaTimeZone: birth.ianaTimeZone,
+      resolvedUtcInstant: birth.resolvedUtcInstant,
+      utcOffsetSeconds: birth.utcOffsetSeconds,
+      timezoneDatabaseVersion: birth.timezoneDatabaseVersion,
+      timezoneResolutionMethod: birth.timezoneResolutionMethod,
+      ambiguityStatus: birth.ambiguityStatus
+    } satisfies BirthRequest,
+    houseSystem: value.houseSystem
+  };
+
+  return getChartRequestAuthorityIssue(request) === null;
 }
 
 function savedLocationFromChartRequest(

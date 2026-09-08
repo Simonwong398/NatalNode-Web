@@ -171,6 +171,7 @@ export function createDeterministicInterpretation(
   locale?: SupportedLocale
 ): InterpretationResult {
   const copy = getInterpretationUiCopy(locale);
+  const showAspects = presentationPolicy.showAspects ?? presentationPolicy.showAngles;
   const bigThree = BIG_THREE_PLANETS.flatMap((planet) => {
     const body = findBody(chart, planet);
     const item = body ? createPlanetItem(body, planet, 'big-three', copy) : null;
@@ -201,11 +202,13 @@ export function createDeterministicInterpretation(
       })
     : [];
 
-  const majorAspects = chart.aspects.flatMap((aspect) => {
-    const item = createAspectItem(chart, aspect, copy);
+  const majorAspects = showAspects
+    ? chart.aspects.flatMap((aspect) => {
+        const item = createAspectItem(chart, aspect, copy);
 
-    return item ? [item] : [];
-  });
+        return item ? [item] : [];
+      })
+    : [];
 
   return {
     bigThree,

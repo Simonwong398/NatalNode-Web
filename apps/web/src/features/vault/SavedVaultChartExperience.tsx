@@ -10,6 +10,10 @@ import type {
   VaultChartCategory,
   VaultChartRecord
 } from '@natalnode/contracts';
+import {
+  certifyChartResultForRequest,
+  getChartRequestAuthorityIssue
+} from '@natalnode/contracts';
 import ChartWorkspaceView from '@/features/chart-workspace/ChartWorkspaceView';
 import { createChartPresentationPolicy } from '@/core/chart/chart-presentation-policy';
 import VaultChartManagement from './VaultChartManagement';
@@ -77,7 +81,20 @@ function isBirthRequest(value: unknown): value is BirthRequest {
 }
 
 function isChartRequest(value: unknown): value is ChartRequest {
-  return isRecord(value) && isBirthRequest(value.birth) && typeof value.houseSystem === 'string';
+  if (
+    !isRecord(value) ||
+    !isBirthRequest(value.birth) ||
+    typeof value.houseSystem !== 'string'
+  ) {
+    return false;
+  }
+
+  return (
+    getChartRequestAuthorityIssue({
+      birth: value.birth,
+      houseSystem: value.houseSystem
+    }) === null
+  );
 }
 
 function isVaultChartCategory(value: unknown): value is VaultChartCategory {
@@ -190,20 +207,35 @@ function isGetVaultChartApiResponse(
   value: unknown,
   requestedChartId: string
 ): value is GetVaultChartApiResponse {
+  if (
+    !isRecord(value) ||
+    !isRecord(value.chart) ||
+    value.chart.chartId !== requestedChartId ||
+    !isVaultChartRecord(value.chart) ||
+    (value.chart.scientificStatus !== 'INPUT_ONLY' &&
+      value.chart.scientificStatus !== 'CHART_RESULT_AVAILABLE') ||
+    typeof value.chart.displayName !== 'string' ||
+    !isVaultChartCategory(value.chart.category) ||
+    typeof value.chart.createdAt !== 'string' ||
+    !isChartRequest(value.chart.normalizedChartRequest)
+  ) {
+    return false;
+  }
+
+  if (value.chart.scientificStatus === 'INPUT_ONLY') {
+    return (
+      value.chart.canonicalChartResult === null ||
+      (value.chart.recordOrigin === 'DEVELOPMENT_FIXTURE' &&
+        isChartResult(value.chart.canonicalChartResult))
+    );
+  }
+
   return (
-    isRecord(value) &&
-    isRecord(value.chart) &&
-    value.chart.chartId === requestedChartId &&
-    isVaultChartRecord(value.chart) &&
-    typeof value.chart.displayName === 'string' &&
-    isVaultChartCategory(value.chart.category) &&
-    typeof value.chart.createdAt === 'string' &&
-    isChartRequest(value.chart.normalizedChartRequest) &&
-    (value.chart.scientificStatus === 'INPUT_ONLY'
-      ? value.chart.canonicalChartResult === null ||
-        (value.chart.recordOrigin === 'DEVELOPMENT_FIXTURE' &&
-          isChartResult(value.chart.canonicalChartResult))
-      : isChartResult(value.chart.canonicalChartResult))
+    isChartResult(value.chart.canonicalChartResult) &&
+    certifyChartResultForRequest(
+      value.chart.normalizedChartRequest,
+      value.chart.canonicalChartResult
+    ).outcome === 'CERTIFIED'
   );
 }
 
@@ -333,8 +365,7 @@ export default function SavedVaultChartExperience({
   const presentationPolicy = createChartPresentationPolicy(state.chart.normalizedChartRequest);
   const savedChartResult = state.chart.canonicalChartResult;
   const hasAuthoritativeChartResult =
-    (state.chart.scientificStatus === 'CHART_RESULT_AVAILABLE' ||
-      (state.chart.scientificStatus === undefined && savedChartResult !== null)) &&
+    state.chart.scientificStatus === 'CHART_RESULT_AVAILABLE' &&
     savedChartResult !== null;
 
   const handleChartUpdated = (updatedChart: VaultChartRecord) => {

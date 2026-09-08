@@ -4,6 +4,7 @@ import type {
   ChartCalculationApiRequest,
   ChartRequest
 } from '@natalnode/contracts';
+import { getChartRequestAuthorityIssue } from '@natalnode/contracts';
 
 const BIRTH_TIME_AMBIGUITY_STATUSES: readonly BirthTimeAmbiguityStatus[] = [
   'EXACT',
@@ -26,6 +27,29 @@ function isFiniteNumber(value: unknown): value is number {
 
 const CHART_REQUEST_STRING_MAXIMUM_CHARACTERS = 256;
 const CONTROL_CHARACTER_PATTERN = /[\u0000-\u001f\u007f-\u009f]/u;
+const BIRTH_REQUEST_KEYS = [
+  'localDate',
+  'localTime',
+  'locationLabel',
+  'locationResolutionId',
+  'latitude',
+  'longitude',
+  'ianaTimeZone',
+  'resolvedUtcInstant',
+  'utcOffsetSeconds',
+  'timezoneDatabaseVersion',
+  'timezoneResolutionMethod',
+  'ambiguityStatus'
+] as const;
+const CHART_REQUEST_KEYS = ['birth', 'houseSystem'] as const;
+const CHART_CALCULATION_API_REQUEST_KEYS = ['chart'] as const;
+
+function hasOnlyKeys(
+  value: Record<string, unknown>,
+  allowedKeys: readonly string[]
+): boolean {
+  return Object.keys(value).every((key) => allowedKeys.includes(key));
+}
 
 function isBoundedString(value: unknown): value is string {
   return (
@@ -45,6 +69,7 @@ export function isBirthRequest(value: unknown): value is BirthRequest {
   }
 
   return (
+    hasOnlyKeys(value, BIRTH_REQUEST_KEYS) &&
     isBoundedString(value.localDate) &&
     isStringOrNull(value.localTime) &&
     isBoundedString(value.locationLabel) &&
@@ -69,9 +94,27 @@ export function isBirthRequest(value: unknown): value is BirthRequest {
 }
 
 export function isChartRequest(value: unknown): value is ChartRequest {
-  return isRecord(value) && isBirthRequest(value.birth) && isBoundedString(value.houseSystem);
+  if (
+    !isRecord(value) ||
+    !hasOnlyKeys(value, CHART_REQUEST_KEYS) ||
+    !isBirthRequest(value.birth) ||
+    !isBoundedString(value.houseSystem)
+  ) {
+    return false;
+  }
+
+  return (
+    getChartRequestAuthorityIssue({
+      birth: value.birth,
+      houseSystem: value.houseSystem
+    }) === null
+  );
 }
 
 export function isChartCalculationApiRequest(value: unknown): value is ChartCalculationApiRequest {
-  return isRecord(value) && isChartRequest(value.chart);
+  return (
+    isRecord(value) &&
+    hasOnlyKeys(value, CHART_CALCULATION_API_REQUEST_KEYS) &&
+    isChartRequest(value.chart)
+  );
 }

@@ -1,14 +1,17 @@
-import type {
-  CanonicalResolvedLocation,
-  ChartRequest,
-  ChartResult,
-  VaultChartCategory,
-  VaultChartRecord,
-  VaultRecordOrigin,
-  VaultRecordProvenance,
-  VaultScientificStatus,
-  VaultTimeAuthorityState
+import {
+  certifyChartResultForRequest,
+  getChartRequestAuthorityIssue,
+  type CanonicalResolvedLocation,
+  type ChartRequest,
+  type ChartResult,
+  type VaultChartCategory,
+  type VaultChartRecord,
+  type VaultRecordOrigin,
+  type VaultRecordProvenance,
+  type VaultScientificStatus,
+  type VaultTimeAuthorityState
 } from '@natalnode/contracts';
+import { isChartResult } from '@natalnode/engine-client';
 import type { LocationResolutionService } from '../location-resolution/location-resolution-service.js';
 import type { Clock, IdGenerator } from '../app/creation-boundaries.js';
 
@@ -20,7 +23,10 @@ export type VaultRecordSaveMode = Extract<
   'INPUT_ONLY' | 'CHART_RESULT_AVAILABLE'
 >;
 
-export type VaultRecordEligibilityCode = 'INVALID_INPUT' | 'INVALID_STATE';
+export type VaultRecordEligibilityCode =
+  | 'INVALID_INPUT'
+  | 'INVALID_STATE'
+  | 'PERSISTED_AUTHORITY_MISMATCH';
 
 export class VaultRecordEligibilityError extends Error {
   public readonly code: VaultRecordEligibilityCode;
@@ -239,29 +245,7 @@ export function assertEligibleVaultRecordInput(
     throw new VaultRecordEligibilityError('INVALID_INPUT');
   }
 
-  if (
-    birth.ambiguityStatus === 'UNKNOWN_TIME' &&
-    (birth.localTime !== null ||
-      birth.resolvedUtcInstant !== null ||
-      birth.utcOffsetSeconds !== null)
-  ) {
-    throw new VaultRecordEligibilityError('INVALID_INPUT');
-  }
-
-  if (
-    (birth.ambiguityStatus === 'AMBIGUOUS' ||
-      birth.ambiguityStatus === 'NONEXISTENT') &&
-    (birth.resolvedUtcInstant !== null || birth.utcOffsetSeconds !== null)
-  ) {
-    throw new VaultRecordEligibilityError('INVALID_INPUT');
-  }
-
-  if (
-    birth.ambiguityStatus === 'EXACT' &&
-    (birth.localTime === null ||
-      birth.resolvedUtcInstant === null ||
-      birth.utcOffsetSeconds === null)
-  ) {
+  if (getChartRequestAuthorityIssue(chart) !== null) {
     throw new VaultRecordEligibilityError('INVALID_INPUT');
   }
 
@@ -389,6 +373,10 @@ export function createVaultRecord(input: CreateVaultRecordInput): VaultChartReco
     throw new VaultRecordEligibilityError('INVALID_STATE');
   }
 
+  if (!isChartResult(result)) {
+    throw new VaultRecordEligibilityError('INVALID_STATE');
+  }
+
   if (isDevelopmentFixtureResult(result)) {
     if (!allowDevelopmentFixture) {
       throw new VaultRecordEligibilityError('INVALID_STATE');
@@ -429,6 +417,12 @@ export function createVaultRecord(input: CreateVaultRecordInput): VaultChartReco
     throw new VaultRecordEligibilityError('INVALID_STATE');
   }
 
+  const certification = certifyChartResultForRequest(input.chart, result);
+
+  if (certification.outcome === 'REJECTED') {
+    throw new VaultRecordEligibilityError('INVALID_STATE');
+  }
+
   const provenance = createProvenance('USER_INPUT', timestamp, result, timeState);
   return {
     ...createRecordBase(input, timestamp),
@@ -447,6 +441,62 @@ export function createVaultRecord(input: CreateVaultRecordInput): VaultChartReco
     scientificConfigurationIdentity: result.metadata.astronomyConfigurationId,
     scientificProvenance: provenance
   };
+}
+
+/**
+ * Revalidates the authority relationship of a persisted record before it can
+ * cross the Vault read/reload boundary. This never repairs or sanitizes a
+ * contradictory historical record.
+ */
+export function assertVaultRecordAuthority(record: VaultChartRecord): void {
+  if (getChartRequestAuthorityIssue(record.normalizedChartRequest) !== null) {
+    throw new VaultRecordEligibilityError('PERSISTED_AUTHORITY_MISMATCH');
+  }
+
+  const expectedTimeState = timeAuthorityState(record.normalizedChartRequest);
+
+  if (
+    record.timeAuthorityState !== expectedTimeState ||
+    record.scientificProvenance.schemaVersion !== '1' ||
+    record.scientificProvenance.timeAuthorityState !== expectedTimeState
+  ) {
+    throw new VaultRecordEligibilityError('PERSISTED_AUTHORITY_MISMATCH');
+  }
+
+  if (record.scientificStatus === 'INPUT_ONLY') {
+    if (
+      record.calculationAuthorityState !== 'AUTHORITY_INCOMPLETE' ||
+      record.scientificProvenance.calculationAuthorityState !==
+        'AUTHORITY_INCOMPLETE' ||
+      (record.canonicalChartResult !== null &&
+        !isChartResult(record.canonicalChartResult)) ||
+      (record.canonicalChartResult !== null &&
+        record.recordOrigin !== 'DEVELOPMENT_FIXTURE')
+    ) {
+      throw new VaultRecordEligibilityError('PERSISTED_AUTHORITY_MISMATCH');
+    }
+
+    return;
+  }
+
+  if (
+    record.recordOrigin !== 'USER_INPUT' ||
+    record.calculationAuthorityState !== 'AUTHORITATIVE' ||
+    record.scientificProvenance.calculationAuthorityState !== 'AUTHORITATIVE' ||
+    record.canonicalChartResult === null ||
+    !isChartResult(record.canonicalChartResult)
+  ) {
+    throw new VaultRecordEligibilityError('PERSISTED_AUTHORITY_MISMATCH');
+  }
+
+  const certification = certifyChartResultForRequest(
+    record.normalizedChartRequest,
+    record.canonicalChartResult
+  );
+
+  if (certification.outcome === 'REJECTED') {
+    throw new VaultRecordEligibilityError('PERSISTED_AUTHORITY_MISMATCH');
+  }
 }
 
 /** Returns whether a result is a development-only fixture snapshot. */

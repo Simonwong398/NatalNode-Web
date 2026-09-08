@@ -26,6 +26,7 @@
     "test:feedback": "npm run build && node --test test/feedback.test.mjs",
     "test:public-development": "node --test test/public-development.test.mjs",
     "test:location-resolution": "npm run build --workspace=@natalnode/contracts && npm run build && node --test test/location-resolution.test.mjs",
+    "test:unknown-time-authority": "npm run build --workspace=@natalnode/contracts && npm run build && node --test test/unknown-time-authority.test.mjs",
     "test:geonames-location": "npm run build --workspace=@natalnode/contracts && npm run build && node --test test/geonames-location-provider.test.mjs",
     "test:account-overview": "npm run build --workspace=@natalnode/contracts && npm run build && node --test test/account-overview.test.mjs"
   },

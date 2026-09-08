@@ -303,7 +303,11 @@ export default function ChartWorkspaceView({
               </div>
             </div>
           </section>
-          <ChartResultSummary chart={chart} locale={locale} />
+          <ChartResultSummary
+            chart={chart}
+            locale={locale}
+            presentationPolicy={presentationPolicy}
+          />
         </div>
 
         <div

@@ -108,14 +108,14 @@ presentation eligibility, interpretation eligibility, and Vault persistence and
 reload. It means no ASC, no MC, no houses, and no uncertified time-sensitive
 interpretation.
 
-Current source preserves the nullable time/UTC/offset input shape, uses a
-presentation policy to hide angle and house output, and validates persisted
-Vault state. The BFF request validator is not yet a complete cross-field
-unknown-time authority validator, and result validation is not request-aware.
-Those gaps require a separate campaign before production Engine or
-interpretation admission. Because the chart workflow and research
-interpretation remain outside production admission, they are not a current
-production-reachable material blocker.
+The request validator now enforces the cross-field time authority contract, and
+`certifyChartResultForRequest` rejects unresolved-time angles, houses, house
+assignments, and aspects. Body positions remain blocked for unresolved time
+because the current Engine result contract has no explicit upstream
+time-safety certification; the Web does not infer slow-planet or Moon safety.
+Presentation, interpretation, cache, and Vault read/write paths use the same
+authority boundary. The detailed status and remaining Engine blocker are
+recorded in `docs/research/architecture/UNKNOWN_TIME_AUTHORITY_GATE_001_REVIEW.md`.
 
 ## Deterministic enforcement
 

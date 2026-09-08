@@ -71,6 +71,26 @@ function createSourceChart() {
     chartSchemaVersion: 'source-schema',
     astronomyConfigurationId: null,
     provenanceEnvelopeId: null,
+    recordVersion: 1,
+    scientificStatus: 'INPUT_ONLY',
+    calculationAuthorityState: 'AUTHORITY_INCOMPLETE',
+    recordOrigin: 'DEVELOPMENT_FIXTURE',
+    sourceContext: 'chart-workspace.development-fixture',
+    timeAuthorityState: 'RESOLVED',
+    chartResultContractVersion: 'source-schema',
+    scientificConfigurationIdentity: null,
+    scientificProvenance: {
+      schemaVersion: '1',
+      recordOrigin: 'DEVELOPMENT_FIXTURE',
+      sourceContext: 'chart-workspace.development-fixture',
+      savedAt: SOURCE_TIMESTAMP,
+      timeAuthorityState: 'RESOLVED',
+      calculationAuthorityState: 'AUTHORITY_INCOMPLETE',
+      chartResultContractVersion: 'source-schema',
+      scientificConfigurationIdentity: null,
+      provenanceEnvelopeId: null
+    },
+    savedAt: SOURCE_TIMESTAMP,
     createdAt: SOURCE_TIMESTAMP,
     updatedAt: SOURCE_TIMESTAMP
   };

@@ -8,6 +8,7 @@ import type {
   SkySnapshotRequest,
   SkySnapshotResult
 } from '@natalnode/contracts';
+import { certifyChartResultForRequest } from '@natalnode/contracts';
 import type { EngineClient } from './index.js';
 import {
   isSkyEventsResult,
@@ -79,6 +80,15 @@ export class HttpEngineClient implements EngineClient {
     }
 
     if (!isChartCalculationApiResponse(payload)) {
+      throw calculationFailure();
+    }
+
+    const certification = certifyChartResultForRequest(
+      request,
+      payload.chart
+    );
+
+    if (certification.outcome === 'REJECTED') {
       throw calculationFailure();
     }
 

@@ -1,4 +1,5 @@
 export * from './chart.js';
+export * from './chart-authority.js';
 export * from './location.js';
 export * from './sky.js';
 export * from './auth.js';

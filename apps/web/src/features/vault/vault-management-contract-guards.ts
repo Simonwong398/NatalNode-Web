@@ -30,14 +30,6 @@ function isNullableString(value: unknown): value is string | null {
 }
 
 function isVaultChartRecordState(value: Record<string, unknown>): boolean {
-  if (value.scientificStatus === undefined) {
-    return (
-      isRecord(value.canonicalChartResult) &&
-      typeof value.engineVersion === 'string' &&
-      typeof value.chartSchemaVersion === 'string'
-    );
-  }
-
   const isInputOnly = value.scientificStatus === 'INPUT_ONLY';
   const isAvailable = value.scientificStatus === 'CHART_RESULT_AVAILABLE';
 

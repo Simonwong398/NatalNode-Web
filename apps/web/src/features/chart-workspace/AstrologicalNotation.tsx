@@ -194,8 +194,12 @@ export default function AstrologicalNotation({ chart, locale, presentationPolicy
   const ascendant = presentationPolicy.showAngles
     ? chart.angles.find((angle) => angle.angleId === 'ASC')
     : undefined;
-  const hasCompleteFacts = chart.bodies.length > 0 || chart.aspects.length > 0;
-  const countSummary = `${bodyCount(locale, chart.bodies.length)} · ${aspectCount(locale, chart.aspects.length)}`;
+  const displayedAspects =
+    (presentationPolicy.showAspects ?? presentationPolicy.showAngles)
+      ? chart.aspects
+      : [];
+  const hasCompleteFacts = chart.bodies.length > 0 || displayedAspects.length > 0;
+  const countSummary = `${bodyCount(locale, chart.bodies.length)} · ${aspectCount(locale, displayedAspects.length)}`;
 
   if (orientationBodies.length === 0 && !ascendant && !hasCompleteFacts) {
     return null;
@@ -270,13 +274,13 @@ export default function AstrologicalNotation({ chart, locale, presentationPolicy
               </dl>
             ) : null}
 
-            {chart.aspects.length > 0 ? (
+            {displayedAspects.length > 0 ? (
               <div className={chart.bodies.length > 0 ? 'mt-5' : 'mt-3'}>
                 <h6 className="text-sm font-semibold text-nn-text-primary">
                   {chartUi(locale, 'chart.majorAspects')}
                 </h6>
                 <ul className="mt-1">
-                  {chart.aspects.map((aspect, index) => (
+                  {displayedAspects.map((aspect, index) => (
                     <AspectNotation
                       aspect={aspect}
                       key={`${aspect.firstBodyId}-${aspect.type}-${aspect.secondBodyId}-${index}`}

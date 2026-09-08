@@ -31,6 +31,7 @@ import {
 import {
   VAULT_FREE_RECORD_LIMIT,
   assertEligibleVaultRecordInput,
+  assertVaultRecordAuthority,
   createVaultRecord,
   isDevelopmentVaultFixtureResult,
   VaultRecordEligibilityError
@@ -274,6 +275,19 @@ export function registerVaultChartRoutes(
             nextCursor: null
           }
         : await repository.listPageForUser(userId, query);
+
+      try {
+        page.charts.forEach(assertVaultRecordAuthority);
+      } catch (error) {
+        if (error instanceof VaultRecordEligibilityError) {
+          return createProblemDetailsContextResponse(context, {
+            code: 'INVALID_STATE'
+          });
+        }
+
+        throw error;
+      }
+
       const lastCursor = page.nextCursor;
       const capacity = await readVaultCapacity(repository, userId);
       const response: ListVaultChartsApiResponse = {
@@ -308,6 +322,18 @@ export function registerVaultChartRoutes(
         });
       }
 
+      try {
+        assertVaultRecordAuthority(chart);
+      } catch (error) {
+        if (error instanceof VaultRecordEligibilityError) {
+          return createProblemDetailsContextResponse(context, {
+            code: 'INVALID_STATE'
+          });
+        }
+
+        throw error;
+      }
+
       const response: GetVaultChartApiResponse = { chart };
       return context.json(response);
     }
@@ -335,6 +361,18 @@ export function registerVaultChartRoutes(
         return createProblemDetailsContextResponse(context, {
           code: 'NOT_FOUND'
         });
+      }
+
+      try {
+        assertVaultRecordAuthority(sourceChart);
+      } catch (error) {
+        if (error instanceof VaultRecordEligibilityError) {
+          return createProblemDetailsContextResponse(context, {
+            code: 'INVALID_STATE'
+          });
+        }
+
+        throw error;
       }
 
       let canonicalChartResult: ChartResult;
@@ -442,6 +480,18 @@ export function registerVaultChartRoutes(
         return createProblemDetailsContextResponse(context, {
           code: 'NOT_FOUND'
         });
+      }
+
+      try {
+        assertVaultRecordAuthority(chart);
+      } catch (error) {
+        if (error instanceof VaultRecordEligibilityError) {
+          return createProblemDetailsContextResponse(context, {
+            code: 'INVALID_STATE'
+          });
+        }
+
+        throw error;
       }
 
       const response: UpdateVaultChartMetadataApiResponse = { chart };

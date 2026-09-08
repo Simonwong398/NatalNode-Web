@@ -6,6 +6,7 @@ import {
   type SupportedLocale
 } from '../../lib/localization.js';
 import { chartUi, chartUiFormat } from '@/core/chart/chart-ui';
+import type { ChartPresentationPolicy } from '@/core/chart/chart-presentation-policy';
 
 type ElementName = 'Fire' | 'Earth' | 'Air' | 'Water';
 type ModalityName = 'Cardinal' | 'Fixed' | 'Mutable';
@@ -165,10 +166,15 @@ function getLargestLabels(items: readonly DistributionItem[]): string[] {
 export type ChartResultSummaryProps = {
   chart: ChartResult;
   locale?: SupportedLocale;
+  presentationPolicy: ChartPresentationPolicy;
 };
 
 /** Presents bounded aggregates without deriving new chart facts from geometry. */
-export default function ChartResultSummary({ chart, locale }: ChartResultSummaryProps) {
+export default function ChartResultSummary({
+  chart,
+  locale,
+  presentationPolicy
+}: ChartResultSummaryProps) {
   const summaryId = useId().replace(/:/g, '');
   const summaryTitleId = `${summaryId}-title`;
   const emphasisTitleId = `${summaryId}-emphasis-title`;
@@ -178,6 +184,10 @@ export default function ChartResultSummary({ chart, locale }: ChartResultSummary
   const modalityItems = createDistributionItems(MODALITIES, modalities, MODALITY_LABEL_KEYS, locale);
   const emphasisLabels = [...getLargestLabels(elementItems), ...getLargestLabels(modalityItems)];
   const linksLocale = locale ?? DEFAULT_LOCALE;
+  const displayedAspectCount =
+    (presentationPolicy.showAspects ?? presentationPolicy.showAngles)
+      ? chart.aspects.length
+      : 0;
 
   return (
     <section
@@ -196,8 +206,8 @@ export default function ChartResultSummary({ chart, locale }: ChartResultSummary
         {chartUiFormat(locale, chart.bodies.length === 1 ? 'chart.bodyCount.one' : 'chart.bodyCount.many', {
           count: chart.bodies.length
         })}{' · '}
-        {chartUiFormat(locale, chart.aspects.length === 1 ? 'chart.aspectCount.one' : 'chart.aspectCount.many', {
-          count: chart.aspects.length
+        {chartUiFormat(locale, displayedAspectCount === 1 ? 'chart.aspectCount.one' : 'chart.aspectCount.many', {
+          count: displayedAspectCount
         })}
       </p>
 

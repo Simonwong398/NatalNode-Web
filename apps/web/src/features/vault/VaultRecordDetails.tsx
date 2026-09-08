@@ -39,19 +39,13 @@ function scientificStateKey(chart: VaultChartRecord):
     return 'vault.state.developmentFixture';
   }
 
-  return (
-    chart.scientificStatus === 'CHART_RESULT_AVAILABLE' ||
-    (chart.scientificStatus === undefined && chart.canonicalChartResult !== null)
-  )
+  return chart.scientificStatus === 'CHART_RESULT_AVAILABLE'
     ? 'vault.state.authoritative'
     : 'vault.state.inputOnly';
 }
 
 function hasAuthoritativeChartResult(chart: VaultChartRecord): boolean {
-  return (
-    chart.scientificStatus === 'CHART_RESULT_AVAILABLE' ||
-    (chart.scientificStatus === undefined && chart.canonicalChartResult !== null)
-  );
+  return chart.scientificStatus === 'CHART_RESULT_AVAILABLE';
 }
 
 export default function VaultRecordDetails({

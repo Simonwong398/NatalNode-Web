@@ -15,6 +15,7 @@
     "check": "npm run check --workspaces --if-present",
     "test:engineering-integrity": "node --test scripts/test-engineering-integrity.test.mjs",
     "test:production-architecture-boundaries": "node --test scripts/test-production-architecture-boundaries.test.mjs",
+    "test:unknown-time-authority": "npm run test:unknown-time-authority --workspace=server",
     "test:house-angle-semantic-gate": "node --test scripts/test-house-angle-semantic-gate.test.mjs",
     "test:body-sign-composition": "node --test scripts/test-body-sign-composition.test.mjs",
     "test:body-aspect-composition": "node --test scripts/test-body-aspect-body-composition.test.mjs",

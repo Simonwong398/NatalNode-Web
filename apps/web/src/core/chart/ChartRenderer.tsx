@@ -73,6 +73,12 @@ function getInstrumentAspects(chart: ChartInstrumentData): readonly ChartInstrum
   return 'currentAspects' in chart ? chart.currentAspects : chart.aspects;
 }
 
+function showAspects(policy: ChartPresentationPolicy): boolean {
+  // The fallback preserves older development-only policy fixtures while
+  // keeping unknown-time policies closed through their existing angle gate.
+  return policy.showAspects ?? policy.showAngles;
+}
+
 type AspectCategory = 'tension' | 'harmony' | 'neutral';
 
 type AspectStyle = {
@@ -808,7 +814,9 @@ export default function ChartRenderer({
   const isShowcase = presentationPolicy.mode === 'showcase';
   const natalChart = !isSkyChart && 'houses' in chart ? chart : null;
   const bodies = getInstrumentBodies(chart);
-  const aspects = getInstrumentAspects(chart);
+  const aspects = showAspects(presentationPolicy)
+    ? getInstrumentAspects(chart)
+    : [];
   const [hoveredPlanetId, setHoveredPlanetId] = useState<string | null>(null);
   const [selectedPlanetId, setSelectedPlanetId] = useState<string | null>(null);
   const activePlanetId = selectedPlanetId ?? hoveredPlanetId;

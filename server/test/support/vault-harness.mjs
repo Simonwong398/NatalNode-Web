@@ -53,6 +53,26 @@ function createInitialChart() {
     chartSchemaVersion: 'fixture-v1',
     astronomyConfigurationId: null,
     provenanceEnvelopeId: null,
+    recordVersion: 1,
+    scientificStatus: 'INPUT_ONLY',
+    calculationAuthorityState: 'AUTHORITY_INCOMPLETE',
+    recordOrigin: 'DEVELOPMENT_FIXTURE',
+    sourceContext: 'chart-workspace.development-fixture',
+    timeAuthorityState: 'UNKNOWN_BIRTH_TIME',
+    chartResultContractVersion: 'fixture-v1',
+    scientificConfigurationIdentity: null,
+    scientificProvenance: {
+      schemaVersion: '1',
+      recordOrigin: 'DEVELOPMENT_FIXTURE',
+      sourceContext: 'chart-workspace.development-fixture',
+      savedAt: INITIAL_TIMESTAMP,
+      timeAuthorityState: 'UNKNOWN_BIRTH_TIME',
+      calculationAuthorityState: 'AUTHORITY_INCOMPLETE',
+      chartResultContractVersion: 'fixture-v1',
+      scientificConfigurationIdentity: null,
+      provenanceEnvelopeId: null
+    },
+    savedAt: INITIAL_TIMESTAMP,
     createdAt: INITIAL_TIMESTAMP,
     updatedAt: INITIAL_TIMESTAMP
   };
