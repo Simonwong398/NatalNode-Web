@@ -1,8 +1,6 @@
-import type { EnvironmentSource } from '../runtime/index.js';
-import {
-  parseServerOperationalConfig,
-  type ServerRuntimeMode
-} from '../runtime/index.js';
+import type { EnvironmentSource } from '../runtime/environment/index.js';
+import { parseServerOperationalConfig } from '../runtime/environment/parse-server-operational-config.js';
+import type { ServerRuntimeMode } from '../runtime/server-runtime-config.js';
 
 export const DEVELOPMENT_MOCK_ENGINE_CLIENT_MODE = 'development-mock';
 

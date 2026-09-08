@@ -159,8 +159,10 @@ runtime closes the listener first and then the bootstrap, which closes
 PostgreSQL. `runServerProcess()` and local composition share one opt-in signal
 shutdown helper for `SIGINT` and `SIGTERM`; neither calls `process.exit()`.
 
-Readiness policy and production astronomy-provider composition remain separate
-runtime work.
+`GET /api/health` is liveness and `GET /api/ready` is readiness. Production
+readiness remains fail-closed while Engine composition is not admitted; the
+runtime never reports a green ready state merely because the process exists.
+Production astronomy-provider composition remains separate runtime work.
 
 ## Executable commands
 
@@ -168,8 +170,12 @@ The repository compiles executable Node.js ESM with the existing TypeScript
 compiler. The supported root commands are:
 
 - `npm run server:start` — compile and enter the production-only executable
-  boundary. It fails closed until a production EngineClient composition is
-  separately admitted.
+  boundary. It parses the complete production configuration and fails closed
+  until a production EngineClient composition is separately admitted.
+- `npm run server:preflight` — run a pure configuration/admission check. Set
+  `NATALNODE_PREFLIGHT_PROFILE` to `development`, `local-integration`, or
+  `production`; the command never binds a listener, contacts Engine, sends
+  email, creates a database pool, or runs migrations.
 - `npm run db:migrate` — compile the server runtime and run the existing
   PostgreSQL migration runner as a separate operation.
 - `npm run dev:local` — build the static Astro artifact and server runtime, then

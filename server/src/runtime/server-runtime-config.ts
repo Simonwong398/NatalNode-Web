@@ -2,6 +2,50 @@ import type { WebPushVapidReadiness } from '../notification-platform/web-push-va
 
 export type ServerRuntimeMode = 'local' | 'staging' | 'production';
 
+export type CanonicalRuntimeMode =
+  | 'DEVELOPMENT'
+  | 'LOCAL_INTEGRATION'
+  | 'PRODUCTION';
+
+export type RuntimeLivenessStatus = 'ALIVE';
+export type RuntimeReadinessStatus = 'READY' | 'NOT_READY';
+
+export interface RuntimeHealthStatus {
+  readonly mode: CanonicalRuntimeMode;
+  readonly liveness: RuntimeLivenessStatus;
+  readonly readiness: RuntimeReadinessStatus;
+  readonly readinessReasons: readonly string[];
+}
+
+/** Maps the retained environment names onto the three runtime compositions. */
+export function toCanonicalRuntimeMode(
+  mode: ServerRuntimeMode
+): CanonicalRuntimeMode {
+  return mode === 'production' ? 'PRODUCTION' : 'LOCAL_INTEGRATION';
+}
+
+export function createRuntimeHealthStatus(
+  mode: ServerRuntimeMode
+): RuntimeHealthStatus {
+  const canonicalMode = toCanonicalRuntimeMode(mode);
+
+  if (canonicalMode === 'PRODUCTION') {
+    return {
+      mode: canonicalMode,
+      liveness: 'ALIVE',
+      readiness: 'NOT_READY',
+      readinessReasons: ['ENGINE_NOT_ADMITTED']
+    };
+  }
+
+  return {
+    mode: canonicalMode,
+    liveness: 'ALIVE',
+    readiness: 'READY',
+    readinessReasons: []
+  };
+}
+
 export type RateLimitAuthorityKind = 'process-local' | 'distributed';
 
 export interface ServerOperationalConfig {

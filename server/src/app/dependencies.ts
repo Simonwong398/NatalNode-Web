@@ -22,11 +22,14 @@ import type { Clock, IdGenerator } from './creation-boundaries.js';
 import type { NotificationAccountService } from '../notification-platform/notification-account-service.js';
 import type { FoundationsLearningService } from '../learning/foundations/postgres-foundations-learning-service.js';
 import type { ServerOperationalConfig } from '../runtime/server-runtime-config.js';
+import type { RuntimeHealthStatus } from '../runtime/server-runtime-config.js';
 import type { LocationResolutionService } from '../location-resolution/location-resolution-service.js';
 
 export interface ServerDependencies {
   readonly publicWebOrigin: string;
   readonly operationalConfig?: ServerOperationalConfig;
+  /** Runtime-owned liveness/readiness state; omitted test/public harnesses use a safe local default. */
+  readonly runtimeHealth?: RuntimeHealthStatus;
   readonly authenticator: RequestAuthenticator;
   readonly accountErasure: AccountErasureRepository;
   readonly accountDataExport: AccountDataExportRepository;

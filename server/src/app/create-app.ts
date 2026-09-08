@@ -1,6 +1,10 @@
 import { Hono } from 'hono';
 import type { ServerDependencies } from './dependencies.js';
 import {
+  createRuntimeHealthStatus,
+  type RuntimeHealthStatus
+} from '../runtime/server-runtime-config.js';
+import {
   observeApiRequests,
   type ObservabilitySink
 } from './observability/api-request-observability.js';
@@ -37,6 +41,16 @@ const HEALTH_RESPONSE = {
   status: 'ok'
 } as const;
 
+const READY_RESPONSE = {
+  service: 'natalnode-web-bff',
+  status: 'ready'
+} as const;
+
+const NOT_READY_RESPONSE = {
+  service: 'natalnode-web-bff',
+  status: 'not_ready'
+} as const;
+
 const NOT_FOUND_RESPONSE = {
   error: {
     code: 'NOT_FOUND',
@@ -55,6 +69,18 @@ function isApiPath(pathname: string): boolean {
   return pathname === '/api' || pathname.startsWith('/api/');
 }
 
+function resolveRuntimeHealth(
+  dependencies: ServerDependencies
+): RuntimeHealthStatus {
+  if (dependencies.runtimeHealth !== undefined) {
+    return dependencies.runtimeHealth;
+  }
+
+  return createRuntimeHealthStatus(
+    dependencies.operationalConfig?.runtimeMode ?? 'local'
+  );
+}
+
 export interface CreateAppOptions {
   readonly observabilitySink?: ObservabilitySink;
   /** Explicitly identifies an externally durable sink at composition time. */
@@ -68,6 +94,7 @@ export function createApp(
 ): Hono {
   const app = new Hono();
   const rateLimiter = options.rateLimiter ?? new InMemoryP0StagingRateLimiter();
+  const runtimeHealth = resolveRuntimeHealth(dependencies);
 
   assertRuntimeOperationalBoundary(
     dependencies,
@@ -112,6 +139,11 @@ export function createApp(
     enforceOperationalSurface(dependencies, 'practitioner')
   );
   app.get('/api/health', (context) => context.json(HEALTH_RESPONSE));
+  app.get('/api/ready', (context) =>
+    runtimeHealth.readiness === 'READY'
+      ? context.json(READY_RESPONSE)
+      : context.json(NOT_READY_RESPONSE, 503)
+  );
   app.post('/api/chart', createChartRoute(dependencies));
   registerLocationResolutionRoutes(app, dependencies);
   registerSkyRoutes(app, dependencies);

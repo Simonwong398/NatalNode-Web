@@ -12,6 +12,7 @@
   "scripts": {
     "build": "tsc -p tsconfig.build.json",
     "start": "node dist/executable/server-main.js",
+    "preflight": "node dist/executable/server-preflight-main.js",
     "notification-worker": "node dist/executable/notification-worker-main.js",
     "migrate": "node --env-file-if-exists=../.env dist/executable/migration-main.js",
     "maintenance:auth-cleanup": "node dist/executable/auth-lifecycle-maintenance-main.js",

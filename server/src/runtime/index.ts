@@ -1,6 +1,12 @@
 export { createServerBootstrap, loadServerBootstrap } from './bootstrap/index.js';
 export { createServerRuntimeDependencies } from './create-server-runtime-dependencies.js';
 export {
+  assertProductionRuntimeAdmission,
+  loadProductionRuntimeConfig,
+  parseProductionRuntimeConfig,
+  PRODUCTION_ENGINE_CLIENT_ADMISSION
+} from './production-runtime-config.js';
+export {
   createPostgresPoolRuntime,
   PostgresMigrationError,
   runPostgresMigrations,
@@ -51,6 +57,17 @@ export type { ServerProcessRuntime } from './process/index.js';
 export type { ServerRuntimeBindings } from './server-runtime-bindings.js';
 export type { TransactionRunner } from '../db/index.js';
 export type { ServerRuntimeConfig } from './server-runtime-config.js';
+export type {
+  CanonicalRuntimeMode,
+  RuntimeHealthStatus,
+  RuntimeLivenessStatus,
+  RuntimeReadinessStatus
+} from './server-runtime-config.js';
+export type {
+  ProductionRuntimeConfig,
+  RuntimeDependencyAdmissionState,
+  RuntimeDependencyConfigurationState
+} from './production-runtime-config.js';
 export { SystemClock } from './system-clock.js';
 export {
   createResendEmailMagicLinkDelivery,

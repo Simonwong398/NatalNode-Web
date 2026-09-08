@@ -17,6 +17,7 @@ import { createPostgresCommercialPersistence } from '../commercial-persistence/i
 import { DurationAuthenticationExpirationPolicy } from './duration-authentication-expiration-policy.js';
 import type { ServerRuntimeBindings } from './server-runtime-bindings.js';
 import type { ServerRuntimeConfig } from './server-runtime-config.js';
+import { createRuntimeHealthStatus } from './server-runtime-config.js';
 import { NodeIdGenerator } from './node-id-generator.js';
 import { SystemClock } from './system-clock.js';
 import { NotificationAccountService } from '../notification-platform/notification-account-service.js';
@@ -111,6 +112,7 @@ export function createServerRuntimeDependencies(
   return {
     publicWebOrigin: config.publicWebOrigin,
     operationalConfig: config.operational,
+    runtimeHealth: createRuntimeHealthStatus(config.operational.runtimeMode),
     authenticator,
     accountErasure: bindings.accountErasure,
     accountDataExport: bindings.accountDataExport,

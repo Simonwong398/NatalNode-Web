@@ -89,7 +89,7 @@ function boundedMethod(method: string): HttpMethod {
 }
 
 export function classifyApiEndpointFamily(pathname: string): EndpointFamily {
-  if (pathname === '/api/health') return 'health';
+  if (pathname === '/api/health' || pathname === '/api/ready') return 'health';
   if (pathname === '/api/chart') return 'chart';
   if (pathname === '/api/location/search') return 'location.search';
   if (pathname === '/api/location/resolve') return 'location.resolve';
