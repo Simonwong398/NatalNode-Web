@@ -1,4 +1,4 @@
-import { Pool, type PoolClient, type QueryResultRow } from 'pg';
+import { Pool, type PoolClient, type PoolConfig, type QueryResultRow } from 'pg';
 import {
   createPostgresPoolConfig,
   type PostgresPoolRuntimeConfig
@@ -143,7 +143,7 @@ async function executeMigrationRun(
 }
 
 async function releaseMigrationResources(
-  pool: Pool,
+  pool: Pick<Pool, 'end'>,
   client: PoolClient | undefined,
   lockAcquired: boolean
 ): Promise<readonly unknown[]> {
@@ -184,13 +184,20 @@ async function releaseMigrationResources(
   return cleanupErrors;
 }
 
+export interface PostgresMigrationRuntimeDependencies {
+  readonly createPool?: (
+    config: PoolConfig
+  ) => Pick<Pool, 'connect' | 'end'>;
+}
+
 export async function runPostgresMigrations(
   postgresConfig: PostgresPoolRuntimeConfig,
-  migrationsDirectory: string
+  migrationsDirectory: string,
+  dependencies: PostgresMigrationRuntimeDependencies = {}
 ): Promise<PostgresMigrationRunResult> {
   const poolConfig = createPostgresPoolConfig(postgresConfig);
   const migrations = await loadPostgresMigrations(migrationsDirectory);
-  const pool = new Pool(poolConfig);
+  const pool = dependencies.createPool?.(poolConfig) ?? new Pool(poolConfig);
   let client: PoolClient | undefined;
   let lockAcquired = false;
   let migrationResult: PostgresMigrationRunResult | undefined;

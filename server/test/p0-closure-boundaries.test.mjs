@@ -297,7 +297,22 @@ test('Vault cursor pagination is account-bound and uses a bounded keyset query',
     category: 'SELF',
     tags: [],
     favorite: false,
-    normalized_input: {},
+    normalized_input: {
+      birth: {
+        localDate: '1990-01-01',
+        localTime: '12:00',
+        locationLabel: 'Fixture location',
+        latitude: 0,
+        longitude: 0,
+        ianaTimeZone: 'UTC',
+        resolvedUtcInstant: '1990-01-01T12:00:00.000Z',
+        utcOffsetSeconds: 0,
+        timezoneDatabaseVersion: 'tzdb-test-v1',
+        timezoneResolutionMethod: 'fixture-exact',
+        ambiguityStatus: 'EXACT'
+      },
+      houseSystem: 'PLACIDUS'
+    },
     canonical_result: {},
     engine_version: 'fixture',
     chart_schema_version: '1',

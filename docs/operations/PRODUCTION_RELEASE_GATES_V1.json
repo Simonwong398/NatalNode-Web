@@ -1,0 +1,256 @@
+{
+  "schemaVersion": "PRODUCTION_RELEASE_GATES_V1",
+  "scope": "NatalNode Web pre-production operations and release engineering readiness",
+  "policy": {
+    "codeReady": "CODE_GATES=PASS",
+    "externalReady": "EXTERNAL_GATES=PASS",
+    "publicRelease": "PUBLIC_RELEASE=BLOCKED until every launch-blocking external gate is PASS and final certification is recorded",
+    "authorityBoundary": "This manifest describes Web release operations only. It does not admit Engine, astronomy, interpretation, My Chart, or public launch runtime behavior."
+  },
+  "gates": [
+    {
+      "id": "RUNTIME-001",
+      "category": "RUNTIME",
+      "description": "Production runtime configuration, preflight, liveness, readiness, and fail-closed startup boundaries are implemented and covered.",
+      "ownerType": "WEB_CODE_OWNER",
+      "codeStatus": "PASS",
+      "externalStatus": "INCOMPLETE",
+      "launchBlocking": true,
+      "evidence": ["server/src/runtime/production-runtime-config.ts", "server/src/runtime/runtime-preflight.ts", "server/test/production-runtime-hardening.test.mjs"],
+      "notes": "External deployment must inject the complete production configuration and prove liveness/readiness after rollout."
+    },
+    {
+      "id": "DATABASE-001",
+      "category": "DATABASE",
+      "description": "Forward-only PostgreSQL migrations, schema compatibility preflight, private database connectivity, and migration ownership are release boundaries.",
+      "ownerType": "DATABASE_OPERATIONS_OWNER",
+      "codeStatus": "PASS",
+      "externalStatus": "INCOMPLETE",
+      "launchBlocking": true,
+      "evidence": ["server/src/runtime/postgres/migrations/run-postgres-migrations.ts", "server/src/runtime/postgres/schema-compatibility.ts", "server/test/postgres-migration-runner.test.mjs"],
+      "notes": "A provisioned non-public PostgreSQL instance and a successful release migration are still external evidence."
+    },
+    {
+      "id": "BACKUP-RESTORE-001",
+      "category": "BACKUP_RESTORE",
+      "description": "Backup ownership, restore target, verification steps, and abort conditions are defined without inventing RPO or RTO.",
+      "ownerType": "DATABASE_OPERATIONS_OWNER",
+      "codeStatus": "PASS",
+      "externalStatus": "INCOMPLETE",
+      "launchBlocking": true,
+      "evidence": ["docs/operations/NATALNODE_PRODUCTION_RUNBOOK_V1.md"],
+      "notes": "Backup system selection, retention configuration, restore drill, RPO, and RTO require owner evidence."
+    },
+    {
+      "id": "RATE-LIMIT-001",
+      "category": "RATE_LIMIT",
+      "description": "The current process-local limiter is explicit and bounded; production traffic requires an admitted distributed or edge rate-limit authority.",
+      "ownerType": "WEB_OPERATIONS_OWNER",
+      "codeStatus": "PASS",
+      "externalStatus": "INCOMPLETE",
+      "launchBlocking": true,
+      "evidence": ["server/src/app/security/api-rate-limiting.ts", "server/src/runtime/environment/parse-server-operational-config.ts"],
+      "notes": "No Redis, cloud limiter, threshold, or SLA is selected by this patch. A single replica is not treated as production distributed protection."
+    },
+    {
+      "id": "EMAIL-001",
+      "category": "EMAIL",
+      "description": "Magic-link email uses the existing provider boundary and must receive a verified production sender, domain, callback origin, and secret through deployment configuration.",
+      "ownerType": "AUTH_OPERATIONS_OWNER",
+      "codeStatus": "PASS",
+      "externalStatus": "INCOMPLETE",
+      "launchBlocking": true,
+      "evidence": ["docs/adr/WEB-AUTH-002A-email-magic-link-delivery.md", "server/src/runtime/email/resend/create-resend-email-magic-link-delivery.ts"],
+      "notes": "No live email is sent in this patch. Production must not use onboarding@resend.dev or local placeholder values."
+    },
+    {
+      "id": "AUTH-001",
+      "category": "AUTH",
+      "description": "Email and Google authentication configuration, redirect ownership, one-time token use, session issuance, and generic failure behavior remain explicit.",
+      "ownerType": "AUTH_OPERATIONS_OWNER",
+      "codeStatus": "PASS",
+      "externalStatus": "INCOMPLETE",
+      "launchBlocking": true,
+      "evidence": ["server/src/runtime/environment/parse-server-environment.ts", "server/src/auth-runtime", "server/test/google-auth.test.mjs"],
+      "notes": "The repository does not provision OAuth credentials or register a production callback. No new Google integration is added here."
+    },
+    {
+      "id": "SECRETS-001",
+      "category": "SECRETS",
+      "description": "Secrets are deployment-injected, absent from Git, browser artifacts, diagnostics, logs, and generated runtime configuration.",
+      "ownerType": "DEPLOYMENT_OPERATIONS_OWNER",
+      "codeStatus": "PASS",
+      "externalStatus": "INCOMPLETE",
+      "launchBlocking": true,
+      "evidence": [".env.example", "server/src/runtime/production-runtime-config.ts", "server/src/app/observability/api-request-observability.ts"],
+      "notes": "Secret-manager selection, access policy, rotation, and recovery are external deployment responsibilities."
+    },
+    {
+      "id": "OBSERVABILITY-001",
+      "category": "OBSERVABILITY",
+      "description": "Structured request observability exposes bounded operational signals without PII, credentials, tokens, cookies, request bodies, or database secrets.",
+      "ownerType": "WEB_OPERATIONS_OWNER",
+      "codeStatus": "PASS",
+      "externalStatus": "INCOMPLETE",
+      "launchBlocking": true,
+      "evidence": ["server/src/app/observability/api-request-observability.ts", "server/src/app/observability/calculation-observability.ts"],
+      "notes": "A durable production sink, access controls, retention, and operator dashboard are not provisioned by this patch."
+    },
+    {
+      "id": "ALERTING-001",
+      "category": "ALERTING",
+      "description": "Alert categories and ownership are defined separately from application logs; no threshold or notification SLA is invented.",
+      "ownerType": "WEB_OPERATIONS_OWNER",
+      "codeStatus": "PASS",
+      "externalStatus": "INCOMPLETE",
+      "launchBlocking": true,
+      "evidence": ["docs/operations/NATALNODE_PRODUCTION_RUNBOOK_V1.md"],
+      "notes": "Alert routing, thresholds, escalation contacts, and paging integration require external owner evidence."
+    },
+    {
+      "id": "RETENTION-001",
+      "category": "RETENTION",
+      "description": "Application, database, external-provider, and policy-owned retention responsibilities are classified without making legal conclusions.",
+      "ownerType": "PRODUCT_AND_PRIVACY_OWNER",
+      "codeStatus": "PASS",
+      "externalStatus": "OWNER_DECISION_REQUIRED",
+      "launchBlocking": true,
+      "evidence": ["server/src/maintenance", "server/src/persistence", "docs/operations/NATALNODE_PRODUCTION_RUNBOOK_V1.md"],
+      "notes": "Final retention durations, legal holds, and policy approval remain owner decisions."
+    },
+    {
+      "id": "LEGAL-CONFIG-001",
+      "category": "LEGAL_CONFIG",
+      "description": "Legal and public configuration dependencies are identified as launch work rather than inferred from code readiness.",
+      "ownerType": "PRODUCT_AND_LEGAL_OWNER",
+      "codeStatus": "PASS",
+      "externalStatus": "OWNER_DECISION_REQUIRED",
+      "launchBlocking": true,
+      "evidence": ["docs/operations/NATALNODE_PRODUCTION_RUNBOOK_V1.md"],
+      "notes": "This repository does not certify privacy notices, terms, regional policy, or regulatory obligations."
+    },
+    {
+      "id": "DNS-TLS-001",
+      "category": "DNS_TLS",
+      "description": "The deployment must own the public HTTPS origin, certificate, DNS records, secure cookie boundary, and email-domain DNS records.",
+      "ownerType": "DEPLOYMENT_OPERATIONS_OWNER",
+      "codeStatus": "PASS",
+      "externalStatus": "INCOMPLETE",
+      "launchBlocking": true,
+      "evidence": ["docs/adr/WEB-DEPLOY-001A-web-api-deployment-topology.md", "docs/operations/NATALNODE_PRODUCTION_RUNBOOK_V1.md"],
+      "notes": "No DNS, TLS, Resend, or OAuth console operation is performed by this patch."
+    },
+    {
+      "id": "ENGINE-001",
+      "category": "ENGINE",
+      "description": "Production Engine integration remains outside the Web operations gate and is explicitly fail-closed.",
+      "ownerType": "ENGINE_OWNER",
+      "codeStatus": "PASS",
+      "externalStatus": "BLOCKED",
+      "launchBlocking": true,
+      "evidence": ["server/src/runtime/production-runtime-config.ts", "server/src/executable/server-main.ts", "docs/operations/NATALNODE_PRODUCTION_RUNBOOK_V1.md"],
+      "notes": "No Engine access is made. PROVIDER DECISION DEFERRED. Production Engine integration is not admitted."
+    },
+    {
+      "id": "SCIENTIFIC-AUTHORITY-001",
+      "category": "SCIENTIFIC_AUTHORITY",
+      "description": "Astronomy/provider/scientific authority, configuration identity, and production fact provenance remain unselected and unadmitted.",
+      "ownerType": "SCIENTIFIC_AUTHORITY_OWNER",
+      "codeStatus": "PASS",
+      "externalStatus": "BLOCKED",
+      "launchBlocking": true,
+      "evidence": ["docs/operations/NATALNODE_PRODUCTION_RUNBOOK_V1.md", "docs/architecture/NATALNODE_PRODUCTION_RUNTIME_COMPOSITION_V1.md"],
+      "notes": "PROVIDER DECISION DEFERRED. Development and research fixtures are not production astronomy evidence."
+    },
+    {
+      "id": "FINAL-RELEASE-CERTIFICATION-001",
+      "category": "FINAL_RELEASE_CERTIFICATION",
+      "description": "A release owner must review code gates, external checklist evidence, rollback readiness, and all blocked authority gates before any public release decision.",
+      "ownerType": "RELEASE_OWNER",
+      "codeStatus": "PASS",
+      "externalStatus": "INCOMPLETE",
+      "launchBlocking": true,
+      "evidence": ["docs/operations/PRODUCTION_RELEASE_GATES_V1.json", "docs/operations/NATALNODE_PRODUCTION_RUNBOOK_V1.md"],
+      "notes": "The release check is deterministic automation, not a production certification or owner approval."
+    }
+  ],
+  "externalPrelaunchChecklist": [
+    {
+      "id": "EXT-001",
+      "ownerType": "DATABASE_OPERATIONS_OWNER",
+      "launchBlocking": true,
+      "status": "INCOMPLETE",
+      "item": "Provision a private production PostgreSQL target, inject DATABASE_URL and SSL configuration, run the canonical migration, and retain migration output as release evidence."
+    },
+    {
+      "id": "EXT-002",
+      "ownerType": "DATABASE_OPERATIONS_OWNER",
+      "launchBlocking": true,
+      "status": "INCOMPLETE",
+      "item": "Select backup ownership and execute a restore verification into a NON_PRODUCTION_ISOLATED_DATABASE target; record RPO/RTO only after owner decision."
+    },
+    {
+      "id": "EXT-003",
+      "ownerType": "WEB_OPERATIONS_OWNER",
+      "launchBlocking": true,
+      "status": "INCOMPLETE",
+      "item": "Provide a distributed or edge rate-limit authority and prove that production traffic does not rely on one process-local limiter."
+    },
+    {
+      "id": "EXT-004",
+      "ownerType": "DEPLOYMENT_OPERATIONS_OWNER",
+      "launchBlocking": true,
+      "status": "INCOMPLETE",
+      "item": "Provision the deployment secret owner, access policy, rotation path, and rollback access without placing credentials in Git, images, logs, or browser artifacts."
+    },
+    {
+      "id": "EXT-005",
+      "ownerType": "AUTH_OPERATIONS_OWNER",
+      "launchBlocking": true,
+      "status": "INCOMPLETE",
+      "item": "Verify the production email sender/domain and DNS records, configure the provider secret and callback origin, and reject onboarding@resend.dev and placeholders."
+    },
+    {
+      "id": "EXT-006",
+      "ownerType": "AUTH_OPERATIONS_OWNER",
+      "launchBlocking": true,
+      "status": "INCOMPLETE",
+      "item": "Complete the current Google authentication contract in the production console, including exact redirect URI, client credentials, secure cookie policy, and session verification."
+    },
+    {
+      "id": "EXT-007",
+      "ownerType": "WEB_OPERATIONS_OWNER",
+      "launchBlocking": true,
+      "status": "INCOMPLETE",
+      "item": "Connect durable privacy-safe logs and alerts, assign operators, and verify failure signal delivery without logging PII, credentials, tokens, cookies, or chart data."
+    },
+    {
+      "id": "EXT-008",
+      "ownerType": "PRODUCT_AND_PRIVACY_OWNER",
+      "launchBlocking": true,
+      "status": "OWNER_DECISION_REQUIRED",
+      "item": "Approve retention classes, deletion/hold rules, legal configuration, public notices, and any region-specific release obligations."
+    },
+    {
+      "id": "EXT-009",
+      "ownerType": "DEPLOYMENT_OPERATIONS_OWNER",
+      "launchBlocking": true,
+      "status": "INCOMPLETE",
+      "item": "Verify production DNS/TLS, one canonical public origin, secure host-only cookies, rollback routing, and liveness/readiness traffic gating."
+    },
+    {
+      "id": "EXT-010",
+      "ownerType": "ENGINE_OWNER",
+      "launchBlocking": true,
+      "status": "BLOCKED",
+      "item": "Resolve PROVIDER DECISION DEFERRED and separately admit production Engine/scientific authority only through an approved contract and independent validation."
+    },
+    {
+      "id": "EXT-011",
+      "ownerType": "RELEASE_OWNER",
+      "launchBlocking": true,
+      "status": "INCOMPLETE",
+      "item": "Record final release certification only after every launch-blocking item has evidence and the rollback/abort decision path is staffed."
+    }
+  ]
+}
