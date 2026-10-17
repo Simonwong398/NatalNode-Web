@@ -71,7 +71,9 @@ in range; the test transport accepts `placidus`, `whole-sign`, or `equal`.
 Unknown or absent time fails schema validation. There is no inferred instant,
 timezone offset, location, or unknown-time support.
 
-Success is `{ "chart": <unchanged Engine ChartResult>, "transport": ... }`.
+The private Engine service responds with
+`{ "chart": <unchanged Engine ChartResult>, "presentation": ..., "transport": ... }`.
+The verified Web BFF responds with `{ "receipt": <WebEngineResultReceiptV2>, "transport": ... }`.
 Errors use `{ "error": { "code": ..., "message": ... } }` and do not include
 exception text, stack traces, request fields, or provider credentials. The
 adapter rejects non-POST methods, non-JSON requests, malformed DTOs, and bodies
@@ -124,8 +126,8 @@ adaptation and the loopback HTTP call in one request. It is not registered in
 `createApp`, executable bindings or production runtime composition. It uses
 only the isolated canonical-location fixtures and `FakeAstronomyProvider`.
 The private Engine HTTP schema was extended only for the three mapped house
-systems. The response returns the unmodified raw Engine `ChartResult` and marks
-the surrounding transport as engineering test data.
+systems. Its raw Engine `ChartResult` remains unchanged; the verified BFF
+returns that source beside its separately mapped Web V2 view.
 
 The current browser form and production `/api/chart` composition are not wired
 to this test flow. The form still uses its development resolver unless a
@@ -135,7 +137,13 @@ the server-side authority-to-Engine request boundary with a canonical
 server-owned fixture; it does not make the form's development result
 authoritative or admit a production geocoding/provider composition.
 
-## Bounded Engine result inspection adapter
+## Historical partial inspection snapshot (before Web V2)
+
+The following matrix and implementation notes record the partial inspector
+that existed before `NN-WEB-ENGINE-RESULT-CONTRACT-IMPLEMENT-001`. They remain
+as historical evidence for the earlier boundary; the current implementation
+and renderer status are specified in the Web V2 section at the end of this
+document.
 
 The pinned Engine source defines `ChartResult` in
 `packages/engine/src/domain/chart.ts`; its public package root exports that type
@@ -231,3 +239,111 @@ synthetic science, certify facts, activate the production chart endpoint,
 admit a provider, or establish production Engine use. An async deadline still
 cannot interrupt same-thread synchronous Engine CPU work; hard cancellation
 requires a separately admitted worker/process boundary.
+
+## Implemented Web V2 development result mapping
+
+`NN-WEB-ENGINE-RESULT-CONTRACT-IMPLEMENT-001` replaces the partial inspector
+for the verified BFF path. The shared contract adds `ChartResultV2` in
+`packages/contracts/src/chart.ts`; the existing `ChartResult` alias,
+`ChartCalculationApiResponse`, production Engine client, cache, Vault, and
+their strict validators remain V1-only. V2 has `schemaVersion: '2.0.0'`, no
+`calculationStatus` or scientific metadata field, and is not accepted by
+`isChartResult`.
+
+### Mapped facts
+
+The Web-owned development mapper first validates the exact pinned Engine
+result against the submitted request and then builds one deterministic V2
+view. It does no astronomical calculation and repairs no source data.
+
+| Engine source | Web V2 mapping |
+| --- | --- |
+| Ten lowercase body IDs | Closed, reversible title-case ID table, used for bodies and aspect endpoints. Unknown IDs reject. |
+| Body longitude, sign and house | Copied as supplied. The source result retains speed, sign degree and optional latitude/distance. |
+| `direct` / `station` / `retrograde` | `DIRECT` / `STATIONARY` / `RETROGRADE`. V2 has no retrograde boolean and derives no state from speed. |
+| ASC / MC longitudes | A separate Engine-host presentation record supplies both signs using the actual exported `signForLongitude` and `NATALNODE_POLICY`. The BFF checks exact IDs, values, policy and tropical zodiac. No cusp is used as an angle. |
+| House system and 12 cusps | `placidus` / `whole-sign` / `equal` map to `Placidus` / `Whole Sign` / `Equal`; cusp array order becomes house numbers 1–12. |
+| Aspect endpoints, type, exact angle, separation, orb, orb limit and phase | All rows and values are retained. Endpoints use the same closed body-ID table; phase uses a validated closed enum lookup. Orb membership is checked with the Engine's inclusive `orb <= orbLimit` rule. No arbitrary maximum is imposed on a finite non-negative orb limit. |
+| Engine warnings | Code, subject, message and optional details are copied. `owner` is `ENGINE`; `severity` is explicitly `null` because Engine supplies none. Unknown variants and supplied fake severity reject. |
+
+The original validated Engine result is retained structurally unchanged as
+`receipt.source.engineResult`, including provider/model identity, input,
+metadata, configuration IDs, provenance, diagnostics and optional source
+fields. The V2 chart is a view of that source, not a second calculation
+authority. JSON parsing/serialization preserves its data fields and arrays;
+the implementation does not claim transport-byte identity.
+
+### Civil-time provenance and admission
+
+The verified BFF composes two owners in the receipt:
+
+- `source.engineResult` remains Engine-owned astronomical output and
+  provenance.
+- `source.webCivilTime` has `owner: 'NATALNODE_WEB_BFF'` and a snapshot of the
+  existing `TimeResolutionEvidence`.
+
+Only the live in-process `VerifiedUtcInstant` issued by the current BFF
+TimeAuthority can authorize a calculation. Before inclusion, its local date
+and time, canonical location ID, coordinates, IANA zone, UTC instant, offset,
+tzdb profile and house-system request are checked against the Web request and
+the Engine input/result. The JSON evidence snapshot is provenance only; it is
+not accepted back as proof. The Engine result and scientific fingerprints are
+not rewritten with civil-time or tzdb fields.
+
+Receipt assessment keeps these states separate:
+
+```text
+ENGINE_RESULT_VALID                  = PASS for a validated synthetic result
+WEB_RESULT_SEMANTICALLY_MAPPABLE     = PASS when all V2 fields map
+providerScientificAdmission          = NOT_ADMITTED
+productionResultCertification       = NOT_CERTIFIED
+```
+
+The synthetic classification and non-real-astronomy disclosure are fixed by
+the explicitly constructed test service. Neither Engine `COMPLETE` metadata
+nor strings in JSON can promote the provider or result. A compromised local
+service can falsify both raw output and its presentation; this loopback POC
+does not authenticate a production service.
+
+### HTTP and renderer proof
+
+The existing test-only `/_test/private-engine/chart` flow now executes:
+
+```text
+verified birth request
+→ existing Civil TimeAuthority and request adapter
+→ private loopback HTTP
+→ pinned Engine calculateChart with FakeAstronomyProvider
+→ shared raw-result validator
+→ Engine public signForLongitude presentation
+→ validated Web V2 receipt
+→ ChartRenderer test instrument with visible synthetic disclosure
+```
+
+The integration test compares `source.engineResult` to an independently
+calculated result from the same pinned Engine API and checks the returned
+angle signs against the actual public helper. Repeated London requests remain
+deterministic and retain `2025-10-22T09:52:00.000Z` plus the canonical
+Greenwich binding. It also renders that HTTP-produced V2 chart, verifies natal
+houses remain present when V2 bodies carry `motionState`, and verifies
+`STATIONARY` is displayed distinctly. Existing V1 retrograde and Sky
+house-free rendering are characterized in the same focused test.
+
+The V2 renderer support is limited to `ChartRenderer` and its affected
+notation helpers. The production chart workspace still accepts its existing
+V1 result contract; no V2 production response, public synthetic route,
+interpretation/My Chart wiring, Vault writer, or persistence migration was
+added. Architecture and production-build boundary checks continue to exclude
+the private Engine harness and synthetic provider from production execution.
+
+### Remaining gates
+
+`ENGINE_RESULT_VALID` and `WEB_RESULT_SEMANTICALLY_MAPPABLE` establish
+structure and mapping only. Provider scientific admission and production
+result certification remain **NO**. Public `/api/chart`, production My Chart,
+and V2 Vault persistence remain disabled. Production service identity,
+deployment/network isolation and operational composition remain open. CPU
+cancellation also remains open: the asynchronous HTTP deadline cannot
+preempt synchronous same-thread Engine work; worker/process isolation is a
+separate runtime gate. `FORMAL_P1 = NO-GO`, `LEVEL_2 = NOT ESTABLISHED`,
+`PRODUCTION = NOT APPROVED`, and `PROVIDER DECISION DEFERRED` are unchanged.

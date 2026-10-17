@@ -1,7 +1,10 @@
 import { createAdaptorServer } from '@hono/node-server';
 import { Hono } from 'hono';
 import { prepareEngineCalculationRequest } from '../../dist/engine-request-adapter/index.js';
-import { projectEngineResultForDevelopmentInspection } from '../../dist/development/engine-result-adapter/engine-result-adapter.js';
+import {
+  createEngineAngleSignPresentationV1,
+  createWebEngineResultReceiptV2
+} from '../../dist/development/engine-result-adapter/engine-result-adapter.js';
 
 const LOOPBACK_HOST = '127.0.0.1';
 const CALCULATE_PATH = '/v1/chart/calculate';
@@ -145,7 +148,9 @@ function timeoutPromise(timeoutMs) {
 }
 
 export function createPrivateEngineHttpApp(engine, {
-  calculationTimeoutMs = DEFAULT_CALCULATION_TIMEOUT_MS
+  calculationTimeoutMs = DEFAULT_CALCULATION_TIMEOUT_MS,
+  signForLongitude,
+  policy
 } = {}) {
   if (!engine || typeof engine.calculateChart !== 'function') {
     throw new TypeError('An explicitly constructed Engine is required.');
@@ -180,16 +185,30 @@ export function createPrivateEngineHttpApp(engine, {
       const chart = await Promise.race([calculation, timeout.promise]);
       if (!isEngineChartResult(chart)) return errorResponse(context, 'ENGINE_RESPONSE_INVALID');
 
+      const signPresentation = createEngineAngleSignPresentationV1({
+        rawResult: chart,
+        expectedRequest: parsed.value,
+        signForLongitude,
+        policy
+      });
+      if (signPresentation.outcome !== 'CREATED') {
+        return errorResponse(context, 'ENGINE_RESPONSE_INVALID');
+      }
+
       let serialized;
       try {
-        serialized = JSON.stringify({ chart });
+        serialized = JSON.stringify({ chart, presentation: signPresentation.presentation });
       } catch (_error) {
         return errorResponse(context, 'ENGINE_RESPONSE_INVALID');
       }
       if (Buffer.byteLength(serialized, 'utf8') > MAX_RESPONSE_BYTES) {
         return errorResponse(context, 'ENGINE_RESPONSE_INVALID');
       }
-      const responseBody = JSON.stringify({ chart, transport: TEST_DATA_TRANSPORT });
+      const responseBody = JSON.stringify({
+        chart,
+        presentation: signPresentation.presentation,
+        transport: TEST_DATA_TRANSPORT
+      });
       if (Buffer.byteLength(responseBody, 'utf8') > MAX_RESPONSE_BYTES) {
         return errorResponse(context, 'ENGINE_RESPONSE_INVALID');
       }
@@ -293,7 +312,7 @@ export class PrivateEngineHttpClient {
     this.fetchImplementation = fetchImplementation;
   }
 
-  async calculateChart(request) {
+  async calculateChartWithPresentation(request) {
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), this.timeoutMs);
     try {
@@ -321,13 +340,22 @@ export class PrivateEngineHttpClient {
           : 'ENGINE_UNAVAILABLE';
         throw new PrivateEngineHttpClientError(code);
       }
-      if (!isRecord(payload) || !isEngineChartResult(payload.chart)
+      if (!hasExactKeys(payload, ['chart', 'presentation', 'transport']) ||
+        !isEngineChartResult(payload.chart) ||
+        !isRecord(payload.presentation) ||
+        !hasExactKeys(payload.transport, [
+          'dataClassification', 'astronomicalStatus', 'scientificValidation'
+        ])
         || payload.transport?.dataClassification !== TEST_DATA_TRANSPORT.dataClassification
         || payload.transport?.astronomicalStatus !== TEST_DATA_TRANSPORT.astronomicalStatus
         || payload.transport?.scientificValidation !== TEST_DATA_TRANSPORT.scientificValidation) {
         throw new PrivateEngineHttpClientError('ENGINE_PROTOCOL_INVALID');
       }
-      return payload.chart;
+      return {
+        chart: payload.chart,
+        presentation: payload.presentation,
+        transport: payload.transport
+      };
     } catch (error) {
       if (error instanceof PrivateEngineHttpClientError) throw error;
       if (controller.signal.aborted) throw new PrivateEngineHttpClientError('ENGINE_TIMEOUT');
@@ -335,6 +363,10 @@ export class PrivateEngineHttpClient {
     } finally {
       clearTimeout(timer);
     }
+  }
+
+  async calculateChart(request) {
+    return (await this.calculateChartWithPresentation(request)).chart;
   }
 }
 
@@ -394,14 +426,21 @@ export function createVerifiedPrivateEngineBffHarness({ engineClient, timeAuthor
     }
 
     try {
-      const chart = await engineClient.calculateChart(prepared.request);
-      const adapted = projectEngineResultForDevelopmentInspection(chart, prepared.request);
-      if (adapted.outcome === 'REJECTED') {
+      if (typeof engineClient.calculateChartWithPresentation !== 'function') {
         return errorResponse(context, 'ENGINE_RESPONSE_INVALID');
       }
+      const engineReply = await engineClient.calculateChartWithPresentation(prepared.request);
+      const adapted = createWebEngineResultReceiptV2({
+        rawResult: engineReply.chart,
+        expectedRequest: prepared.request,
+        anglePresentation: engineReply.presentation,
+        verifiedTime: prepared.verifiedTime,
+        webRequest: parsed.value.chart
+      });
+      if (adapted.outcome !== 'CREATED') return errorResponse(context, 'ENGINE_RESPONSE_INVALID');
       let serialized;
       try {
-        serialized = JSON.stringify({ chart, projection: adapted.projection, transport: TEST_DATA_TRANSPORT });
+        serialized = JSON.stringify({ receipt: adapted.receipt, transport: TEST_DATA_TRANSPORT });
       } catch (_error) {
         return errorResponse(context, 'ENGINE_RESPONSE_INVALID');
       }

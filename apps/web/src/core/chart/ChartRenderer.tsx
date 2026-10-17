@@ -8,9 +8,13 @@ import {
 } from 'react';
 import type {
   AngleFact,
+  AngleFactV2,
   AspectFact,
+  AspectFactV2,
   BodyFact,
+  BodyFactV2,
   ChartResult,
+  ChartResultV2,
   HouseCusp,
   SkyBodyPosition,
   SkyCurrentAspect,
@@ -58,12 +62,13 @@ export type ChartRendererProps = {
   focusCardLayout?: ChartFocusCardLayout;
 };
 
-export type ChartInstrumentData = ChartResult | SkySnapshotResult;
+export type ChartInstrumentData = ChartResult | ChartResultV2 | SkySnapshotResult;
 export type ChartInstrumentKind = 'natal' | 'sky';
 export type ChartFocusCardLayout = 'inline' | 'reserved';
 
-type ChartInstrumentBody = BodyFact | SkyBodyPosition;
-type ChartInstrumentAspect = AspectFact | SkyCurrentAspect;
+type ChartInstrumentBody = BodyFact | BodyFactV2 | SkyBodyPosition;
+type ChartInstrumentAngle = AngleFact | AngleFactV2;
+type ChartInstrumentAspect = AspectFact | AspectFactV2 | SkyCurrentAspect;
 
 function getInstrumentBodies(chart: ChartInstrumentData): readonly ChartInstrumentBody[] {
   return 'bodyPositions' in chart ? chart.bodyPositions : chart.bodies;
@@ -183,7 +188,11 @@ function formatHouse(house: number): string {
 }
 
 function isSkyBody(body: ChartInstrumentBody): body is SkyBodyPosition {
-  return 'motionState' in body;
+  return !('house' in body) && 'motionState' in body;
+}
+
+function isV2NatalBody(body: ChartInstrumentBody): body is BodyFactV2 {
+  return 'house' in body && 'motionState' in body;
 }
 
 function isSkyAspect(aspect: ChartInstrumentAspect): aspect is SkyCurrentAspect {
@@ -192,13 +201,14 @@ function isSkyAspect(aspect: ChartInstrumentAspect): aspect is SkyCurrentAspect 
 
 function getBodyMotionState(body: ChartInstrumentBody): string | null {
   if (isSkyBody(body)) return body.motionState;
+  if (isV2NatalBody(body)) return body.motionState;
   if (body.retrograde === true) return 'RETROGRADE';
   if (body.retrograde === false) return 'DIRECT';
   return null;
 }
 
 function getBodyHouse(body: ChartInstrumentBody): number | null {
-  return isSkyBody(body) ? null : body.house;
+  return 'house' in body ? body.house : null;
 }
 
 function getAspectType(aspect: ChartInstrumentAspect): string {
@@ -428,9 +438,12 @@ function describeBody(
   locale: SupportedLocale | undefined,
   showHouses: boolean
 ): string {
-  const motion = getBodyMotionState(body) === 'RETROGRADE'
+  const motionState = getBodyMotionState(body);
+  const motion = motionState === 'RETROGRADE'
     ? `, ${glossaryTerm('motion', 'RETROGRADE', locale).toLowerCase()}`
-    : '';
+    : motionState === 'STATIONARY'
+      ? `, ${glossaryTerm('motion', 'STATIONARY', locale).toLowerCase()}`
+      : '';
   const houseValue = getBodyHouse(body);
   const house = showHouses && typeof houseValue === 'number' && Number.isInteger(houseValue) && houseValue >= 1 && houseValue <= 12
     ? `, ${glossaryTerm('house', houseValue, locale)}`
@@ -641,7 +654,7 @@ function renderAspect(
   );
 }
 
-function renderAngle(angle: AngleFact, locale: SupportedLocale | undefined) {
+function renderAngle(angle: ChartInstrumentAngle, locale: SupportedLocale | undefined) {
   const line = radialLine(angle.longitude, HOUSE_INNER_RADIUS, ANGLE_OUTER_RADIUS);
   const label = longitudeToPoint(angle.longitude, ANGLE_OUTER_RADIUS);
   const angleResolution = resolveAstrologyDomainTerm(

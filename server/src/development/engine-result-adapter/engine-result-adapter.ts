@@ -1,12 +1,22 @@
-/**
- * Private, development-only wire validator and inspection projection for the
- * pinned Engine ChartResult. This is deliberately not a Web ChartResult
- * adapter and is not exported from the server package root.
- */
+/** Private, development-only validator and lossless Web V2 result projection. */
+
+import type {
+  ChartRequest,
+  ChartResultV2,
+  EngineChartWarningV2,
+  SkyBodyId,
+  SkyMotionState,
+  TimeResolutionEvidence,
+  ZodiacSign
+} from '@natalnode/contracts';
+import { assertVerifiedUtcInstant } from '../../time-resolution/birth-time-resolution-service.js';
+import type { VerifiedUtcInstant } from '../../time-resolution/time-resolution-contract.js';
 
 const ENGINE_SCHEMA_VERSION = '1.0.0';
 const ENGINE_VERSION = '0.1.0-foundation';
-const ENGINE_RESULT_PROJECTION_VERSION = 'ENGINE_RESULT_INSPECTION_V1';
+const WEB_RESULT_SCHEMA_VERSION = '2.0.0';
+const MAPPING_POLICY_ID = 'ENGINE_WEB_RESULT_MAPPING_V2';
+const SIGN_POLICY_VERSION = 'NatalNode boundary policy v1';
 
 const BODY_IDS = [
   'sun', 'moon', 'mercury', 'venus', 'mars', 'jupiter', 'saturn', 'uranus', 'neptune', 'pluto'
@@ -47,6 +57,23 @@ type HouseSystem = (typeof HOUSE_SYSTEMS)[number];
 type AspectType = (typeof ASPECT_TYPES)[number];
 type Motion = (typeof MOTIONS)[number];
 type WarningCode = (typeof WARNING_CODES)[number];
+
+const BODY_ID_TO_WEB: Readonly<Record<BodyId, SkyBodyId>> = Object.freeze({
+  sun: 'Sun', moon: 'Moon', mercury: 'Mercury', venus: 'Venus', mars: 'Mars',
+  jupiter: 'Jupiter', saturn: 'Saturn', uranus: 'Uranus', neptune: 'Neptune', pluto: 'Pluto'
+});
+const MOTION_TO_WEB: Readonly<Record<Motion, SkyMotionState>> = Object.freeze({
+  direct: 'DIRECT', station: 'STATIONARY', retrograde: 'RETROGRADE'
+});
+const PHASE_TO_WEB = Object.freeze({
+  applying: 'APPLYING', exact: 'EXACT', separating: 'SEPARATING'
+} as const);
+const HOUSE_SYSTEM_TO_WEB: Readonly<Record<HouseSystem, string>> = Object.freeze({
+  placidus: 'Placidus', 'whole-sign': 'Whole Sign', equal: 'Equal'
+});
+const HOUSE_SYSTEM_TO_ENGINE: Readonly<Record<string, HouseSystem>> = Object.freeze({
+  Placidus: 'placidus', 'Whole Sign': 'whole-sign', Equal: 'equal'
+});
 
 export interface EngineResultExpectation {
   readonly input: {
@@ -122,7 +149,7 @@ interface EngineResultMetadata {
   readonly provenanceEnvelopeDiagnostics?: readonly EngineDiagnostic[];
 }
 
-interface EngineChartResultV1 {
+export interface ValidatedEngineChartResultV1 {
   readonly schemaVersion: typeof ENGINE_SCHEMA_VERSION;
   readonly engineVersion: typeof ENGINE_VERSION;
   readonly provider: { readonly id: string; readonly version: string };
@@ -141,6 +168,8 @@ interface EngineChartResultV1 {
   readonly metadata: EngineResultMetadata;
 }
 
+type EngineChartResultV1 = ValidatedEngineChartResultV1;
+
 export type EngineResultValidationErrorCode =
   | 'ENGINE_RESULT_EXPECTATION_INVALID'
   | 'ENGINE_RESULT_VERSION_UNSUPPORTED'
@@ -152,70 +181,55 @@ export type EngineResultValidationErrorCode =
   | 'ENGINE_RESULT_HOUSE_STRUCTURE_INVALID'
   | 'ENGINE_RESULT_ASPECT_REFERENCE_INVALID'
   | 'ENGINE_RESULT_SCIENTIFIC_CONFIGURATION_INVALID'
-  | 'ENGINE_RESULT_PROVENANCE_INVALID';
+  | 'ENGINE_RESULT_PROVENANCE_INVALID'
+  | 'ANGLE_SIGN_PRESENTATION_REQUIRED'
+  | 'ANGLE_SIGN_PRESENTATION_MISMATCH'
+  | 'ANGLE_SIGN_POLICY_UNSUPPORTED'
+  | 'TEMPORAL_PROVENANCE_BINDING_MISMATCH';
 
-export interface EngineDevelopmentResultProjection {
-  readonly projectionType: typeof ENGINE_RESULT_PROJECTION_VERSION;
-  readonly authority: {
-    readonly structuralValidation: 'STRUCTURALLY_VALID';
-    readonly semanticMapping: 'PARTIAL';
-    readonly scientificAdmission: 'NOT_ADMITTED';
-    readonly dataClassification: 'ENGINEERING TEST DATA';
-    readonly astronomicalStatus: 'NOT REAL ASTRONOMICAL OUTPUT';
-    readonly scientificValidation: 'NOT_PERFORMED';
-    readonly resultCertification: 'NOT_CREATED';
-  };
-  readonly engineIdentity: {
-    readonly schemaVersion: string;
-    readonly engineVersion: string;
-  };
-  readonly requestBinding: EngineResultExpectation;
-  readonly provider: EngineChartResultV1['provider'];
-  readonly modelVersions: EngineChartResultV1['modelVersions'];
-  readonly bodies: readonly {
-    readonly bodyId: BodyId;
-    readonly longitude: number;
-    readonly sign: SignName;
-    readonly house: number;
-    readonly engineMotion: Motion;
-  }[];
-  /** ASC and MC longitude only; this is not Web AngleFact (which requires sign). */
-  readonly angles: readonly {
-    readonly angleId: 'ASC' | 'MC';
-    readonly longitude: number;
-  }[];
-  readonly houses: {
-    readonly system: HouseSystem;
-    readonly cusps: readonly { readonly house: number; readonly longitude: number }[];
-  };
-  readonly aspects: readonly {
-    readonly firstBodyId: BodyId;
-    readonly secondBodyId: BodyId;
-    readonly type: AspectType;
-    readonly orb: number;
-    readonly phaseState: 'APPLYING' | 'EXACT' | 'SEPARATING';
-  }[];
-  /** Kept in the Engine warning shape; no Web severity is inferred. */
-  readonly engineWarnings: EngineChartResultV1['warnings'];
-  /** Kept byte-for-byte as received; COMPLETE does not mean production admitted. */
-  readonly engineMetadata: EngineChartResultV1['metadata'];
-  readonly resultContractGaps: readonly string[];
+export interface EngineAngleSignPresentationV1 {
+  readonly schemaVersion: '1';
+  readonly operation: 'ENGINE_PUBLIC_API_SIGN_FOR_LONGITUDE';
+  readonly policyVersion: typeof SIGN_POLICY_VERSION;
+  readonly zodiac: 'tropical';
+  readonly angles: readonly [
+    { readonly angleId: 'ASC'; readonly longitude: number; readonly sign: ZodiacSign },
+    { readonly angleId: 'MC'; readonly longitude: number; readonly sign: ZodiacSign }
+  ];
 }
 
-export type EngineResultProjection =
-  | { readonly outcome: 'PROJECTED'; readonly projection: EngineDevelopmentResultProjection }
+export interface WebEngineResultReceiptV2 {
+  readonly mappingPolicyId: typeof MAPPING_POLICY_ID;
+  readonly chart: ChartResultV2;
+  readonly source: {
+    readonly engineResult: ValidatedEngineChartResultV1;
+    readonly webCivilTime: {
+      readonly owner: 'NATALNODE_WEB_BFF';
+      readonly evidence: TimeResolutionEvidence;
+    };
+  };
+  readonly presentation: EngineAngleSignPresentationV1;
+  readonly assessment: {
+    readonly engineResult: 'ENGINE_RESULT_VALID';
+    readonly webMapping: 'WEB_RESULT_SEMANTICALLY_MAPPABLE';
+    readonly providerScientificAdmission: 'NOT_ADMITTED';
+    readonly productionResultCertification: 'NOT_CERTIFIED';
+    readonly dataClassification: 'ENGINEERING TEST DATA';
+    readonly astronomicalStatus: 'NOT REAL ASTRONOMICAL OUTPUT';
+  };
+}
+
+export type EngineResultMappingResult =
+  | { readonly outcome: 'MAPPED'; readonly chart: ChartResultV2 }
   | { readonly outcome: 'REJECTED'; readonly error: { readonly code: EngineResultValidationErrorCode } };
 
-const RESULT_CONTRACT_GAPS = Object.freeze([
-  'ANGLE_SIGN_NOT_SUPPLIED_FOR_WEB_ANGLE_FACT',
-  'ENGINE_WARNING_SEVERITY_HAS_NO_WEB_MAPPING',
-  'ENGINE_STATION_STATE_CANNOT_BE_REDUCED_TO_WEB_RETROGRADE_BOOLEAN',
-  'WEB_ASPECT_FACT_OMITS_ENGINE_EXACT_ANGLE_SEPARATION_AND_ORB_LIMIT',
-  'ENGINE_PROVIDER_AND_MODEL_PROVENANCE_HAVE_NO_WEB_CHART_RESULT_FIELDS',
-  'ENGINE_RESULT_HAS_NO_CIVIL_TIME_AUTHORITY_EVIDENCE',
-  'WEB_CHART_RESULT_HAS_NO_SYNTHETIC_AUTHORITY_CLASSIFICATION',
-  'ENGINE_PRECISION_QUALITY_HAS_NO_WEB_CHART_RESULT_FIELD'
-]);
+export type EngineResultReceiptResult =
+  | { readonly outcome: 'CREATED'; readonly receipt: WebEngineResultReceiptV2 }
+  | { readonly outcome: 'REJECTED'; readonly error: { readonly code: EngineResultValidationErrorCode } };
+
+export type EngineAngleSignPresentationResult =
+  | { readonly outcome: 'CREATED'; readonly presentation: EngineAngleSignPresentationV1 }
+  | { readonly outcome: 'REJECTED'; readonly error: { readonly code: EngineResultValidationErrorCode } };
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value);
@@ -351,7 +365,7 @@ function isEngineAspect(value: unknown): value is EngineResultAspect {
     isInRange(value.exactAngle, 0, 180.0000000001) && value.exactAngle <= 180 &&
     isInRange(value.separation, 0, 180.0000000001) && value.separation <= 180 &&
     isInRange(value.orb, 0, 180.0000000001) && value.orb <= 180 &&
-    isInRange(value.orbLimit, 0, 180.0000000001) && value.orbLimit <= 180 &&
+    isFiniteNumber(value.orbLimit) && value.orbLimit >= 0 && value.orb <= value.orbLimit &&
     isOneOf(value.phase, ['applying', 'exact', 'separating'] as const);
 }
 
@@ -388,7 +402,11 @@ function isEngineMetadata(value: unknown): value is EngineResultMetadata {
     value.provenance.every(isEngineProvenance);
 }
 
-function reject(code: EngineResultValidationErrorCode): EngineResultProjection {
+function rejected(code: EngineResultValidationErrorCode): EngineResultMappingResult {
+  return Object.freeze({ outcome: 'REJECTED', error: Object.freeze({ code }) });
+}
+
+function rejectedReceipt(code: EngineResultValidationErrorCode): EngineResultReceiptResult {
   return Object.freeze({ outcome: 'REJECTED', error: Object.freeze({ code }) });
 }
 
@@ -485,64 +503,198 @@ function validateEngineChartResult(
   return { chart: value as unknown as EngineChartResultV1 };
 }
 
-/**
- * Validates the pinned Engine wire result against the exact submitted request,
- * then projects only inspectable source-owned fields. It never creates a Web
- * ChartResult, production certification, or scientific admission.
- */
-export function projectEngineResultForDevelopmentInspection(
-  rawResult: unknown,
-  expectedRequest: EngineResultExpectation
-): EngineResultProjection {
-  const validated = validateEngineChartResult(rawResult, expectedRequest);
-  if ('error' in validated) return reject(validated.error);
-  const chart = validated.chart;
+function validateAngleSignPresentation(
+  value: unknown,
+  chart: EngineChartResultV1
+): { readonly presentation: EngineAngleSignPresentationV1 }
+  | { readonly error: EngineResultValidationErrorCode } {
+  if (value === null || value === undefined) return { error: 'ANGLE_SIGN_PRESENTATION_REQUIRED' };
+  if (!hasExactKeys(value, ['schemaVersion', 'operation', 'policyVersion', 'zodiac', 'angles']) ||
+      value.schemaVersion !== '1' ||
+      value.operation !== 'ENGINE_PUBLIC_API_SIGN_FOR_LONGITUDE' ||
+      value.policyVersion !== SIGN_POLICY_VERSION || value.zodiac !== 'tropical') {
+    return { error: 'ANGLE_SIGN_POLICY_UNSUPPORTED' };
+  }
+  const angles = value.angles;
+  if (!Array.isArray(angles) || angles.length !== 2 ||
+      !hasExactKeys(angles[0], ['angleId', 'longitude', 'sign']) ||
+      !hasExactKeys(angles[1], ['angleId', 'longitude', 'sign']) ||
+      angles[0].angleId !== 'ASC' || angles[0].longitude !== chart.angles.ascendant ||
+      !isOneOf(angles[0].sign, SIGN_NAMES) ||
+      angles[1].angleId !== 'MC' || angles[1].longitude !== chart.angles.midheaven ||
+      !isOneOf(angles[1].sign, SIGN_NAMES)) {
+    return { error: 'ANGLE_SIGN_PRESENTATION_MISMATCH' };
+  }
+  return { presentation: value as unknown as EngineAngleSignPresentationV1 };
+}
 
-  const projection: EngineDevelopmentResultProjection = Object.freeze({
-    projectionType: ENGINE_RESULT_PROJECTION_VERSION,
-    authority: Object.freeze({
-      structuralValidation: 'STRUCTURALLY_VALID',
-      semanticMapping: 'PARTIAL',
-      scientificAdmission: 'NOT_ADMITTED',
-      dataClassification: 'ENGINEERING TEST DATA',
-      astronomicalStatus: 'NOT REAL ASTRONOMICAL OUTPUT',
-      scientificValidation: 'NOT_PERFORMED',
-      resultCertification: 'NOT_CREATED'
-    }),
-    engineIdentity: Object.freeze({
-      schemaVersion: chart.schemaVersion,
-      engineVersion: chart.engineVersion
-    }),
-    requestBinding: expectedRequest,
-    provider: chart.provider,
-    modelVersions: chart.modelVersions,
-    bodies: Object.freeze(chart.bodies.map((body) => Object.freeze({
-      bodyId: body.id,
+function mapValidatedEngineResult(
+  chart: EngineChartResultV1,
+  presentation: EngineAngleSignPresentationV1
+): ChartResultV2 {
+  const mapped: ChartResultV2 = {
+    schemaVersion: WEB_RESULT_SCHEMA_VERSION,
+    engineVersion: chart.engineVersion,
+    bodies: chart.bodies.map((body): ChartResultV2['bodies'][number] => ({
+      bodyId: BODY_ID_TO_WEB[body.id],
       longitude: body.longitude,
       sign: body.sign,
       house: body.house,
-      engineMotion: body.motion
-    }))),
-    angles: Object.freeze([
-      Object.freeze({ angleId: 'ASC' as const, longitude: chart.angles.ascendant }),
-      Object.freeze({ angleId: 'MC' as const, longitude: chart.angles.midheaven })
-    ]),
-    houses: Object.freeze({
-      system: chart.houses.system,
-      cusps: Object.freeze(chart.houses.cusps.map((longitude, index) =>
-        Object.freeze({ house: index + 1, longitude })
-      ))
-    }),
-    aspects: Object.freeze(chart.aspects.map((aspect) => Object.freeze({
-      firstBodyId: aspect.bodyA,
-      secondBodyId: aspect.bodyB,
+      motionState: MOTION_TO_WEB[body.motion]
+    })),
+    angles: presentation.angles.map((angle): ChartResultV2['angles'][number] => ({
+      angleId: angle.angleId,
+      longitude: angle.longitude,
+      sign: angle.sign
+    })),
+    houses: {
+      system: HOUSE_SYSTEM_TO_WEB[chart.houses.system],
+      cusps: chart.houses.cusps.map((longitude, index) => ({ house: index + 1, longitude }))
+    },
+    aspects: chart.aspects.map((aspect): ChartResultV2['aspects'][number] => ({
+      firstBodyId: BODY_ID_TO_WEB[aspect.bodyA],
+      secondBodyId: BODY_ID_TO_WEB[aspect.bodyB],
       type: aspect.type,
       orb: aspect.orb,
-      phaseState: aspect.phase.toUpperCase() as 'APPLYING' | 'EXACT' | 'SEPARATING'
-    }))),
-    engineWarnings: chart.warnings,
-    engineMetadata: chart.metadata,
-    resultContractGaps: RESULT_CONTRACT_GAPS
+      phaseState: PHASE_TO_WEB[aspect.phase],
+      exactAngle: aspect.exactAngle,
+      separation: aspect.separation,
+      orbLimit: aspect.orbLimit
+    })),
+    warnings: chart.warnings.map((warning): EngineChartWarningV2 => ({
+      owner: 'ENGINE',
+      code: warning.code,
+      subject: warning.subject,
+      message: warning.message,
+      ...(Object.hasOwn(warning, 'details') ? { details: warning.details } : {}),
+      severity: null
+    }))
+  };
+  return mapped;
+}
+
+export function projectEngineResultToWebV2(
+  rawResult: unknown,
+  expectedRequest: EngineResultExpectation,
+  anglePresentation: unknown
+): EngineResultMappingResult {
+  const validated = validateEngineChartResult(rawResult, expectedRequest);
+  if ('error' in validated) return rejected(validated.error);
+  const presentation = validateAngleSignPresentation(anglePresentation, validated.chart);
+  if ('error' in presentation) return rejected(presentation.error);
+  return Object.freeze({
+    outcome: 'MAPPED',
+    chart: Object.freeze(mapValidatedEngineResult(validated.chart, presentation.presentation))
   });
-  return Object.freeze({ outcome: 'PROJECTED', projection });
+}
+
+function isTimeEvidenceBoundToRequest(
+  evidence: VerifiedUtcInstant,
+  request: ChartRequest,
+  expected: EngineResultExpectation
+): boolean {
+  const birth = request.birth;
+  return birth.ambiguityStatus === 'EXACT' &&
+    expected.options.houseSystem === HOUSE_SYSTEM_TO_ENGINE[request.houseSystem] &&
+    evidence.civilTime.localDate === birth.localDate &&
+    evidence.civilTime.localTime === birth.localTime &&
+    evidence.location.resolutionId === birth.locationResolutionId &&
+    evidence.location.coordinates.latitude === birth.latitude &&
+    evidence.location.coordinates.longitude === birth.longitude &&
+    evidence.location.ianaTimeZone === birth.ianaTimeZone &&
+    evidence.resolvedUtcInstant === birth.resolvedUtcInstant &&
+    evidence.resolvedUtcInstant === expected.input.instant &&
+    evidence.utcOffsetSeconds === birth.utcOffsetSeconds &&
+    evidence.authority.timezoneDatabaseVersion === birth.timezoneDatabaseVersion &&
+    evidence.authority.profileId === birth.timezoneResolutionMethod &&
+    expected.input.latitude === evidence.location.coordinates.latitude &&
+    expected.input.longitude === evidence.location.coordinates.longitude;
+}
+
+export function createWebEngineResultReceiptV2(input: {
+  readonly rawResult: unknown;
+  readonly expectedRequest: EngineResultExpectation;
+  readonly anglePresentation: unknown;
+  readonly verifiedTime: unknown;
+  readonly webRequest: ChartRequest;
+}): EngineResultReceiptResult {
+  const validated = validateEngineChartResult(input.rawResult, input.expectedRequest);
+  if ('error' in validated) return rejectedReceipt(validated.error);
+  const presentation = validateAngleSignPresentation(input.anglePresentation, validated.chart);
+  if ('error' in presentation) return rejectedReceipt(presentation.error);
+  try {
+    assertVerifiedUtcInstant(input.verifiedTime);
+  } catch {
+    return rejectedReceipt('TEMPORAL_PROVENANCE_BINDING_MISMATCH');
+  }
+  if (!isTimeEvidenceBoundToRequest(input.verifiedTime, input.webRequest, input.expectedRequest)) {
+    return rejectedReceipt('TEMPORAL_PROVENANCE_BINDING_MISMATCH');
+  }
+
+  const receipt: WebEngineResultReceiptV2 = {
+    mappingPolicyId: MAPPING_POLICY_ID,
+    chart: mapValidatedEngineResult(validated.chart, presentation.presentation),
+    source: {
+      engineResult: structuredClone(validated.chart),
+      webCivilTime: {
+        owner: 'NATALNODE_WEB_BFF',
+        evidence: structuredClone(input.verifiedTime) as TimeResolutionEvidence
+      }
+    },
+    presentation: structuredClone(presentation.presentation),
+    assessment: {
+      engineResult: 'ENGINE_RESULT_VALID',
+      webMapping: 'WEB_RESULT_SEMANTICALLY_MAPPABLE',
+      providerScientificAdmission: 'NOT_ADMITTED',
+      productionResultCertification: 'NOT_CERTIFIED',
+      dataClassification: 'ENGINEERING TEST DATA',
+      astronomicalStatus: 'NOT REAL ASTRONOMICAL OUTPUT'
+    }
+  };
+  return Object.freeze({ outcome: 'CREATED', receipt: Object.freeze(receipt) });
+}
+
+/** Runs only in the explicitly constructed private Engine test service. */
+export function createEngineAngleSignPresentationV1(input: {
+  readonly rawResult: unknown;
+  readonly expectedRequest: EngineResultExpectation;
+  readonly signForLongitude?: unknown;
+  readonly policy?: unknown;
+}): EngineAngleSignPresentationResult {
+  const validated = validateEngineChartResult(input.rawResult, input.expectedRequest);
+  if ('error' in validated) {
+    return Object.freeze({ outcome: 'REJECTED', error: Object.freeze({ code: validated.error }) });
+  }
+  if (typeof input.signForLongitude !== 'function') {
+    return Object.freeze({ outcome: 'REJECTED', error: Object.freeze({ code: 'ANGLE_SIGN_PRESENTATION_REQUIRED' }) });
+  }
+  if (!isRecord(input.policy) || input.policy.version !== SIGN_POLICY_VERSION ||
+      !isRecord(input.policy.sign) ||
+      input.policy.sign.interval !== '[boundary, nextBoundary)' ||
+      input.policy.sign.exactBoundaryBelongsTo !== 'next sign' ||
+      input.policy.sign.assignmentEpsilonDeg !== 1e-9 ||
+      validated.chart.metadata.zodiac !== 'tropical') {
+    return Object.freeze({ outcome: 'REJECTED', error: Object.freeze({ code: 'ANGLE_SIGN_POLICY_UNSUPPORTED' }) });
+  }
+  try {
+    const signForLongitude = input.signForLongitude as (longitude: number) => unknown;
+    const ascendant = signForLongitude(validated.chart.angles.ascendant);
+    const midheaven = signForLongitude(validated.chart.angles.midheaven);
+    if (!isOneOf(ascendant, SIGN_NAMES) || !isOneOf(midheaven, SIGN_NAMES)) {
+      return Object.freeze({ outcome: 'REJECTED', error: Object.freeze({ code: 'ANGLE_SIGN_PRESENTATION_MISMATCH' }) });
+    }
+    const presentation: EngineAngleSignPresentationV1 = Object.freeze({
+      schemaVersion: '1',
+      operation: 'ENGINE_PUBLIC_API_SIGN_FOR_LONGITUDE',
+      policyVersion: SIGN_POLICY_VERSION,
+      zodiac: 'tropical',
+      angles: Object.freeze([
+        Object.freeze({ angleId: 'ASC', longitude: validated.chart.angles.ascendant, sign: ascendant }),
+        Object.freeze({ angleId: 'MC', longitude: validated.chart.angles.midheaven, sign: midheaven })
+      ]) as EngineAngleSignPresentationV1['angles']
+    });
+    return Object.freeze({ outcome: 'CREATED', presentation });
+  } catch {
+    return Object.freeze({ outcome: 'REJECTED', error: Object.freeze({ code: 'ANGLE_SIGN_PRESENTATION_MISMATCH' }) });
+  }
 }

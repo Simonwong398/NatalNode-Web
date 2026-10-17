@@ -1,4 +1,8 @@
-import { createEngine } from '@natalnode/engine-foundation';
+import {
+  createEngine,
+  NATALNODE_POLICY,
+  signForLongitude
+} from '@natalnode/engine-foundation';
 import { join } from 'node:path';
 import { pathToFileURL } from 'node:url';
 
@@ -30,7 +34,7 @@ class RecordingSyntheticProvider extends FakeAstronomyProvider {
 const engine = createEngine(new RecordingSyntheticProvider());
 const service = await startPrivateEngineHttpService(
   engine,
-  { port: 0 }
+  { port: 0, signForLongitude, policy: NATALNODE_POLICY }
 );
 
 function send(message) {

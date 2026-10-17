@@ -1,5 +1,12 @@
 import { useId, useState } from 'react';
-import type { AngleFact, AspectFact, BodyFact, ChartResult } from '@natalnode/contracts';
+import type {
+  AngleFact,
+  AspectFact,
+  BodyFact,
+  BodyFactV2,
+  ChartResult,
+  ChartResultV2
+} from '@natalnode/contracts';
 import { AstrologyGlyph } from '@/core/astrology-taxonomy/AstrologyGlyph';
 import {
   DEFAULT_LOCALE,
@@ -60,17 +67,35 @@ function Glyph({
   return <AstrologyGlyph kind={kind} value={value} />;
 }
 
-function BodyOrientation({ body, locale }: { body: BodyFact; locale?: SupportedLocale }) {
+type ChartNotationBody = BodyFact | BodyFactV2;
+
+function isV2NotationBody(body: ChartNotationBody): body is BodyFactV2 {
+  return 'motionState' in body;
+}
+
+function bodyMotionState(body: ChartNotationBody): string | null {
+  if (isV2NotationBody(body)) return body.motionState;
+  if (body.retrograde === true) return 'RETROGRADE';
+  if (body.retrograde === false) return 'DIRECT';
+  return null;
+}
+
+function bodyMotionLabel(body: ChartNotationBody, locale?: SupportedLocale): string | null {
+  const state = bodyMotionState(body);
+  if (state !== 'RETROGRADE' && state !== 'STATIONARY') return null;
+  return ` (${glossaryTerm('motion', state, locale).toLowerCase()})`;
+}
+
+function BodyOrientation({ body, locale }: { body: ChartNotationBody; locale?: SupportedLocale }) {
   const bodyTerm = glossaryTerm('body', body.bodyId, locale);
   const signTerm = glossaryTerm('sign', body.sign, locale);
-  const retrogradeTerm = glossaryTerm('motion', 'RETROGRADE', locale);
 
   return (
     <div className="min-w-0 border-l border-natal-border/50 pl-3">
       <dt className="nn-type-label break-words">
         <Glyph kind="body" value={body.bodyId} />{' '}
         {bodyTerm}
-        {body.retrograde === true ? ` (${retrogradeTerm.toLowerCase()})` : null}
+        {bodyMotionLabel(body, locale)}
       </dt>
       <dd className="nn-type-body-small mt-1 break-words">
         <Glyph kind="sign" value={body.sign} />{' '}
@@ -105,14 +130,13 @@ function BodyNotation({
   locale,
   showHouses
 }: {
-  body: BodyFact;
+  body: ChartNotationBody;
   locale?: SupportedLocale;
   showHouses: boolean;
 }) {
   const house = body.house;
   const bodyTerm = glossaryTerm('body', body.bodyId, locale);
   const signTerm = glossaryTerm('sign', body.sign, locale);
-  const retrogradeTerm = glossaryTerm('motion', 'RETROGRADE', locale);
   const houseNotation = showHouses && typeof house === 'number' && Number.isInteger(house) && house >= 1 && house <= 12
     ? chartUiFormat(locale, 'chart.houseLabel', {
         house: glossaryNotation('house', house, 'romanNumeral') ?? formatHouse(house)
@@ -124,7 +148,7 @@ function BodyNotation({
       <dt className="break-words font-medium text-nn-text-primary">
         <Glyph kind="body" value={body.bodyId} />{' '}
         {bodyTerm}
-        {body.retrograde === true ? ` (${retrogradeTerm.toLowerCase()})` : null}
+        {bodyMotionLabel(body, locale)}
       </dt>
       <dd className="break-words text-sm text-nn-text-secondary">
         <Glyph kind="sign" value={body.sign} />{' '}
@@ -163,7 +187,7 @@ function AspectNotation({ aspect, locale }: { aspect: AspectFact; locale?: Suppo
 }
 
 export type AstrologicalNotationProps = {
-  chart: ChartResult;
+  chart: ChartResult | ChartResultV2;
   locale?: SupportedLocale;
   presentationPolicy: ChartPresentationPolicy;
 };

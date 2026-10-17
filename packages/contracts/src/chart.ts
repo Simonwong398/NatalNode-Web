@@ -1,3 +1,5 @@
+import type { SkyBodyId, SkyMotionState, ZodiacSign } from './sky.js';
+
 export type BirthTimeAmbiguityStatus =
   | 'EXACT'
   | 'AMBIGUOUS'
@@ -105,3 +107,52 @@ export type ChartResult =
       calculationStatus: 'INCOMPLETE_RESEARCH';
       metadata: IncompleteResearchScientificMetadata;
     });
+
+/** Complete development-only Web view of a validated Engine result. */
+export type BodyFactV2 = Readonly<
+  Omit<BodyFact, 'bodyId' | 'retrograde' | 'house' | 'sign'> & {
+    bodyId: SkyBodyId;
+    sign: ZodiacSign;
+    house: number;
+    motionState: SkyMotionState;
+  }
+>;
+
+export type AngleFactV2 = Readonly<
+  Omit<AngleFact, 'angleId' | 'sign'> & {
+    angleId: 'ASC' | 'MC';
+    sign: ZodiacSign;
+  }
+>;
+
+export type AspectFactV2 = Readonly<
+  Omit<AspectFact, 'firstBodyId' | 'secondBodyId' | 'phaseState'> & {
+    firstBodyId: SkyBodyId;
+    secondBodyId: SkyBodyId;
+    phaseState: AspectPhaseState;
+    exactAngle: number;
+    separation: number;
+    orbLimit: number;
+  }
+>;
+
+export interface EngineChartWarningV2 {
+  readonly owner: 'ENGINE';
+  readonly code: string;
+  readonly subject: string;
+  readonly message: string;
+  readonly details?: Readonly<Record<string, string | number | boolean>>;
+  /** Null records that the Engine source does not supply severity. */
+  readonly severity: null;
+}
+
+/** Versioned fact view; deliberately excluded from production ChartResult. */
+export interface ChartResultV2 {
+  readonly schemaVersion: '2.0.0';
+  readonly engineVersion: string;
+  readonly bodies: readonly BodyFactV2[];
+  readonly angles: readonly AngleFactV2[];
+  readonly houses: Readonly<HouseFacts>;
+  readonly aspects: readonly AspectFactV2[];
+  readonly warnings: readonly EngineChartWarningV2[];
+}

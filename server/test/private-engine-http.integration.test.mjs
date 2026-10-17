@@ -21,11 +21,20 @@ import {
   startLoopbackHonoServer,
   startPrivateEngineHttpService
 } from './support/private-engine-http-adapter.mjs';
+import {
+  renderAstrologicalNotationWithDisclosure,
+  renderChartInstrumentWithDisclosure
+} from '../../apps/web/test/support/render-chart-result-v2.mjs';
+import { WEB_UI_FIXTURE_V1, SKY_SNAPSHOT_FIXTURE_V1 } from '@natalnode/test-fixtures';
 import { createBirthTimeResolutionService, CIVIL_TIME_AUTHORITY_PROFILE } from '../dist/time-resolution/index.js';
 import { ProviderLocationResolutionService } from '../dist/location-resolution/location-resolution-service.js';
 
 const WEB_ROOT = fileURLToPath(new URL('../../', import.meta.url));
 const ENGINE_HEAD = 'a6125470edda64fb297c0e848f212fe215137bb2';
+const ENGINE_BODY_ID_TO_WEB = Object.freeze({
+  sun: 'Sun', moon: 'Moon', mercury: 'Mercury', venus: 'Venus', mars: 'Mars',
+  jupiter: 'Jupiter', saturn: 'Saturn', uranus: 'Uranus', neptune: 'Neptune', pluto: 'Pluto'
+});
 const ENGINE_REQUEST = Object.freeze({
   input: Object.freeze({
     instant: '2000-01-01T00:00:00Z',
@@ -253,6 +262,10 @@ test('Web BFF harness completes a loopback HTTP round trip through the Engine pa
       async calculateChart(request) {
         adaptedRequests.push(request);
         return privateEngineClient.calculateChart(request);
+      },
+      async calculateChartWithPresentation(request) {
+        adaptedRequests.push(request);
+        return privateEngineClient.calculateChartWithPresentation(request);
       }
     };
     const locationOwner = await createIsolatedLocationOwner([LONDON_GREENWICH]);
@@ -285,52 +298,114 @@ test('Web BFF harness completes a loopback HTTP round trip through the Engine pa
     child.send({ type: 'expected-chart', request: adaptedRequests[0] });
     const expectedChart = await expectedChartPromise;
 
-    assert.deepEqual(first.chart, expectedChart.chart, 'BFF returns the Engine result without scientific projection.');
+    assert.deepEqual(first.receipt.source.engineResult, expectedChart.chart,
+      'Receipt preserves the actual Engine HTTP result without changing its fields or arrays.');
     assert.deepEqual(second, first, 'Repeated synthetic calculations remain deterministic over HTTP.');
-    assert.equal(first.projection.projectionType, 'ENGINE_RESULT_INSPECTION_V1');
-    assert.deepEqual(first.projection.requestBinding, adaptedRequests[0]);
-    assert.deepEqual(first.projection.engineIdentity, {
-      schemaVersion: expectedChart.chart.schemaVersion,
-      engineVersion: expectedChart.chart.engineVersion
-    });
-    assert.deepEqual(first.projection.provider, expectedChart.chart.provider);
-    assert.deepEqual(first.projection.modelVersions, expectedChart.chart.modelVersions);
-    assert.deepEqual(first.projection.engineMetadata, expectedChart.chart.metadata);
-    assert.equal(first.projection.bodies.length, 10);
-    assert.deepEqual(first.projection.bodies[0], {
-      bodyId: expectedChart.chart.bodies[0].id,
+    const receipt = first.receipt;
+    assert.equal(receipt.mappingPolicyId, 'ENGINE_WEB_RESULT_MAPPING_V2');
+    assert.equal(receipt.chart.schemaVersion, '2.0.0');
+    assert.equal(receipt.chart.engineVersion, expectedChart.chart.engineVersion);
+    assert.equal(receipt.chart.bodies.length, 10);
+    assert.deepEqual(receipt.chart.bodies[0], {
+      bodyId: 'Sun',
       longitude: expectedChart.chart.bodies[0].longitude,
       sign: expectedChart.chart.bodies[0].sign,
       house: expectedChart.chart.bodies[0].house,
-      engineMotion: expectedChart.chart.bodies[0].motion
+      motionState: ({ direct: 'DIRECT', station: 'STATIONARY', retrograde: 'RETROGRADE' })[
+        expectedChart.chart.bodies[0].motion
+      ]
     });
-    assert.deepEqual(first.projection.angles, [
+    assert.deepEqual(receipt.chart.angles.map(({ angleId, longitude }) => ({ angleId, longitude })), [
       { angleId: 'ASC', longitude: expectedChart.chart.angles.ascendant },
       { angleId: 'MC', longitude: expectedChart.chart.angles.midheaven }
     ]);
-    assert.equal(first.projection.houses.cusps.length, 12);
-    assert.deepEqual(first.projection.aspects[0], {
-      firstBodyId: expectedChart.chart.aspects[0].bodyA,
-      secondBodyId: expectedChart.chart.aspects[0].bodyB,
+    const engineApi = await import(pathToFileURL(join(enginePackageRoot, 'dist/src/index.js')).href);
+    assert.deepEqual(receipt.presentation.angles.map(({ angleId, longitude, sign }) => ({ angleId, longitude, sign })), [
+      {
+        angleId: 'ASC', longitude: expectedChart.chart.angles.ascendant,
+        sign: engineApi.signForLongitude(expectedChart.chart.angles.ascendant)
+      },
+      {
+        angleId: 'MC', longitude: expectedChart.chart.angles.midheaven,
+        sign: engineApi.signForLongitude(expectedChart.chart.angles.midheaven)
+      }
+    ]);
+    assert.deepEqual(receipt.chart.angles.map(({ sign }) => sign),
+      receipt.presentation.angles.map(({ sign }) => sign));
+    assert.equal(receipt.chart.houses.cusps.length, 12);
+    assert.equal(receipt.chart.houses.system, 'Placidus');
+    assert.equal(receipt.chart.aspects.length, expectedChart.chart.aspects.length);
+    assert.deepEqual(receipt.chart.aspects[0], {
+      firstBodyId: ENGINE_BODY_ID_TO_WEB[expectedChart.chart.aspects[0].bodyA],
+      secondBodyId: ENGINE_BODY_ID_TO_WEB[expectedChart.chart.aspects[0].bodyB],
       type: expectedChart.chart.aspects[0].type,
       orb: expectedChart.chart.aspects[0].orb,
-      phaseState: expectedChart.chart.aspects[0].phase.toUpperCase()
+      phaseState: ({ applying: 'APPLYING', exact: 'EXACT', separating: 'SEPARATING' })[
+        expectedChart.chart.aspects[0].phase
+      ],
+      exactAngle: expectedChart.chart.aspects[0].exactAngle,
+      separation: expectedChart.chart.aspects[0].separation,
+      orbLimit: expectedChart.chart.aspects[0].orbLimit
     });
-    assert.deepEqual(first.projection.engineWarnings, expectedChart.chart.warnings);
-    assert.equal(first.projection.authority.structuralValidation, 'STRUCTURALLY_VALID');
-    assert.equal(first.projection.authority.semanticMapping, 'PARTIAL');
-    assert.equal(first.projection.authority.scientificAdmission, 'NOT_ADMITTED');
-    assert.equal(first.projection.authority.resultCertification, 'NOT_CREATED');
-    assert.equal('calculationStatus' in first.projection, false);
+    assert.deepEqual(receipt.chart.warnings, expectedChart.chart.warnings.map((warning) => ({
+      owner: 'ENGINE', ...warning, severity: null
+    })));
+    assert.deepEqual(receipt.source.webCivilTime, {
+      owner: 'NATALNODE_WEB_BFF',
+      evidence: receipt.source.webCivilTime.evidence
+    });
+    assert.equal(receipt.source.webCivilTime.evidence.resolvedUtcInstant,
+      '2025-10-22T09:52:00.000Z');
+    assert.equal(receipt.source.webCivilTime.evidence.location.resolutionId, 'london-greenwich');
+    assert.deepEqual(receipt.source.webCivilTime.evidence.location.coordinates, {
+      latitude: 51.4779, longitude: -0.0015
+    });
+    assert.equal(receipt.assessment.engineResult, 'ENGINE_RESULT_VALID');
+    assert.equal(receipt.assessment.webMapping, 'WEB_RESULT_SEMANTICALLY_MAPPABLE');
+    assert.equal(receipt.assessment.providerScientificAdmission, 'NOT_ADMITTED');
+    assert.equal(receipt.assessment.productionResultCertification, 'NOT_CERTIFIED');
+    assert.equal('calculationStatus' in receipt.chart, false);
+    assert.equal('metadata' in receipt.chart, false);
+    assert.equal('verifiedTime' in receipt.source.webCivilTime, false);
     assert.deepEqual(first.transport, {
       dataClassification: 'ENGINEERING TEST DATA',
       astronomicalStatus: 'NOT REAL ASTRONOMICAL OUTPUT',
       scientificValidation: 'NOT_PERFORMED'
     });
-    assert.equal(first.chart.provider.id, 'fake-astronomy-provider');
-    assert.equal(first.chart.metadata.provenance[0].redistributionStatus, 'reference-only');
-    assert.equal(first.chart.metadata.astronomyConfigurationStatus, 'COMPLETE');
-    assert.equal(first.chart.metadata.provenanceEnvelopeStatus, 'COMPLETE');
+    assert.equal(receipt.source.engineResult.provider.id, 'fake-astronomy-provider');
+    assert.equal(receipt.source.engineResult.metadata.provenance[0].redistributionStatus, 'reference-only');
+    assert.equal(receipt.source.engineResult.metadata.astronomyConfigurationStatus, 'COMPLETE');
+    assert.equal(receipt.source.engineResult.metadata.provenanceEnvelopeStatus, 'COMPLETE');
+
+    const renderedActualResult = await renderChartInstrumentWithDisclosure(receipt.chart);
+    assert.match(renderedActualResult, /ENGINEERING TEST DATA · NOT REAL ASTRONOMICAL OUTPUT · NOT PRODUCTION ADMITTED/u);
+    assert.match(renderedActualResult, /data-chart-layer="houses"/u);
+    assert.match(renderedActualResult, /data-chart-layer="planets"/u);
+    const firstMappedBody = receipt.chart.bodies[0];
+    const houseOrdinals = [
+      '1st House', '2nd House', '3rd House', '4th House', '5th House', '6th House',
+      '7th House', '8th House', '9th House', '10th House', '11th House', '12th House'
+    ];
+    assert.match(renderedActualResult, new RegExp(
+      `aria-label="${firstMappedBody.bodyId} at [^"]*${houseOrdinals[firstMappedBody.house - 1]}`
+    ), 'V2 natal motionState does not hide the same body fact’s house.');
+    const renderedActualNotation = await renderAstrologicalNotationWithDisclosure(receipt.chart);
+    assert.match(renderedActualNotation, /ENGINEERING TEST DATA · NOT REAL ASTRONOMICAL OUTPUT · NOT PRODUCTION ADMITTED/u);
+    const stationaryView = structuredClone(receipt.chart);
+    stationaryView.bodies[0].motionState = 'STATIONARY';
+    const renderedStationary = await renderChartInstrumentWithDisclosure(stationaryView);
+    assert.match(renderedStationary, /stationary/iu,
+      'V2 preserves a stationary state in the renderer rather than treating it as direct.');
+    const renderedStationaryNotation = await renderAstrologicalNotationWithDisclosure(stationaryView);
+    assert.match(renderedStationaryNotation, /stationary/iu,
+      'The chart notation preserves the V2 stationary state.');
+    const renderedV1 = await renderChartInstrumentWithDisclosure(WEB_UI_FIXTURE_V1);
+    assert.match(renderedV1, /retrograde/iu, 'V1 retrograde notation remains intact.');
+    const renderedV1Notation = await renderAstrologicalNotationWithDisclosure(WEB_UI_FIXTURE_V1);
+    assert.match(renderedV1Notation, /retrograde/iu, 'V1 body notation remains intact.');
+    const renderedSky = await renderChartInstrumentWithDisclosure(SKY_SNAPSHOT_FIXTURE_V1, { chartKind: 'sky' });
+    assert.match(renderedSky, /data-chart-kind="sky"/u);
+    assert.doesNotMatch(renderedSky, /House 1 cusp/u, 'Sky bodies remain house-free.');
 
     for (const [webHouseSystem, engineHouseSystem] of [
       ['Whole Sign', 'whole-sign'],
@@ -347,10 +422,11 @@ test('Web BFF harness completes a loopback HTTP round trip through the Engine pa
       const expectedPromise = waitForChildMessage(child, 'expected-chart');
       child.send({ type: 'expected-chart', request: adapted });
       const expected = await expectedPromise;
-      assert.deepEqual(payload.chart, expected.chart,
+      assert.deepEqual(payload.receipt.source.engineResult, expected.chart,
         `${webHouseSystem} preserves the raw Engine result over HTTP.`);
-      assert.equal(payload.projection.houses.system, engineHouseSystem);
-      assert.equal(payload.projection.authority.scientificAdmission, 'NOT_ADMITTED');
+      assert.equal(payload.receipt.chart.houses.system,
+        ({ placidus: 'Placidus', 'whole-sign': 'Whole Sign', equal: 'Equal' })[engineHouseSystem]);
+      assert.equal(payload.receipt.assessment.providerScientificAdmission, 'NOT_ADMITTED');
     }
     assert.equal(adaptedRequests.length, 4);
 
@@ -498,7 +574,7 @@ test('Engine failures and deadline expiry map to safe structured HTTP errors', a
   }
 });
 
-test('verified BFF rejects a forged browser UTC claim before the Engine HTTP client', async () => {
+test('verified BFF rejects forged time evidence and mismatched canonical claims before the Engine client', async () => {
   const locationOwner = await createIsolatedLocationOwner([LONDON_GREENWICH]);
   const timeAuthority = createBirthTimeResolutionService({ locationResolutionService: locationOwner });
   let engineCalls = 0;
@@ -519,6 +595,25 @@ test('verified BFF rejects a forged browser UTC claim before the Engine HTTP cli
     assert.equal(response.status, 422);
     assert.deepEqual(await response.json(), {
       error: { code: 'CLIENT_TIME_CLAIM_MISMATCH', message: 'Birth input could not be verified.' }
+    });
+
+    const forgedEvidence = await postJson(`${bff.origin}/_test/private-engine/chart`, JSON.stringify({
+      chart: { ...londonWebChartRequest(), webCivilTime: { owner: 'NATALNODE_WEB_BFF' } }
+    }));
+    assert.equal(forgedEvidence.status, 422);
+    assert.deepEqual(await forgedEvidence.json(), {
+      error: { code: 'INVALID_REQUEST', message: 'Birth input could not be verified.' }
+    });
+
+    const changedCoordinates = londonWebChartRequest(LONDON_GREENWICH, {
+      birth: { latitude: 51.478 }
+    });
+    const mismatched = await postJson(`${bff.origin}/_test/private-engine/chart`, JSON.stringify({
+      chart: changedCoordinates
+    }));
+    assert.equal(mismatched.status, 422);
+    assert.deepEqual(await mismatched.json(), {
+      error: { code: 'LOCATION_BINDING_MISMATCH', message: 'Birth input could not be verified.' }
     });
     assert.equal(engineCalls, 0);
   } finally {
@@ -572,14 +667,16 @@ test('development adapter remains test-only and production admission stays close
 
   assert.match(engineChildSource, /@natalnode\/engine-foundation/u);
   assert.match(engineChildSource, /FakeAstronomyProvider/u);
+  assert.match(engineChildSource, /signForLongitude/u);
+  assert.match(engineChildSource, /NATALNODE_POLICY/u);
   assert.match(adapterSource, /prepareEngineCalculationRequest/u);
   assert.match(requestAdapterSource, /assertVerifiedUtcInstant/u);
   assert.match(requestAdapterSource, /timeAuthority\.resolve/u);
   assert.doesNotMatch(productionBindings, /PrivateEngineHttp|FakeAstronomyProvider|@natalnode\/engine-foundation/u);
   assert.doesNotMatch(productionBindings, /engine-request-adapter|prepareEngineCalculationRequest/u);
   assert.doesNotMatch(productionChartRoute, /engine-request-adapter|prepareEngineCalculationRequest|birthTimeResolutionService/u);
-  assert.doesNotMatch(productionBindings, /engine-result-adapter|projectEngineResultForDevelopmentInspection/u);
-  assert.doesNotMatch(productionChartRoute, /engine-result-adapter|projectEngineResultForDevelopmentInspection/u);
+  assert.doesNotMatch(productionBindings, /engine-result-adapter|createWebEngineResultReceiptV2|projectEngineResultToWebV2/u);
+  assert.doesNotMatch(productionChartRoute, /engine-result-adapter|createWebEngineResultReceiptV2|projectEngineResultToWebV2/u);
   assert.doesNotMatch(resultAdapterSource, /FakeAstronomyProvider|@natalnode\/engine-foundation/u);
   assert.match(productionAdmission, /PRODUCTION_ENGINE_CLIENT_ADMISSION = 'NOT_ADMITTED'/u);
   assert.doesNotMatch(adapterSource, /console\.(?:log|warn|error)/u);

@@ -8,6 +8,7 @@ import type {
   CalculationWarning,
   ChartRequest,
   ChartResult,
+  ChartResultV2,
   CompleteScientificMetadata,
   HouseCusp,
   HouseFacts,
@@ -49,3 +50,8 @@ type ScientificMetadataRelationship = Assert<
   >
 >;
 type ChartMetadataRelationship = Assert<Equal<ChartResult['metadata'], ScientificMetadata>>;
+
+declare const developmentResultV2: ChartResultV2;
+// @ts-expect-error V2 has no production calculation status or scientific metadata.
+const productionResultCannotUseV2: ChartResult = developmentResultV2;
+void productionResultCannotUseV2;
