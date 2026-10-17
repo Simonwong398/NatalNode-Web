@@ -287,6 +287,41 @@ test('Web BFF harness completes a loopback HTTP round trip through the Engine pa
 
     assert.deepEqual(first.chart, expectedChart.chart, 'BFF returns the Engine result without scientific projection.');
     assert.deepEqual(second, first, 'Repeated synthetic calculations remain deterministic over HTTP.');
+    assert.equal(first.projection.projectionType, 'ENGINE_RESULT_INSPECTION_V1');
+    assert.deepEqual(first.projection.requestBinding, adaptedRequests[0]);
+    assert.deepEqual(first.projection.engineIdentity, {
+      schemaVersion: expectedChart.chart.schemaVersion,
+      engineVersion: expectedChart.chart.engineVersion
+    });
+    assert.deepEqual(first.projection.provider, expectedChart.chart.provider);
+    assert.deepEqual(first.projection.modelVersions, expectedChart.chart.modelVersions);
+    assert.deepEqual(first.projection.engineMetadata, expectedChart.chart.metadata);
+    assert.equal(first.projection.bodies.length, 10);
+    assert.deepEqual(first.projection.bodies[0], {
+      bodyId: expectedChart.chart.bodies[0].id,
+      longitude: expectedChart.chart.bodies[0].longitude,
+      sign: expectedChart.chart.bodies[0].sign,
+      house: expectedChart.chart.bodies[0].house,
+      engineMotion: expectedChart.chart.bodies[0].motion
+    });
+    assert.deepEqual(first.projection.angles, [
+      { angleId: 'ASC', longitude: expectedChart.chart.angles.ascendant },
+      { angleId: 'MC', longitude: expectedChart.chart.angles.midheaven }
+    ]);
+    assert.equal(first.projection.houses.cusps.length, 12);
+    assert.deepEqual(first.projection.aspects[0], {
+      firstBodyId: expectedChart.chart.aspects[0].bodyA,
+      secondBodyId: expectedChart.chart.aspects[0].bodyB,
+      type: expectedChart.chart.aspects[0].type,
+      orb: expectedChart.chart.aspects[0].orb,
+      phaseState: expectedChart.chart.aspects[0].phase.toUpperCase()
+    });
+    assert.deepEqual(first.projection.engineWarnings, expectedChart.chart.warnings);
+    assert.equal(first.projection.authority.structuralValidation, 'STRUCTURALLY_VALID');
+    assert.equal(first.projection.authority.semanticMapping, 'PARTIAL');
+    assert.equal(first.projection.authority.scientificAdmission, 'NOT_ADMITTED');
+    assert.equal(first.projection.authority.resultCertification, 'NOT_CREATED');
+    assert.equal('calculationStatus' in first.projection, false);
     assert.deepEqual(first.transport, {
       dataClassification: 'ENGINEERING TEST DATA',
       astronomicalStatus: 'NOT REAL ASTRONOMICAL OUTPUT',
@@ -314,6 +349,8 @@ test('Web BFF harness completes a loopback HTTP round trip through the Engine pa
       const expected = await expectedPromise;
       assert.deepEqual(payload.chart, expected.chart,
         `${webHouseSystem} preserves the raw Engine result over HTTP.`);
+      assert.equal(payload.projection.houses.system, engineHouseSystem);
+      assert.equal(payload.projection.authority.scientificAdmission, 'NOT_ADMITTED');
     }
     assert.equal(adaptedRequests.length, 4);
 
@@ -528,6 +565,10 @@ test('development adapter remains test-only and production admission stays close
   const productionBindings = readFileSync(join(WEB_ROOT, 'server/src/executable/create-executable-server-bindings.ts'), 'utf8');
   const productionAdmission = readFileSync(join(WEB_ROOT, 'server/src/runtime/production-runtime-config.ts'), 'utf8');
   const productionChartRoute = readFileSync(join(WEB_ROOT, 'server/src/app/routes/chart.ts'), 'utf8');
+  const resultAdapterSource = readFileSync(
+    join(WEB_ROOT, 'server/src/development/engine-result-adapter/engine-result-adapter.ts'),
+    'utf8'
+  );
 
   assert.match(engineChildSource, /@natalnode\/engine-foundation/u);
   assert.match(engineChildSource, /FakeAstronomyProvider/u);
@@ -537,6 +578,9 @@ test('development adapter remains test-only and production admission stays close
   assert.doesNotMatch(productionBindings, /PrivateEngineHttp|FakeAstronomyProvider|@natalnode\/engine-foundation/u);
   assert.doesNotMatch(productionBindings, /engine-request-adapter|prepareEngineCalculationRequest/u);
   assert.doesNotMatch(productionChartRoute, /engine-request-adapter|prepareEngineCalculationRequest|birthTimeResolutionService/u);
+  assert.doesNotMatch(productionBindings, /engine-result-adapter|projectEngineResultForDevelopmentInspection/u);
+  assert.doesNotMatch(productionChartRoute, /engine-result-adapter|projectEngineResultForDevelopmentInspection/u);
+  assert.doesNotMatch(resultAdapterSource, /FakeAstronomyProvider|@natalnode\/engine-foundation/u);
   assert.match(productionAdmission, /PRODUCTION_ENGINE_CLIENT_ADMISSION = 'NOT_ADMITTED'/u);
   assert.doesNotMatch(adapterSource, /console\.(?:log|warn|error)/u);
   assert.doesNotMatch(adapterSource, /FakeAstronomyProvider|@natalnode\/engine-foundation/u);

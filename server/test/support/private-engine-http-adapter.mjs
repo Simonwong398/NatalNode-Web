@@ -1,6 +1,7 @@
 import { createAdaptorServer } from '@hono/node-server';
 import { Hono } from 'hono';
 import { prepareEngineCalculationRequest } from '../../dist/engine-request-adapter/index.js';
+import { projectEngineResultForDevelopmentInspection } from '../../dist/development/engine-result-adapter/engine-result-adapter.js';
 
 const LOOPBACK_HOST = '127.0.0.1';
 const CALCULATE_PATH = '/v1/chart/calculate';
@@ -394,7 +395,23 @@ export function createVerifiedPrivateEngineBffHarness({ engineClient, timeAuthor
 
     try {
       const chart = await engineClient.calculateChart(prepared.request);
-      return jsonResponse(context, 200, { chart, transport: TEST_DATA_TRANSPORT });
+      const adapted = projectEngineResultForDevelopmentInspection(chart, prepared.request);
+      if (adapted.outcome === 'REJECTED') {
+        return errorResponse(context, 'ENGINE_RESPONSE_INVALID');
+      }
+      let serialized;
+      try {
+        serialized = JSON.stringify({ chart, projection: adapted.projection, transport: TEST_DATA_TRANSPORT });
+      } catch (_error) {
+        return errorResponse(context, 'ENGINE_RESPONSE_INVALID');
+      }
+      if (Buffer.byteLength(serialized, 'utf8') > MAX_RESPONSE_BYTES) {
+        return errorResponse(context, 'ENGINE_RESPONSE_INVALID');
+      }
+      return context.body(serialized, 200, {
+        'Cache-Control': 'no-store',
+        'Content-Type': 'application/json; charset=utf-8'
+      });
     } catch (error) {
       const code = Object.hasOwn(ERROR_RESPONSES, error?.code) ? error.code : 'ENGINE_UNAVAILABLE';
       return errorResponse(context, code);

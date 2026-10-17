@@ -106,6 +106,12 @@ test('D-E: development and test roots may depend on research and mechanism modul
   );
 });
 
+test('Engine result inspection adapter is development-only and unreachable from production roots', () => {
+  const adapter = 'server/src/development/engine-result-adapter/engine-result-adapter.ts';
+  assert.equal(classifyRepositoryPath(adapter), ADMISSION_CLASSES.DEVELOPMENT_ONLY);
+  assert.equal(productionAudit.reachableModules.includes(adapter), false);
+});
+
 test('F: production-to-mechanism reachability fails closed', () => {
   const root = 'apps/web/src/pages/index.astro';
   const mechanism = 'apps/web/src/features/interpretation/chart-level-convergence-counterevidence-poc.ts';

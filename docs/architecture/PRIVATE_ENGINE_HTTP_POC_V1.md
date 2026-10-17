@@ -39,6 +39,8 @@ npm run build --workspace=@natalnode/contracts
 npm run build --workspace=@natalnode/server
 node --test server/test/engine-request-adapter.test.mjs
 NATALNODE_ENGINE_CHECKOUT="$HOME/Downloads/natalnode-engine-handoff" \
+  node --test server/test/engine-result-adapter.test.mjs
+NATALNODE_ENGINE_CHECKOUT="$HOME/Downloads/natalnode-engine-handoff" \
   node --test server/test/private-engine-http.integration.test.mjs
 ```
 
@@ -133,37 +135,99 @@ the server-side authority-to-Engine request boundary with a canonical
 server-owned fixture; it does not make the form's development result
 authoritative or admit a production geocoding/provider composition.
 
-## Remaining Engine-to-Web result DTO gaps
+## Bounded Engine result inspection adapter
 
-The current raw Engine result must not be assigned or projected into Web
-`ChartResult` without a separately admitted result adapter:
+The pinned Engine source defines `ChartResult` in
+`packages/engine/src/domain/chart.ts`; its public package root exports that type
+and the body, angle, house, aspect, warning, configuration, and provenance
+contracts. The Web source of truth is `packages/contracts/src/chart.ts` plus
+`chart-authority.ts`. Similar field names are not treated as proof of matching
+meaning.
 
-- Engine returns `provider`, `modelVersions`, and its complete `input`; the Web
-  result has no matching fields for these. Dropping them would lose provenance.
-- Engine body rows use `id`, `motion`, `speedLongitude`, `signDegree`, and
-  numeric `house`, with optional latitude/distance. Web rows use
-  `bodyId`, nullable `retrograde`, and nullable `house`; policy is needed for
-  motion-to-retrograde conversion and for preserving or rejecting the extra
-  Engine values.
-- Engine angles are a numeric object containing ascendant, midheaven, ARMC and
-  obliquity. Web angles are an array of longitude/sign facts. The target IDs,
-  sign derivation and treatment of ARMC/obliquity are not mapped.
-- Engine houses are always a `HouseResult` with numeric cusps. Web houses may
-  be null and use numbered cusp facts. Completeness and nullability policy is
-  not defined.
-- Engine aspects contain `bodyA/bodyB`, exact angle, separation, orb limit and
-  lower-case phase. Web aspects use `firstBodyId/secondBodyId`, upper-case
-  phase state and omit exact angle, separation and orb limit. Field and phase
-  mapping remains unadmitted.
-- Engine warnings carry a typed code, subject and optional details. Web
-  warnings carry severity. Severity and message policy is not defined.
-- Engine metadata carries Engine calculation policy, scientific provenance,
-  configuration-binding and provenance-envelope status. Web metadata is a
-  separate complete/incomplete union with different identity fields. No
-  scientific identity or certification may be inferred by copying these
-  objects.
+### Source-derived field matrix
 
-The HTTP round-trip proves that the actual Engine API ran and that its raw
-result and provenance survived the development transport unchanged. It does
-not certify synthetic facts, adapt Engine results to Web `ChartResult`, activate
-the production chart endpoint, or establish production Engine admission.
+`Mapping` is a structural/semantic mapping classification. Scientific
+admission remains a separate status and is **NOT_ADMITTED for every row** in
+this synthetic proof.
+
+| Engine field / fact | Web target or inspection form | Mapping | Source-grounded rule / limitation |
+| --- | --- | --- | --- |
+| `schemaVersion`, `engineVersion` | Inspection `engineIdentity` | EXACT | Accept only Engine schema `1.0.0` and engine `0.1.0-foundation`; matching Web strings do not make the DTOs interchangeable. |
+| Request identity | None | UNSUPPORTED | Engine echoes `input`; it has no Web/request identifier. No identifier is invented. |
+| `input.instant` | `requestBinding.input.instant` | EXACT | RFC 3339 UTC from the verified Web-to-Engine request; must exactly equal the submitted Engine instant. No civil-time reinterpretation occurs here. |
+| `input.latitude/longitude` | `requestBinding.input` | EXACT | Finite, in-range coordinates must exactly equal the submitted request. The canonical location/time-zone proof is not part of Engine `ChartResult`. |
+| Engine `houses.system` and `metadata.houseSystem` | Inspection house-system ID | LOSSLESS_TRANSFORMATION | Must both equal the submitted, already-mapped `placidus`, `whole-sign`, or `equal` option. The Web request adapter owns the explicit label-to-ID mapping. |
+| Ten body records and body order | Inspection `bodies` | EXACT | Require each Engine `BODY_IDS` entry exactly once and in Engine order: Sun through Pluto. |
+| Body `id` | Inspection `bodyId` | EXACT | Copy the Engine enum without case conversion or inferred aliases. |
+| Body `longitude` | Inspection longitude | EXACT | Degrees in `[0, 360)`; Engine normalizes longitude at its boundary. No Web recomputation. |
+| Body `sign`, `signDegree` | Engine metadata/raw result; inspection sign | EXACT | Engine supplies these using its own `signForLongitude` boundary policy. Web does not derive or correct signs. `signDegree` stays in the unchanged raw result. |
+| Body `motion`, `speedLongitude` | Inspection `engineMotion`; raw result | SUPPORTED_WITH_RESTRICTION | Engine distinguishes `direct`, `station`, and `retrograde`; Web `retrograde: boolean \| null` cannot preserve the full state. The projection does not collapse station to false. |
+| Body `house` | Inspection body house | SUPPORTED_WITH_RESTRICTION | Require 1–12 and the requested house system to match. Do not independently recompute membership or claim more than the Engine supplied. |
+| ASC / MC | Inspection `angles` as ASC/MC degree values | SUPPORTED_WITH_RESTRICTION | Engine returns normalized degree longitudes in `[0, 360)`. Web `AngleFact` additionally requires a sign, which Engine `ChartResult` does not supply for angles; this projection is not `AngleFact`. |
+| ARMC / obliquity | Preserved in raw result only | UNSUPPORTED | They have no corresponding Web `AngleFact` identity/meaning and are not dropped from the raw Engine result. |
+| Twelve Engine house cusps | Inspection numbered cusps 1–12 | LOSSLESS_TRANSFORMATION | Require exactly twelve finite normalized longitudes; array index is the Engine house number. Preserve raw array and system. No cusp or house assignment is recalculated. |
+| Aspect `bodyA/bodyB` | `firstBodyId/secondBodyId` | LOSSLESS_TRANSFORMATION | Preserve endpoint order and require both IDs to reference the ten validated bodies. |
+| Aspect type | Inspection `type` | EXACT | Require one of Engine's eleven exported aspect IDs. |
+| `orb` | Inspection `orb` | SUPPORTED_WITH_RESTRICTION | Engine source defines orb as absolute angular separation from the exact angle. Preserve `exactAngle`, `separation`, and `orbLimit` in the raw result; Web has no admitted production orb configuration. |
+| Aspect `phase` | `phaseState` | LOSSLESS_TRANSFORMATION | Enum capitalization only (`applying/exact/separating` → uppercase). Engine computes phase from relative velocity; the adapter does not recompute it. |
+| Engine warnings | `engineWarnings` in Engine-native shape | UNSUPPORTED | Engine has code/subject/message/details; Web requires a severity that Engine does not provide. No severity is guessed. |
+| `provider`, `modelVersions` | Inspection source identity | EXACT | Preserve both directly; Web `ChartResult` has no corresponding fields. |
+| Scientific configuration IDs/status and provenance | `engineMetadata`, unchanged | SCIENTIFIC_AUTHORITY_BLOCKED | Validate required shape and preserve exact IDs/status/provenance. Engine `COMPLETE` describes its configuration binding, not provider/scientific admission. The fixture's provider is explicitly synthetic/reference-only. |
+| Precision / quality | Raw provenance only | UNSUPPORTED | `accuracyProfile` is provider provenance text, not a Web quality field or a numeric precision guarantee. |
+| Civil-time authority evidence | None in Engine result | UNSUPPORTED | The Web `VerifiedUtcInstant` stays in-process. Only the exact UTC instant and coordinates sent to Engine are compared. The proof/token is not returned. |
+| Web `calculationStatus` / result certification | No Web `ChartResult` is created | SEMANTIC_CONFLICT | Engine configuration status is not Web result completeness. Engine has warnings but no overall partial-result status. Copying either Engine status or IDs into Web certification would overstate authority. |
+
+### Validator and projection behavior
+
+`server/src/development/engine-result-adapter/engine-result-adapter.ts` is a
+pure, deterministic, development-only boundary. It pins the DTO version and
+rejects unknown fields/variants; validates provider and model identity, all
+ten unique ordered bodies, finite values and Engine ranges/enums, exact four
+angle keys, twelve cusps, aspect endpoint references, warning structure,
+scientific configuration status/identity shape, and non-empty provenance.
+It checks that `modelVersions` exactly matches the model IDs/versions in the
+returned provenance, plus result instant/coordinates and both house-system
+declarations against the exact submitted Engine request. It performs no astronomical calculations,
+does not verify a fingerprint from unavailable identity documents, and does
+not treat a well-formed SHA256-shaped ID as scientific proof.
+
+Failures are closed with stable adapter codes (including unsupported version,
+request mismatch, invalid body/angle/house/aspect structure, missing scientific
+configuration/provenance, and forged production-admission metadata). Unknown
+production/certification claims are rejected rather than copied.
+
+The successful `ENGINE_RESULT_INSPECTION_V1` projection carries fixed statuses:
+`STRUCTURALLY_VALID`, `PARTIAL`, `NOT_ADMITTED`, `ENGINEERING TEST DATA`,
+`NOT REAL ASTRONOMICAL OUTPUT`, `NOT_PERFORMED`, and `NOT_CREATED`. It exposes
+only the bounded inspection view above and explicit contract-gap codes. It is
+not assignable to Web `ChartResult`, and is not passed to `ChartRenderer`, the
+production `/api/chart` / cached calculator, My Chart, or Vault. Those continue
+to require their existing Web `ChartResult` and authority/certification
+contracts.
+
+The existing test-only `/_test/private-engine/chart` BFF now validates and
+returns both the unchanged `chart` and this separate `projection`. Its
+integration assertion independently asks the actual Engine package to
+calculate the same request and compares the returned raw result and projected
+fields. No canned Engine result substitutes for the HTTP calculation. The
+adapter is explicitly classified `DEVELOPMENT_ONLY`; production reachability
+and browser import remain prohibited by the architecture firewall. No route is
+added to production composition.
+
+### Remaining material gaps and gates
+
+`MATERIAL_RESULT_CONTRACT_GAP` remains for Web `AngleFact.sign`, warning
+severity, station-preserving Web motion, provider/model provenance, complete
+aspect details, civil-time evidence, precision/quality, and a result status
+that can distinguish structural completeness from scientific admission. This
+task intentionally does not change Web `ChartResult` or its certification
+policy to close those gaps. A later contract decision is required before any
+production result projection.
+
+The raw HTTP round-trip proves that the actual pinned Engine API ran and that
+its result/provenance survived unchanged. The new inspector proves structural
+validation and a partial, isolated mapping only. It does not validate the
+synthetic science, certify facts, activate the production chart endpoint,
+admit a provider, or establish production Engine use. An async deadline still
+cannot interrupt same-thread synchronous Engine CPU work; hard cancellation
+requires a separately admitted worker/process boundary.
