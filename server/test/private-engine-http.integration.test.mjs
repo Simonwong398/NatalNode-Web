@@ -6,7 +6,8 @@ import {
   mkdirSync,
   mkdtempSync,
   readFileSync,
-  symlinkSync
+  symlinkSync,
+  writeFileSync
 } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
@@ -15,10 +16,13 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 
 import {
   createPrivateEngineBffHarness,
+  createVerifiedPrivateEngineBffHarness,
   PrivateEngineHttpClient,
   startLoopbackHonoServer,
   startPrivateEngineHttpService
 } from './support/private-engine-http-adapter.mjs';
+import { createBirthTimeResolutionService, CIVIL_TIME_AUTHORITY_PROFILE } from '../dist/time-resolution/index.js';
+import { ProviderLocationResolutionService } from '../dist/location-resolution/location-resolution-service.js';
 
 const WEB_ROOT = fileURLToPath(new URL('../../', import.meta.url));
 const ENGINE_HEAD = 'a6125470edda64fb297c0e848f212fe215137bb2';
@@ -60,7 +64,96 @@ function readEngineCheckout() {
     'Build the delivered Engine package before running this test.');
   assert.ok(existsSync(join(enginePackageRoot, 'dist', 'tests', 'fixtures', 'fake-astronomy-provider.js')),
     'The Engine synthetic test fixture is unavailable.');
+  assert.ok(existsSync(join(checkoutRoot, 'packages', 'engine', 'src', 'domain', 'chart.ts')),
+    'The Engine public ChartInput and ChartOptions types are unavailable.');
   return { checkoutRoot, enginePackageRoot };
+}
+
+function assertAdapterTypesMatchEngine(checkoutRoot, testRoot) {
+  const sourcePath = join(testRoot, 'engine-request-adapter.typecheck.mts');
+  const adapterTypePath = join(WEB_ROOT, 'server', 'src', 'engine-request-adapter', 'index.js');
+  const engineChartTypePath = join(checkoutRoot, 'packages', 'engine', 'src', 'domain', 'chart.js');
+  const source = [
+    `import type { EngineCalculationRequest } from ${JSON.stringify(adapterTypePath)};`,
+    `import type { ChartInput, ChartOptions } from ${JSON.stringify(engineChartTypePath)};`,
+    'declare const request: EngineCalculationRequest;',
+    'const engineInput: ChartInput = request.input;',
+    'const engineOptions: ChartOptions = request.options;',
+    'void [engineInput, engineOptions];'
+  ].join('\n');
+  writeFileSync(sourcePath, source, 'utf8');
+
+  execFileSync(process.execPath, [
+    join(WEB_ROOT, 'node_modules', 'typescript', 'bin', 'tsc'),
+    '--noEmit', '--strict', '--skipLibCheck', '--target', 'ES2022',
+    '--module', 'NodeNext', '--moduleResolution', 'NodeNext',
+    '--typeRoots', join(WEB_ROOT, 'node_modules', '@types'), '--types', 'node', sourcePath
+  ], { cwd: testRoot, encoding: 'utf8', stdio: 'pipe' });
+}
+
+const LONDON_GREENWICH = Object.freeze({
+  resolutionId: 'london-greenwich',
+  canonicalDisplayName: 'London, United Kingdom',
+  locality: 'London',
+  region: 'England',
+  country: 'United Kingdom',
+  countryCode: 'GB',
+  coordinates: Object.freeze({ latitude: 51.4779, longitude: -0.0015 }),
+  ianaTimeZone: 'Europe/London',
+  status: 'RESOLVED',
+  authority: Object.freeze({ kind: 'GEOCODING', sourceId: 'isolated-test-location', recordId: 'london-greenwich' }),
+  source: Object.freeze({ sourceVersion: 'isolated-fixture-v1', datasetVersion: null,
+    attribution: Object.freeze({ label: 'Isolated engineering fixture', url: 'https://natalnode.test/location' }) })
+});
+
+async function createIsolatedLocationOwner(locations) {
+  const provider = {
+    async search(query) {
+      return locations.filter((location) => location.resolutionId === query).map((location) => ({
+        candidateId: location.resolutionId,
+        canonicalDisplayName: location.canonicalDisplayName,
+        locality: location.locality,
+        region: location.region,
+        country: location.country,
+        countryCode: location.countryCode,
+        coordinates: location.coordinates,
+        authority: location.authority,
+        source: location.source
+      }));
+    },
+    async resolve(candidateId) {
+      return locations.find((location) => location.resolutionId === candidateId) ?? null;
+    }
+  };
+  const owner = new ProviderLocationResolutionService(provider);
+  for (const location of locations) {
+    const candidates = await owner.search({ query: location.resolutionId, locale: 'en' });
+    assert.equal(candidates.state, 'CANDIDATES');
+    const selected = await owner.resolve({ candidateId: candidates.candidates[0].candidateId, locale: 'en' });
+    assert.equal(selected.state, 'RESOLVED');
+  }
+  return owner;
+}
+
+function londonWebChartRequest(location = LONDON_GREENWICH, overrides = {}) {
+  return {
+    birth: {
+      localDate: '2025-10-22',
+      localTime: '10:52',
+      locationLabel: location.canonicalDisplayName,
+      locationResolutionId: location.resolutionId,
+      latitude: location.coordinates.latitude,
+      longitude: location.coordinates.longitude,
+      ianaTimeZone: location.ianaTimeZone,
+      resolvedUtcInstant: '2025-10-22T09:52:00.000Z',
+      utcOffsetSeconds: 3_600,
+      timezoneDatabaseVersion: CIVIL_TIME_AUTHORITY_PROFILE.timezoneDatabaseVersion,
+      timezoneResolutionMethod: CIVIL_TIME_AUTHORITY_PROFILE.profileId,
+      ambiguityStatus: 'EXACT',
+      ...overrides.birth
+    },
+    houseSystem: overrides.houseSystem ?? 'Placidus'
+  };
 }
 
 function waitForChildMessage(child, messageType, timeoutMs = 5_000) {
@@ -141,33 +234,56 @@ async function postJson(url, body, headers = {}) {
 }
 
 test('Web BFF harness completes a loopback HTTP round trip through the Engine package root', async (context) => {
-  const { enginePackageRoot } = readEngineCheckout();
+  const { checkoutRoot, enginePackageRoot } = readEngineCheckout();
   const testRoot = mkdtempSync(join(tmpdir(), 'natalnode-engine-http-'));
   let child;
   let bffServer;
   try {
+    assertAdapterTypesMatchEngine(checkoutRoot, testRoot);
     const childRuntime = await startEngineChild(enginePackageRoot, testRoot);
     child = childRuntime.child;
     assert.equal(childRuntime.ready.host, '127.0.0.1');
     assert.ok(childRuntime.ready.port > 0 && childRuntime.ready.port <= 65_535);
 
-    const engineClient = new PrivateEngineHttpClient({
+    const privateEngineClient = new PrivateEngineHttpClient({
       baseUrl: `http://${childRuntime.ready.host}:${childRuntime.ready.port}`
     });
-    bffServer = await startLoopbackHonoServer(createPrivateEngineBffHarness(engineClient));
+    const adaptedRequests = [];
+    const engineClient = {
+      async calculateChart(request) {
+        adaptedRequests.push(request);
+        return privateEngineClient.calculateChart(request);
+      }
+    };
+    const locationOwner = await createIsolatedLocationOwner([LONDON_GREENWICH]);
+    const timeAuthority = createBirthTimeResolutionService({ locationResolutionService: locationOwner });
+    bffServer = await startLoopbackHonoServer(createVerifiedPrivateEngineBffHarness({
+      engineClient,
+      timeAuthority
+    }));
     assert.equal(bffServer.host, '127.0.0.1');
 
-    const expectedChartPromise = waitForChildMessage(child, 'expected-chart');
-    child.send({ type: 'expected-chart' });
-    const expectedChart = await expectedChartPromise;
-
     const endpoint = `${bffServer.origin}/_test/private-engine/chart`;
-    const firstResponse = await postJson(endpoint, JSON.stringify(ENGINE_REQUEST));
-    const secondResponse = await postJson(endpoint, JSON.stringify(ENGINE_REQUEST));
+    const webRequest = { chart: londonWebChartRequest() };
+    const firstResponse = await postJson(endpoint, JSON.stringify(webRequest));
+    const secondResponse = await postJson(endpoint, JSON.stringify(webRequest));
     assert.equal(firstResponse.status, 200);
     assert.equal(secondResponse.status, 200);
     const first = await firstResponse.json();
     const second = await secondResponse.json();
+
+    assert.equal(adaptedRequests.length, 2);
+    assert.deepEqual(adaptedRequests[0], {
+      input: {
+        instant: '2025-10-22T09:52:00.000Z',
+        latitude: 51.4779,
+        longitude: -0.0015
+      },
+      options: { houseSystem: 'placidus' }
+    });
+    const expectedChartPromise = waitForChildMessage(child, 'expected-chart');
+    child.send({ type: 'expected-chart', request: adaptedRequests[0] });
+    const expectedChart = await expectedChartPromise;
 
     assert.deepEqual(first.chart, expectedChart.chart, 'BFF returns the Engine result without scientific projection.');
     assert.deepEqual(second, first, 'Repeated synthetic calculations remain deterministic over HTTP.');
@@ -181,11 +297,31 @@ test('Web BFF harness completes a loopback HTTP round trip through the Engine pa
     assert.equal(first.chart.metadata.astronomyConfigurationStatus, 'COMPLETE');
     assert.equal(first.chart.metadata.provenanceEnvelopeStatus, 'COMPLETE');
 
+    for (const [webHouseSystem, engineHouseSystem] of [
+      ['Whole Sign', 'whole-sign'],
+      ['Equal', 'equal']
+    ]) {
+      const response = await postJson(endpoint, JSON.stringify({
+        chart: londonWebChartRequest(LONDON_GREENWICH, { houseSystem: webHouseSystem })
+      }));
+      assert.equal(response.status, 200);
+      const payload = await response.json();
+      const adapted = adaptedRequests.at(-1);
+      assert.equal(adapted.options.houseSystem, engineHouseSystem);
+
+      const expectedPromise = waitForChildMessage(child, 'expected-chart');
+      child.send({ type: 'expected-chart', request: adapted });
+      const expected = await expectedPromise;
+      assert.deepEqual(payload.chart, expected.chart,
+        `${webHouseSystem} preserves the raw Engine result over HTTP.`);
+    }
+    assert.equal(adaptedRequests.length, 4);
+
     const statsPromise = waitForChildMessage(child, 'stats');
     child.send({ type: 'stats' });
     const stats = await statsPromise;
-    assert.equal(stats.bodyStates, 30, 'The actual Engine API reached all ten provider bodies for three calls.');
-    assert.equal(stats.fundamentalStates, 3);
+    assert.equal(stats.bodyStates, 70, 'The actual Engine API reached all ten provider bodies for seven calculations.');
+    assert.equal(stats.fundamentalStates, 7);
 
     await context.test('both listeners bind only to IPv4 loopback', async () => {
       assert.equal(childRuntime.ready.host, '127.0.0.1');
@@ -325,6 +461,34 @@ test('Engine failures and deadline expiry map to safe structured HTTP errors', a
   }
 });
 
+test('verified BFF rejects a forged browser UTC claim before the Engine HTTP client', async () => {
+  const locationOwner = await createIsolatedLocationOwner([LONDON_GREENWICH]);
+  const timeAuthority = createBirthTimeResolutionService({ locationResolutionService: locationOwner });
+  let engineCalls = 0;
+  const bff = await startLoopbackHonoServer(createVerifiedPrivateEngineBffHarness({
+    timeAuthority,
+    engineClient: {
+      async calculateChart() {
+        engineCalls += 1;
+        throw new Error('A rejected request must not reach the Engine client.');
+      }
+    }
+  }));
+  try {
+    const forged = londonWebChartRequest(LONDON_GREENWICH, {
+      birth: { resolvedUtcInstant: '2000-01-01T00:00:00.000Z' }
+    });
+    const response = await postJson(`${bff.origin}/_test/private-engine/chart`, JSON.stringify({ chart: forged }));
+    assert.equal(response.status, 422);
+    assert.deepEqual(await response.json(), {
+      error: { code: 'CLIENT_TIME_CLAIM_MISMATCH', message: 'Birth input could not be verified.' }
+    });
+    assert.equal(engineCalls, 0);
+  } finally {
+    await bff.close();
+  }
+});
+
 test('private Engine client enforces loopback and converts an expired deadline safely', async () => {
   assert.throws(
     () => new PrivateEngineHttpClient({ baseUrl: 'http://0.0.0.0:4321' }),
@@ -353,16 +517,26 @@ test('development adapter remains test-only and production admission stays close
     new URL('./support/private-engine-http-adapter.mjs', import.meta.url),
     'utf8'
   );
+  const requestAdapterSource = readFileSync(
+    new URL('../src/engine-request-adapter/engine-request-adapter.ts', import.meta.url),
+    'utf8'
+  );
   const engineChildSource = readFileSync(
     new URL('./support/private-engine-http-engine-child.mjs', import.meta.url),
     'utf8'
   );
   const productionBindings = readFileSync(join(WEB_ROOT, 'server/src/executable/create-executable-server-bindings.ts'), 'utf8');
   const productionAdmission = readFileSync(join(WEB_ROOT, 'server/src/runtime/production-runtime-config.ts'), 'utf8');
+  const productionChartRoute = readFileSync(join(WEB_ROOT, 'server/src/app/routes/chart.ts'), 'utf8');
 
   assert.match(engineChildSource, /@natalnode\/engine-foundation/u);
   assert.match(engineChildSource, /FakeAstronomyProvider/u);
+  assert.match(adapterSource, /prepareEngineCalculationRequest/u);
+  assert.match(requestAdapterSource, /assertVerifiedUtcInstant/u);
+  assert.match(requestAdapterSource, /timeAuthority\.resolve/u);
   assert.doesNotMatch(productionBindings, /PrivateEngineHttp|FakeAstronomyProvider|@natalnode\/engine-foundation/u);
+  assert.doesNotMatch(productionBindings, /engine-request-adapter|prepareEngineCalculationRequest/u);
+  assert.doesNotMatch(productionChartRoute, /engine-request-adapter|prepareEngineCalculationRequest|birthTimeResolutionService/u);
   assert.match(productionAdmission, /PRODUCTION_ENGINE_CLIENT_ADMISSION = 'NOT_ADMITTED'/u);
   assert.doesNotMatch(adapterSource, /console\.(?:log|warn|error)/u);
   assert.doesNotMatch(adapterSource, /FakeAstronomyProvider|@natalnode\/engine-foundation/u);

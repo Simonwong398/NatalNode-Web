@@ -15,12 +15,6 @@ const { FakeAstronomyProvider } = await import(fixtureUrl.href);
 const { startPrivateEngineHttpService } = await import(adapterModuleUrl);
 
 const calls = { bodyStates: 0, fundamentalStates: 0 };
-const input = {
-  instant: '2000-01-01T00:00:00Z',
-  latitude: 27.95,
-  longitude: -82.46
-};
-const options = { houseSystem: 'placidus' };
 class RecordingSyntheticProvider extends FakeAstronomyProvider {
   getBodyState(...args) {
     calls.bodyStates += 1;
@@ -50,8 +44,8 @@ process.on('message', async (message) => {
     send({ type: 'stats', ...calls });
     return;
   }
-  if (message?.type === 'expected-chart') {
-    const chart = engine.calculateChart(input, options);
+  if (message?.type === 'expected-chart' && message.request?.input && message.request?.options) {
+    const chart = engine.calculateChart(message.request.input, message.request.options);
     send({ type: 'expected-chart', chart });
     return;
   }

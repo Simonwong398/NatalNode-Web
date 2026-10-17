@@ -1,5 +1,6 @@
 import { createAdaptorServer } from '@hono/node-server';
 import { Hono } from 'hono';
+import { prepareEngineCalculationRequest } from '../../dist/engine-request-adapter/index.js';
 
 const LOOPBACK_HOST = '127.0.0.1';
 const CALCULATE_PATH = '/v1/chart/calculate';
@@ -58,7 +59,7 @@ function isEngineCalculationRequest(value) {
     && Number.isFinite(value.input.longitude)
     && value.input.longitude >= -180
     && value.input.longitude <= 180
-    && value.options.houseSystem === 'placidus';
+    && ['placidus', 'whole-sign', 'equal'].includes(value.options.houseSystem);
 }
 
 function isEngineChartResult(value) {
@@ -354,6 +355,45 @@ export function createPrivateEngineBffHarness(engineClient) {
     }
     try {
       const chart = await engineClient.calculateChart(request);
+      return jsonResponse(context, 200, { chart, transport: TEST_DATA_TRANSPORT });
+    } catch (error) {
+      const code = Object.hasOwn(ERROR_RESPONSES, error?.code) ? error.code : 'ENGINE_UNAVAILABLE';
+      return errorResponse(context, code);
+    }
+  });
+  return app;
+}
+
+/** Test-only BFF flow that resolves Web civil input before the private Engine HTTP hop. */
+export function createVerifiedPrivateEngineBffHarness({ engineClient, timeAuthority }) {
+  if (!engineClient || typeof engineClient.calculateChart !== 'function') {
+    throw new TypeError('The verified BFF harness requires an explicit private Engine client.');
+  }
+  if (!timeAuthority || typeof timeAuthority.resolve !== 'function') {
+    throw new TypeError('The verified BFF harness requires the server Civil TimeAuthority.');
+  }
+
+  const app = new Hono();
+  app.all(TEST_BFF_PATH, async (context) => {
+    if (context.req.method !== 'POST') {
+      return errorResponse(context, 'METHOD_NOT_ALLOWED', { Allow: 'POST' });
+    }
+
+    const parsed = await readBoundedJson(context.req.raw);
+    if (parsed.outcome === 'too-large') return errorResponse(context, 'PAYLOAD_TOO_LARGE');
+    if (parsed.outcome !== 'parsed' || !hasExactKeys(parsed.value, ['chart'])) {
+      return errorResponse(context, 'INVALID_REQUEST');
+    }
+
+    const prepared = prepareEngineCalculationRequest(parsed.value.chart, timeAuthority);
+    if (prepared.outcome === 'REJECTED') {
+      return jsonResponse(context, 422, {
+        error: { code: prepared.error.code, message: 'Birth input could not be verified.' }
+      });
+    }
+
+    try {
+      const chart = await engineClient.calculateChart(prepared.request);
       return jsonResponse(context, 200, { chart, transport: TEST_DATA_TRANSPORT });
     } catch (error) {
       const code = Object.hasOwn(ERROR_RESPONSES, error?.code) ? error.code : 'ENGINE_UNAVAILABLE';
