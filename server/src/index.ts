@@ -1,4 +1,18 @@
 export { requireAuthentication } from './app/auth/index.js';
+export {
+  assertVerifiedUtcInstant,
+  CIVIL_TIME_AUTHORITY_PROFILE,
+  CivilTimeAuthorityError,
+  createBirthTimeResolutionService
+} from './time-resolution/index.js';
+export type {
+  BirthTimeResolutionService,
+  BirthTimeResolutionServiceDependencies,
+  CivilTimeAuthority,
+  TimeResolutionRequest,
+  TimeResolutionResult,
+  VerifiedUtcInstant
+} from './time-resolution/index.js';
 export type {
   AuthenticatedContextVariables,
   AuthenticatedPrincipal,

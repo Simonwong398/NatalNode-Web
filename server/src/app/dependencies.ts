@@ -24,6 +24,7 @@ import type { FoundationsLearningService } from '../learning/foundations/postgre
 import type { ServerOperationalConfig } from '../runtime/server-runtime-config.js';
 import type { RuntimeHealthStatus } from '../runtime/server-runtime-config.js';
 import type { LocationResolutionService } from '../location-resolution/location-resolution-service.js';
+import type { BirthTimeResolutionService } from '../time-resolution/index.js';
 
 export interface ServerDependencies {
   readonly publicWebOrigin: string;
@@ -42,6 +43,8 @@ export interface ServerDependencies {
   readonly clock: Clock;
   /** Omitted until an approved geocoding provider is bound. */
   readonly locationResolutionService?: LocationResolutionService;
+  /** Explicitly bound by a future caller; does not open production Engine admission. */
+  readonly birthTimeResolutionService?: BirthTimeResolutionService;
   /** Omitted by public-development so authenticated notification use fails closed. */
   readonly notificationAccountService?: NotificationAccountService;
   /** Omitted by public-development until the authenticated learning store is configured. */

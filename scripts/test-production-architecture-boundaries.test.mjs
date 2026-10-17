@@ -44,6 +44,21 @@ function violationKinds(audit) {
   return audit.violations.map((violation) => violation.kind);
 }
 
+test('civil-time implementation and packaged tzdb stay outside every browser graph', () => {
+  const pending = [...graph.runtimeEdges.keys()].filter((path) => path.startsWith('apps/web/src/'));
+  const visited = new Set();
+  while (pending.length > 0) {
+    const path = pending.pop();
+    if (visited.has(path)) continue;
+    visited.add(path);
+    assert.ok(!path.startsWith('server/src/'), `Browser reaches server module: ${path}`);
+    for (const { specifier } of graph.externalImports.get(path) ?? []) {
+      assert.ok(!specifier.startsWith('@js-joda/'), `Browser reaches tzdb dependency: ${path}`);
+    }
+    pending.push(...(graph.runtimeEdges.get(path) ?? []));
+  }
+});
+
 test('A: current production roots transitively reach production-eligible modules only', () => {
   assert.ok(roots.productionWebRoots.length > 0);
   assert.ok(roots.productionServerRoots.includes('server/src/index.ts'));

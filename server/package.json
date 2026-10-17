@@ -28,11 +28,14 @@
     "test:public-development": "node --test test/public-development.test.mjs",
     "test:location-resolution": "npm run build --workspace=@natalnode/contracts && npm run build && node --test test/location-resolution.test.mjs",
     "test:unknown-time-authority": "npm run build --workspace=@natalnode/contracts && npm run build && node --test test/unknown-time-authority.test.mjs",
+    "test:civil-time-authority": "npm run build --workspace=@natalnode/contracts && npm run build && node --test test/civil-time-authority.test.mjs",
     "test:geonames-location": "npm run build --workspace=@natalnode/contracts && npm run build && node --test test/geonames-location-provider.test.mjs",
     "test:account-overview": "npm run build --workspace=@natalnode/contracts && npm run build && node --test test/account-overview.test.mjs"
   },
   "dependencies": {
     "@hono/node-server": "^2.1.1",
+    "@js-joda/core": "6.3.0",
+    "@js-joda/timezone": "3.1.0",
     "@natalnode/contracts": "0.1.0",
     "@natalnode/engine-client": "0.1.0",
     "hono": "^4.13.4",

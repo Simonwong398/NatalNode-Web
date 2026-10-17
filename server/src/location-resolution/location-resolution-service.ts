@@ -319,7 +319,7 @@ export function deduplicateLocationCandidates(
   return Object.freeze(uniqueCandidates);
 }
 
-function isCanonicalResolvedLocation(
+export function isCanonicalResolvedLocation(
   value: unknown
 ): value is CanonicalResolvedLocation {
   if (!isRecord(value)) {
