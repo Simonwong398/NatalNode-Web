@@ -34,6 +34,7 @@
     "preserver:start": "npm run build:server",
     "server:start": "npm run start --workspace=server",
     "server:preflight": "npm run build:server && npm run preflight --workspace=server",
+    "dev:chart-workflow": "npm run build:server && node --env-file-if-exists=.env scripts/run-local-browser-chart-workflow.mjs",
     "test:runtime-hardening": "npm run build:server && node --test server/test/production-runtime-hardening.test.mjs",
     "predb:migrate": "npm run build:server",
     "db:migrate": "npm run migrate --workspace=server",

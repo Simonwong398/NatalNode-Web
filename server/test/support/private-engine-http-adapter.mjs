@@ -398,7 +398,11 @@ export function createPrivateEngineBffHarness(engineClient) {
 }
 
 /** Test-only BFF flow that resolves Web civil input before the private Engine HTTP hop. */
-export function createVerifiedPrivateEngineBffHarness({ engineClient, timeAuthority }) {
+export function createVerifiedPrivateEngineBffHarness({
+  engineClient,
+  timeAuthority,
+  routePath = TEST_BFF_PATH
+}) {
   if (!engineClient || typeof engineClient.calculateChart !== 'function') {
     throw new TypeError('The verified BFF harness requires an explicit private Engine client.');
   }
@@ -407,7 +411,7 @@ export function createVerifiedPrivateEngineBffHarness({ engineClient, timeAuthor
   }
 
   const app = new Hono();
-  app.all(TEST_BFF_PATH, async (context) => {
+  app.all(routePath, async (context) => {
     if (context.req.method !== 'POST') {
       return errorResponse(context, 'METHOD_NOT_ALLOWED', { Allow: 'POST' });
     }

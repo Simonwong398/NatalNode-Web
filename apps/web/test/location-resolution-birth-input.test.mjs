@@ -700,6 +700,40 @@ test('editing the actual resolved birthplace invalidates its canonical location 
   });
 });
 
+test('the actual calculate form rejects a stale location after the birthplace changes', async () => {
+  const boundary = createFetchBoundary({
+    search: ({ init }) => requestBody({ init }).query === 'Shanghai China'
+      ? { state: 'CANDIDATES', candidates: [englishShanghai] }
+      : { state: 'UNRESOLVED', candidates: [] },
+    resolve: () => ({ state: 'RESOLVED', location: resolvedLocation(englishShanghai) }),
+    chart: () => jsonResponse({ chart: completeChartResult })
+  });
+
+  await withChartExperience(
+    { boundary, locale: 'en', requireResolvedLocation: true },
+    async (scope) => {
+      await scope.change('Shanghai China');
+      await scope.wait();
+      await scope.click(scope.candidateButtons()[0]);
+      await scope.setValue('birth-date-day', '15');
+      await scope.setValue('birth-date-month', '05');
+      await scope.setValue('birth-date-year', '1990');
+      await scope.setValue('birth-time', '07:05');
+
+      await scope.change('Beijing China');
+      await scope.wait();
+      assert.equal(scope.canonical(), null);
+
+      await scope.submit();
+
+      assert.equal(scope.chartCalls().length, 0);
+      assert.equal(scope.input().value, 'Beijing China');
+      assert.equal(scope.canonical(), null);
+      assert.match(scope.text(), /Select a canonical location before calculating a chart/u);
+    }
+  );
+});
+
 test('multiple real candidates remain explicit and selectable in the actual birth form', async () => {
   const secondCandidate = candidate({
     candidateId: 'candidate-shanghai-alt',

@@ -1,5 +1,6 @@
 import { useRef, useState } from 'react';
 import type { BirthInputResolver } from './resolver';
+import type { CanonicalResolvedLocation } from './location-resolution';
 import type {
   AmbiguousTimeCandidate,
   BirthInputDraft,
@@ -70,14 +71,15 @@ export function useBirthInputResolution(
 
   const resolveDraft = async (
     draft: BirthInputDraft,
-    onResolutionAccepted: (resolution: BirthInputResolution) => void
+    onResolutionAccepted: (resolution: BirthInputResolution) => void,
+    selectedLocation?: CanonicalResolvedLocation | null
   ): Promise<BirthInputResolution | null> => {
     const requestId = latestRequestRef.current + 1;
     latestRequestRef.current = requestId;
     setIsResolving(true);
 
     try {
-      const nextResolution = await resolver.resolve({ ...draft });
+      const nextResolution = await resolver.resolve({ ...draft }, selectedLocation);
 
       if (latestRequestRef.current !== requestId) {
         return null;

@@ -26,6 +26,7 @@
     "test:vault": "npm run build && node --test test/vault.test.mjs",
     "test:feedback": "npm run build && node --test test/feedback.test.mjs",
     "test:public-development": "node --test test/public-development.test.mjs",
+    "test:local-browser-chart-bff": "npm run build --workspace=@natalnode/contracts && npm run build && node --test test/local-browser-chart-bff.test.mjs",
     "test:location-resolution": "npm run build --workspace=@natalnode/contracts && npm run build && node --test test/location-resolution.test.mjs",
     "test:unknown-time-authority": "npm run build --workspace=@natalnode/contracts && npm run build && node --test test/unknown-time-authority.test.mjs",
     "test:civil-time-authority": "npm run build --workspace=@natalnode/contracts && npm run build && node --test test/civil-time-authority.test.mjs",

@@ -153,6 +153,7 @@ export interface BirthInputFormProps {
   requireResolvedLocation?: boolean;
   resolver?: BirthInputResolver;
   showDevelopmentDiagnostics?: boolean;
+  showDevelopmentInformation?: boolean;
 }
 
 export interface ResolvedBirthInputSelection {
@@ -258,6 +259,7 @@ export default function BirthInputForm({
   requireResolvedLocation = false,
   resolver = defaultResolver,
   showDevelopmentDiagnostics = false,
+  showDevelopmentInformation = true,
   showInputSavePanel = true
 }: BirthInputFormProps) {
   const [draft, setDraft] = useState<BirthInputDraft>(() =>
@@ -443,7 +445,11 @@ export default function BirthInputForm({
         locationResolution
       }).eligible
     ) {
-      currentResolution = await resolveDraft(draft, applyAcceptedResolution);
+      currentResolution = await resolveDraft(
+        draft,
+        applyAcceptedResolution,
+        locationResolution?.selectedLocation ?? null
+      );
     }
 
     if (currentResolution === null) {
@@ -520,7 +526,7 @@ export default function BirthInputForm({
           ...(locationResolutionId === undefined ? {} : { locationResolutionId })
         });
       }
-    });
+    }, locationResolution?.selectedLocation ?? null);
   };
 
   return (
@@ -627,11 +633,13 @@ export default function BirthInputForm({
 
       <BirthDataTrustSection locale={locale} />
 
-      <div className="nn-notice nn-notice--research mt-6 max-w-3xl flex-col">
-        <p className="nn-eyebrow nn-status--research">{chartUi(locale, 'birthInput.developmentInformation')}</p>
-        <p className="nn-type-metadata">{chartUi(locale, 'birthInput.developmentNotice')}</p>
-        <p className="nn-type-metadata">{chartUi(locale, 'birthInput.fixtureInstruction')}</p>
-      </div>
+      {showDevelopmentInformation ? (
+        <div className="nn-notice nn-notice--research mt-6 max-w-3xl flex-col">
+          <p className="nn-eyebrow nn-status--research">{chartUi(locale, 'birthInput.developmentInformation')}</p>
+          <p className="nn-type-metadata">{chartUi(locale, 'birthInput.developmentNotice')}</p>
+          <p className="nn-type-metadata">{chartUi(locale, 'birthInput.fixtureInstruction')}</p>
+        </div>
+      ) : null}
     </>
   );
 }

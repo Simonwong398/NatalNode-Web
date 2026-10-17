@@ -1,13 +1,18 @@
 ---
 import SiteLayout from '@/layouts/SiteLayout.astro';
-import { ChartExperience } from '@/features/chart-experience';
+import LocalEngineChartWorkflow from '@/features/chart-experience/LocalEngineChartWorkflow';
 import { getPresentationLocale } from '@/lib/localization';
+import type { SupportedLocale } from '@/lib/localization';
 import type { SeoMetadata } from '@/lib/seo';
 
-const locale = getPresentationLocale(Astro.url.pathname, Astro.locals.locale);
-const isChartPreviewAvailable =
-  import.meta.env.DEV || process.env.NATALNODE_LOCAL_DEV_PREVIEW === 'true';
-const initialVaultRecordId = Astro.url.searchParams.get('vaultRecordId');
+interface Props {
+  readonly locale?: SupportedLocale;
+}
+
+const locale = Astro.props.locale ??
+  getPresentationLocale(Astro.url.pathname, Astro.locals.locale);
+const isLocalEngineWorkflowAvailable =
+  import.meta.env.DEV && process.env.NATALNODE_LOCAL_CHART_WORKFLOW === 'true';
 
 const seo: SeoMetadata = {
   title: 'Chart Experience Preview | NatalNode',
@@ -19,18 +24,19 @@ const seo: SeoMetadata = {
 
 <SiteLayout seo={seo} mode="observatory">
   <main class="nn-container nn-container--calculate nn-calculate-page min-h-screen pb-12 pt-10 sm:pt-14">
-    {isChartPreviewAvailable ? (
-      <ChartExperience
-        initialVaultRecordId={initialVaultRecordId}
-        locale={locale}
-        requireResolvedLocation={false}
-        client:load
-      />
+    {isLocalEngineWorkflowAvailable ? (
+      <LocalEngineChartWorkflow locale={locale} client:load />
+    ) : import.meta.env.DEV ? (
+      <section class="nn-surface p-5 sm:p-7" aria-labelledby="chart-preview-unavailable-title">
+        <p class="nn-eyebrow">Local development only</p>
+        <h1 class="nn-type-page-title mt-3" id="chart-preview-unavailable-title">Chart workflow</h1>
+        <p class="nn-type-body mt-4">Start <code>npm run dev:chart-workflow</code> to use canonical location search, server-owned civil-time verification, and the isolated private Engine calculation.</p>
+      </section>
     ) : (
       <section class="nn-surface p-5 sm:p-7" aria-labelledby="chart-preview-unavailable-title">
         <p class="nn-eyebrow">Development only</p>
-        <h1 class="nn-type-page-title mt-3" id="chart-preview-unavailable-title">Chart experience preview</h1>
-        <p class="nn-type-body mt-4">This development preview is unavailable in production builds.</p>
+        <h1 class="nn-type-page-title mt-3" id="chart-preview-unavailable-title">Chart workflow</h1>
+        <p class="nn-type-body mt-4">This development workflow is unavailable in production builds.</p>
       </section>
     )}
   </main>
