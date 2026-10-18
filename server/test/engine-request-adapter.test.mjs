@@ -10,6 +10,7 @@ import {
   createBirthTimeResolutionService
 } from '../dist/time-resolution/index.js';
 import { ProviderLocationResolutionService } from '../dist/location-resolution/location-resolution-service.js';
+import { serializeEngineUtcInstant } from '../dist/development/engine-utc-wire.js';
 
 const GREENWICH = Object.freeze({
   resolutionId: 'london-greenwich',
@@ -111,6 +112,7 @@ test('verified London birth input maps only proof-backed fields to Engine public
   assert.equal(prepared.outcome, 'READY');
   assert.doesNotThrow(() => assertVerifiedUtcInstant(prepared.verifiedTime));
   assert.equal(prepared.verifiedTime.resolvedUtcInstant, '2025-10-22T09:52:00.000Z');
+  assert.equal(serializeEngineUtcInstant(prepared.request.input.instant), '2025-10-22T09:52:00Z');
   assert.deepEqual(prepared.request, {
     input: {
       instant: '2025-10-22T09:52:00.000Z',
@@ -202,6 +204,10 @@ test('only a server candidate selected by the user resolves the London overlap',
     assert.equal(prepared.verifiedTime.selection.kind, 'USER_DISAMBIGUATED_OVERLAP');
     assert.equal(prepared.verifiedTime.selection.occurrence, occurrence);
     assert.equal(prepared.request.input.instant, instant);
+    const wireInstant = serializeEngineUtcInstant(prepared.request.input.instant);
+    assert.equal(wireInstant, instant.replace('.000Z', 'Z'));
+    assert.equal(Date.parse(wireInstant), Date.parse(instant));
+    assert.equal(prepared.verifiedTime.utcOffsetSeconds, offset);
   }
 
   const forged = chartRequest(GREENWICH, { birth: {

@@ -105,11 +105,8 @@ async function createResearchHarness({
   let serviceCalls = 0;
   const fetchOperation = fetchImplementation ?? (async (_url, init) => {
     const request = JSON.parse(init.body);
-    const chart = structuredClone(R5_CHART);
-    // Civil TimeAuthority serializes whole-second UTC instants with .000Z.
-    // This is the same archived fixture instant, only canonically formatted.
-    chart.input.instant = request.input.instant;
-    return new Response(JSON.stringify({ chart, execution: RESEARCH_EXECUTION }), {
+    assert.equal(request.input.instant, R5_CHART.input.instant, 'The real-service wire uses Engine canonical UTC.');
+    return new Response(JSON.stringify({ chart: R5_CHART, execution: RESEARCH_EXECUTION }), {
       status: 200,
       headers: { 'Content-Type': 'application/json; charset=utf-8' }
     });
@@ -350,6 +347,9 @@ test('real research BFF maps the archived R5 fixture, retaining full chart, exec
   assert.equal(receipt.source.engineResult.provider.id, R5_CHART.provider.id);
   assert.deepEqual(receipt.source.engineResult.metadata.provenance, R5_CHART.metadata.provenance);
   assert.deepEqual(receipt.source.engineResult.modelVersions, R5_CHART.modelVersions);
+  assert.deepEqual(receipt.source.engineResult, R5_CHART, 'The canonical Engine result is retained without rewriting its input.');
+  assert.equal(receipt.source.webCivilTime.evidence.resolvedUtcInstant, '2000-01-01T12:00:00.000Z');
+  assert.equal(chartRequest.birth.resolvedUtcInstant, '2000-01-01T12:00:00.000Z');
   assert.equal(receipt.execution.runtimeIdentity, RUNTIME_IDENTITY);
   assert.equal(receipt.execution.status, 'RESEARCH_ONLY');
   assert.equal(receipt.execution.provenance, 'INCOMPLETE_RESEARCH');

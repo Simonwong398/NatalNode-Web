@@ -4,6 +4,7 @@ import {
   type EngineResearchExecutionEvidence
 } from './engine-result-adapter/engine-result-adapter.js';
 import type { EngineCalculationRequest } from '../engine-request-adapter/engine-request-adapter.js';
+import { serializeEngineUtcInstant } from './engine-utc-wire.js';
 
 const LOOPBACK_HOST = '127.0.0.1';
 const CALCULATE_PATH = '/v1/chart/calculate';
@@ -121,7 +122,10 @@ function isValidCalculationRequest(value: unknown): value is EngineCalculationRe
 
 function toRealEngineWireRequest(request: EngineCalculationRequest): RealEngineWireRequest {
   return Object.freeze({
-    input: request.input,
+    input: Object.freeze({
+      ...request.input,
+      instant: serializeEngineUtcInstant(request.input.instant)
+    }),
     options: Object.freeze({ houseSystem: request.options.houseSystem, zodiac: 'tropical' })
   });
 }
@@ -307,7 +311,12 @@ export class RealEnginePrivateServiceClient {
     }
     if (signal?.aborted) throw new RealEnginePrivateServiceError('CALCULATION_CANCELLED');
 
-    const wireRequest = toRealEngineWireRequest(request);
+    let wireRequest: RealEngineWireRequest;
+    try {
+      wireRequest = toRealEngineWireRequest(request);
+    } catch {
+      throw new RealEnginePrivateServiceError('REQUEST_SCHEMA_INVALID');
+    }
     const body = JSON.stringify(wireRequest);
     if (Buffer.byteLength(body, 'utf8') > MAX_REQUEST_BYTES) {
       throw new RealEnginePrivateServiceError('REQUEST_TOO_LARGE');

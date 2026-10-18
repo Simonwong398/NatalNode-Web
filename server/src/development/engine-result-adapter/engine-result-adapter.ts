@@ -11,6 +11,7 @@ import type {
 } from '@natalnode/contracts';
 import { assertVerifiedUtcInstant } from '../../time-resolution/birth-time-resolution-service.js';
 import type { VerifiedUtcInstant } from '../../time-resolution/time-resolution-contract.js';
+import { serializeEngineUtcInstant } from '../engine-utc-wire.js';
 
 const ENGINE_SCHEMA_VERSION = '1.0.0';
 const ENGINE_VERSION = '0.1.0-foundation';
@@ -749,7 +750,20 @@ export function createWebEngineResearchResultReceiptV2(input: {
   readonly verifiedTime: unknown;
   readonly webRequest: ChartRequest;
 }): EngineResearchResultReceiptResult {
-  const validated = validateEngineChartResult(input.rawResult, input.expectedRequest);
+  if (!isExpectation(input.expectedRequest)) return rejectedResearchReceipt('ENGINE_RESULT_EXPECTATION_INVALID');
+  let wireExpectation: EngineResultExpectation;
+  try {
+    wireExpectation = {
+      ...input.expectedRequest,
+      input: {
+        ...input.expectedRequest.input,
+        instant: serializeEngineUtcInstant(input.expectedRequest.input.instant)
+      }
+    };
+  } catch {
+    return rejectedResearchReceipt('ENGINE_RESULT_EXPECTATION_INVALID');
+  }
+  const validated = validateEngineChartResult(input.rawResult, wireExpectation);
   if ('error' in validated) return rejectedResearchReceipt(validated.error);
   if (!/^[a-f0-9]{64}$/u.test(input.expectedRuntimeIdentity) ||
       !isResearchExecutionEvidence(input.execution, input.expectedRuntimeIdentity)) {
@@ -769,7 +783,7 @@ export function createWebEngineResearchResultReceiptV2(input: {
 
   const anglePresentation = createEngineAngleSignPresentationV1({
     rawResult: validated.chart,
-    expectedRequest: input.expectedRequest,
+    expectedRequest: wireExpectation,
     signForLongitude: webSignForLongitude,
     policy: {
       version: SIGN_POLICY_VERSION,
