@@ -1,0 +1,437 @@
+{
+  "schemaVersion": "1.0.0",
+  "engineVersion": "0.1.0-foundation",
+  "provider": {
+    "id": "NATALNODE_NATIVE_DELIVERY_PROOF_PROVIDER",
+    "version": "0.0.2"
+  },
+  "modelVersions": {
+    "NN_JPL_ROUTE_SUN_V1": "de440.bsp+DE440",
+    "NN_JPL_ROUTE_MOON_V1": "de440.bsp+DE440",
+    "NN_JPL_ROUTE_MERCURY_V1": "de440.bsp+DE440",
+    "NN_JPL_ROUTE_VENUS_V1": "de440.bsp+DE440",
+    "NN_JPL_ROUTE_MARS_V1": "mar099.bsp+DE440",
+    "NN_JPL_ROUTE_JUPITER_V1": "jup349.bsp+DE440",
+    "NN_JPL_ROUTE_SATURN_V1": "sat441.bsp+DE440",
+    "NN_JPL_ROUTE_URANUS_V1": "ura111xl-799.bsp+DE440",
+    "NN_JPL_ROUTE_NEPTUNE_V1": "nep097xl-899.bsp+DE440",
+    "NN_JPL_ROUTE_PLUTO_V1": "plu060.bsp+DE440"
+  },
+  "input": {
+    "instant": "2000-01-01T12:00:00Z",
+    "latitude": 51.4779,
+    "longitude": -0.0015
+  },
+  "bodies": [
+    {
+      "id": "sun",
+      "longitude": 280.36891902402976,
+      "speedLongitude": 1.0194336404234516,
+      "motion": "direct",
+      "sign": "Capricorn",
+      "signDegree": 10.368919024029765,
+      "house": 10
+    },
+    {
+      "id": "moon",
+      "longitude": 223.32375710572643,
+      "speedLongitude": 12.021316868835148,
+      "motion": "direct",
+      "sign": "Scorpio",
+      "signDegree": 13.323757105726429,
+      "house": 7
+    },
+    {
+      "id": "mercury",
+      "longitude": 271.889277654711,
+      "speedLongitude": 1.556255456234573,
+      "motion": "direct",
+      "sign": "Capricorn",
+      "signDegree": 1.8892776547110088,
+      "house": 9
+    },
+    {
+      "id": "venus",
+      "longitude": 241.5657887155732,
+      "speedLongitude": 1.2090422895260378,
+      "motion": "direct",
+      "sign": "Sagittarius",
+      "signDegree": 1.5657887155732055,
+      "house": 8
+    },
+    {
+      "id": "mars",
+      "longitude": 327.96330302709134,
+      "speedLongitude": 0.7756736284441529,
+      "motion": "direct",
+      "sign": "Aquarius",
+      "signDegree": 27.963303027091342,
+      "house": 12
+    },
+    {
+      "id": "jupiter",
+      "longitude": 25.25308196896657,
+      "speedLongitude": 0.04076200731504188,
+      "motion": "direct",
+      "sign": "Aries",
+      "signDegree": 25.25308196896657,
+      "house": 1
+    },
+    {
+      "id": "saturn",
+      "longitude": 40.39565047692287,
+      "speedLongitude": -0.019944587192265745,
+      "motion": "retrograde",
+      "sign": "Taurus",
+      "signDegree": 10.395650476922867,
+      "house": 1
+    },
+    {
+      "id": "uranus",
+      "longitude": 314.80918806510056,
+      "speedLongitude": 0.05034379850470139,
+      "motion": "direct",
+      "sign": "Aquarius",
+      "signDegree": 14.809188065100557,
+      "house": 11
+    },
+    {
+      "id": "neptune",
+      "longitude": 303.19301377432555,
+      "speedLongitude": 0.0355693952597684,
+      "motion": "direct",
+      "sign": "Aquarius",
+      "signDegree": 3.19301377432555,
+      "house": 11
+    },
+    {
+      "id": "pluto",
+      "longitude": 251.4547792444319,
+      "speedLongitude": 0.03516769614429916,
+      "motion": "direct",
+      "sign": "Sagittarius",
+      "signDegree": 11.454779244431904,
+      "house": 8
+    }
+  ],
+  "angles": {
+    "ascendant": 24.26291189067364,
+    "midheaven": 279.6097043520041,
+    "armc": 280.45557244701143,
+    "obliquity": 23.437676824107246
+  },
+  "houses": {
+    "system": "placidus",
+    "cusps": [
+      24.26291189067364,
+      61.1405799479609,
+      82.01938677495637,
+      99.60970435200406,
+      119.06030115723956,
+      147.6983390487354,
+      204.26291189067362,
+      241.1405799479609,
+      262.0193867749564,
+      279.6097043520041,
+      299.06030115723956,
+      327.6983390487355
+    ]
+  },
+  "aspects": [
+    {
+      "type": "sextile",
+      "bodyA": "sun",
+      "bodyB": "moon",
+      "exactAngle": 60,
+      "separation": 57.045161918303336,
+      "orb": 2.954838081696664,
+      "orbLimit": 4,
+      "phase": "separating"
+    },
+    {
+      "type": "trine",
+      "bodyA": "sun",
+      "bodyB": "saturn",
+      "exactAngle": 120,
+      "separation": 120.0267314528931,
+      "orb": 0.026731452893102414,
+      "orbLimit": 7,
+      "phase": "applying"
+    },
+    {
+      "type": "opposition",
+      "bodyA": "moon",
+      "bodyB": "saturn",
+      "exactAngle": 180,
+      "separation": 177.07189337119644,
+      "orb": 2.9281066288035618,
+      "orbLimit": 8,
+      "phase": "separating"
+    },
+    {
+      "type": "square",
+      "bodyA": "moon",
+      "bodyB": "uranus",
+      "exactAngle": 90,
+      "separation": 91.48543095937413,
+      "orb": 1.4854309593741277,
+      "orbLimit": 7,
+      "phase": "applying"
+    },
+    {
+      "type": "sextile",
+      "bodyA": "mercury",
+      "bodyB": "mars",
+      "exactAngle": 60,
+      "separation": 56.07402537238033,
+      "orb": 3.9259746276196665,
+      "orbLimit": 4,
+      "phase": "separating"
+    },
+    {
+      "type": "trine",
+      "bodyA": "mercury",
+      "bodyB": "jupiter",
+      "exactAngle": 120,
+      "separation": 113.36380431425556,
+      "orb": 6.63619568574444,
+      "orbLimit": 7,
+      "phase": "separating"
+    },
+    {
+      "type": "square",
+      "bodyA": "venus",
+      "bodyB": "mars",
+      "exactAngle": 90,
+      "separation": 86.39751431151814,
+      "orb": 3.6024856884818632,
+      "orbLimit": 7,
+      "phase": "separating"
+    },
+    {
+      "type": "sextile",
+      "bodyA": "venus",
+      "bodyB": "neptune",
+      "exactAngle": 60,
+      "separation": 61.627225058752344,
+      "orb": 1.6272250587523445,
+      "orbLimit": 4,
+      "phase": "applying"
+    },
+    {
+      "type": "sextile",
+      "bodyA": "mars",
+      "bodyB": "jupiter",
+      "exactAngle": 60,
+      "separation": 57.28977894187523,
+      "orb": 2.710221058124773,
+      "orbLimit": 4,
+      "phase": "separating"
+    },
+    {
+      "type": "square",
+      "bodyA": "saturn",
+      "bodyB": "uranus",
+      "exactAngle": 90,
+      "separation": 85.58646241182231,
+      "orb": 4.4135375881776895,
+      "orbLimit": 7,
+      "phase": "separating"
+    },
+    {
+      "type": "sextile",
+      "bodyA": "uranus",
+      "bodyB": "pluto",
+      "exactAngle": 60,
+      "separation": 63.35440882066865,
+      "orb": 3.3544088206686524,
+      "orbLimit": 4,
+      "phase": "separating"
+    }
+  ],
+  "warnings": [],
+  "metadata": {
+    "policyVersion": "NatalNode boundary policy v1",
+    "zodiac": "tropical",
+    "houseSystem": "placidus",
+    "calculationMode": "geocentric-apparent-true-equinox-of-date",
+    "orbProfileId": "natalnode-major-v2",
+    "astronomyConfigurationStatus": "COMPLETE",
+    "astronomyConfigurationId": "sha256:bd0dbeaae6de1802ebd2001f422648e6cb77ded1ff64c4fbb64ad4c3d8cf36f6",
+    "provenanceEnvelopeStatus": "INCOMPLETE_RESEARCH",
+    "provenanceEnvelopeDiagnostics": [
+      {
+        "code": "MISSING_GENERATOR_IDENTITY",
+        "field": "generators[0].toolchain[0].identitySha256",
+        "message": "generators[0].toolchain[0].identitySha256 must contain an exact SHA-256 identity"
+      },
+      {
+        "code": "MISSING_GENERATOR_IDENTITY",
+        "field": "generators[0].toolchain[1].identitySha256",
+        "message": "generators[0].toolchain[1].identitySha256 must contain an exact SHA-256 identity"
+      },
+      {
+        "code": "MISSING_ARTIFACT_PROVENANCE_IDENTITY",
+        "field": "artifactProvenance",
+        "message": "at least one artifact provenance identity is required"
+      },
+      {
+        "code": "MISSING_GOVERNANCE_EVIDENCE_IDENTITY",
+        "field": "governanceEvidence",
+        "message": "at least one governance evidence identity is required"
+      }
+    ],
+    "provenance": [
+      {
+        "modelId": "NN_JPL_ROUTE_SUN_V1",
+        "modelVersion": "de440.bsp+DE440",
+        "scientificSource": "JPL/NAIF SPK source routes from the frozen precision provider manifest",
+        "dataSource": "precision-jpl-001a source manifest sha256:a7f0dce575c55a70b14ec26b3adfda216c1de6637891aaac0645d0cd38ebc84f",
+        "generator": "CALCEPH 5.0.1 raw geometric SPK reader; existing NatalNode apparent-place and final-rate owners",
+        "artifactHash": "a7f0dce575c55a70b14ec26b3adfda216c1de6637891aaac0645d0cd38ebc84f",
+        "license": "UNRESOLVED; local reference-only proof; no redistribution authorized",
+        "attribution": "NASA/JPL/NAIF source identities are bound by the existing source manifest",
+        "redistributionStatus": "reference-only",
+        "validationReferences": [
+          "precision-jpl-001c.json sha256:b7bf1b391c238937648b4a27c5246b0e45f9e22b6830d2c172caa1842edb9460"
+        ],
+        "accuracyProfile": "single registered J2000 delivery proof; not production qualification"
+      },
+      {
+        "modelId": "NN_JPL_ROUTE_MOON_V1",
+        "modelVersion": "de440.bsp+DE440",
+        "scientificSource": "JPL/NAIF SPK source routes from the frozen precision provider manifest",
+        "dataSource": "precision-jpl-001a source manifest sha256:a7f0dce575c55a70b14ec26b3adfda216c1de6637891aaac0645d0cd38ebc84f",
+        "generator": "CALCEPH 5.0.1 raw geometric SPK reader; existing NatalNode apparent-place and final-rate owners",
+        "artifactHash": "a7f0dce575c55a70b14ec26b3adfda216c1de6637891aaac0645d0cd38ebc84f",
+        "license": "UNRESOLVED; local reference-only proof; no redistribution authorized",
+        "attribution": "NASA/JPL/NAIF source identities are bound by the existing source manifest",
+        "redistributionStatus": "reference-only",
+        "validationReferences": [
+          "precision-jpl-001c.json sha256:b7bf1b391c238937648b4a27c5246b0e45f9e22b6830d2c172caa1842edb9460"
+        ],
+        "accuracyProfile": "single registered J2000 delivery proof; not production qualification"
+      },
+      {
+        "modelId": "NN_JPL_ROUTE_MERCURY_V1",
+        "modelVersion": "de440.bsp+DE440",
+        "scientificSource": "JPL/NAIF SPK source routes from the frozen precision provider manifest",
+        "dataSource": "precision-jpl-001a source manifest sha256:a7f0dce575c55a70b14ec26b3adfda216c1de6637891aaac0645d0cd38ebc84f",
+        "generator": "CALCEPH 5.0.1 raw geometric SPK reader; existing NatalNode apparent-place and final-rate owners",
+        "artifactHash": "a7f0dce575c55a70b14ec26b3adfda216c1de6637891aaac0645d0cd38ebc84f",
+        "license": "UNRESOLVED; local reference-only proof; no redistribution authorized",
+        "attribution": "NASA/JPL/NAIF source identities are bound by the existing source manifest",
+        "redistributionStatus": "reference-only",
+        "validationReferences": [
+          "precision-jpl-001c.json sha256:b7bf1b391c238937648b4a27c5246b0e45f9e22b6830d2c172caa1842edb9460"
+        ],
+        "accuracyProfile": "single registered J2000 delivery proof; not production qualification"
+      },
+      {
+        "modelId": "NN_JPL_ROUTE_VENUS_V1",
+        "modelVersion": "de440.bsp+DE440",
+        "scientificSource": "JPL/NAIF SPK source routes from the frozen precision provider manifest",
+        "dataSource": "precision-jpl-001a source manifest sha256:a7f0dce575c55a70b14ec26b3adfda216c1de6637891aaac0645d0cd38ebc84f",
+        "generator": "CALCEPH 5.0.1 raw geometric SPK reader; existing NatalNode apparent-place and final-rate owners",
+        "artifactHash": "a7f0dce575c55a70b14ec26b3adfda216c1de6637891aaac0645d0cd38ebc84f",
+        "license": "UNRESOLVED; local reference-only proof; no redistribution authorized",
+        "attribution": "NASA/JPL/NAIF source identities are bound by the existing source manifest",
+        "redistributionStatus": "reference-only",
+        "validationReferences": [
+          "precision-jpl-001c.json sha256:b7bf1b391c238937648b4a27c5246b0e45f9e22b6830d2c172caa1842edb9460"
+        ],
+        "accuracyProfile": "single registered J2000 delivery proof; not production qualification"
+      },
+      {
+        "modelId": "NN_JPL_ROUTE_MARS_V1",
+        "modelVersion": "mar099.bsp+DE440",
+        "scientificSource": "JPL/NAIF SPK source routes from the frozen precision provider manifest",
+        "dataSource": "precision-jpl-001a source manifest sha256:a7f0dce575c55a70b14ec26b3adfda216c1de6637891aaac0645d0cd38ebc84f",
+        "generator": "CALCEPH 5.0.1 raw geometric SPK reader; existing NatalNode apparent-place and final-rate owners",
+        "artifactHash": "a7f0dce575c55a70b14ec26b3adfda216c1de6637891aaac0645d0cd38ebc84f",
+        "license": "UNRESOLVED; local reference-only proof; no redistribution authorized",
+        "attribution": "NASA/JPL/NAIF source identities are bound by the existing source manifest",
+        "redistributionStatus": "reference-only",
+        "validationReferences": [
+          "precision-jpl-001c.json sha256:b7bf1b391c238937648b4a27c5246b0e45f9e22b6830d2c172caa1842edb9460"
+        ],
+        "accuracyProfile": "single registered J2000 delivery proof; not production qualification"
+      },
+      {
+        "modelId": "NN_JPL_ROUTE_JUPITER_V1",
+        "modelVersion": "jup349.bsp+DE440",
+        "scientificSource": "JPL/NAIF SPK source routes from the frozen precision provider manifest",
+        "dataSource": "precision-jpl-001a source manifest sha256:a7f0dce575c55a70b14ec26b3adfda216c1de6637891aaac0645d0cd38ebc84f",
+        "generator": "CALCEPH 5.0.1 raw geometric SPK reader; existing NatalNode apparent-place and final-rate owners",
+        "artifactHash": "a7f0dce575c55a70b14ec26b3adfda216c1de6637891aaac0645d0cd38ebc84f",
+        "license": "UNRESOLVED; local reference-only proof; no redistribution authorized",
+        "attribution": "NASA/JPL/NAIF source identities are bound by the existing source manifest",
+        "redistributionStatus": "reference-only",
+        "validationReferences": [
+          "precision-jpl-001c.json sha256:b7bf1b391c238937648b4a27c5246b0e45f9e22b6830d2c172caa1842edb9460"
+        ],
+        "accuracyProfile": "single registered J2000 delivery proof; not production qualification"
+      },
+      {
+        "modelId": "NN_JPL_ROUTE_SATURN_V1",
+        "modelVersion": "sat441.bsp+DE440",
+        "scientificSource": "JPL/NAIF SPK source routes from the frozen precision provider manifest",
+        "dataSource": "precision-jpl-001a source manifest sha256:a7f0dce575c55a70b14ec26b3adfda216c1de6637891aaac0645d0cd38ebc84f",
+        "generator": "CALCEPH 5.0.1 raw geometric SPK reader; existing NatalNode apparent-place and final-rate owners",
+        "artifactHash": "a7f0dce575c55a70b14ec26b3adfda216c1de6637891aaac0645d0cd38ebc84f",
+        "license": "UNRESOLVED; local reference-only proof; no redistribution authorized",
+        "attribution": "NASA/JPL/NAIF source identities are bound by the existing source manifest",
+        "redistributionStatus": "reference-only",
+        "validationReferences": [
+          "precision-jpl-001c.json sha256:b7bf1b391c238937648b4a27c5246b0e45f9e22b6830d2c172caa1842edb9460"
+        ],
+        "accuracyProfile": "single registered J2000 delivery proof; not production qualification"
+      },
+      {
+        "modelId": "NN_JPL_ROUTE_URANUS_V1",
+        "modelVersion": "ura111xl-799.bsp+DE440",
+        "scientificSource": "JPL/NAIF SPK source routes from the frozen precision provider manifest",
+        "dataSource": "precision-jpl-001a source manifest sha256:a7f0dce575c55a70b14ec26b3adfda216c1de6637891aaac0645d0cd38ebc84f",
+        "generator": "CALCEPH 5.0.1 raw geometric SPK reader; existing NatalNode apparent-place and final-rate owners",
+        "artifactHash": "a7f0dce575c55a70b14ec26b3adfda216c1de6637891aaac0645d0cd38ebc84f",
+        "license": "UNRESOLVED; local reference-only proof; no redistribution authorized",
+        "attribution": "NASA/JPL/NAIF source identities are bound by the existing source manifest",
+        "redistributionStatus": "reference-only",
+        "validationReferences": [
+          "precision-jpl-001c.json sha256:b7bf1b391c238937648b4a27c5246b0e45f9e22b6830d2c172caa1842edb9460"
+        ],
+        "accuracyProfile": "single registered J2000 delivery proof; not production qualification"
+      },
+      {
+        "modelId": "NN_JPL_ROUTE_NEPTUNE_V1",
+        "modelVersion": "nep097xl-899.bsp+DE440",
+        "scientificSource": "JPL/NAIF SPK source routes from the frozen precision provider manifest",
+        "dataSource": "precision-jpl-001a source manifest sha256:a7f0dce575c55a70b14ec26b3adfda216c1de6637891aaac0645d0cd38ebc84f",
+        "generator": "CALCEPH 5.0.1 raw geometric SPK reader; existing NatalNode apparent-place and final-rate owners",
+        "artifactHash": "a7f0dce575c55a70b14ec26b3adfda216c1de6637891aaac0645d0cd38ebc84f",
+        "license": "UNRESOLVED; local reference-only proof; no redistribution authorized",
+        "attribution": "NASA/JPL/NAIF source identities are bound by the existing source manifest",
+        "redistributionStatus": "reference-only",
+        "validationReferences": [
+          "precision-jpl-001c.json sha256:b7bf1b391c238937648b4a27c5246b0e45f9e22b6830d2c172caa1842edb9460"
+        ],
+        "accuracyProfile": "single registered J2000 delivery proof; not production qualification"
+      },
+      {
+        "modelId": "NN_JPL_ROUTE_PLUTO_V1",
+        "modelVersion": "plu060.bsp+DE440",
+        "scientificSource": "JPL/NAIF SPK source routes from the frozen precision provider manifest",
+        "dataSource": "precision-jpl-001a source manifest sha256:a7f0dce575c55a70b14ec26b3adfda216c1de6637891aaac0645d0cd38ebc84f",
+        "generator": "CALCEPH 5.0.1 raw geometric SPK reader; existing NatalNode apparent-place and final-rate owners",
+        "artifactHash": "a7f0dce575c55a70b14ec26b3adfda216c1de6637891aaac0645d0cd38ebc84f",
+        "license": "UNRESOLVED; local reference-only proof; no redistribution authorized",
+        "attribution": "NASA/JPL/NAIF source identities are bound by the existing source manifest",
+        "redistributionStatus": "reference-only",
+        "validationReferences": [
+          "precision-jpl-001c.json sha256:b7bf1b391c238937648b4a27c5246b0e45f9e22b6830d2c172caa1842edb9460"
+        ],
+        "accuracyProfile": "single registered J2000 delivery proof; not production qualification"
+      }
+    ]
+  }
+}

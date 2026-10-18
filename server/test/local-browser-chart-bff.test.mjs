@@ -1,11 +1,24 @@
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
 import test from 'node:test';
 import { createBirthTimeResolutionService } from '../dist/time-resolution/index.js';
 import { ProviderLocationResolutionService } from '../dist/location-resolution/location-resolution-service.js';
+import { RealEnginePrivateServiceClient } from '../dist/development/real-engine-private-service-client.js';
 import { createLocalBrowserChartBffApp } from './support/local-browser-chart-bff.mjs';
 import { startLoopbackHonoServer } from './support/private-engine-http-adapter.mjs';
 
 const WEB_ORIGIN = 'http://127.0.0.1:4321';
+// `canonicalChartResult` from the verified Engine R5 delivery at 4f707309edd65299b953527477222c7387cc16f4.
+const R5_CHART = JSON.parse(readFileSync(new URL('./fixtures/r5-canonical-chart-result.json', import.meta.url), 'utf8'));
+const RESEARCH_TOKEN = 'r5-private-service-bff-test-token-123456';
+const RUNTIME_IDENTITY = 'a'.repeat(64);
+const RESEARCH_EXECUTION = Object.freeze({
+  serviceInstanceId: 'service-550e8400-e29b-41d4-a716-446655440000',
+  requestExecutionId: 'request-550e8400-e29b-41d4-a716-446655440001',
+  runtimeIdentity: RUNTIME_IDENTITY,
+  status: 'RESEARCH_ONLY',
+  provenance: 'INCOMPLETE_RESEARCH'
+});
 const LONDON = Object.freeze({
   resolutionId: 'london-greenwich-fixture',
   canonicalDisplayName: 'London, United Kingdom',
@@ -71,6 +84,50 @@ async function createHarness() {
   return { server, engineCalls: () => engineCalls };
 }
 
+async function createResearchHarness({
+  fetchImplementation,
+  onSyntheticFallback = () => {}
+} = {}) {
+  const locationResolutionService = createLocationOwner();
+  const candidates = await locationResolutionService.search({ query: 'London', locale: 'en' });
+  const selected = await locationResolutionService.resolve({
+    candidateId: candidates.candidates[0].candidateId,
+    locale: 'en'
+  });
+  assert.equal(selected.state, 'RESOLVED');
+  const timeAuthority = createBirthTimeResolutionService({ locationResolutionService });
+  const fixtureFetch = fetchImplementation ?? (async (_url, init) => {
+    const request = JSON.parse(init.body);
+    const chart = structuredClone(R5_CHART);
+    // Civil TimeAuthority serializes whole-second UTC instants with .000Z.
+    // This is the same archived fixture instant, only canonically formatted.
+    chart.input.instant = request.input.instant;
+    return new Response(JSON.stringify({ chart, execution: RESEARCH_EXECUTION }), {
+      status: 200,
+      headers: { 'Content-Type': 'application/json; charset=utf-8' }
+    });
+  });
+  const realResearchClient = new RealEnginePrivateServiceClient({
+    baseUrl: 'http://127.0.0.1:45873',
+    bearerToken: RESEARCH_TOKEN,
+    expectedRuntimeIdentity: RUNTIME_IDENTITY,
+    fetchImplementation: fixtureFetch
+  });
+  const app = createLocalBrowserChartBffApp({
+    allowedOrigin: WEB_ORIGIN,
+    engineClient: {
+      async calculateChart() { onSyntheticFallback(); throw new Error('Synthetic fallback must not run.'); },
+      async calculateChartWithPresentation() { onSyntheticFallback(); throw new Error('Synthetic fallback must not run.'); }
+    },
+    realResearchClient,
+    workflowMode: 'real-research',
+    locationResolutionService,
+    timeAuthority
+  });
+  const server = await startLoopbackHonoServer(app);
+  return { server, timeAuthority };
+}
+
 async function post(server, path, value, origin = WEB_ORIGIN) {
   return fetch(`${server.origin}${path}`, {
     method: 'POST',
@@ -97,6 +154,48 @@ function timeRequest({ date = '2025-10-22', time = '10:52', coordinates = LONDON
     },
     disambiguation: 'REJECT',
     expectedTimezoneDatabaseVersion: null
+  };
+}
+
+function r5BrowserChartRequest(timeAuthority) {
+  const localDate = '2000-01-01';
+  const localTime = '12:00';
+  const resolution = timeAuthority.resolve({
+    civilTime: {
+      localDate,
+      localTime,
+      calendar: 'ISO_8601_GREGORIAN',
+      precision: 'MINUTE'
+    },
+    location: {
+      resolutionId: LONDON.resolutionId,
+      coordinates: LONDON.coordinates,
+      ianaTimeZone: LONDON.ianaTimeZone
+    },
+    disambiguation: 'REJECT',
+    expectedTimezoneDatabaseVersion: null
+  });
+  assert.equal(resolution.outcome, 'VERIFIED');
+  assert.equal(
+    new Date(resolution.value.resolvedUtcInstant).toISOString(),
+    new Date(R5_CHART.input.instant).toISOString()
+  );
+  return {
+    birth: {
+      localDate,
+      localTime,
+      locationLabel: LONDON.canonicalDisplayName,
+      locationResolutionId: LONDON.resolutionId,
+      latitude: LONDON.coordinates.latitude,
+      longitude: LONDON.coordinates.longitude,
+      ianaTimeZone: LONDON.ianaTimeZone,
+      resolvedUtcInstant: resolution.value.resolvedUtcInstant,
+      utcOffsetSeconds: resolution.value.utcOffsetSeconds,
+      timezoneDatabaseVersion: timeAuthority.profile.timezoneDatabaseVersion,
+      timezoneResolutionMethod: timeAuthority.profile.profileId,
+      ambiguityStatus: 'EXACT'
+    },
+    houseSystem: 'Placidus'
   };
 }
 
@@ -178,4 +277,119 @@ test('browser BFF requires the exact local page origin and does not expose the t
   assert.equal(rejected.status, 403);
   assert.equal((await rejected.json()).error.code, 'SAME_ORIGIN_REQUIRED');
   assert.equal(harness.engineCalls(), 0);
+});
+
+test('real research BFF maps the archived R5 fixture, retaining full chart, execution and scientific provenance', async (context) => {
+  let syntheticFallbackCalls = 0;
+  const harness = await createResearchHarness({
+    onSyntheticFallback() { syntheticFallbackCalls += 1; }
+  });
+  context.after(() => harness.server.close());
+
+  const chartRequest = r5BrowserChartRequest(harness.timeAuthority);
+  const response = await post(harness.server, '/api/dev/chart/calculate', { chart: chartRequest });
+  assert.equal(response.status, 200);
+  const responseText = await response.text();
+  assert.equal(responseText.includes(RESEARCH_TOKEN), false, 'Bearer credentials never reach the browser.');
+  const payload = JSON.parse(responseText);
+  assert.equal(Object.hasOwn(payload, 'transport'), false, 'Research output does not use the fake-only transport envelope.');
+  const receipt = payload.receipt;
+  assert.equal(receipt.assessment.dataClassification, 'REAL ASTRONOMICAL RESEARCH OUTPUT');
+  assert.equal(receipt.assessment.astronomicalStatus, 'NOT SCIENTIFICALLY OR PRODUCTION APPROVED');
+  assert.equal(receipt.assessment.providerScientificAdmission, 'NOT_ADMITTED');
+  assert.equal(receipt.assessment.productionResultCertification, 'NOT_CERTIFIED');
+  assert.equal(receipt.chart.bodies.length, 10);
+  assert.equal(receipt.chart.angles.length, 2);
+  assert.equal(receipt.chart.houses.cusps.length, 12);
+  assert.equal(receipt.chart.aspects.length, R5_CHART.aspects.length);
+  assert.deepEqual(receipt.presentation.angles.map(({ sign }) => sign), ['Aries', 'Capricorn']);
+  assert.equal(receipt.source.engineResult.provider.id, R5_CHART.provider.id);
+  assert.deepEqual(receipt.source.engineResult.metadata.provenance, R5_CHART.metadata.provenance);
+  assert.deepEqual(receipt.source.engineResult.modelVersions, R5_CHART.modelVersions);
+  assert.equal(receipt.execution.runtimeIdentity, RUNTIME_IDENTITY);
+  assert.equal(receipt.execution.status, 'RESEARCH_ONLY');
+  assert.equal(receipt.execution.provenance, 'INCOMPLETE_RESEARCH');
+  assert.equal(syntheticFallbackCalls, 0);
+});
+
+test('real research BFF preserves Engine busy status and never falls back to the synthetic client', async (context) => {
+  let syntheticFallbackCalls = 0;
+  const harness = await createResearchHarness({
+    fetchImplementation: async () => new Response(JSON.stringify({ error: 'CALCULATION_BUSY' }), {
+      status: 429,
+      headers: { 'Content-Type': 'application/json; charset=utf-8' }
+    }),
+    onSyntheticFallback() { syntheticFallbackCalls += 1; }
+  });
+  context.after(() => harness.server.close());
+
+  const response = await post(harness.server, '/api/dev/chart/calculate', {
+    chart: r5BrowserChartRequest(harness.timeAuthority)
+  });
+  assert.equal(response.status, 429);
+  assert.equal((await response.json()).error.code, 'CALCULATION_BUSY');
+  assert.equal(syntheticFallbackCalls, 0);
+});
+
+test('real research BFF rejects stale canonical location claims before making a service call', async (context) => {
+  let serviceCalls = 0;
+  const harness = await createResearchHarness({
+    fetchImplementation: async () => {
+      serviceCalls += 1;
+      return new Response(JSON.stringify({ chart: R5_CHART, execution: RESEARCH_EXECUTION }), {
+        status: 200,
+        headers: { 'Content-Type': 'application/json; charset=utf-8' }
+      });
+    }
+  });
+  context.after(() => harness.server.close());
+
+  const chart = r5BrowserChartRequest(harness.timeAuthority);
+  chart.birth.longitude = -0.1278;
+  const response = await post(harness.server, '/api/dev/chart/calculate', { chart });
+  assert.equal(response.status, 422);
+  assert.equal((await response.json()).error.code, 'LOCATION_BINDING_MISMATCH');
+  assert.equal(serviceCalls, 0);
+});
+
+test('browser request cancellation reaches the private service fetch signal', async (context) => {
+  let markStarted;
+  const started = new Promise((resolve) => { markStarted = resolve; });
+  let markOutboundAborted;
+  const outboundAbort = new Promise((resolve) => { markOutboundAborted = resolve; });
+  let outboundAborted = false;
+  const harness = await createResearchHarness({
+    fetchImplementation: async (_url, init) => new Promise((_resolve, reject) => {
+      markStarted();
+      init.signal.addEventListener('abort', () => {
+        outboundAborted = true;
+        markOutboundAborted();
+        reject(new Error('private transport detail'));
+      }, { once: true });
+    })
+  });
+  context.after(() => harness.server.close());
+
+  const controller = new AbortController();
+  const request = fetch(`${harness.server.origin}/api/dev/chart/calculate`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', Origin: WEB_ORIGIN },
+    body: JSON.stringify({ chart: r5BrowserChartRequest(harness.timeAuthority) }),
+    signal: controller.signal
+  }).catch(() => null);
+  await started;
+  controller.abort();
+  await request;
+  let timeout;
+  try {
+    await Promise.race([
+      outboundAbort,
+      new Promise((_, reject) => {
+        timeout = setTimeout(() => reject(new Error('BFF did not propagate request cancellation.')), 2_000);
+      })
+    ]);
+  } finally {
+    clearTimeout(timeout);
+  }
+  assert.equal(outboundAborted, true);
 });

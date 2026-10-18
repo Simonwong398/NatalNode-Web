@@ -11,8 +11,12 @@ interface Props {
 
 const locale = Astro.props.locale ??
   getPresentationLocale(Astro.url.pathname, Astro.locals.locale);
+const configuredWorkflowMode = process.env.NATALNODE_LOCAL_CHART_WORKFLOW_MODE ?? 'SYNTHETIC';
 const isLocalEngineWorkflowAvailable =
-  import.meta.env.DEV && process.env.NATALNODE_LOCAL_CHART_WORKFLOW === 'true';
+  import.meta.env.DEV &&
+  process.env.NATALNODE_LOCAL_CHART_WORKFLOW === 'true' &&
+  ['SYNTHETIC', 'REAL_RESEARCH'].includes(configuredWorkflowMode);
+const workflowMode = configuredWorkflowMode === 'REAL_RESEARCH' ? 'real-research' : 'synthetic';
 
 const seo: SeoMetadata = {
   title: 'Chart Experience Preview | NatalNode',
@@ -25,7 +29,7 @@ const seo: SeoMetadata = {
 <SiteLayout seo={seo} mode="observatory">
   <main class="nn-container nn-container--calculate nn-calculate-page min-h-screen pb-12 pt-10 sm:pt-14">
     {isLocalEngineWorkflowAvailable ? (
-      <LocalEngineChartWorkflow locale={locale} client:load />
+      <LocalEngineChartWorkflow locale={locale} mode={workflowMode} client:load />
     ) : import.meta.env.DEV ? (
       <section class="nn-surface p-5 sm:p-7" aria-labelledby="chart-preview-unavailable-title">
         <p class="nn-eyebrow">Local development only</p>

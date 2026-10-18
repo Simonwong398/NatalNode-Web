@@ -11,6 +11,7 @@ import { toChartRequest } from './chart-request';
 
 interface LocalEngineChartWorkflowProps {
   readonly locale?: SupportedLocale;
+  readonly mode?: 'synthetic' | 'real-research';
 }
 
 interface DevelopmentChartReceipt {
@@ -20,6 +21,21 @@ interface DevelopmentChartReceipt {
     readonly webMapping: 'WEB_RESULT_SEMANTICALLY_MAPPABLE';
     readonly providerScientificAdmission: 'NOT_ADMITTED';
     readonly productionResultCertification: 'NOT_CERTIFIED';
+    readonly dataClassification: 'ENGINEERING TEST DATA' | 'REAL ASTRONOMICAL RESEARCH OUTPUT';
+    readonly astronomicalStatus: 'NOT REAL ASTRONOMICAL OUTPUT' | 'NOT SCIENTIFICALLY OR PRODUCTION APPROVED';
+  };
+  readonly source?: {
+    readonly engineResult: {
+      readonly provider: { readonly id: string; readonly version: string };
+      readonly metadata: { readonly provenance: readonly Record<string, unknown>[] };
+    };
+  };
+  readonly execution?: {
+    readonly serviceInstanceId: string;
+    readonly requestExecutionId: string;
+    readonly runtimeIdentity: string;
+    readonly status: 'RESEARCH_ONLY';
+    readonly provenance: 'INCOMPLETE_RESEARCH';
   };
 }
 
@@ -32,11 +48,22 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value);
 }
 
-function parseReceipt(value: unknown): DevelopmentChartReceipt | null {
+function parseReceipt(
+  value: unknown,
+  mode: 'synthetic' | 'real-research'
+): DevelopmentChartReceipt | null {
   if (!isRecord(value) || !isRecord(value.receipt)) return null;
   const receipt = value.receipt;
   const chart = receipt.chart;
   const assessment = receipt.assessment;
+  const expectedClassification = mode === 'real-research'
+    ? 'REAL ASTRONOMICAL RESEARCH OUTPUT'
+    : 'ENGINEERING TEST DATA';
+  const expectedAstronomicalStatus = mode === 'real-research'
+    ? 'NOT SCIENTIFICALLY OR PRODUCTION APPROVED'
+    : 'NOT REAL ASTRONOMICAL OUTPUT';
+  const source = receipt.source;
+  const execution = receipt.execution;
   if (
     !isRecord(chart) || chart.schemaVersion !== '2.0.0' ||
     !Array.isArray(chart.bodies) || chart.bodies.length !== 10 ||
@@ -47,7 +74,24 @@ function parseReceipt(value: unknown): DevelopmentChartReceipt | null {
     assessment.engineResult !== 'ENGINE_RESULT_VALID' ||
     assessment.webMapping !== 'WEB_RESULT_SEMANTICALLY_MAPPABLE' ||
     assessment.providerScientificAdmission !== 'NOT_ADMITTED' ||
-    assessment.productionResultCertification !== 'NOT_CERTIFIED'
+    assessment.productionResultCertification !== 'NOT_CERTIFIED' ||
+    assessment.dataClassification !== expectedClassification ||
+    assessment.astronomicalStatus !== expectedAstronomicalStatus ||
+    (mode === 'real-research' && (
+      !isRecord(source) || !isRecord(source.engineResult) ||
+      !isRecord(source.engineResult.provider) ||
+      typeof source.engineResult.provider.id !== 'string' ||
+      typeof source.engineResult.provider.version !== 'string' ||
+      !isRecord(source.engineResult.metadata) ||
+      !Array.isArray(source.engineResult.metadata.provenance) ||
+      !source.engineResult.metadata.provenance.every(isRecord) ||
+      !isRecord(execution) ||
+      typeof execution.serviceInstanceId !== 'string' ||
+      typeof execution.requestExecutionId !== 'string' ||
+      typeof execution.runtimeIdentity !== 'string' ||
+      execution.status !== 'RESEARCH_ONLY' ||
+      execution.provenance !== 'INCOMPLETE_RESEARCH'
+    ))
   ) {
     return null;
   }
@@ -57,13 +101,20 @@ function parseReceipt(value: unknown): DevelopmentChartReceipt | null {
       engineResult: 'ENGINE_RESULT_VALID',
       webMapping: 'WEB_RESULT_SEMANTICALLY_MAPPABLE',
       providerScientificAdmission: 'NOT_ADMITTED',
-      productionResultCertification: 'NOT_CERTIFIED'
-    }
+      productionResultCertification: 'NOT_CERTIFIED',
+      dataClassification: expectedClassification,
+      astronomicalStatus: expectedAstronomicalStatus
+    },
+    ...(mode === 'real-research' ? {
+      source: source as DevelopmentChartReceipt['source'],
+      execution: execution as DevelopmentChartReceipt['execution']
+    } : {})
   };
 }
 
 async function calculateDevelopmentChart(
-  request: ReturnType<typeof toChartRequest>
+  request: ReturnType<typeof toChartRequest>,
+  mode: 'synthetic' | 'real-research'
 ): Promise<DevelopmentChartReceipt> {
   const response = await fetch('/api/dev/chart/calculate', {
     method: 'POST',
@@ -81,10 +132,26 @@ async function calculateDevelopmentChart(
   }
 
   if (!response.ok) {
+    let code: unknown;
+    try {
+      const errorPayload: unknown = payload;
+      if (isRecord(errorPayload) && isRecord(errorPayload.error)) code = errorPayload.error.code;
+    } catch {
+      code = null;
+    }
+    if (mode === 'real-research' && code === 'CALCULATION_BUSY') {
+      throw new Error('The private Engine is busy. Try again shortly.');
+    }
+    if (mode === 'real-research' && code === 'CALCULATION_TIMEOUT') {
+      throw new Error('The private Engine calculation timed out.');
+    }
+    if (mode === 'real-research' && code === 'SERVICE_UNAVAILABLE') {
+      throw new Error('The private Engine service is unavailable.');
+    }
     throw new Error('The chart calculation could not be completed.');
   }
 
-  const receipt = parseReceipt(payload);
+  const receipt = parseReceipt(payload, mode);
   if (receipt === null) {
     throw new Error('The local chart response was invalid.');
   }
@@ -92,7 +159,8 @@ async function calculateDevelopmentChart(
 }
 
 export default function LocalEngineChartWorkflow({
-  locale
+  locale,
+  mode = 'synthetic'
 }: LocalEngineChartWorkflowProps) {
   const [isCalculating, setIsCalculating] = useState(false);
   const [snapshot, setSnapshot] = useState<DevelopmentChartSnapshot | null>(null);
@@ -130,11 +198,11 @@ export default function LocalEngineChartWorkflow({
     setCalculationError(null);
     const request = toChartRequest(resolution, houseSystem, selectedLocation.resolutionId);
     try {
-      const receipt = await calculateDevelopmentChart(request);
+      const receipt = await calculateDevelopmentChart(request, mode);
       setSnapshot({ request, receipt });
-    } catch {
+    } catch (error) {
       setSnapshot(null);
-      setCalculationError(chartUi(locale, 'calculate.error'));
+      setCalculationError(error instanceof Error ? error.message : chartUi(locale, 'calculate.error'));
     } finally {
       calculationInFlight.current = false;
       setIsCalculating(false);
@@ -143,17 +211,31 @@ export default function LocalEngineChartWorkflow({
 
   return (
     <div data-local-engine-chart-workflow="enabled">
-      <section
-        aria-label="Synthetic chart disclosure"
-        className="nn-notice nn-notice--research mb-6 border-2 p-5"
-        data-testid="synthetic-chart-disclosure"
-      >
-        <p className="nn-eyebrow font-semibold">ENGINEERING TEST DATA</p>
-        <p className="nn-type-card-title mt-1">NOT REAL ASTRONOMICAL OUTPUT</p>
-        <p className="nn-type-body-small mt-2">
-          This local workflow uses an isolated FakeAstronomyProvider. Results are not scientifically admitted or production certified.
-        </p>
-      </section>
+      {mode === 'real-research' ? (
+        <section
+          aria-label="Real astronomical research output disclosure"
+          className="nn-notice nn-notice--research mb-6 border-2 p-5"
+          data-testid="real-research-chart-disclosure"
+        >
+          <p className="nn-eyebrow font-semibold">REAL ASTRONOMICAL RESEARCH OUTPUT</p>
+          <p className="nn-type-card-title mt-1">NOT SCIENTIFICALLY OR PRODUCTION APPROVED</p>
+          <p className="nn-type-body-small mt-2">
+            This result preserves the Engine&apos;s research provenance. It has not been scientifically admitted or approved for production use.
+          </p>
+        </section>
+      ) : (
+        <section
+          aria-label="Synthetic chart disclosure"
+          className="nn-notice nn-notice--research mb-6 border-2 p-5"
+          data-testid="synthetic-chart-disclosure"
+        >
+          <p className="nn-eyebrow font-semibold">ENGINEERING TEST DATA</p>
+          <p className="nn-type-card-title mt-1">NOT REAL ASTRONOMICAL OUTPUT</p>
+          <p className="nn-type-body-small mt-2">
+            This local workflow uses an isolated FakeAstronomyProvider. Results are not scientifically admitted or production certified.
+          </p>
+        </section>
+      )}
 
       <BirthInputForm
         isCalculationPending={isCalculating}
@@ -195,6 +277,21 @@ export default function LocalEngineChartWorkflow({
           </p>
         ) : null}
       </section>
+
+      {mode === 'real-research' && snapshot?.receipt.source && snapshot.receipt.execution ? (
+        <details className="nn-surface mt-4 p-4" data-testid="real-research-provenance">
+          <summary className="cursor-pointer font-semibold">Engine research provenance</summary>
+          <p className="nn-type-body-small mt-3">
+            {snapshot.receipt.source.engineResult.provider.id} · {snapshot.receipt.source.engineResult.provider.version}
+          </p>
+          <p className="nn-type-body-small mt-1">
+            Runtime identity: {snapshot.receipt.execution.runtimeIdentity}
+          </p>
+          <pre className="mt-3 overflow-x-auto whitespace-pre-wrap text-xs">
+            {JSON.stringify(snapshot.receipt.source.engineResult.metadata.provenance, null, 2)}
+          </pre>
+        </details>
+      ) : null}
 
       {snapshot ? (
         <section

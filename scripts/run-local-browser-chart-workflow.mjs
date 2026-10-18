@@ -14,6 +14,9 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 import { createGeoNamesLocationResolutionService } from '../server/dist/location-resolution/geonames-web-provider.js';
 import { createBirthTimeResolutionService } from '../server/dist/time-resolution/index.js';
 import {
+  createRealEnginePrivateServiceClientFromEnvironment
+} from '../server/dist/development/real-engine-private-service-client.js';
+import {
   PrivateEngineHttpClient,
   startLoopbackHonoServer
 } from '../server/test/support/private-engine-http-adapter.mjs';
@@ -36,6 +39,7 @@ const PRIVATE_HTTP_ADAPTER_URL = pathToFileURL(join(
   'server/test/support/private-engine-http-adapter.mjs'
 )).href;
 const ASTRO_CLI = join(WEB_ROOT, 'node_modules/astro/bin/astro.mjs');
+const REAL_RESEARCH_MODE = process.argv.includes('--real-research');
 
 function runGit(checkout, args) {
   return execFileSync('git', args, {
@@ -180,10 +184,12 @@ async function stopWebChild(child) {
   }
 }
 
-verifyEngineCheckout();
 if (!existsSync(ASTRO_CLI)) throw new Error('The Web workspace Astro CLI is unavailable.');
+if (!REAL_RESEARCH_MODE) verifyEngineCheckout();
 
-const engineRuntime = await startEngineChild();
+let engineRuntime;
+let engineClient;
+let realResearchClient;
 let bffServer;
 let astroServer;
 let cleanupPromise;
@@ -193,12 +199,20 @@ async function cleanup() {
   cleanupPromise = (async () => {
     if (astroServer) await stopWebChild(astroServer);
     if (bffServer) await bffServer.close();
-    await stopEngineChild(engineRuntime.child, engineRuntime.temporaryRoot);
+    if (engineRuntime) await stopEngineChild(engineRuntime.child, engineRuntime.temporaryRoot);
   })();
   return cleanupPromise;
 }
 
 try {
+  if (REAL_RESEARCH_MODE) {
+    realResearchClient = createRealEnginePrivateServiceClientFromEnvironment();
+  } else {
+    engineRuntime = await startEngineChild();
+    engineClient = new PrivateEngineHttpClient({
+      baseUrl: `http://${engineRuntime.ready.host}:${engineRuntime.ready.port}`
+    });
+  }
   const webPort = await findWebPort();
   const webOrigin = `http://127.0.0.1:${webPort}`;
   const geonamesUsername = process.env.GEONAMES_USERNAME;
@@ -212,12 +226,11 @@ try {
   const timeAuthority = createBirthTimeResolutionService({
     locationResolutionService: canonicalLocationOwner
   });
-  const engineClient = new PrivateEngineHttpClient({
-    baseUrl: `http://${engineRuntime.ready.host}:${engineRuntime.ready.port}`
-  });
   const app = createLocalBrowserChartBffApp({
     allowedOrigin: webOrigin,
     engineClient,
+    realResearchClient,
+    workflowMode: REAL_RESEARCH_MODE ? 'real-research' : 'synthetic',
     locationResolutionService,
     timeAuthority
   });
@@ -228,6 +241,7 @@ try {
     NODE_ENV: 'development',
     NATALNODE_LOCAL_CHART_BFF_URL: bffServer.origin,
     NATALNODE_LOCAL_CHART_WORKFLOW: 'true',
+    NATALNODE_LOCAL_CHART_WORKFLOW_MODE: REAL_RESEARCH_MODE ? 'REAL_RESEARCH' : 'SYNTHETIC',
     ...(process.env.TMPDIR ? { TMPDIR: process.env.TMPDIR } : {}),
     ...(process.env.TERM ? { TERM: process.env.TERM } : {})
   };
@@ -249,9 +263,13 @@ try {
   await waitForWebPage(astroServer, browserRoute);
   process.stdout.write(`\nNatalNode local browser chart workflow is ready.\n`);
   process.stdout.write(`Browser route: ${browserRoute}\n`);
-  process.stdout.write(`Engine: pinned ${EXPECTED_ENGINE_HEAD}, FakeAstronomyProvider, loopback only.\n`);
+  process.stdout.write(REAL_RESEARCH_MODE
+    ? 'Engine: configured private research service, loopback only.\n'
+    : `Engine: pinned ${EXPECTED_ENGINE_HEAD}, FakeAstronomyProvider, loopback only.\n`);
   process.stdout.write(`Canonical location lookup: ${locationResolutionService ? 'configured; uses GeoNames' : 'unavailable; GEONAMES_USERNAME is not configured'}\n`);
-  process.stdout.write('Disclosure is shown in the page: ENGINEERING TEST DATA · NOT REAL ASTRONOMICAL OUTPUT.\n');
+  process.stdout.write(REAL_RESEARCH_MODE
+    ? 'Disclosure is shown in the page: REAL ASTRONOMICAL RESEARCH OUTPUT · NOT SCIENTIFICALLY OR PRODUCTION APPROVED.\n'
+    : 'Disclosure is shown in the page: ENGINEERING TEST DATA · NOT REAL ASTRONOMICAL OUTPUT.\n');
   process.stdout.write('Press Ctrl-C to stop; this command will close only the processes it started.\n\n');
 
   await new Promise((resolveExit) => {

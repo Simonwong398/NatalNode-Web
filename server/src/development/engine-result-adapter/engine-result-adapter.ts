@@ -81,7 +81,15 @@ export interface EngineResultExpectation {
     readonly latitude: number;
     readonly longitude: number;
   };
-  readonly options: { readonly houseSystem: HouseSystem };
+  readonly options: { readonly houseSystem: HouseSystem; readonly zodiac?: 'tropical' };
+}
+
+export interface EngineResearchExecutionEvidence {
+  readonly serviceInstanceId: string;
+  readonly requestExecutionId: string;
+  readonly runtimeIdentity: string;
+  readonly status: 'RESEARCH_ONLY';
+  readonly provenance: 'INCOMPLETE_RESEARCH';
 }
 
 interface EngineProvenance {
@@ -182,6 +190,7 @@ export type EngineResultValidationErrorCode =
   | 'ENGINE_RESULT_ASPECT_REFERENCE_INVALID'
   | 'ENGINE_RESULT_SCIENTIFIC_CONFIGURATION_INVALID'
   | 'ENGINE_RESULT_PROVENANCE_INVALID'
+  | 'ENGINE_EXECUTION_IDENTITY_INVALID'
   | 'ANGLE_SIGN_PRESENTATION_REQUIRED'
   | 'ANGLE_SIGN_PRESENTATION_MISMATCH'
   | 'ANGLE_SIGN_POLICY_UNSUPPORTED'
@@ -219,12 +228,38 @@ export interface WebEngineResultReceiptV2 {
   };
 }
 
+export interface WebEngineResearchResultReceiptV2 {
+  readonly mappingPolicyId: typeof MAPPING_POLICY_ID;
+  readonly chart: ChartResultV2;
+  readonly source: {
+    readonly engineResult: ValidatedEngineChartResultV1;
+    readonly webCivilTime: {
+      readonly owner: 'NATALNODE_WEB_BFF';
+      readonly evidence: TimeResolutionEvidence;
+    };
+  };
+  readonly presentation: EngineAngleSignPresentationV1;
+  readonly execution: EngineResearchExecutionEvidence;
+  readonly assessment: {
+    readonly engineResult: 'ENGINE_RESULT_VALID';
+    readonly webMapping: 'WEB_RESULT_SEMANTICALLY_MAPPABLE';
+    readonly providerScientificAdmission: 'NOT_ADMITTED';
+    readonly productionResultCertification: 'NOT_CERTIFIED';
+    readonly dataClassification: 'REAL ASTRONOMICAL RESEARCH OUTPUT';
+    readonly astronomicalStatus: 'NOT SCIENTIFICALLY OR PRODUCTION APPROVED';
+  };
+}
+
 export type EngineResultMappingResult =
   | { readonly outcome: 'MAPPED'; readonly chart: ChartResultV2 }
   | { readonly outcome: 'REJECTED'; readonly error: { readonly code: EngineResultValidationErrorCode } };
 
 export type EngineResultReceiptResult =
   | { readonly outcome: 'CREATED'; readonly receipt: WebEngineResultReceiptV2 }
+  | { readonly outcome: 'REJECTED'; readonly error: { readonly code: EngineResultValidationErrorCode } };
+
+export type EngineResearchResultReceiptResult =
+  | { readonly outcome: 'CREATED'; readonly receipt: WebEngineResearchResultReceiptV2 }
   | { readonly outcome: 'REJECTED'; readonly error: { readonly code: EngineResultValidationErrorCode } };
 
 export type EngineAngleSignPresentationResult =
@@ -270,13 +305,14 @@ function isUtcInstant(value: unknown): value is string {
 function isExpectation(value: unknown): value is EngineResultExpectation {
   if (!hasExactKeys(value, ['input', 'options']) ||
       !hasExactKeys(value.input, ['instant', 'latitude', 'longitude']) ||
-      !hasExactKeys(value.options, ['houseSystem'])) return false;
+      !hasExactKeys(value.options, ['houseSystem'], ['zodiac'])) return false;
   return isUtcInstant(value.input.instant) &&
     isInRange(value.input.latitude, -90, 90.0000000001) &&
     value.input.latitude <= 90 &&
     isInRange(value.input.longitude, -180, 180.0000000001) &&
     value.input.longitude <= 180 &&
-    isOneOf(value.options.houseSystem, HOUSE_SYSTEMS);
+    isOneOf(value.options.houseSystem, HOUSE_SYSTEMS) &&
+    (value.options.zodiac === undefined || value.options.zodiac === 'tropical');
 }
 
 function hasForgedAdmissionMetadata(value: Record<string, unknown>): boolean {
@@ -410,6 +446,10 @@ function rejectedReceipt(code: EngineResultValidationErrorCode): EngineResultRec
   return Object.freeze({ outcome: 'REJECTED', error: Object.freeze({ code }) });
 }
 
+function rejectedResearchReceipt(code: EngineResultValidationErrorCode): EngineResearchResultReceiptResult {
+  return Object.freeze({ outcome: 'REJECTED', error: Object.freeze({ code }) });
+}
+
 function validateEngineChartResult(
   value: unknown,
   expected: EngineResultExpectation
@@ -466,7 +506,8 @@ function validateEngineChartResult(
   if (input.instant !== expected.input.instant ||
       input.latitude !== expected.input.latitude ||
       input.longitude !== expected.input.longitude ||
-      metadata.houseSystem !== expected.options.houseSystem) {
+      metadata.houseSystem !== expected.options.houseSystem ||
+      metadata.zodiac !== (expected.options.zodiac ?? 'tropical')) {
     return { error: 'ENGINE_RESULT_REQUEST_MISMATCH' };
   }
 
@@ -588,6 +629,19 @@ export function projectEngineResultToWebV2(
   });
 }
 
+/** Existing strict ChartResult validator exposed to the private research transport. */
+export function validateEngineChartResultV1(
+  rawResult: unknown,
+  expectedRequest: EngineResultExpectation
+): { readonly outcome: 'VALID'; readonly chart: ValidatedEngineChartResultV1 }
+  | { readonly outcome: 'REJECTED'; readonly error: { readonly code: EngineResultValidationErrorCode } } {
+  const validated = validateEngineChartResult(rawResult, expectedRequest);
+  if ('error' in validated) {
+    return Object.freeze({ outcome: 'REJECTED', error: Object.freeze({ code: validated.error }) });
+  }
+  return Object.freeze({ outcome: 'VALID', chart: validated.chart });
+}
+
 function isTimeEvidenceBoundToRequest(
   evidence: VerifiedUtcInstant,
   request: ChartRequest,
@@ -649,6 +703,108 @@ export function createWebEngineResultReceiptV2(input: {
       productionResultCertification: 'NOT_CERTIFIED',
       dataClassification: 'ENGINEERING TEST DATA',
       astronomicalStatus: 'NOT REAL ASTRONOMICAL OUTPUT'
+    }
+  };
+  return Object.freeze({ outcome: 'CREATED', receipt: Object.freeze(receipt) });
+}
+
+const RESEARCH_EXECUTION_UUID = '[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}';
+
+function isResearchExecutionEvidence(
+  value: unknown,
+  expectedRuntimeIdentity: string
+): value is EngineResearchExecutionEvidence {
+  return hasExactKeys(value, [
+    'serviceInstanceId', 'requestExecutionId', 'runtimeIdentity', 'status', 'provenance'
+  ]) &&
+    typeof value.serviceInstanceId === 'string' &&
+    new RegExp(`^service-${RESEARCH_EXECUTION_UUID}$`, 'u').test(value.serviceInstanceId) &&
+    typeof value.requestExecutionId === 'string' &&
+    new RegExp(`^request-${RESEARCH_EXECUTION_UUID}$`, 'u').test(value.requestExecutionId) &&
+    value.runtimeIdentity === expectedRuntimeIdentity &&
+    value.status === 'RESEARCH_ONLY' &&
+    value.provenance === 'INCOMPLETE_RESEARCH';
+}
+
+function webSignForLongitude(longitude: number): ZodiacSign {
+  let normalized = longitude % 360;
+  if (normalized < 0) normalized += 360;
+  const nearestBoundary = Math.round(normalized / 30) * 30;
+  if (Math.abs(normalized - nearestBoundary) <= 1e-9) {
+    normalized = nearestBoundary % 360;
+  }
+  return SIGN_NAMES[Math.floor(normalized / 30)] ?? 'Pisces';
+}
+
+/**
+ * Builds the research-only receipt from the delivered service envelope. The
+ * runtime identity is checked against operator configuration before the
+ * original Engine ChartResult and provenance are retained in the receipt.
+ */
+export function createWebEngineResearchResultReceiptV2(input: {
+  readonly rawResult: unknown;
+  readonly expectedRequest: EngineResultExpectation;
+  readonly execution: unknown;
+  readonly expectedRuntimeIdentity: string;
+  readonly verifiedTime: unknown;
+  readonly webRequest: ChartRequest;
+}): EngineResearchResultReceiptResult {
+  const validated = validateEngineChartResult(input.rawResult, input.expectedRequest);
+  if ('error' in validated) return rejectedResearchReceipt(validated.error);
+  if (!/^[a-f0-9]{64}$/u.test(input.expectedRuntimeIdentity) ||
+      !isResearchExecutionEvidence(input.execution, input.expectedRuntimeIdentity)) {
+    return Object.freeze({
+      outcome: 'REJECTED',
+      error: Object.freeze({ code: 'ENGINE_EXECUTION_IDENTITY_INVALID' })
+    });
+  }
+  try {
+    assertVerifiedUtcInstant(input.verifiedTime);
+  } catch {
+    return rejectedResearchReceipt('TEMPORAL_PROVENANCE_BINDING_MISMATCH');
+  }
+  if (!isTimeEvidenceBoundToRequest(input.verifiedTime, input.webRequest, input.expectedRequest)) {
+    return rejectedResearchReceipt('TEMPORAL_PROVENANCE_BINDING_MISMATCH');
+  }
+
+  const anglePresentation = createEngineAngleSignPresentationV1({
+    rawResult: validated.chart,
+    expectedRequest: input.expectedRequest,
+    signForLongitude: webSignForLongitude,
+    policy: {
+      version: SIGN_POLICY_VERSION,
+      sign: {
+        interval: '[boundary, nextBoundary)',
+        exactBoundaryBelongsTo: 'next sign',
+        assignmentEpsilonDeg: 1e-9
+      }
+    }
+  });
+  if (anglePresentation.outcome !== 'CREATED') {
+    return rejectedResearchReceipt(anglePresentation.error.code);
+  }
+  const presentation = validateAngleSignPresentation(anglePresentation.presentation, validated.chart);
+  if ('error' in presentation) return rejectedResearchReceipt(presentation.error);
+
+  const receipt: WebEngineResearchResultReceiptV2 = {
+    mappingPolicyId: MAPPING_POLICY_ID,
+    chart: mapValidatedEngineResult(validated.chart, presentation.presentation),
+    source: {
+      engineResult: structuredClone(validated.chart),
+      webCivilTime: {
+        owner: 'NATALNODE_WEB_BFF',
+        evidence: structuredClone(input.verifiedTime) as TimeResolutionEvidence
+      }
+    },
+    presentation: structuredClone(presentation.presentation),
+    execution: structuredClone(input.execution),
+    assessment: {
+      engineResult: 'ENGINE_RESULT_VALID',
+      webMapping: 'WEB_RESULT_SEMANTICALLY_MAPPABLE',
+      providerScientificAdmission: 'NOT_ADMITTED',
+      productionResultCertification: 'NOT_CERTIFIED',
+      dataClassification: 'REAL ASTRONOMICAL RESEARCH OUTPUT',
+      astronomicalStatus: 'NOT SCIENTIFICALLY OR PRODUCTION APPROVED'
     }
   };
   return Object.freeze({ outcome: 'CREATED', receipt: Object.freeze(receipt) });

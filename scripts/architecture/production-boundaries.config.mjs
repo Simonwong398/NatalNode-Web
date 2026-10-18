@@ -98,7 +98,8 @@ export const PRODUCTION_BOUNDARY_CONFIG = Object.freeze({
         'server/src/executable/public-development-main.ts',
         'server/src/executable/run-local-development-composition.ts',
         'server/src/executable/run-public-development-composition.ts',
-        'server/src/development/engine-result-adapter/engine-result-adapter.ts'
+        'server/src/development/engine-result-adapter/engine-result-adapter.ts',
+        'server/src/development/real-engine-private-service-client.ts'
       ]),
       prefixes: Object.freeze([
         'apps/web/src/features/chart-experience/',

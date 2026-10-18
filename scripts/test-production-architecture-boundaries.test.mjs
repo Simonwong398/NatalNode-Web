@@ -112,6 +112,37 @@ test('Engine result inspection adapter is development-only and unreachable from 
   assert.equal(productionAudit.reachableModules.includes(adapter), false);
 });
 
+test('real research private-service client is development-only and unreachable from production roots', () => {
+  const client = 'server/src/development/real-engine-private-service-client.ts';
+  assert.equal(classifyRepositoryPath(client), ADMISSION_CLASSES.DEVELOPMENT_ONLY);
+  assert.equal(productionAudit.reachableModules.includes(client), false);
+  assert.equal(layerAudit.violations.some((violation) => violation.edge.endsWith(` -> ${client}`)), false);
+});
+
+test('real research chart remains dev-only, reuses the existing form and renderer, and shows its distinct disclosure', () => {
+  const workflow = readFileSync(join(REPOSITORY_ROOT,
+    'apps/web/src/features/chart-experience/LocalEngineChartWorkflow.tsx'), 'utf8');
+  const route = readFileSync(join(REPOSITORY_ROOT, 'apps/web/src/pages/dev/chart.astro'), 'utf8');
+
+  assert.match(workflow, /REAL ASTRONOMICAL RESEARCH OUTPUT/u);
+  assert.match(workflow, /NOT SCIENTIFICALLY OR PRODUCTION APPROVED/u);
+  assert.match(workflow, /data-testid="real-research-chart-disclosure"/u);
+  assert.match(workflow, /<BirthInputForm/u);
+  assert.match(workflow, /<ChartRenderer/u);
+  assert.match(workflow, /requireResolvedLocation/u);
+  assert.match(route, /import\.meta\.env\.DEV/u);
+  assert.match(route, /NATALNODE_LOCAL_CHART_WORKFLOW_MODE/u);
+});
+
+test('the local Astro child receives an explicit environment allowlist without private service credentials', () => {
+  const launcher = readFileSync(join(REPOSITORY_ROOT,
+    'scripts/run-local-browser-chart-workflow.mjs'), 'utf8');
+  const environmentBlock = launcher.match(/const webEnvironment = \{([\s\S]*?)\n  \};/u)?.[1];
+  assert.ok(environmentBlock, 'Astro child environment must remain an explicit allowlist.');
+  assert.doesNotMatch(environmentBlock, /\.\.\.process\.env(?:\s|,|\})/u);
+  assert.doesNotMatch(environmentBlock, /NATALNODE_REAL_ENGINE_(?:BEARER_TOKEN|SERVICE_URL|RUNTIME_IDENTITY)/u);
+});
+
 test('F: production-to-mechanism reachability fails closed', () => {
   const root = 'apps/web/src/pages/index.astro';
   const mechanism = 'apps/web/src/features/interpretation/chart-level-convergence-counterevidence-poc.ts';
