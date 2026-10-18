@@ -1,7 +1,7 @@
 import type { SqlExecutor } from '../../db/index.js';
 import { loadPostgresMigrations } from './migrations/load-postgres-migrations.js';
 
-export const VAULT_REQUIRED_SCHEMA_MIGRATION_VERSION = '0020';
+export const VAULT_REQUIRED_SCHEMA_MIGRATION_VERSION = '0021';
 
 const REQUIRED_VAULT_COLUMNS = [
   'record_version',
@@ -13,6 +13,7 @@ const REQUIRED_VAULT_COLUMNS = [
   'chart_result_contract_version',
   'scientific_configuration_identity',
   'scientific_provenance',
+  'research_snapshot',
   'saved_at'
 ] as const;
 

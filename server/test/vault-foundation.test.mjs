@@ -572,3 +572,23 @@ test('Vault foundation migration is forward-only and declares the durable state 
     /CONSTRAINT charts_user_fk[\s\S]*ON DELETE CASCADE/u
   );
 });
+
+test('research snapshot migration is additive and keeps legacy result rows non-research', () => {
+  const migration = readFileSync(
+    new URL('../db/migrations/0021_vault_research_snapshot.sql', import.meta.url),
+    'utf8'
+  );
+
+  assert.match(migration, /ADD COLUMN research_snapshot JSONB/u);
+  assert.match(migration, /scientific_status = 'RESEARCH_ONLY_SNAPSHOT'/u);
+  assert.match(migration, /record_version = 2/u);
+  assert.match(migration, /scientific_status = 'INPUT_ONLY'[\s\S]*?record_version = 1/u);
+  assert.match(migration, /scientific_status = 'CHART_RESULT_AVAILABLE'[\s\S]*?record_version = 1/u);
+  assert.match(migration, /calculation_authority_state = 'AUTHORITY_INCOMPLETE'/u);
+  assert.match(migration, /record_origin = 'SERVER_RESEARCH_CAPTURE'/u);
+  assert.match(migration, /canonical_result IS NULL/u);
+  assert.match(migration, /research_snapshot IS NULL/u);
+  assert.match(migration, /char_length\(research_snapshot->>'requestUtf8Base64'\)/u);
+  assert.doesNotMatch(migration, /UPDATE charts/u);
+  assert.doesNotMatch(migration, /DROP TABLE/u);
+});

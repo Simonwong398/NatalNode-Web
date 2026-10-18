@@ -78,7 +78,7 @@ function createInitialChart() {
   };
 }
 
-function createHarness() {
+function createHarness(options = {}) {
   let chart = createInitialChart();
   const notes = [];
   const calls = { engine: 0 };
@@ -97,6 +97,22 @@ function createHarness() {
   };
   const dependencies = {
     publicWebOrigin: PUBLIC_WEB_ORIGIN,
+    ...(options.runtimeMode === undefined
+      ? {}
+      : {
+          operationalConfig: {
+            runtimeMode: options.runtimeMode,
+            authentication: { emailEnabled: false, googleEnabled: false },
+            community: { enabled: false, operatorConfigured: false },
+            practitioner: { enabled: false, operatorConfigured: false },
+            rateLimiting: { authority: 'process-local', singleReplicaConfirmed: true },
+            observability: { durableSinkConfigured: false },
+            privacyAccessAuditRequired: false
+          }
+        }),
+    ...(options.vaultResearchCapture === undefined
+      ? {}
+      : { vaultResearchCapture: options.vaultResearchCapture }),
     authenticator: {
       async authenticate(request) {
         const userId = request.headers.get('x-test-user');

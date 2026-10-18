@@ -1,8 +1,9 @@
 import type {
+  SaveVaultResearchSnapshotApiRequest,
   SaveVaultChartApiRequest,
   UpdateVaultChartMetadataApiRequest,
   VaultChartCategory,
-  VaultScientificStatus
+  VaultChartSaveMode
 } from '@natalnode/contracts';
 import { isChartRequest, isRecord } from './chart-request.js';
 
@@ -30,6 +31,13 @@ const SAVE_VAULT_CHART_KEYS = [
 const REQUIRED_SAVE_VAULT_CHART_KEYS = SAVE_VAULT_CHART_KEYS.filter(
   (key) => key !== 'saveMode'
 );
+const SAVE_VAULT_RESEARCH_SNAPSHOT_KEYS = [
+  'captureId',
+  'displayName',
+  'category',
+  'tags',
+  'favorite'
+] as const;
 
 function hasOwn(value: Record<string, unknown>, key: string): boolean {
   return Object.prototype.hasOwnProperty.call(value, key);
@@ -52,7 +60,7 @@ export function isVaultChartCategory(value: unknown): value is VaultChartCategor
   return VAULT_CHART_CATEGORIES.some((category) => category === value);
 }
 
-export function isVaultScientificStatus(value: unknown): value is VaultScientificStatus {
+export function isVaultChartSaveMode(value: unknown): value is VaultChartSaveMode {
   return value === 'INPUT_ONLY' || value === 'CHART_RESULT_AVAILABLE';
 }
 
@@ -129,6 +137,21 @@ export function isSaveVaultChartApiRequest(value: unknown): value is SaveVaultCh
     isVaultChartCategory(value.category) &&
     isStringArray(value.tags) &&
     typeof value.favorite === 'boolean' &&
-    (value.saveMode === undefined || isVaultScientificStatus(value.saveMode))
+    (value.saveMode === undefined || isVaultChartSaveMode(value.saveMode))
+  );
+}
+
+export function isSaveVaultResearchSnapshotApiRequest(
+  value: unknown
+): value is SaveVaultResearchSnapshotApiRequest {
+  return (
+    isRecord(value) &&
+    hasOnlyKeys(value, SAVE_VAULT_RESEARCH_SNAPSHOT_KEYS) &&
+    SAVE_VAULT_RESEARCH_SNAPSHOT_KEYS.every((key) => hasOwn(value, key)) &&
+    isVaultChartIdentifier(value.captureId) &&
+    isValidVaultChartDisplayName(value.displayName) &&
+    isVaultChartCategory(value.category) &&
+    isStringArray(value.tags) &&
+    typeof value.favorite === 'boolean'
   );
 }

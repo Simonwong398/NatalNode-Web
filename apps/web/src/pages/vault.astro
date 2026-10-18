@@ -26,6 +26,38 @@ const t = (key: UiMessageKey): string => getUiMessage(locale, key);
       </p>
     </header>
 
+    <form
+      class="nn-surface nn-surface--elevated mt-8 max-w-3xl p-5 sm:p-6"
+      data-vault-research-snapshot-form
+      hidden
+      aria-labelledby="research-snapshot-title"
+    >
+      <h2 class="nn-type-section-title" id="research-snapshot-title">
+        Save approved historical research snapshot
+      </h2>
+      <p class="nn-type-body-small mt-2">
+        This local preproduction capture is preserved without recalculation and is not scientifically or production approved.
+      </p>
+      <div class="mt-5 grid gap-4 sm:grid-cols-2">
+        <label class="nn-type-label">
+          Record name
+          <input class="nn-input mt-2 w-full" name="displayName" maxlength="120" required value="J2000 historical research snapshot" />
+        </label>
+        <label class="nn-type-label">
+          Category
+          <select class="nn-input mt-2 w-full" name="category">
+            <option value="SELF">Self</option>
+            <option value="FAMILY">Family</option>
+            <option value="FRIEND">Friend</option>
+          </select>
+        </label>
+      </div>
+      <button class="nn-button nn-button--primary mt-5" type="submit">
+        Save research snapshot
+      </button>
+      <p class="nn-async-state mt-3" data-research-snapshot-status role="status" aria-live="polite"></p>
+    </form>
+
     <section
       class="mt-10 max-w-5xl"
       data-vault-page
@@ -50,7 +82,17 @@ const t = (key: UiMessageKey): string => getUiMessage(locale, key);
 </SiteLayout>
 
 <script>
-  import { initializeVaultPage } from '@/features/vault/vault-charts';
+  import {
+    initializeResearchSnapshotSave,
+    initializeVaultPage
+  } from '@/features/vault/vault-charts';
+
+  const researchForm = document.querySelector<HTMLFormElement>(
+    '[data-vault-research-snapshot-form]'
+  );
+  if (researchForm) {
+    initializeResearchSnapshotSave(researchForm);
+  }
 
   const root = document.querySelector<HTMLElement>('[data-vault-page]');
   const loading = root?.querySelector<HTMLElement>('[data-vault-loading]');

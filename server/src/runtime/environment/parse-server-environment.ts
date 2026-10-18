@@ -5,6 +5,7 @@ import type {
 import {
   invalidVariable,
   parseCanonicalInteger,
+  parseOptionalBoolean,
   parseOptionalInteger,
   parseRequiredBoolean,
   readRequired
@@ -20,6 +21,7 @@ import {
 } from '../../notification-platform/web-push-vapid.js';
 import { parseServerOperationalConfig } from './parse-server-operational-config.js';
 import { isValidGeoNamesUsername } from '../../location-resolution/geonames-web-provider.js';
+import { isAbsolute } from 'node:path';
 
 function parseGoogleIssuer(value: string): void {
   let issuer: URL;
@@ -161,6 +163,76 @@ function parseGeoNamesUsername(env: EnvironmentSource): string | null {
   return value;
 }
 
+function isLoopbackHost(hostname: string): boolean {
+  const value = hostname.toLowerCase();
+  return value === 'localhost' || value === '127.0.0.1' || value === '::1' || value === '[::1]';
+}
+
+function parseVaultResearchSnapshotCapture(
+  env: EnvironmentSource,
+  runtimeMode: string,
+  hostname: string,
+  publicWebOrigin: string,
+  connectionString: string,
+  databaseSslEnabled: boolean
+): { readonly ownerUserId: string; readonly sourceDirectory: string } | undefined {
+  const enabled = parseOptionalBoolean(
+    env,
+    'NATALNODE_VAULT_RESEARCH_SNAPSHOT_ENABLED',
+    false
+  );
+
+  if (!enabled) {
+    return undefined;
+  }
+
+  let database: URL;
+  let publicOrigin: URL;
+  try {
+    database = new URL(connectionString);
+    publicOrigin = new URL(publicWebOrigin);
+  } catch (_error) {
+    return invalidVariable(
+      'NATALNODE_VAULT_RESEARCH_SNAPSHOT_ENABLED',
+      'isolated local Vault research database'
+    );
+  }
+
+  const databaseName = decodeURIComponent(database.pathname.slice(1));
+  if (
+    runtimeMode !== 'local' ||
+    !isLoopbackHost(hostname) ||
+    publicOrigin.protocol !== 'http:' ||
+    !isLoopbackHost(publicOrigin.hostname) ||
+    !isLoopbackHost(database.hostname) ||
+    !databaseName.startsWith('nn_vault_snapshot_test_') ||
+    databaseSslEnabled
+  ) {
+    return invalidVariable(
+      'NATALNODE_VAULT_RESEARCH_SNAPSHOT_ENABLED',
+      'isolated local Vault research runtime'
+    );
+  }
+
+  const ownerUserId = readRequired(env, 'NATALNODE_VAULT_RESEARCH_SNAPSHOT_USER_ID');
+  const sourceDirectory = readRequired(
+    env,
+    'NATALNODE_VAULT_RESEARCH_SNAPSHOT_DIRECTORY'
+  );
+  if (
+    ownerUserId.length > 128 ||
+    /[\u0000-\u001f\u007f-\u009f]/u.test(ownerUserId) ||
+    !isAbsolute(sourceDirectory)
+  ) {
+    return invalidVariable(
+      'NATALNODE_VAULT_RESEARCH_SNAPSHOT_DIRECTORY',
+      'absolute local capture directory and account binding'
+    );
+  }
+
+  return { ownerUserId, sourceDirectory };
+}
+
 export function parseServerEnvironment(
   env: EnvironmentSource
 ): ServerEnvironmentConfig {
@@ -247,6 +319,14 @@ export function parseServerEnvironment(
   }
 
   const port = parseRequiredPort(env);
+  const vaultResearchSnapshotCapture = parseVaultResearchSnapshotCapture(
+    env,
+    operationalConfig.runtimeMode,
+    hostname,
+    publicWebOrigin,
+    connectionString,
+    databaseSslEnabled
+  );
 
   return {
     serverRuntimeConfig: {
@@ -264,7 +344,10 @@ export function parseServerEnvironment(
         sessionTtlSeconds,
         sessionCookieName,
         sessionCookieSecure
-      }
+      },
+      ...(vaultResearchSnapshotCapture === undefined
+        ? {}
+        : { vaultResearchSnapshotCapture })
     },
     postgresPoolRuntimeConfig: {
       connectionString,

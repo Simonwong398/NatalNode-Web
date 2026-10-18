@@ -23,6 +23,7 @@ const REQUIRED_COLUMNS = [
   'chart_result_contract_version',
   'scientific_configuration_identity',
   'scientific_provenance',
+  'research_snapshot',
   'saved_at'
 ];
 

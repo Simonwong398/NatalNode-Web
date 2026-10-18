@@ -175,6 +175,22 @@ function createChart(chartId, userId, createdAt, displayName) {
     chart_schema_version: 'stored-schema',
     astronomy_configuration_id: null,
     provenance_envelope_id: 'stored-provenance',
+    record_version: 1,
+    scientific_status: 'INPUT_ONLY',
+    calculation_authority_state: 'AUTHORITY_INCOMPLETE',
+    record_origin: 'DEVELOPMENT_FIXTURE',
+    scientific_provenance: {
+      schemaVersion: '1',
+      recordOrigin: 'DEVELOPMENT_FIXTURE',
+      sourceContext: 'vault.legacy',
+      savedAt: createdAt,
+      timeAuthorityState: 'UNRESOLVED',
+      calculationAuthorityState: 'AUTHORITY_INCOMPLETE',
+      chartResultContractVersion: null,
+      scientificConfigurationIdentity: null,
+      provenanceEnvelopeId: null
+    },
+    research_snapshot: null,
     created_at: createdAt,
     updated_at: '2026-08-27T05:00:00.000Z'
   };
@@ -448,6 +464,12 @@ test('export presenters expose only approved fields and copy persisted JSON safe
     chartSchemaVersion: 'schema',
     astronomyConfigurationId: null,
     provenanceEnvelopeId: null,
+    recordVersion: 2,
+    scientificStatus: 'RESEARCH_ONLY_SNAPSHOT',
+    calculationAuthorityState: 'AUTHORITY_INCOMPLETE',
+    recordOrigin: 'SERVER_RESEARCH_CAPTURE',
+    scientificProvenance: { schemaVersion: '2', recordOrigin: 'SERVER_RESEARCH_CAPTURE' },
+    researchSnapshot: { schemaVersion: '1', requestUtf8Base64: 'e30=' },
     createdAt: '2026-08-27T00:00:00.000Z',
     updatedAt: '2026-08-27T00:00:00.000Z',
     notes: [{ content: 'private note', createdAt: '2026-08-27T00:00:00.000Z', updatedAt: '2026-08-27T00:00:00.000Z' }]
@@ -476,6 +498,18 @@ test('export presenters expose only approved fields and copy persisted JSON safe
     updatedAt: '2026-08-27T00:00:00.000Z'
   });
   assert.deepEqual(chart.normalizedChartRequest, sourceJson);
+  assert.equal(chart.recordVersion, 2);
+  assert.equal(chart.scientificStatus, 'RESEARCH_ONLY_SNAPSHOT');
+  assert.equal(chart.calculationAuthorityState, 'AUTHORITY_INCOMPLETE');
+  assert.equal(chart.recordOrigin, 'SERVER_RESEARCH_CAPTURE');
+  assert.deepEqual(chart.scientificProvenance, {
+    schemaVersion: '2',
+    recordOrigin: 'SERVER_RESEARCH_CAPTURE'
+  });
+  assert.deepEqual(chart.researchSnapshot, {
+    schemaVersion: '1',
+    requestUtf8Base64: 'e30='
+  });
   assert.deepEqual(chart.notes, [{
     content: 'private note',
     createdAt: '2026-08-27T00:00:00.000Z',

@@ -4,6 +4,7 @@ import type {
   VaultChartCategory,
   VaultChartRecord,
   VaultRecordProvenance,
+  VaultResearchSnapshot,
   VaultTimeAuthorityState
 } from '@natalnode/contracts';
 import type { SqlExecutor, TransactionRunner } from '../../db/index.js';
@@ -36,6 +37,7 @@ interface VaultChartRow {
   chart_result_contract_version?: string | null;
   scientific_configuration_identity?: string | null;
   scientific_provenance?: VaultRecordProvenance;
+  research_snapshot?: VaultResearchSnapshot | null;
   saved_at?: Date | string;
   created_at: Date | string;
   updated_at: Date | string;
@@ -63,6 +65,7 @@ const CHART_COLUMNS = `
   chart_result_contract_version,
   scientific_configuration_identity,
   scientific_provenance,
+  research_snapshot,
   saved_at,
   created_at,
   updated_at`;
@@ -90,12 +93,13 @@ const INSERT_CHART_SQL = `
     chart_result_contract_version,
     scientific_configuration_identity,
     scientific_provenance,
+    research_snapshot,
     saved_at,
     created_at,
     updated_at
   )
   VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14,
-          $15, $16, $17, $18, $19, $20, $21, $22, $23, $24)`;
+          $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25)`;
 
 const LOCK_OWNER_SQL = `
   SELECT user_id
@@ -165,8 +169,13 @@ function legacyProvenance(
   sourceContext: string,
   timeAuthorityState: VaultTimeAuthorityState
 ): VaultRecordProvenance {
-  return (
-    row.scientific_provenance ?? {
+  if (row.scientific_provenance !== undefined && row.scientific_provenance !== null) {
+    return row.scientific_provenance;
+  }
+  if (recordOrigin === 'SERVER_RESEARCH_CAPTURE') {
+    throw new Error('Research Vault records require versioned persisted provenance.');
+  }
+  return {
       schemaVersion: '1',
       recordOrigin,
       sourceContext,
@@ -177,8 +186,7 @@ function legacyProvenance(
       scientificConfigurationIdentity:
         row.scientific_configuration_identity ?? row.astronomy_configuration_id,
       provenanceEnvelopeId: row.provenance_envelope_id
-    }
-  );
+    };
 }
 
 function mapVaultChartRow(row: VaultChartRow): VaultChartRecord {
@@ -227,6 +235,9 @@ function mapVaultChartRow(row: VaultChartRow): VaultChartRecord {
       sourceContext,
       timeAuthorityState
     ),
+    ...(row.research_snapshot === undefined || row.research_snapshot === null
+      ? {}
+      : { researchSnapshot: row.research_snapshot }),
     savedAt,
     createdAt: toTimestampString(row.created_at),
     updatedAt: toTimestampString(row.updated_at)
@@ -313,6 +324,7 @@ export class PostgresVaultChartRepository implements VaultChartRepository {
       chart.chartResultContractVersion,
       chart.scientificConfigurationIdentity,
       chart.scientificProvenance,
+      chart.researchSnapshot ?? null,
       chart.savedAt,
       chart.createdAt,
       chart.updatedAt

@@ -71,6 +71,12 @@ function createChartItem() {
         astronomyConfigurationId: null,
         provenanceEnvelopeId: 'stored-provenance'
       },
+      recordVersion: 2,
+      scientificStatus: 'RESEARCH_ONLY_SNAPSHOT',
+      calculationAuthorityState: 'AUTHORITY_INCOMPLETE',
+      recordOrigin: 'SERVER_RESEARCH_CAPTURE',
+      scientificProvenance: { schemaVersion: '2', recordOrigin: 'SERVER_RESEARCH_CAPTURE' },
+      researchSnapshot: { schemaVersion: '1', responseUtf8Base64: 'e30=' },
       createdAt: '2026-08-27T00:00:00.000Z',
       updatedAt: '2026-08-27T01:00:00.000Z'
     },
@@ -632,7 +638,7 @@ test('account export streams the approved envelope with safe attachment headers 
   const body = await response.text();
   const exportValue = JSON.parse(body);
 
-  assert.equal(exportValue.exportSchemaVersion, '1.2');
+  assert.equal(exportValue.exportSchemaVersion, '1.3');
   assert.equal(exportValue.exportedAt, SERVER_NOW);
   assert.deepEqual(exportValue.account.identities, [defaultIdentity()]);
   assert.equal(exportValue.account.createdAt, '2026-08-01T00:00:00.000Z');
@@ -643,6 +649,9 @@ test('account export streams the approved envelope with safe attachment headers 
   });
   assert.equal(exportValue.charts.length, 1);
   assert.equal(exportValue.charts[0].displayName, chart.chart.displayName);
+  assert.equal(exportValue.charts[0].scientificStatus, 'RESEARCH_ONLY_SNAPSHOT');
+  assert.equal(exportValue.charts[0].recordVersion, 2);
+  assert.equal(exportValue.charts[0].researchSnapshot.responseUtf8Base64, 'e30=');
   assert.deepEqual(exportValue.charts[0].notes, [{
     content: 'Note with newline\nand unicode 星',
     createdAt: '2026-08-27T02:00:00.000Z',

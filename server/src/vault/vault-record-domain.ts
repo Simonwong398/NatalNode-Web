@@ -14,6 +14,10 @@ import {
 import { isChartResult } from '@natalnode/engine-client';
 import type { LocationResolutionService } from '../location-resolution/location-resolution-service.js';
 import type { Clock, IdGenerator } from '../app/creation-boundaries.js';
+import {
+  assertVaultResearchSnapshotIntegrity,
+  type VerifiedVaultResearchCapture
+} from './vault-research-capture.js';
 
 export const VAULT_FREE_RECORD_LIMIT = 3;
 export const VAULT_RECORD_SOURCE_CONTEXT = 'chart-workspace';
@@ -278,7 +282,7 @@ function isDevelopmentFixtureResult(result: ChartResult): boolean {
 }
 
 function createProvenance(
-  origin: VaultRecordOrigin,
+  origin: Exclude<VaultRecordOrigin, 'SERVER_RESEARCH_CAPTURE'>,
   savedAt: string,
   result: ChartResult | null,
   timeState: VaultTimeAuthorityState,
@@ -301,6 +305,106 @@ function createProvenance(
       result?.metadata.configurationStatus === 'COMPLETE'
         ? result.metadata.provenanceEnvelopeId
         : null
+  };
+}
+
+export interface CreateVaultResearchSnapshotRecordInput {
+  readonly userId: string;
+  readonly displayName: string;
+  readonly category: VaultChartCategory;
+  readonly tags: readonly string[];
+  readonly favorite: boolean;
+  readonly capture: VerifiedVaultResearchCapture;
+  readonly idGenerator: IdGenerator;
+  readonly clock: Clock;
+}
+
+/** Creates the approved preserved research record without any calculation. */
+export function createVaultResearchSnapshotRecord(
+  input: CreateVaultResearchSnapshotRecordInput
+): VaultChartRecord {
+  const capture = input.capture;
+  assertVaultResearchSnapshotIntegrity(capture.snapshot, capture.chartRequest);
+  const timestamp = input.clock.now();
+  const timeState = timeAuthorityState(capture.chartRequest);
+  const provenance: VaultRecordProvenance = {
+    schemaVersion: '2',
+    recordOrigin: 'SERVER_RESEARCH_CAPTURE',
+    sourceContext: 'vault.research-capture',
+    savedAt: timestamp,
+    timeAuthorityState: timeState,
+    calculationAuthorityState: 'AUTHORITY_INCOMPLETE',
+    chartResultContractVersion: capture.engineSchemaVersion,
+    scientificConfigurationIdentity: capture.astronomyConfigurationId,
+    provenanceEnvelopeId: null,
+    captureId: capture.captureId,
+    captureReportSha256: capture.snapshot.captureReportSha256,
+    captureResponseSha256: capture.snapshot.responseSha256
+  };
+
+  return {
+    chartId: input.idGenerator.generate(),
+    userId: input.userId,
+    displayName: input.displayName,
+    category: input.category,
+    tags: [...input.tags],
+    favorite: input.favorite,
+    normalizedChartRequest: clone(capture.chartRequest),
+    canonicalChartResult: null,
+    researchSnapshot: clone(capture.snapshot),
+    engineVersion: capture.engineVersion,
+    chartSchemaVersion: capture.presentationSchemaVersion,
+    astronomyConfigurationId: capture.astronomyConfigurationId,
+    provenanceEnvelopeId: null,
+    recordVersion: 2,
+    scientificStatus: 'RESEARCH_ONLY_SNAPSHOT',
+    calculationAuthorityState: 'AUTHORITY_INCOMPLETE',
+    recordOrigin: 'SERVER_RESEARCH_CAPTURE',
+    sourceContext: 'vault.research-capture',
+    timeAuthorityState: timeState,
+    chartResultContractVersion: capture.engineSchemaVersion,
+    scientificConfigurationIdentity: capture.astronomyConfigurationId,
+    scientificProvenance: provenance,
+    savedAt: timestamp,
+    createdAt: timestamp,
+    updatedAt: timestamp
+  };
+}
+
+export function duplicateVaultResearchSnapshotRecord(input: {
+  readonly userId: string;
+  readonly source: VaultChartRecord;
+  readonly idGenerator: IdGenerator;
+  readonly clock: Clock;
+}): VaultChartRecord {
+  assertVaultRecordAuthority(input.source);
+  const source = input.source;
+  if (
+    source.userId !== input.userId ||
+    source.scientificStatus !== 'RESEARCH_ONLY_SNAPSHOT' ||
+    source.researchSnapshot === undefined ||
+    source.researchSnapshot === null ||
+    source.scientificProvenance.schemaVersion !== '2'
+  ) {
+    throw new VaultRecordEligibilityError('PERSISTED_AUTHORITY_MISMATCH');
+  }
+
+  const timestamp = input.clock.now();
+  return {
+    ...source,
+    chartId: input.idGenerator.generate(),
+    userId: input.userId,
+    tags: [...source.tags],
+    normalizedChartRequest: clone(source.normalizedChartRequest),
+    canonicalChartResult: null,
+    researchSnapshot: clone(source.researchSnapshot),
+    scientificProvenance: {
+      ...source.scientificProvenance,
+      savedAt: timestamp
+    },
+    savedAt: timestamp,
+    createdAt: timestamp,
+    updatedAt: timestamp
   };
 }
 
@@ -457,8 +561,56 @@ export function assertVaultRecordAuthority(record: VaultChartRecord): void {
 
   if (
     record.timeAuthorityState !== expectedTimeState ||
-    record.scientificProvenance.schemaVersion !== '1' ||
     record.scientificProvenance.timeAuthorityState !== expectedTimeState
+  ) {
+    throw new VaultRecordEligibilityError('PERSISTED_AUTHORITY_MISMATCH');
+  }
+
+  if (record.scientificStatus === 'RESEARCH_ONLY_SNAPSHOT') {
+    const provenance = record.scientificProvenance;
+    if (
+      record.recordVersion !== 2 ||
+      record.recordOrigin !== 'SERVER_RESEARCH_CAPTURE' ||
+      record.sourceContext !== 'vault.research-capture' ||
+      record.calculationAuthorityState !== 'AUTHORITY_INCOMPLETE' ||
+      record.canonicalChartResult !== null ||
+      record.researchSnapshot === undefined ||
+      record.researchSnapshot === null ||
+      record.engineVersion === null ||
+      record.chartSchemaVersion === null ||
+      record.chartResultContractVersion === null ||
+      record.scientificConfigurationIdentity === null ||
+      provenance.schemaVersion !== '2' ||
+      provenance.recordOrigin !== 'SERVER_RESEARCH_CAPTURE' ||
+      provenance.sourceContext !== 'vault.research-capture' ||
+      provenance.calculationAuthorityState !== 'AUTHORITY_INCOMPLETE' ||
+      provenance.provenanceEnvelopeId !== null ||
+      provenance.captureId !== record.researchSnapshot.captureId ||
+      provenance.captureReportSha256 !== record.researchSnapshot.captureReportSha256 ||
+      provenance.captureResponseSha256 !== record.researchSnapshot.responseSha256 ||
+      provenance.chartResultContractVersion !== record.chartResultContractVersion ||
+      provenance.scientificConfigurationIdentity !==
+        record.scientificConfigurationIdentity ||
+      record.astronomyConfigurationId !== record.scientificConfigurationIdentity
+    ) {
+      throw new VaultRecordEligibilityError('PERSISTED_AUTHORITY_MISMATCH');
+    }
+
+    try {
+      assertVaultResearchSnapshotIntegrity(
+        record.researchSnapshot,
+        record.normalizedChartRequest
+      );
+    } catch (_error) {
+      throw new VaultRecordEligibilityError('PERSISTED_AUTHORITY_MISMATCH');
+    }
+
+    return;
+  }
+
+  if (
+    record.scientificProvenance.schemaVersion !== '1' ||
+    (record.researchSnapshot !== undefined && record.researchSnapshot !== null)
   ) {
     throw new VaultRecordEligibilityError('PERSISTED_AUTHORITY_MISMATCH');
   }
@@ -506,5 +658,8 @@ export function isDevelopmentVaultFixtureResult(result: ChartResult): boolean {
 
 /** Keeps the structural check local without exposing persistence details. */
 export function isVaultRecordProvenance(value: unknown): value is VaultRecordProvenance {
-  return isRecord(value) && value.schemaVersion === '1';
+  return (
+    isRecord(value) &&
+    (value.schemaVersion === '1' || value.schemaVersion === '2')
+  );
 }

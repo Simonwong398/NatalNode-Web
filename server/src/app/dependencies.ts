@@ -25,6 +25,7 @@ import type { ServerOperationalConfig } from '../runtime/server-runtime-config.j
 import type { RuntimeHealthStatus } from '../runtime/server-runtime-config.js';
 import type { LocationResolutionService } from '../location-resolution/location-resolution-service.js';
 import type { BirthTimeResolutionService } from '../time-resolution/index.js';
+import type { VaultResearchCaptureService } from '../vault/vault-research-capture.js';
 
 export interface ServerDependencies {
   readonly publicWebOrigin: string;
@@ -40,6 +41,8 @@ export interface ServerDependencies {
   readonly persistence: PersistenceRepositories;
   readonly engineClient: EngineClient;
   readonly chartCalculator: ChartCalculationService;
+  /** Omitted unless the explicit isolated local research-capture gate is on. */
+  readonly vaultResearchCapture?: VaultResearchCaptureService;
   readonly clock: Clock;
   /** Omitted until an approved geocoding provider is bound. */
   readonly locationResolutionService?: LocationResolutionService;

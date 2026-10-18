@@ -6,6 +6,7 @@ import type {
   BirthTimeAmbiguityStatus,
   ChartRequest,
   ChartResult,
+  ChartResultV2,
   GetVaultChartApiResponse,
   VaultChartCategory,
   VaultChartRecord
@@ -15,6 +16,7 @@ import {
   getChartRequestAuthorityIssue
 } from '@natalnode/contracts';
 import ChartWorkspaceView from '@/features/chart-workspace/ChartWorkspaceView';
+import ChartRenderer from '@/core/chart/ChartRenderer';
 import { createChartPresentationPolicy } from '@/core/chart/chart-presentation-policy';
 import VaultChartManagement from './VaultChartManagement';
 import VaultRecordDetails from './VaultRecordDetails';
@@ -203,6 +205,90 @@ function isChartResult(value: unknown): value is ChartResult {
   );
 }
 
+function isResearchPresentation(value: unknown): value is ChartResultV2 {
+  return (
+    isRecord(value) &&
+    value.schemaVersion === '2.0.0' &&
+    typeof value.engineVersion === 'string' &&
+    Array.isArray(value.bodies) &&
+    value.bodies.length === 10 &&
+    value.bodies.every(
+      (body) =>
+        isRecord(body) &&
+        typeof body.bodyId === 'string' &&
+        isFiniteNumber(body.longitude) &&
+        typeof body.sign === 'string' &&
+        (body.house === null || isFiniteNumber(body.house)) &&
+        (body.motionState === 'DIRECT' ||
+          body.motionState === 'STATION' ||
+          body.motionState === 'RETROGRADE')
+    ) &&
+    Array.isArray(value.angles) &&
+    value.angles.every(
+      (angle) =>
+        isRecord(angle) &&
+        typeof angle.angleId === 'string' &&
+        isFiniteNumber(angle.longitude) &&
+        typeof angle.sign === 'string'
+    ) &&
+    isRecord(value.houses) &&
+    Array.isArray(value.houses.cusps) &&
+    value.houses.cusps.length === 12 &&
+    value.houses.cusps.every(
+      (cusp) =>
+        isRecord(cusp) &&
+        isFiniteNumber(cusp.house) &&
+        isFiniteNumber(cusp.longitude)
+    ) &&
+    Array.isArray(value.aspects) &&
+    value.aspects.length === 11 &&
+    value.aspects.every(
+      (aspect) =>
+        isRecord(aspect) &&
+        typeof aspect.firstBodyId === 'string' &&
+        typeof aspect.secondBodyId === 'string' &&
+        typeof aspect.type === 'string' &&
+        isFiniteNumber(aspect.orb) &&
+        isFiniteNumber(aspect.exactAngle) &&
+        isFiniteNumber(aspect.separation) &&
+        isFiniteNumber(aspect.orbLimit) &&
+        (aspect.phaseState === null ||
+          aspect.phaseState === 'APPLYING' ||
+          aspect.phaseState === 'EXACT' ||
+          aspect.phaseState === 'SEPARATING')
+    ) &&
+    Array.isArray(value.warnings)
+  );
+}
+
+function researchPresentationFromRecord(value: VaultChartRecord): ChartResultV2 | null {
+  const snapshot = value.researchSnapshot;
+  if (
+    value.scientificStatus !== 'RESEARCH_ONLY_SNAPSHOT' ||
+    snapshot === undefined ||
+    snapshot === null
+  ) {
+    return null;
+  }
+
+  try {
+    const binary = atob(snapshot.responseUtf8Base64);
+    const bytes = Uint8Array.from(binary, (character) => character.charCodeAt(0));
+    const response: unknown = JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(bytes));
+    if (
+      !isRecord(response) ||
+      !isRecord(response.payload) ||
+      !isRecord(response.payload.receipt)
+    ) {
+      return null;
+    }
+    const receipt = response.payload.receipt;
+    return isResearchPresentation(receipt.chart) ? receipt.chart : null;
+  } catch (_error) {
+    return null;
+  }
+}
+
 function isGetVaultChartApiResponse(
   value: unknown,
   requestedChartId: string
@@ -213,7 +299,8 @@ function isGetVaultChartApiResponse(
     value.chart.chartId !== requestedChartId ||
     !isVaultChartRecord(value.chart) ||
     (value.chart.scientificStatus !== 'INPUT_ONLY' &&
-      value.chart.scientificStatus !== 'CHART_RESULT_AVAILABLE') ||
+      value.chart.scientificStatus !== 'CHART_RESULT_AVAILABLE' &&
+      value.chart.scientificStatus !== 'RESEARCH_ONLY_SNAPSHOT') ||
     typeof value.chart.displayName !== 'string' ||
     !isVaultChartCategory(value.chart.category) ||
     typeof value.chart.createdAt !== 'string' ||
@@ -227,6 +314,13 @@ function isGetVaultChartApiResponse(
       value.chart.canonicalChartResult === null ||
       (value.chart.recordOrigin === 'DEVELOPMENT_FIXTURE' &&
         isChartResult(value.chart.canonicalChartResult))
+    );
+  }
+
+  if (value.chart.scientificStatus === 'RESEARCH_ONLY_SNAPSHOT') {
+    return (
+      value.chart.canonicalChartResult === null &&
+      researchPresentationFromRecord(value.chart) !== null
     );
   }
 
@@ -364,6 +458,7 @@ export default function SavedVaultChartExperience({
 
   const presentationPolicy = createChartPresentationPolicy(state.chart.normalizedChartRequest);
   const savedChartResult = state.chart.canonicalChartResult;
+  const researchPresentation = researchPresentationFromRecord(state.chart);
   const hasAuthoritativeChartResult =
     state.chart.scientificStatus === 'CHART_RESULT_AVAILABLE' &&
     savedChartResult !== null;
@@ -403,6 +498,28 @@ export default function SavedVaultChartExperience({
         presentationPolicy={presentationPolicy}
         requestedHouseSystem={state.chart.normalizedChartRequest.houseSystem}
       />
+      ) : null}
+      {state.chart.scientificStatus === 'RESEARCH_ONLY_SNAPSHOT' &&
+      researchPresentation !== null ? (
+        <section aria-labelledby="research-snapshot-disclosure-title" className="mt-8">
+          <div className="nn-surface nn-surface--elevated p-5">
+            <h2 className="nn-type-section-title" id="research-snapshot-disclosure-title">
+              HISTORICAL RESEARCH SNAPSHOT
+            </h2>
+            <ul className="nn-type-body-small mt-3 list-disc space-y-1 pl-5">
+              <li>NO CALCULATION PERFORMED ON REOPEN</li>
+              <li>NOT SCIENTIFICALLY APPROVED</li>
+              <li>NOT PRODUCTION CERTIFIED</li>
+            </ul>
+          </div>
+          <div className="mt-6">
+            <ChartRenderer
+              chart={researchPresentation}
+              locale={locale}
+              presentationPolicy={presentationPolicy}
+            />
+          </div>
+        </section>
       ) : null}
     </VaultChartManagement>
   );

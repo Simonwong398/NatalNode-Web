@@ -6,6 +6,7 @@ import type {
   ListVaultChartsApiResponse,
   ChartResult,
   SaveVaultChartApiRequest,
+  SaveVaultResearchSnapshotApiRequest,
   SaveVaultChartApiResponse,
   UpdateVaultChartMetadataApiRequest,
   UpdateVaultChartMetadataApiResponse,
@@ -22,6 +23,7 @@ import { readVaultRouteIdentifier } from './vault-route-helpers.js';
 import {
   isMetadataUpdate,
   isSaveVaultChartApiRequest,
+  isSaveVaultResearchSnapshotApiRequest,
   normalizeVaultChartDisplayName,
   normalizeVaultChartTags,
   encodeVaultChartListCursor,
@@ -33,9 +35,12 @@ import {
   assertEligibleVaultRecordInput,
   assertVaultRecordAuthority,
   createVaultRecord,
+  createVaultResearchSnapshotRecord,
+  duplicateVaultResearchSnapshotRecord,
   isDevelopmentVaultFixtureResult,
   VaultRecordEligibilityError
 } from '../../vault/vault-record-domain.js';
+import { VaultResearchCaptureUnavailableError } from '../../vault/vault-research-capture.js';
 import type { VaultCapacity } from '@natalnode/contracts';
 
 const VAULT_CHART_REQUEST_MAXIMUM_BYTES = 16 * 1024;
@@ -124,6 +129,29 @@ async function parseSaveVaultChartRequest(
     : createProblemDetailsContextResponse(context, {
         code: 'INVALID_REQUEST'
       });
+}
+
+async function parseSaveVaultResearchSnapshotRequest(
+  context: Context
+): Promise<SaveVaultResearchSnapshotApiRequest | Response> {
+  const parsed = await readBoundedJson(
+    context.req.raw,
+    VAULT_CHART_REQUEST_MAXIMUM_BYTES
+  );
+
+  if (parsed.outcome === 'unsupported-media-type') {
+    return createProblemDetailsContextResponse(context, { code: 'UNSUPPORTED_MEDIA_TYPE' });
+  }
+  if (parsed.outcome === 'too-large') {
+    return createProblemDetailsContextResponse(context, { code: 'PAYLOAD_TOO_LARGE' });
+  }
+  if (parsed.outcome === 'invalid') {
+    return createProblemDetailsContextResponse(context, { code: 'INVALID_REQUEST' });
+  }
+
+  return isSaveVaultResearchSnapshotApiRequest(parsed.value)
+    ? parsed.value
+    : createProblemDetailsContextResponse(context, { code: 'INVALID_REQUEST' });
 }
 
 export function registerVaultChartRoutes(
@@ -239,6 +267,80 @@ export function registerVaultChartRoutes(
         return createProblemDetailsContextResponse(context, {
           code: 'CAPACITY_REACHED'
         });
+      }
+
+      const capacity = await readVaultCapacity(repository, userId);
+      const response: SaveVaultChartApiResponse = {
+        chart,
+        ...(capacity === undefined ? {} : { capacity })
+      };
+      return context.json(response, 201);
+    }
+  );
+
+  app.post(
+    '/api/vault/charts/research-snapshot',
+    requireAuthentication(dependencies.authenticator),
+    enforceVaultMutationAccountRateLimit(rateLimiter),
+    async (context) => {
+      if (
+        dependencies.operationalConfig?.runtimeMode !== 'local' ||
+        dependencies.vaultResearchCapture === undefined
+      ) {
+        return createProblemDetailsContextResponse(context, { code: 'INVALID_STATE' });
+      }
+
+      const request = await parseSaveVaultResearchSnapshotRequest(context);
+      if (request instanceof Response) {
+        return request;
+      }
+
+      const userId = context.get('authenticatedPrincipal').userId;
+      let capture;
+      try {
+        capture = await dependencies.vaultResearchCapture.loadForAccount(
+          userId,
+          request.captureId
+        );
+      } catch (error) {
+        if (error instanceof VaultResearchCaptureUnavailableError) {
+          return createProblemDetailsContextResponse(context, { code: 'INVALID_STATE' });
+        }
+        throw error;
+      }
+
+      if (capture === null) {
+        return createProblemDetailsContextResponse(context, { code: 'NOT_FOUND' });
+      }
+
+      let chart: VaultChartRecord;
+      try {
+        chart = createVaultResearchSnapshotRecord({
+          userId,
+          displayName: normalizeVaultChartDisplayName(request.displayName),
+          category: request.category,
+          tags: normalizeVaultChartTags(request.tags),
+          favorite: request.favorite,
+          capture,
+          idGenerator: dependencies.idGenerator,
+          clock: dependencies.clock
+        });
+      } catch (error) {
+        if (error instanceof VaultRecordEligibilityError) {
+          return createProblemDetailsContextResponse(context, { code: 'INVALID_STATE' });
+        }
+        if (error instanceof VaultResearchCaptureUnavailableError) {
+          return createProblemDetailsContextResponse(context, { code: 'INVALID_STATE' });
+        }
+        throw error;
+      }
+
+      const repository = dependencies.persistence.vaultCharts;
+      const creation = repository.createWithCapacity === undefined
+        ? (await repository.create(chart), 'created' as const)
+        : await repository.createWithCapacity(chart, VAULT_FREE_RECORD_LIMIT);
+      if (creation === 'capacity-reached') {
+        return createProblemDetailsContextResponse(context, { code: 'CAPACITY_REACHED' });
       }
 
       const capacity = await readVaultCapacity(repository, userId);
@@ -373,6 +475,34 @@ export function registerVaultChartRoutes(
         }
 
         throw error;
+      }
+
+      if (sourceChart.scientificStatus === 'RESEARCH_ONLY_SNAPSHOT') {
+        let duplicate: VaultChartRecord;
+        try {
+          duplicate = duplicateVaultResearchSnapshotRecord({
+            userId,
+            source: sourceChart,
+            idGenerator: dependencies.idGenerator,
+            clock: dependencies.clock
+          });
+        } catch (error) {
+          if (error instanceof VaultRecordEligibilityError) {
+            return createProblemDetailsContextResponse(context, { code: 'INVALID_STATE' });
+          }
+          throw error;
+        }
+
+        const repository = dependencies.persistence.vaultCharts;
+        const creation = repository.createWithCapacity === undefined
+          ? (await repository.create(duplicate), 'created' as const)
+          : await repository.createWithCapacity(duplicate, VAULT_FREE_RECORD_LIMIT);
+        if (creation === 'capacity-reached') {
+          return createProblemDetailsContextResponse(context, { code: 'CAPACITY_REACHED' });
+        }
+
+        const response: DuplicateVaultChartApiResponse = { chart: duplicate };
+        return context.json(response, 201);
       }
 
       let canonicalChartResult: ChartResult;

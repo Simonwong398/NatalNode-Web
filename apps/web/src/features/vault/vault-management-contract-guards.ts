@@ -32,8 +32,9 @@ function isNullableString(value: unknown): value is string | null {
 function isVaultChartRecordState(value: Record<string, unknown>): boolean {
   const isInputOnly = value.scientificStatus === 'INPUT_ONLY';
   const isAvailable = value.scientificStatus === 'CHART_RESULT_AVAILABLE';
+  const isResearchSnapshot = value.scientificStatus === 'RESEARCH_ONLY_SNAPSHOT';
 
-  if (!isInputOnly && !isAvailable) {
+  if (!isInputOnly && !isAvailable && !isResearchSnapshot) {
     return false;
   }
 
@@ -43,10 +44,14 @@ function isVaultChartRecordState(value: Record<string, unknown>): boolean {
     value.recordVersion < 1 ||
     (isInputOnly && value.calculationAuthorityState !== 'AUTHORITY_INCOMPLETE') ||
     (isAvailable && value.calculationAuthorityState !== 'AUTHORITATIVE') ||
+    (isResearchSnapshot && value.calculationAuthorityState !== 'AUTHORITY_INCOMPLETE') ||
     (isAvailable && value.recordOrigin !== 'USER_INPUT') ||
+    (isResearchSnapshot && value.recordOrigin !== 'SERVER_RESEARCH_CAPTURE') ||
     (!isAvailable &&
+      !isResearchSnapshot &&
       value.recordOrigin !== 'USER_INPUT' &&
       value.recordOrigin !== 'DEVELOPMENT_FIXTURE') ||
+    (isResearchSnapshot && value.recordVersion !== 2) ||
     typeof value.sourceContext !== 'string' ||
     ![
       'UNRESOLVED',
@@ -58,7 +63,7 @@ function isVaultChartRecordState(value: Record<string, unknown>): boolean {
     !isNullableString(value.chartResultContractVersion) ||
     !isNullableString(value.scientificConfigurationIdentity) ||
     !isRecord(value.scientificProvenance) ||
-    value.scientificProvenance.schemaVersion !== '1' ||
+    value.scientificProvenance.schemaVersion !== (isResearchSnapshot ? '2' : '1') ||
     typeof value.savedAt !== 'string'
   ) {
     return false;
@@ -72,10 +77,34 @@ function isVaultChartRecordState(value: Record<string, unknown>): boolean {
     );
   }
 
+  if (isResearchSnapshot) {
+    return (
+      value.canonicalChartResult === null &&
+      value.sourceContext === 'vault.research-capture' &&
+      value.scientificProvenance.recordOrigin === 'SERVER_RESEARCH_CAPTURE' &&
+      value.scientificProvenance.sourceContext === 'vault.research-capture' &&
+      value.scientificProvenance.calculationAuthorityState === 'AUTHORITY_INCOMPLETE' &&
+      value.scientificProvenance.provenanceEnvelopeId === null &&
+      typeof value.scientificProvenance.captureId === 'string' &&
+      typeof value.scientificProvenance.captureReportSha256 === 'string' &&
+      typeof value.scientificProvenance.captureResponseSha256 === 'string' &&
+      isRecord(value.researchSnapshot) &&
+      value.researchSnapshot.schemaVersion === '1' &&
+      typeof value.researchSnapshot.captureId === 'string' &&
+      typeof value.researchSnapshot.requestUtf8Base64 === 'string' &&
+      value.researchSnapshot.requestUtf8Base64.length <= 24_000 &&
+      typeof value.researchSnapshot.responseUtf8Base64 === 'string' &&
+      value.researchSnapshot.responseUtf8Base64.length <= 350_000 &&
+      typeof value.researchSnapshot.responseSha256 === 'string' &&
+      typeof value.researchSnapshot.canonicalChartResultSha256 === 'string'
+    );
+  }
+
   return (
-    value.canonicalChartResult === null ||
-    (value.recordOrigin === 'DEVELOPMENT_FIXTURE' &&
-      isRecord(value.canonicalChartResult))
+    (value.researchSnapshot === undefined || value.researchSnapshot === null) &&
+    (value.canonicalChartResult === null ||
+      (value.recordOrigin === 'DEVELOPMENT_FIXTURE' &&
+        isRecord(value.canonicalChartResult)))
   );
 }
 

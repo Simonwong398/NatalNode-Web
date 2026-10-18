@@ -50,6 +50,12 @@ export const ACCOUNT_DATA_EXPORT_CHARTS_SQL = `
     chart_schema_version,
     astronomy_configuration_id,
     provenance_envelope_id,
+    record_version,
+    scientific_status,
+    calculation_authority_state,
+    record_origin,
+    scientific_provenance,
+    research_snapshot,
     created_at,
     updated_at
   FROM charts
@@ -235,6 +241,12 @@ export interface AccountDataExportChartRow {
   readonly chart_schema_version: string | null;
   readonly astronomy_configuration_id: string | null;
   readonly provenance_envelope_id: string | null;
+  readonly record_version: number;
+  readonly scientific_status: string;
+  readonly calculation_authority_state: string;
+  readonly record_origin: string;
+  readonly scientific_provenance: unknown;
+  readonly research_snapshot: unknown;
   readonly created_at: Date | string;
   readonly updated_at: Date | string;
 }

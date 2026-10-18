@@ -1,9 +1,9 @@
-import type { ChartRequest } from '../chart.js';
+import type { ChartRequest, ChartResultV2 } from '../chart.js';
 import type {
   ChartNoteRecord,
   VaultChartCategory,
+  VaultChartSaveMode,
   VaultChartRecord,
-  VaultScientificStatus
 } from '../vault.js';
 
 export interface VaultCapacity {
@@ -20,7 +20,31 @@ export interface SaveVaultChartApiRequest {
   readonly tags: readonly string[];
   readonly favorite: boolean;
   /** Defaults to the legacy result-save path for existing clients. */
-  readonly saveMode?: VaultScientificStatus;
+  readonly saveMode?: VaultChartSaveMode;
+}
+
+/** Capture-id-only request; the browser never supplies chart or result data. */
+export interface SaveVaultResearchSnapshotApiRequest {
+  readonly captureId: string;
+  readonly displayName: string;
+  readonly category: VaultChartCategory;
+  readonly tags: readonly string[];
+  readonly favorite: boolean;
+}
+
+export interface VaultResearchCapturePreview {
+  readonly captureId: string;
+  readonly chartRequest: ChartRequest;
+  readonly presentation: ChartResultV2;
+  readonly canonicalChartResultSha256: string;
+  readonly captureReportSha256: string;
+  readonly runtimeIdentity: string;
+  readonly runtimeManifestSha256: string;
+  readonly runId: string;
+}
+
+export interface GetVaultResearchCaptureApiResponse {
+  readonly capture: VaultResearchCapturePreview;
 }
 
 export interface SaveVaultChartApiResponse {

@@ -141,7 +141,7 @@ The complete bootstrap composition chain is:
 and borrowed; they have no bootstrap lifecycle here. Migration execution is
 explicit and separate from bootstrap. Before composing the application, the
 real PostgreSQL bootstrap performs a read-only Vault schema compatibility
-preflight: it verifies that migration `0020` is tracked with the current
+preflight: it verifies that migration `0021` is tracked with the current
 repository checksum and that the required Vault columns exist. It never applies
 migrations. The canonical release command remains `npm run db:migrate`; a
 pending or drifted schema fails startup with a safe actionable diagnostic

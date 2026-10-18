@@ -73,7 +73,9 @@ export default function VaultRecordDetails({
           </h2>
         </div>
         <span className="nn-badge" role="status">
-          {vaultUi(locale, scientificStateKey(chart))}
+          {chart.scientificStatus === 'RESEARCH_ONLY_SNAPSHOT'
+            ? 'Research-only historical snapshot'
+            : vaultUi(locale, scientificStateKey(chart))}
         </span>
       </div>
 
@@ -130,15 +132,19 @@ export default function VaultRecordDetails({
         <p className="nn-type-body-small mt-1">
           {chart.recordOrigin === 'DEVELOPMENT_FIXTURE'
             ? vaultUi(locale, 'vault.provenanceDevelopmentFixture')
+            : chart.scientificStatus === 'RESEARCH_ONLY_SNAPSHOT'
+              ? 'Preserved from one verified historical real J2000 browser run; research-only, authority incomplete, and not re-evaluated on reopen.'
             : isAuthoritative
               ? vaultUi(locale, 'vault.provenanceAuthoritative')
               : vaultUi(locale, 'vault.provenanceInputOnly')}
         </p>
       </div>
 
-      <a className="nn-button nn-button--secondary mt-6" href={calculatePath}>
-        {vaultUi(locale, 'vault.openInCalculate')}
-      </a>
+      {chart.scientificStatus === 'RESEARCH_ONLY_SNAPSHOT' ? null : (
+        <a className="nn-button nn-button--secondary mt-6" href={calculatePath}>
+          {vaultUi(locale, 'vault.openInCalculate')}
+        </a>
+      )}
     </section>
   );
 }

@@ -22,6 +22,8 @@ const VAULT_CHART_CATEGORIES: readonly VaultChartCategory[] = [
   'FRIEND',
   'CLIENT'
 ];
+const APPROVED_RESEARCH_CAPTURE_ID =
+  'nn-windows-single-real-browser-j2000-e2e-001-resume';
 
 type VaultChartListItem = Pick<
   VaultChartRecord,
@@ -75,10 +77,12 @@ function isVaultChartListItem(value: unknown): value is VaultChartListItem {
       typeof value.createdAt === 'string' &&
       (value.recordOrigin === undefined ||
         value.recordOrigin === 'USER_INPUT' ||
-        value.recordOrigin === 'DEVELOPMENT_FIXTURE') &&
+        value.recordOrigin === 'DEVELOPMENT_FIXTURE' ||
+        value.recordOrigin === 'SERVER_RESEARCH_CAPTURE') &&
       (value.scientificStatus === undefined ||
       value.scientificStatus === 'INPUT_ONLY' ||
-      value.scientificStatus === 'CHART_RESULT_AVAILABLE')
+      value.scientificStatus === 'CHART_RESULT_AVAILABLE' ||
+      value.scientificStatus === 'RESEARCH_ONLY_SNAPSHOT')
   );
 }
 
@@ -149,13 +153,15 @@ function renderChartList(
 
     const state = document.createElement('p');
     state.className = 'nn-type-metadata mt-3';
-    state.textContent = getDocumentUiMessage(
-      chart.recordOrigin === 'DEVELOPMENT_FIXTURE'
-        ? 'vault.state.developmentFixture'
-        : chart.scientificStatus === 'CHART_RESULT_AVAILABLE'
-          ? 'vault.state.authoritative'
-          : 'vault.state.inputOnly'
-    );
+    state.textContent = chart.scientificStatus === 'RESEARCH_ONLY_SNAPSHOT'
+      ? 'Research-only historical snapshot'
+      : getDocumentUiMessage(
+          chart.recordOrigin === 'DEVELOPMENT_FIXTURE'
+            ? 'vault.state.developmentFixture'
+            : chart.scientificStatus === 'CHART_RESULT_AVAILABLE'
+              ? 'vault.state.authoritative'
+              : 'vault.state.inputOnly'
+        );
 
     const savedAt = document.createElement('time');
     savedAt.className = 'nn-type-metadata mt-5 block';
@@ -298,4 +304,71 @@ async function loadVaultCharts(elements: VaultPageElements): Promise<void> {
 /** Loads the authenticated Vault collection for the current page only. */
 export function initializeVaultPage(elements: VaultPageElements): void {
   void loadVaultCharts(elements);
+}
+
+export function initializeResearchSnapshotSave(form: HTMLFormElement): void {
+  const query = new URL(window.location.href).searchParams;
+  const enabled = query.getAll('researchSnapshot').length === 1 &&
+    query.get('researchSnapshot') === 'accepted-j2000';
+  form.hidden = !enabled;
+  if (!enabled) {
+    return;
+  }
+
+  const status = form.querySelector<HTMLElement>('[data-research-snapshot-status]');
+  const name = form.querySelector<HTMLInputElement>('[name="displayName"]');
+  const category = form.querySelector<HTMLSelectElement>('[name="category"]');
+  const button = form.querySelector<HTMLButtonElement>('button[type="submit"]');
+  if (status === null || name === null || category === null || button === null) {
+    form.hidden = true;
+    return;
+  }
+
+  form.addEventListener('submit', (event) => {
+    event.preventDefault();
+    if (!isVaultChartCategory(category.value) || name.value.trim() === '') {
+      status.textContent = 'Unable to save the approved research snapshot.';
+      return;
+    }
+
+    button.disabled = true;
+    status.textContent = 'Saving preserved research evidence…';
+    void fetch('/api/vault/charts/research-snapshot', {
+      method: 'POST',
+      headers: {
+        Accept: 'application/json',
+        'Content-Type': 'application/json'
+      },
+      credentials: 'same-origin',
+      cache: 'no-store',
+      body: JSON.stringify({
+        captureId: APPROVED_RESEARCH_CAPTURE_ID,
+        displayName: name.value.trim(),
+        category: category.value,
+        tags: [],
+        favorite: false
+      })
+    }).then(async (response) => {
+      const payload: unknown = await response.json();
+      if (
+        response.status !== 201 ||
+        !isRecord(payload) ||
+        !isRecord(payload.chart) ||
+        payload.chart.scientificStatus !== 'RESEARCH_ONLY_SNAPSHOT' ||
+        typeof payload.chart.chartId !== 'string'
+      ) {
+        status.textContent = 'Unable to save the approved research snapshot.';
+        button.disabled = false;
+        return;
+      }
+
+      window.location.replace(getLocalizedCurrentPath(
+        window.location.pathname,
+        `/vault/chart?chartId=${encodeURIComponent(payload.chart.chartId)}`
+      ));
+    }).catch(() => {
+      status.textContent = 'Unable to save the approved research snapshot.';
+      button.disabled = false;
+    });
+  });
 }

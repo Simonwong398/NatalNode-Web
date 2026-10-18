@@ -83,6 +83,18 @@ function serializeChartStart(chart: AccountDataExportChartMetadata): string {
     serializeAccountExportValue(chart.canonicalChartResult) +
     ',"calculation":' +
     serializeAccountExportValue(chart.calculation) +
+    ',"recordVersion":' +
+    serializeAccountExportValue(chart.recordVersion) +
+    ',"scientificStatus":' +
+    serializeAccountExportValue(chart.scientificStatus) +
+    ',"calculationAuthorityState":' +
+    serializeAccountExportValue(chart.calculationAuthorityState) +
+    ',"recordOrigin":' +
+    serializeAccountExportValue(chart.recordOrigin) +
+    ',"scientificProvenance":' +
+    serializeAccountExportValue(chart.scientificProvenance) +
+    ',"researchSnapshot":' +
+    serializeAccountExportValue(chart.researchSnapshot) +
     ',"createdAt":' +
     serializeAccountExportValue(chart.createdAt) +
     ',"updatedAt":' +

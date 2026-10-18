@@ -90,4 +90,9 @@ export interface ServerRuntimeConfig {
     readonly sessionCookieName: string;
     readonly sessionCookieSecure: boolean;
   };
+  /** Present only for an explicitly isolated local research-snapshot run. */
+  readonly vaultResearchSnapshotCapture?: {
+    readonly ownerUserId: string;
+    readonly sourceDirectory: string;
+  };
 }

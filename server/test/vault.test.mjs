@@ -4,3 +4,4 @@ import './postgres-schema-compatibility.test.mjs';
 import './vault-routes.test.mjs';
 import './vault-duplicate.test.mjs';
 import './vault-static-contract.test.mjs';
+import './vault-research-snapshot.test.mjs';

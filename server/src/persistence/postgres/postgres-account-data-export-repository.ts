@@ -489,6 +489,12 @@ class PostgresAccountDataExportSnapshot implements AccountDataExportSnapshot {
             chartSchemaVersion: row.chart_schema_version,
             astronomyConfigurationId: row.astronomy_configuration_id,
             provenanceEnvelopeId: row.provenance_envelope_id,
+            recordVersion: row.record_version,
+            scientificStatus: row.scientific_status,
+            calculationAuthorityState: row.calculation_authority_state,
+            recordOrigin: row.record_origin,
+            scientificProvenance: row.scientific_provenance,
+            researchSnapshot: row.research_snapshot,
             createdAt: toTimestampString(row.created_at),
             updatedAt: toTimestampString(row.updated_at)
           }),

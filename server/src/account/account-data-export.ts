@@ -6,7 +6,7 @@ import type {
 } from '@natalnode/contracts';
 
 /** The versioned envelope used by the account-export boundary. */
-export const ACCOUNT_DATA_EXPORT_SCHEMA_VERSION = '1.2' as const;
+export const ACCOUNT_DATA_EXPORT_SCHEMA_VERSION = '1.3' as const;
 
 export type JsonPrimitive = null | boolean | number | string;
 
@@ -57,6 +57,12 @@ export interface AccountDataExportChartMetadata {
   readonly normalizedChartRequest: JsonValue;
   readonly canonicalChartResult: JsonValue;
   readonly calculation: AccountDataExportChartCalculation;
+  readonly recordVersion: number;
+  readonly scientificStatus: string;
+  readonly calculationAuthorityState: string;
+  readonly recordOrigin: string;
+  readonly scientificProvenance: JsonValue;
+  readonly researchSnapshot: JsonValue | null;
   readonly createdAt: string;
   readonly updatedAt: string;
 }
@@ -204,6 +210,12 @@ export interface AccountDataExportChartPresentationSource {
   readonly chartSchemaVersion: string | null;
   readonly astronomyConfigurationId: string | null;
   readonly provenanceEnvelopeId: string | null;
+  readonly recordVersion: number;
+  readonly scientificStatus: string;
+  readonly calculationAuthorityState: string;
+  readonly recordOrigin: string;
+  readonly scientificProvenance: unknown;
+  readonly researchSnapshot: unknown;
   readonly createdAt: string;
   readonly updatedAt: string;
   readonly notes?: readonly AccountDataExportNotePresentationSource[];
@@ -434,6 +446,17 @@ export function presentAccountDataExportChartMetadata(
       astronomyConfigurationId: source.astronomyConfigurationId,
       provenanceEnvelopeId: source.provenanceEnvelopeId
     },
+    recordVersion: source.recordVersion,
+    scientificStatus: source.scientificStatus,
+    calculationAuthorityState: source.calculationAuthorityState,
+    recordOrigin: source.recordOrigin,
+    scientificProvenance: assertAccountDataExportJsonValue(
+      source.scientificProvenance,
+      'scientificProvenance'
+    ),
+    researchSnapshot: source.researchSnapshot === null
+      ? null
+      : assertAccountDataExportJsonValue(source.researchSnapshot, 'researchSnapshot'),
     createdAt: source.createdAt,
     updatedAt: source.updatedAt
   };

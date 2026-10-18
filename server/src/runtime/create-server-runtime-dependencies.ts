@@ -24,6 +24,7 @@ import { NotificationAccountService } from '../notification-platform/notificatio
 import { createWebPushCapability } from '../notification-platform/web-push-capability.js';
 import { PostgresFoundationsLearningService } from '../learning/foundations/postgres-foundations-learning-service.js';
 import { createGeoNamesLocationResolutionService } from '../location-resolution/geonames-web-provider.js';
+import { createApprovedVaultResearchCaptureService } from '../vault/vault-research-capture.js';
 
 function assertValidTtl(seconds: number, name: string): void {
   if (!Number.isFinite(seconds) || !Number.isInteger(seconds) || seconds <= 0) {
@@ -122,6 +123,13 @@ export function createServerRuntimeDependencies(
     persistence,
     engineClient: bindings.engineClient,
     chartCalculator,
+    ...(config.vaultResearchSnapshotCapture === undefined
+      ? {}
+      : {
+          vaultResearchCapture: createApprovedVaultResearchCaptureService(
+            config.vaultResearchSnapshotCapture
+          )
+        }),
     clock,
     notificationAccountService,
     foundationsLearningService,
