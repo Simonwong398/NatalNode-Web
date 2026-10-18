@@ -1,10 +1,16 @@
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
 import test from 'node:test';
+import { pathToFileURL } from 'node:url';
 import { createBirthTimeResolutionService } from '../dist/time-resolution/index.js';
 import { ProviderLocationResolutionService } from '../dist/location-resolution/location-resolution-service.js';
 import { RealEnginePrivateServiceClient } from '../dist/development/real-engine-private-service-client.js';
-import { createLocalBrowserChartBffApp } from './support/local-browser-chart-bff.mjs';
+import {
+  ARCHIVED_R5_FIXTURE_LOCATION,
+  createArchivedR5FixtureLocationResolutionService,
+  createLocalBrowserChartBffApp
+} from './support/local-browser-chart-bff.mjs';
 import { startLoopbackHonoServer } from './support/private-engine-http-adapter.mjs';
 
 const WEB_ORIGIN = 'http://127.0.0.1:4321';
@@ -96,7 +102,8 @@ async function createResearchHarness({
   });
   assert.equal(selected.state, 'RESOLVED');
   const timeAuthority = createBirthTimeResolutionService({ locationResolutionService });
-  const fixtureFetch = fetchImplementation ?? (async (_url, init) => {
+  let serviceCalls = 0;
+  const fetchOperation = fetchImplementation ?? (async (_url, init) => {
     const request = JSON.parse(init.body);
     const chart = structuredClone(R5_CHART);
     // Civil TimeAuthority serializes whole-second UTC instants with .000Z.
@@ -107,6 +114,10 @@ async function createResearchHarness({
       headers: { 'Content-Type': 'application/json; charset=utf-8' }
     });
   });
+  const fixtureFetch = async (...args) => {
+    serviceCalls += 1;
+    return fetchOperation(...args);
+  };
   const realResearchClient = new RealEnginePrivateServiceClient({
     baseUrl: 'http://127.0.0.1:45873',
     bearerToken: RESEARCH_TOKEN,
@@ -125,7 +136,7 @@ async function createResearchHarness({
     timeAuthority
   });
   const server = await startLoopbackHonoServer(app);
-  return { server, timeAuthority };
+  return { server, timeAuthority, serviceCalls: () => serviceCalls };
 }
 
 async function post(server, path, value, origin = WEB_ORIGIN) {
@@ -157,9 +168,8 @@ function timeRequest({ date = '2025-10-22', time = '10:52', coordinates = LONDON
   };
 }
 
-function r5BrowserChartRequest(timeAuthority) {
+function r5BrowserChartRequest(timeAuthority, location = LONDON, localTime = '12:00') {
   const localDate = '2000-01-01';
-  const localTime = '12:00';
   const resolution = timeAuthority.resolve({
     civilTime: {
       localDate,
@@ -168,27 +178,29 @@ function r5BrowserChartRequest(timeAuthority) {
       precision: 'MINUTE'
     },
     location: {
-      resolutionId: LONDON.resolutionId,
-      coordinates: LONDON.coordinates,
-      ianaTimeZone: LONDON.ianaTimeZone
+      resolutionId: location.resolutionId,
+      coordinates: location.coordinates,
+      ianaTimeZone: location.ianaTimeZone
     },
     disambiguation: 'REJECT',
     expectedTimezoneDatabaseVersion: null
   });
   assert.equal(resolution.outcome, 'VERIFIED');
-  assert.equal(
-    new Date(resolution.value.resolvedUtcInstant).toISOString(),
-    new Date(R5_CHART.input.instant).toISOString()
-  );
+  if (localTime === '12:00') {
+    assert.equal(
+      new Date(resolution.value.resolvedUtcInstant).toISOString(),
+      new Date(R5_CHART.input.instant).toISOString()
+    );
+  }
   return {
     birth: {
       localDate,
       localTime,
-      locationLabel: LONDON.canonicalDisplayName,
-      locationResolutionId: LONDON.resolutionId,
-      latitude: LONDON.coordinates.latitude,
-      longitude: LONDON.coordinates.longitude,
-      ianaTimeZone: LONDON.ianaTimeZone,
+      locationLabel: location.canonicalDisplayName,
+      locationResolutionId: location.resolutionId,
+      latitude: location.coordinates.latitude,
+      longitude: location.coordinates.longitude,
+      ianaTimeZone: location.ianaTimeZone,
       resolvedUtcInstant: resolution.value.resolvedUtcInstant,
       utcOffsetSeconds: resolution.value.utcOffsetSeconds,
       timezoneDatabaseVersion: timeAuthority.profile.timezoneDatabaseVersion,
@@ -197,6 +209,38 @@ function r5BrowserChartRequest(timeAuthority) {
     },
     houseSystem: 'Placidus'
   };
+}
+
+async function createArchivedFixtureHarness({ onEngineCall = () => {} } = {}) {
+  const checkout = process.env.NATALNODE_ENGINE_CHECKOUT;
+  assert.ok(typeof checkout === 'string' && checkout.trim() !== '',
+    'Set NATALNODE_ENGINE_CHECKOUT to the verified Engine checkout for this test.');
+  const engineApi = await import(pathToFileURL(join(
+    checkout,
+    'packages/engine/dist/src/index.js'
+  )).href);
+  const locationResolutionService = createArchivedR5FixtureLocationResolutionService();
+  const candidates = await locationResolutionService.search({ query: 'Greenwich', locale: 'en' });
+  assert.equal(candidates.state, 'CANDIDATES');
+  const selected = await locationResolutionService.resolve({
+    candidateId: candidates.candidates[0].candidateId,
+    locale: 'en'
+  });
+  assert.equal(selected.state, 'RESOLVED');
+  const timeAuthority = createBirthTimeResolutionService({ locationResolutionService });
+  const app = createLocalBrowserChartBffApp({
+    allowedOrigin: WEB_ORIGIN,
+    engineClient: {
+      async calculateChart() { onEngineCall(); throw new Error('Engine calculation must not run for the archived fixture.'); },
+      async calculateChartWithPresentation() { onEngineCall(); throw new Error('Engine calculation must not run for the archived fixture.'); }
+    },
+    fixtureEngineApi: engineApi,
+    workflowMode: 'archived-r5-fixture',
+    locationResolutionService,
+    timeAuthority
+  });
+  const server = await startLoopbackHonoServer(app);
+  return { server, timeAuthority, locationResolutionService };
 }
 
 test('browser BFF uses the canonical location owner and resolves London civil time server-side', async (context) => {
@@ -310,6 +354,54 @@ test('real research BFF maps the archived R5 fixture, retaining full chart, exec
   assert.equal(receipt.execution.status, 'RESEARCH_ONLY');
   assert.equal(receipt.execution.provenance, 'INCOMPLETE_RESEARCH');
   assert.equal(syntheticFallbackCalls, 0);
+  assert.equal(harness.serviceCalls(), 1);
+
+  const replay = await post(harness.server, '/api/dev/chart/calculate', { chart: chartRequest });
+  assert.equal(replay.status, 409);
+  assert.equal((await replay.json()).error.code, 'SINGLE_USE_REAL_CALL_CONSUMED');
+  assert.equal(harness.serviceCalls(), 1, 'The BFF does not send a second authenticated request.');
+});
+
+test('archived R5 browser fixture is context-bound, visibly non-executing, and preserves historical provenance', async (context) => {
+  let engineCalls = 0;
+  const harness = await createArchivedFixtureHarness({ onEngineCall() { engineCalls += 1; } });
+  context.after(() => harness.server.close());
+
+  const candidates = await post(harness.server, '/api/location/search', { query: 'Greenwich', locale: 'en' });
+  assert.equal(candidates.status, 200);
+  const candidatePayload = await candidates.json();
+  assert.equal(candidatePayload.state, 'CANDIDATES');
+  assert.equal(candidatePayload.candidates[0].coordinates.latitude, R5_CHART.input.latitude);
+  assert.equal(candidatePayload.candidates[0].coordinates.longitude, R5_CHART.input.longitude);
+  assert.equal(candidatePayload.candidates[0].authority.sourceId, 'archived-r5-browser-fixture');
+
+  const chartRequest = r5BrowserChartRequest(harness.timeAuthority, ARCHIVED_R5_FIXTURE_LOCATION);
+  const response = await post(harness.server, '/api/dev/chart/calculate', { chart: chartRequest });
+  assert.equal(response.status, 200);
+  const responseText = await response.text();
+  assert.equal(responseText.includes('C:\\NatalNode'), false, 'Machine-local source paths are not returned.');
+  const payload = JSON.parse(responseText);
+  assert.deepEqual(payload.fixture, {
+    id: 'NN-ENGINE-REAL-J2000-CHART-R5-001',
+    classification: 'ARCHIVED_RESEARCH_FIXTURE',
+    calculationPerformed: false,
+    locationResolution: 'FIXTURE_ONLY_NO_GEONAMES'
+  });
+  assert.equal(payload.receipt.assessment.dataClassification, 'ENGINEERING TEST DATA');
+  assert.equal(payload.receipt.assessment.astronomicalStatus, 'NOT REAL ASTRONOMICAL OUTPUT');
+  assert.equal(payload.receipt.chart.bodies.length, 10);
+  assert.equal(payload.receipt.chart.angles.length, 2);
+  assert.equal(payload.receipt.chart.houses.cusps.length, 12);
+  assert.equal(payload.receipt.chart.aspects.length, R5_CHART.aspects.length);
+  assert.equal(payload.receipt.source.engineResult.provider.id, R5_CHART.provider.id);
+  assert.deepEqual(payload.receipt.source.engineResult.metadata.provenance, R5_CHART.metadata.provenance);
+  assert.equal(engineCalls, 0, 'Neither the Engine Provider nor synthetic Engine client is invoked.');
+
+  const mismatchedRequest = r5BrowserChartRequest(harness.timeAuthority, ARCHIVED_R5_FIXTURE_LOCATION, '12:01');
+  const mismatch = await post(harness.server, '/api/dev/chart/calculate', { chart: mismatchedRequest });
+  assert.equal(mismatch.status, 422);
+  assert.equal((await mismatch.json()).error.code, 'FIXTURE_CONTEXT_MISMATCH');
+  assert.equal(engineCalls, 0);
 });
 
 test('real research BFF preserves Engine busy status and never falls back to the synthetic client', async (context) => {

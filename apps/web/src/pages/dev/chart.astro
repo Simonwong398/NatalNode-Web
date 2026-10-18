@@ -15,8 +15,12 @@ const configuredWorkflowMode = process.env.NATALNODE_LOCAL_CHART_WORKFLOW_MODE ?
 const isLocalEngineWorkflowAvailable =
   import.meta.env.DEV &&
   process.env.NATALNODE_LOCAL_CHART_WORKFLOW === 'true' &&
-  ['SYNTHETIC', 'REAL_RESEARCH'].includes(configuredWorkflowMode);
-const workflowMode = configuredWorkflowMode === 'REAL_RESEARCH' ? 'real-research' : 'synthetic';
+  ['SYNTHETIC', 'REAL_RESEARCH', 'ARCHIVED_R5_FIXTURE'].includes(configuredWorkflowMode);
+const workflowMode = configuredWorkflowMode === 'REAL_RESEARCH'
+  ? 'real-research'
+  : configuredWorkflowMode === 'ARCHIVED_R5_FIXTURE'
+    ? 'archived-r5-fixture'
+    : 'synthetic';
 
 const seo: SeoMetadata = {
   title: 'Chart Experience Preview | NatalNode',

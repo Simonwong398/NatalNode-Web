@@ -11,7 +11,7 @@ import { toChartRequest } from './chart-request';
 
 interface LocalEngineChartWorkflowProps {
   readonly locale?: SupportedLocale;
-  readonly mode?: 'synthetic' | 'real-research';
+  readonly mode?: 'synthetic' | 'real-research' | 'archived-r5-fixture';
 }
 
 interface DevelopmentChartReceipt {
@@ -37,6 +37,12 @@ interface DevelopmentChartReceipt {
     readonly status: 'RESEARCH_ONLY';
     readonly provenance: 'INCOMPLETE_RESEARCH';
   };
+  readonly fixture?: {
+    readonly id: 'NN-ENGINE-REAL-J2000-CHART-R5-001';
+    readonly classification: 'ARCHIVED_RESEARCH_FIXTURE';
+    readonly calculationPerformed: false;
+    readonly locationResolution: 'FIXTURE_ONLY_NO_GEONAMES';
+  };
 }
 
 interface DevelopmentChartSnapshot {
@@ -50,7 +56,7 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 
 function parseReceipt(
   value: unknown,
-  mode: 'synthetic' | 'real-research'
+  mode: 'synthetic' | 'real-research' | 'archived-r5-fixture'
 ): DevelopmentChartReceipt | null {
   if (!isRecord(value) || !isRecord(value.receipt)) return null;
   const receipt = value.receipt;
@@ -64,6 +70,14 @@ function parseReceipt(
     : 'NOT REAL ASTRONOMICAL OUTPUT';
   const source = receipt.source;
   const execution = receipt.execution;
+  const fixture = value.fixture;
+  const hasSourceProvenance = isRecord(source) && isRecord(source.engineResult) &&
+    isRecord(source.engineResult.provider) &&
+    typeof source.engineResult.provider.id === 'string' &&
+    typeof source.engineResult.provider.version === 'string' &&
+    isRecord(source.engineResult.metadata) &&
+    Array.isArray(source.engineResult.metadata.provenance) &&
+    source.engineResult.metadata.provenance.every(isRecord);
   if (
     !isRecord(chart) || chart.schemaVersion !== '2.0.0' ||
     !Array.isArray(chart.bodies) || chart.bodies.length !== 10 ||
@@ -77,20 +91,21 @@ function parseReceipt(
     assessment.productionResultCertification !== 'NOT_CERTIFIED' ||
     assessment.dataClassification !== expectedClassification ||
     assessment.astronomicalStatus !== expectedAstronomicalStatus ||
+    ((mode === 'real-research' || mode === 'archived-r5-fixture') && !hasSourceProvenance) ||
     (mode === 'real-research' && (
-      !isRecord(source) || !isRecord(source.engineResult) ||
-      !isRecord(source.engineResult.provider) ||
-      typeof source.engineResult.provider.id !== 'string' ||
-      typeof source.engineResult.provider.version !== 'string' ||
-      !isRecord(source.engineResult.metadata) ||
-      !Array.isArray(source.engineResult.metadata.provenance) ||
-      !source.engineResult.metadata.provenance.every(isRecord) ||
       !isRecord(execution) ||
       typeof execution.serviceInstanceId !== 'string' ||
       typeof execution.requestExecutionId !== 'string' ||
       typeof execution.runtimeIdentity !== 'string' ||
       execution.status !== 'RESEARCH_ONLY' ||
       execution.provenance !== 'INCOMPLETE_RESEARCH'
+    )) ||
+    (mode === 'archived-r5-fixture' && (
+      !isRecord(fixture) ||
+      fixture.id !== 'NN-ENGINE-REAL-J2000-CHART-R5-001' ||
+      fixture.classification !== 'ARCHIVED_RESEARCH_FIXTURE' ||
+      fixture.calculationPerformed !== false ||
+      fixture.locationResolution !== 'FIXTURE_ONLY_NO_GEONAMES'
     ))
   ) {
     return null;
@@ -105,16 +120,21 @@ function parseReceipt(
       dataClassification: expectedClassification,
       astronomicalStatus: expectedAstronomicalStatus
     },
-    ...(mode === 'real-research' ? {
+    ...(mode !== 'synthetic' ? {
       source: source as DevelopmentChartReceipt['source'],
+    } : {}),
+    ...(mode === 'real-research' ? {
       execution: execution as DevelopmentChartReceipt['execution']
+    } : {}),
+    ...(mode === 'archived-r5-fixture' ? {
+      fixture: fixture as DevelopmentChartReceipt['fixture']
     } : {})
   };
 }
 
 async function calculateDevelopmentChart(
   request: ReturnType<typeof toChartRequest>,
-  mode: 'synthetic' | 'real-research'
+  mode: 'synthetic' | 'real-research' | 'archived-r5-fixture'
 ): Promise<DevelopmentChartReceipt> {
   const response = await fetch('/api/dev/chart/calculate', {
     method: 'POST',
@@ -223,6 +243,21 @@ export default function LocalEngineChartWorkflow({
             This result preserves the Engine&apos;s research provenance. It has not been scientifically admitted or approved for production use.
           </p>
         </section>
+      ) : mode === 'archived-r5-fixture' ? (
+        <section
+          aria-label="Archived research fixture disclosure"
+          className="nn-notice nn-notice--research mb-6 border-2 p-5"
+          data-testid="archived-r5-fixture-disclosure"
+        >
+          <p className="nn-eyebrow font-semibold">ARCHIVED R5 J2000 RESEARCH FIXTURE</p>
+          <p className="nn-type-card-title mt-1">NO CALCULATION PERFORMED</p>
+          <p className="nn-type-body-small mt-2">
+            This historical chart is shown only to verify the local form and presentation. It is not a new calculation, scientific admission, or production result.
+          </p>
+          <p className="nn-type-body-small mt-2" data-testid="fixture-location-disclosure">
+            Location resolution uses a fixed Greenwich test fixture; live GeoNames is not queried.
+          </p>
+        </section>
       ) : (
         <section
           aria-label="Synthetic chart disclosure"
@@ -287,6 +322,19 @@ export default function LocalEngineChartWorkflow({
           <p className="nn-type-body-small mt-1">
             Runtime identity: {snapshot.receipt.execution.runtimeIdentity}
           </p>
+          <pre className="mt-3 overflow-x-auto whitespace-pre-wrap text-xs">
+            {JSON.stringify(snapshot.receipt.source.engineResult.metadata.provenance, null, 2)}
+          </pre>
+        </details>
+      ) : null}
+
+      {mode === 'archived-r5-fixture' && snapshot?.receipt.source && snapshot.receipt.fixture ? (
+        <details className="nn-surface mt-4 p-4" data-testid="archived-r5-fixture-provenance">
+          <summary className="cursor-pointer font-semibold">Historical R5 source provenance</summary>
+          <p className="nn-type-body-small mt-3">
+            {snapshot.receipt.source.engineResult.provider.id} · {snapshot.receipt.source.engineResult.provider.version}
+          </p>
+          <p className="nn-type-body-small mt-1">Fixture: {snapshot.receipt.fixture.id}; no Engine execution occurred.</p>
           <pre className="mt-3 overflow-x-auto whitespace-pre-wrap text-xs">
             {JSON.stringify(snapshot.receipt.source.engineResult.metadata.provenance, null, 2)}
           </pre>

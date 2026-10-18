@@ -7,7 +7,7 @@ import {
   rmSync,
   symlinkSync
 } from 'node:fs';
-import { homedir, tmpdir } from 'node:os';
+import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { setTimeout as delay } from 'node:timers/promises';
 import { fileURLToPath, pathToFileURL } from 'node:url';
@@ -24,12 +24,14 @@ import { createLocalBrowserChartBffApp } from '../server/test/support/local-brow
 
 const WEB_ROOT = fileURLToPath(new URL('../', import.meta.url));
 const WEB_APP_ROOT = join(WEB_ROOT, 'apps/web');
-const EXPECTED_ENGINE_HEAD = 'a6125470edda64fb297c0e848f212fe215137bb2';
-const ENGINE_CHECKOUT = resolve(
-  process.env.NATALNODE_ENGINE_CHECKOUT ??
-  join(homedir(), 'Downloads/natalnode-engine-handoff')
-);
-const ENGINE_PACKAGE_ROOT = join(ENGINE_CHECKOUT, 'packages/engine');
+const EXPECTED_ENGINE_HEAD = 'd446c0c8d4ba399929e8634e3e4c855b3b4f0c4e';
+const configuredEngineCheckout = process.env.NATALNODE_ENGINE_CHECKOUT;
+const ENGINE_CHECKOUT = typeof configuredEngineCheckout === 'string' && configuredEngineCheckout.trim() !== ''
+  ? resolve(configuredEngineCheckout)
+  : null;
+const ENGINE_PACKAGE_ROOT = ENGINE_CHECKOUT === null
+  ? null
+  : join(ENGINE_CHECKOUT, 'packages/engine');
 const ENGINE_CHILD_SOURCE = join(
   WEB_ROOT,
   'server/test/support/private-engine-http-engine-child.mjs'
@@ -40,6 +42,7 @@ const PRIVATE_HTTP_ADAPTER_URL = pathToFileURL(join(
 )).href;
 const ASTRO_CLI = join(WEB_ROOT, 'node_modules/astro/bin/astro.mjs');
 const REAL_RESEARCH_MODE = process.argv.includes('--real-research');
+const REAL_CALL_GATE_ENABLED = process.env.NATALNODE_LOCAL_CHART_REAL_CALL_ENABLED === 'true';
 
 function runGit(checkout, args) {
   return execFileSync('git', args, {
@@ -50,12 +53,15 @@ function runGit(checkout, args) {
 }
 
 function verifyEngineCheckout() {
+  if (ENGINE_CHECKOUT === null) {
+    throw new Error('Set NATALNODE_ENGINE_CHECKOUT to the verified Engine checkout before starting the local chart workflow.');
+  }
   const head = runGit(ENGINE_CHECKOUT, ['rev-parse', 'HEAD']);
   if (head !== EXPECTED_ENGINE_HEAD) {
     throw new Error(`The local chart workflow requires Engine ${EXPECTED_ENGINE_HEAD}; found a different HEAD.`);
   }
-  if (runGit(ENGINE_CHECKOUT, ['status', '--porcelain']).length > 0) {
-    throw new Error('The Engine checkout must be clean before starting the local chart workflow.');
+  if (runGit(ENGINE_CHECKOUT, ['status', '--porcelain', '--untracked-files=no']).length > 0) {
+    throw new Error('The Engine checkout must have no tracked or staged changes before starting the local chart workflow.');
   }
   for (const path of [
     join(ENGINE_PACKAGE_ROOT, 'dist/src/index.js'),
@@ -185,6 +191,9 @@ async function stopWebChild(child) {
 }
 
 if (!existsSync(ASTRO_CLI)) throw new Error('The Web workspace Astro CLI is unavailable.');
+if (REAL_RESEARCH_MODE && !REAL_CALL_GATE_ENABLED) {
+  throw new Error('Real chart execution is disabled. For a separately owner-authorized run, set NATALNODE_LOCAL_CHART_REAL_CALL_ENABLED=true and invoke the explicit research command.');
+}
 if (!REAL_RESEARCH_MODE) verifyEngineCheckout();
 
 let engineRuntime;
