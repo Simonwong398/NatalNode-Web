@@ -81,6 +81,41 @@ test('real research client sends the exact authenticated R5 service request and 
   assert.equal(JSON.stringify(reply).includes(TOKEN), false);
 });
 
+test('non-calculating boundary probe uses unauthenticated and malformed-only requests', async () => {
+  const captured = [];
+  const client = createClient(async (url, init) => {
+    captured.push({ url, init, headers: new Headers(init.headers) });
+    return captured.length === 1
+      ? response({ error: 'UNAUTHORIZED' }, 401)
+      : response({ error: 'REQUEST_SCHEMA_INVALID' }, 400);
+  });
+
+  const result = await client.verifyNonCalculatingBoundary();
+  assert.deepEqual(result, {
+    unauthenticated: { status: 401, error: 'UNAUTHORIZED' },
+    malformedAuthenticated: { status: 400, error: 'REQUEST_SCHEMA_INVALID' }
+  });
+  assert.equal(JSON.stringify(result).includes(TOKEN), false);
+  assert.equal(captured.length, 2);
+  assert.deepEqual(captured.map(({ url }) => url), [
+    'http://127.0.0.1:45873/v1/chart/calculate',
+    'http://127.0.0.1:45873/v1/chart/calculate'
+  ]);
+  assert.equal(captured[0].init.method, 'POST');
+  assert.equal(captured[0].headers.get('authorization'), null);
+  assert.equal(captured[0].headers.get('content-type'), null);
+  assert.equal(captured[0].init.body, undefined);
+  assert.equal(captured[1].headers.get('authorization'), `Bearer ${TOKEN}`);
+  assert.equal(captured[1].headers.get('content-type'), 'application/json');
+  assert.equal(captured[1].init.body, '{}');
+  assert.equal(JSON.stringify(captured).includes('input'), false);
+});
+
+test('non-calculating boundary probe fails closed on an unexpected response', async () => {
+  const client = createClient(async () => response({ error: 'UNAUTHORIZED' }, 200));
+  await assertClientError(client.verifyNonCalculatingBoundary(), 'SERVICE_UNAVAILABLE');
+});
+
 test('real research client rejects runtime identity mismatch and malformed ChartResult', async () => {
   const mismatch = createClient(async () => response(envelope({
     execution: { ...EXECUTION, runtimeIdentity: 'b'.repeat(64) }

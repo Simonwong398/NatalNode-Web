@@ -13,6 +13,7 @@ const MAX_SERVICE_BUDGET_MS = 120_000;
 const MAX_CANCELLATION_CLEANUP_MS = 11_000;
 const NETWORK_ALLOWANCE_MS = 1_000;
 const DEFAULT_TIMEOUT_MS = MAX_SERVICE_BUDGET_MS + MAX_CANCELLATION_CLEANUP_MS + NETWORK_ALLOWANCE_MS;
+const NON_CALCULATING_PROBE_TIMEOUT_MS = 3_000;
 const HOUSE_SYSTEMS = ['placidus', 'whole-sign', 'equal'] as const;
 const UUID = '[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}';
 
@@ -250,6 +251,51 @@ export class RealEnginePrivateServiceClient {
     this.timeoutMs = timeoutMs;
     this.#bearerToken = options.bearerToken;
     this.#fetchImplementation = fetchImplementation;
+  }
+
+  async verifyNonCalculatingBoundary(): Promise<Readonly<{
+    unauthenticated: Readonly<{ status: number; error: string }>;
+    malformedAuthenticated: Readonly<{ status: number; error: string }>;
+  }>> {
+    const verify = async (
+      request: RequestInit,
+      expectedStatus: number,
+      expectedError: string
+    ): Promise<Readonly<{ status: number; error: string }>> => {
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), NON_CALCULATING_PROBE_TIMEOUT_MS);
+      try {
+        const response = await this.#fetchImplementation(this.endpoint, {
+          ...request,
+          method: 'POST',
+          cache: 'no-store',
+          redirect: 'error',
+          signal: controller.signal
+        });
+        const payload = await readBoundedResponse(response);
+        if (response.status !== expectedStatus || !hasExactKeys(payload, ['error']) ||
+            payload.error !== expectedError) {
+          throw new RealEnginePrivateServiceError('SERVICE_UNAVAILABLE');
+        }
+        return Object.freeze({ status: response.status, error: expectedError });
+      } catch (error) {
+        if (error instanceof RealEnginePrivateServiceError) throw error;
+        throw new RealEnginePrivateServiceError('SERVICE_UNAVAILABLE');
+      } finally {
+        clearTimeout(timeout);
+      }
+    };
+
+    const unauthenticated = await verify({ headers: { Accept: 'application/json' } }, 401, 'UNAUTHORIZED');
+    const malformedAuthenticated = await verify({
+      headers: {
+        Accept: 'application/json',
+        Authorization: `Bearer ${this.#bearerToken}`,
+        'Content-Type': 'application/json'
+      },
+      body: '{}'
+    }, 400, 'REQUEST_SCHEMA_INVALID');
+    return Object.freeze({ unauthenticated, malformedAuthenticated });
   }
 
   async calculateChart(

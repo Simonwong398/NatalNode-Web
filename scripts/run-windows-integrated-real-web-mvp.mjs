@@ -1,6 +1,7 @@
 import { execFileSync, spawn } from 'node:child_process';
-import { existsSync } from 'node:fs';
-import { isAbsolute, join, resolve } from 'node:path';
+import { randomBytes } from 'node:crypto';
+import { existsSync, readFileSync } from 'node:fs';
+import { join, resolve } from 'node:path';
 import { setTimeout as delay } from 'node:timers/promises';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { createBirthTimeResolutionService } from '../server/dist/time-resolution/index.js';
@@ -18,6 +19,8 @@ const ENGINE_CHECKOUT = process.env.NATALNODE_ENGINE_CHECKOUT?.trim()
   ? resolve(process.env.NATALNODE_ENGINE_CHECKOUT)
   : null;
 const RUNTIME_SERVICE_RELATIVE = 'packages/engine/research/nn-engine-private-service-runtime-unblock-001';
+const RUNTIME_EVIDENCE_RELATIVE = `${RUNTIME_SERVICE_RELATIVE}/validation-evidence.json`;
+const ACCEPTED_MANIFEST_RELATIVE = 'spike/dist/nn-engine-private-service-runtime-unblock-001/validated-002/runtime-manifest.local.json';
 const ASTRO_CLI = join(WEB_ROOT, 'node_modules/astro/bin/astro.mjs');
 const FIXTURE_ONLY = process.argv.includes('--fixture-only');
 const REAL_RESEARCH = process.argv.includes('--real-research');
@@ -40,30 +43,33 @@ function requireEngineCheckout() {
   }
 }
 
-function runtimeConfiguration() {
-  const names = [
-    'NATALNODE_PRIVATE_RUNTIME_MANIFEST_PATH',
-    'NATALNODE_PRIVATE_RUNTIME_MANIFEST_SHA256',
-    'NATALNODE_PRIVATE_SERVICE_BEARER_TOKEN'
-  ];
-  const missing = names.filter((name) => !process.env[name]);
-  if (missing.length > 0) throw new Error(`PRIVATE_ENGINE_CONFIG_MISSING: ${missing.join(', ')}.`);
-  if (!/^[a-f0-9]{64}$/u.test(process.env.NATALNODE_PRIVATE_RUNTIME_MANIFEST_SHA256)) {
-    throw new Error('PRIVATE_ENGINE_MANIFEST_DIGEST_INVALID: provide the independently approved 64-character SHA-256.');
+function runtimeConfiguration(engineCheckout) {
+  let evidence;
+  try {
+    evidence = JSON.parse(readFileSync(join(engineCheckout, RUNTIME_EVIDENCE_RELATIVE), 'utf8'));
+  } catch {
+    throw new Error('PRIVATE_ENGINE_PREPARATION_EVIDENCE_INVALID');
   }
-  if (!/^[\x21-\x7e]{32,256}$/u.test(process.env.NATALNODE_PRIVATE_SERVICE_BEARER_TOKEN)) {
-    throw new Error('PRIVATE_ENGINE_TOKEN_INVALID: the externally supplied token must be 32-256 printable ASCII bytes.');
+  const preparation = evidence?.runtimePreparation;
+  if (evidence?.schemaVersion !== 'natalnode.private-engine-runtime-unblock.validation-evidence.v1' ||
+      evidence?.taskId !== 'NN-ENGINE-PRIVATE-SERVICE-RUNTIME-UNBLOCK-001' ||
+      evidence?.status !== 'PREPARATION_AND_ADAPTER_VALIDATION_PASS' ||
+      preparation?.status !== 'PASS' || preparation.actualPrepareSelfVerification !== 'PASS' ||
+      preparation.scienceCalls !== 0 || preparation.manifestPathRelative !== ACCEPTED_MANIFEST_RELATIVE ||
+      !/^[a-f0-9]{64}$/u.test(preparation.expectedManifestSha256 ?? '') ||
+      !/^[a-f0-9]{64}$/u.test(preparation.runtimeIdentity ?? '') ||
+      evidence?.liveVerification?.realProviderCalls !== 0 || evidence.liveVerification.realChartCalls !== 0 ||
+      evidence.liveVerification.nativeAstronomyInvocations !== 0 || evidence.liveVerification.r5Replay !== false) {
+    throw new Error('PRIVATE_ENGINE_PREPARATION_EVIDENCE_INVALID');
   }
-  if (!existsSync(process.env.NATALNODE_PRIVATE_RUNTIME_MANIFEST_PATH)) {
-    throw new Error('PRIVATE_ENGINE_MANIFEST_MISSING: the configured external runtime manifest is unavailable.');
-  }
-  if (!isAbsolute(process.env.NATALNODE_PRIVATE_RUNTIME_MANIFEST_PATH)) {
-    throw new Error('PRIVATE_ENGINE_MANIFEST_PATH_INVALID: configure an absolute external manifest path.');
-  }
+  const manifestPath = resolve(engineCheckout, preparation.manifestPathRelative);
+  if (!existsSync(manifestPath)) throw new Error('PRIVATE_ENGINE_MANIFEST_MISSING');
+
   return Object.freeze({
-    manifestPath: process.env.NATALNODE_PRIVATE_RUNTIME_MANIFEST_PATH,
-    manifestSha256: process.env.NATALNODE_PRIVATE_RUNTIME_MANIFEST_SHA256,
-    bearerToken: process.env.NATALNODE_PRIVATE_SERVICE_BEARER_TOKEN
+    manifestPath,
+    manifestSha256: preparation.expectedManifestSha256,
+    runtimeIdentity: preparation.runtimeIdentity,
+    bearerToken: randomBytes(32).toString('base64url')
   });
 }
 
@@ -205,10 +211,14 @@ async function main() {
   let configuration = null;
   let engineAuthority;
   let engineOrigin = null;
+  let privateServiceClient;
   if (!FIXTURE_ONLY) {
-    configuration = runtimeConfiguration();
+    configuration = runtimeConfiguration(ENGINE_CHECKOUT);
     const serviceRoot = join(ENGINE_CHECKOUT, RUNTIME_SERVICE_RELATIVE);
     engineAuthority = await loadEngineAuthority({ serviceRoot, configuration });
+    if (engineAuthority.manifest.runtimeIdentity !== configuration.runtimeIdentity) {
+      throw new Error('ENGINE_RUNTIME_IDENTITY_BINDING_MISMATCH');
+    }
     owned.engine = startEngineService(serviceRoot, configuration);
     const startup = await Promise.race([
       owned.engine.ready,
@@ -220,16 +230,17 @@ async function main() {
       throw new Error('ENGINE_SERVICE_IDENTITY_OR_BINDING_MISMATCH');
     }
     engineOrigin = parsedOrigin.origin;
-    const negative = await fetch(`${engineOrigin}/v1/chart/calculate`, {
-      method: 'POST',
-      signal: AbortSignal.timeout(3_000)
+    privateServiceClient = new RealEnginePrivateServiceClient({
+      baseUrl: engineOrigin,
+      bearerToken: configuration.bearerToken,
+      expectedRuntimeIdentity: engineAuthority.manifest.runtimeIdentity
     });
-    const negativeBody = await negative.json().catch(() => null);
-    if (negative.status !== 401 || negativeBody?.error !== 'UNAUTHORIZED') {
-      throw new Error('ENGINE_AUTH_BOUNDARY_NEGATIVE_CHECK_FAILED');
-    }
+    const boundary = await privateServiceClient.verifyNonCalculatingBoundary();
+    process.stdout.write(`Verified accepted runtime identity ${engineAuthority.manifest.runtimeIdentity} (${engineAuthority.manifest.sources.length} sources, ${engineAuthority.manifest.files.length} bound files).\n`);
+    process.stdout.write('Generated a fresh ephemeral Engine bearer in memory; it is not passed to the browser or logged.\n');
     process.stdout.write(`Private Engine ready on IPv4 loopback; runtime ${startup.runtimeIdentity}.\n`);
-    process.stdout.write('Engine boundary: unauthenticated negative POST returned 401; no calculation was admitted.\n');
+    process.stdout.write(`BFF client boundary: unauthenticated POST returned ${boundary.unauthenticated.status} ${boundary.unauthenticated.error}; authenticated malformed-only POST returned ${boundary.malformedAuthenticated.status} ${boundary.malformedAuthenticated.error}.\n`);
+    process.stdout.write('The authenticated request failed schema validation before the calculation runner; no calculation was admitted.\n');
   } else {
     const packageRoot = join(ENGINE_CHECKOUT, 'packages/engine/dist/src/index.js');
     if (!existsSync(packageRoot)) throw new Error('ENGINE_PACKAGE_BUILD_MISSING: the bound Engine package output is unavailable.');
@@ -247,11 +258,7 @@ async function main() {
   const webOrigin = `http://127.0.0.1:${webPort}`;
   const fixtureMode = !REAL_RESEARCH;
   const realResearchClient = REAL_RESEARCH
-    ? new RealEnginePrivateServiceClient({
-        baseUrl: engineOrigin,
-        bearerToken: configuration.bearerToken,
-        expectedRuntimeIdentity: engineAuthority.manifest.runtimeIdentity
-      })
+    ? privateServiceClient
     : undefined;
   owned.bff = await startLoopbackHonoServer(createLocalBrowserChartBffApp({
     allowedOrigin: webOrigin,
@@ -294,6 +301,7 @@ async function main() {
   process.stdout.write(fixtureMode
     ? 'Chart result: archived R5 fixture only; no Engine calculation or real JPL call.\n'
     : 'Real-call mode: explicitly enabled, J2000-only, single valid request; no request is sent automatically.\n');
+  process.stdout.write(`REAL_CALL_GATE=${REAL_RESEARCH ? 'OPEN_BY_EXPLICIT_MODE' : 'CLOSED'}; no valid chart request was sent by startup.\n`);
   process.stdout.write(`Private Engine boundary: ${engineOrigin ? 'started; negative authentication check passed' : 'not started (fixture-only mode)'}.\n`);
   process.stdout.write('Press Ctrl-C to stop only the Astro and Engine child processes started by this command.\n\n');
 

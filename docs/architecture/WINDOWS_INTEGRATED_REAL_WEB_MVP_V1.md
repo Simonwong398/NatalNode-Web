@@ -12,22 +12,19 @@ npm run dev:windows-integrated-real-web-mvp:fixture
 
 The command builds the existing server workspaces, starts the BFF and Astro on `127.0.0.1`, and prints the local `/dev/chart` URL. Search for Greenwich and select the result, enter `2000-01-01` at `12:00`, and leave the house system at Placidus. This exact context is required by the archived fixture. Location resolution is a fixed test fixture and does not query GeoNames. The page labels the chart as an archived research fixture, states that no calculation occurred, and shows the historical source provenance. It is not evidence of a new astronomy run.
 
-The fixture-only command does not start the private Engine service. To run the full integrated *fixture* environment, use the same Engine checkout plus externally configured runtime manifest path, independently supplied manifest SHA-256, and private-service bearer token, then run:
+The fixture-only command does not start the private Engine service. To run the full integrated *fixture* environment, set only `NATALNODE_ENGINE_CHECKOUT` to the verified Engine checkout, then run:
 
 ```powershell
 npm run dev:windows-integrated-real-web-mvp
 ```
 
-The full command validates the committed Engine HEAD and tracked/staged state, verifies the runtime manifest closure, starts the existing private Engine service and the Website BFF/Astro, then makes one unauthenticated negative request to `/v1/chart/calculate`. The expected `401 UNAUTHORIZED` proves loopback reachability and that authentication precedes calculation admission. It is not an authenticated chart request. The browser still receives only the archived R5 fixture.
+The full command validates the committed Engine HEAD and tracked/staged state, reads the accepted runtime digest and identity from the committed `validation-evidence.json`, verifies the local runtime manifest closure, starts the existing private Engine service and the Website BFF/Astro, then probes through the server-side Engine client. The unauthenticated request must return `401 UNAUTHORIZED`; an authenticated body containing only `{}` must return `400 REQUEST_SCHEMA_INVALID`. The Engine validates the complete request before invoking its calculation runner, so neither probe can call a Provider. The browser still receives only the archived R5 fixture.
 
-Secrets must be supplied through the existing external secret configuration and must not be stored in this repository, `.env`, the browser bundle, shell history, or logs. Required process variables for full mode are:
+At startup the launcher generates a fresh 256-bit ephemeral bearer in memory. It is passed only to the private Engine child environment and the server-side client. It is not sent to Astro/browser code, stored in `.env`, placed in command-line arguments, or logged. The launcher uses the existing documented Engine service variable names for the spawned child. The only operator variable required for the integrated command is:
 
 - `NATALNODE_ENGINE_CHECKOUT`
-- `NATALNODE_PRIVATE_RUNTIME_MANIFEST_PATH`
-- `NATALNODE_PRIVATE_RUNTIME_MANIFEST_SHA256`
-- `NATALNODE_PRIVATE_SERVICE_BEARER_TOKEN`
 
-The launcher does not echo secret values or private manifest paths. It binds both HTTP listeners only to IPv4 loopback and shuts down only the Astro and Engine child processes it started. Press Ctrl-C in that command window for controlled shutdown.
+The launcher does not echo secret values or private manifest paths. It binds both HTTP listeners only to IPv4 loopback and shuts down only the Astro and Engine child processes it started. Press Ctrl-C in that command window for controlled shutdown. The real calculation gate remains closed unless the separately authorized `--real-research` mode and its explicit software gate are both enabled.
 
 ## Separately authorized single J2000 browser run
 
