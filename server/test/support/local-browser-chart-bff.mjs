@@ -87,6 +87,7 @@ export function createLocalBrowserChartBffApp({
   workflowMode = 'synthetic',
   fixtureEngineApi,
   requiredChartContext,
+  observeRequest,
   locationResolutionService,
   timeAuthority
 }) {
@@ -120,6 +121,7 @@ export function createLocalBrowserChartBffApp({
     await next();
   });
 
+  if (observeRequest) app.use('*', observeRequest);
   registerLocationResolutionRoutes(app, { locationResolutionService });
 
   app.post(RESOLVE_TIME_PATH, async (context) => {

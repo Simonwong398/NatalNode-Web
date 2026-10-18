@@ -11,6 +11,7 @@ import {
   createLocalBrowserChartBffApp
 } from '../server/test/support/local-browser-chart-bff.mjs';
 import { startLoopbackHonoServer } from '../server/test/support/private-engine-http-adapter.mjs';
+import { createSingleUseJ2000Evidence } from './single-use-j2000-evidence.mjs';
 
 const WEB_ROOT = fileURLToPath(new URL('../', import.meta.url));
 const WEB_APP_ROOT = join(WEB_ROOT, 'apps/web');
@@ -24,6 +25,8 @@ const ACCEPTED_MANIFEST_RELATIVE = 'spike/dist/nn-engine-private-service-runtime
 const ASTRO_CLI = join(WEB_ROOT, 'node_modules/astro/bin/astro.mjs');
 const FIXTURE_ONLY = process.argv.includes('--fixture-only');
 const REAL_RESEARCH = process.argv.includes('--real-research');
+const CAPTURE_SINGLE_USE = process.argv.includes('--capture-single-use-j2000');
+let singleUseEvidence;
 
 function git(root, args) {
   return execFileSync('git', args, { cwd: root, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] }).trim();
@@ -205,8 +208,17 @@ async function main() {
   if (REAL_RESEARCH && process.env.NATALNODE_LOCAL_CHART_REAL_CALL_ENABLED !== 'true') {
     throw new Error('REAL_CALL_GATE_CLOSED: real calculation requires a separate explicit owner authorization and NATALNODE_LOCAL_CHART_REAL_CALL_ENABLED=true.');
   }
+  if (CAPTURE_SINGLE_USE && !REAL_RESEARCH) throw new Error('SINGLE_USE_CAPTURE_REQUIRES_REAL_MODE');
+  // The opt-in is process-scoped, never inherited by the browser or persisted.
+  delete process.env.NATALNODE_LOCAL_CHART_REAL_CALL_ENABLED;
   if (!existsSync(ASTRO_CLI)) throw new Error('ASTRO_DEPENDENCY_MISSING: run npm ci from the Web repository first.');
   requireEngineCheckout();
+  if (CAPTURE_SINGLE_USE) {
+    singleUseEvidence = createSingleUseJ2000Evidence(
+      join(WEB_ROOT, 'dist/nn-windows-single-real-browser-j2000-e2e-001-resume'),
+      { engineHead: ENGINE_HEAD, webHead: git(WEB_ROOT, ['rev-parse', 'HEAD']), taskId: 'NN-WINDOWS-SINGLE-REAL-BROWSER-J2000-E2E-001-RESUME' }
+    );
+  }
 
   let configuration = null;
   let engineAuthority;
@@ -233,9 +245,17 @@ async function main() {
     privateServiceClient = new RealEnginePrivateServiceClient({
       baseUrl: engineOrigin,
       bearerToken: configuration.bearerToken,
-      expectedRuntimeIdentity: engineAuthority.manifest.runtimeIdentity
+      expectedRuntimeIdentity: engineAuthority.manifest.runtimeIdentity,
+      ...(singleUseEvidence ? { fetchImplementation: singleUseEvidence.fetchOperation } : {})
     });
     const boundary = await privateServiceClient.verifyNonCalculatingBoundary();
+    singleUseEvidence?.record('runtime-admission', {
+      runtimeIdentity: engineAuthority.manifest.runtimeIdentity,
+      manifestSha256: configuration.manifestSha256,
+      sources: engineAuthority.manifest.sources.map(({ filename, sha256, byteLength }) => ({ filename, sha256, byteLength })),
+      boundFiles: engineAuthority.manifest.files.length,
+      boundary
+    });
     process.stdout.write(`Verified accepted runtime identity ${engineAuthority.manifest.runtimeIdentity} (${engineAuthority.manifest.sources.length} sources, ${engineAuthority.manifest.files.length} bound files).\n`);
     process.stdout.write('Generated a fresh ephemeral Engine bearer in memory; it is not passed to the browser or logged.\n');
     process.stdout.write(`Private Engine ready on IPv4 loopback; runtime ${startup.runtimeIdentity}.\n`);
@@ -258,9 +278,9 @@ async function main() {
   const webOrigin = `http://127.0.0.1:${webPort}`;
   const fixtureMode = !REAL_RESEARCH;
   const realResearchClient = REAL_RESEARCH
-    ? privateServiceClient
+    ? (singleUseEvidence ? singleUseEvidence.wrapClient(privateServiceClient) : privateServiceClient)
     : undefined;
-  owned.bff = await startLoopbackHonoServer(createLocalBrowserChartBffApp({
+  const bffApp = createLocalBrowserChartBffApp({
     allowedOrigin: webOrigin,
     workflowMode: fixtureMode ? 'archived-r5-fixture' : 'real-research',
     fixtureEngineApi: engineAuthority.engineApi,
@@ -274,8 +294,10 @@ async function main() {
       }
     } : {}),
     locationResolutionService,
-    timeAuthority
-  }));
+    timeAuthority,
+    ...(singleUseEvidence ? { observeRequest: singleUseEvidence.observeBff } : {})
+  });
+  owned.bff = await startLoopbackHonoServer(bffApp);
 
   owned.astro = spawn(process.execPath, [
     ASTRO_CLI, 'dev', '--host', '127.0.0.1', '--port', String(webPort), '--strictPort'
@@ -295,6 +317,11 @@ async function main() {
   }
   const browserUrl = `${webOrigin}/dev/chart`;
   await waitForPage(owned.astro, browserUrl);
+  singleUseEvidence?.record('services-ready', {
+    browserUrl, engineOrigin, bffOrigin: owned.bff.origin,
+    launcherPid: process.pid, enginePid: owned.engine?.child.pid, astroPid: owned.astro.pid,
+    realRequestsAtStartup: 0
+  });
   process.stdout.write('\nNatalNode Windows integrated fixture workflow is ready.\n');
   process.stdout.write(`Browser URL: ${browserUrl}\n`);
   process.stdout.write('Location resolution: fixed Greenwich fixture; no GeoNames request.\n');
@@ -308,6 +335,8 @@ async function main() {
   await new Promise((resolveExit) => {
     process.once('SIGINT', resolveExit);
     process.once('SIGTERM', resolveExit);
+    process.stdin.on('data', (input) => { if (input.toString().trim() === 'STOP') resolveExit(); });
+    process.stdin.resume();
     owned.astro.once('exit', resolveExit);
   });
   process.stdout.write('Stopping owned local processes…\n');
@@ -321,5 +350,7 @@ try {
   process.exitCode = 1;
 } finally {
   const results = await cleanup();
+  singleUseEvidence?.close(results);
+  process.stdin.pause();
   if (results.length > 0) process.stdout.write(`Shutdown: ${results.join('; ')}.\n`);
 }

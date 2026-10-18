@@ -421,6 +421,34 @@ test('real research BFF preserves Engine busy status and never falls back to the
   assert.equal(response.status, 429);
   assert.equal((await response.json()).error.code, 'CALCULATION_BUSY');
   assert.equal(syntheticFallbackCalls, 0);
+  const replay = await post(harness.server, '/api/dev/chart/calculate', {
+    chart: r5BrowserChartRequest(harness.timeAuthority)
+  });
+  assert.equal(replay.status, 409);
+  assert.equal(harness.serviceCalls(), 1, 'An unsuccessful forwarded request is still consumed.');
+});
+
+test('real research BFF atomically rejects a concurrent submission before a second forward', async (context) => {
+  let finish;
+  let markStarted;
+  const started = new Promise((resolve) => { markStarted = resolve; });
+  const harness = await createResearchHarness({ fetchImplementation: async () => {
+    markStarted();
+    return new Promise((resolve) => {
+      finish = () => resolve(new Response(JSON.stringify({ chart: R5_CHART, execution: RESEARCH_EXECUTION }), {
+        headers: { 'Content-Type': 'application/json' }
+      }));
+    });
+  } });
+  context.after(() => harness.server.close());
+  const body = { chart: r5BrowserChartRequest(harness.timeAuthority) };
+  const first = post(harness.server, '/api/dev/chart/calculate', body);
+  await started;
+  const second = await post(harness.server, '/api/dev/chart/calculate', body);
+  assert.equal(second.status, 409);
+  assert.equal(harness.serviceCalls(), 1);
+  finish();
+  assert.equal((await first).status, 200);
 });
 
 test('real research BFF rejects stale canonical location claims before making a service call', async (context) => {
