@@ -8,7 +8,7 @@
     "build": "astro build",
     "build:local-integration": "astro build --mode local-integration",
     "check": "astro check",
-    "test:server-backed-development-resolver": "tsc --ignoreConfig --noCheck --target ES2022 --module NodeNext --moduleResolution NodeNext --rootDir src --outDir dist/server-backed-development-resolver-characterization src/features/chart-input/server-backed-development-resolver.ts && node --test test/server-backed-development-resolver.test.mjs",
+    "test:server-backed-development-resolver": "tsc --ignoreConfig --noCheck --target ES2022 --module NodeNext --moduleResolution NodeNext --rootDir src --outDir dist/server-backed-development-resolver-characterization src/features/chart-input/resolver.ts src/features/chart-input/server-backed-development-resolver.ts && node --test test/server-backed-development-resolver.test.mjs",
     "test:localization": "tsc --ignoreConfig --noCheck --target ES2022 --module NodeNext --moduleResolution NodeNext --rootDir src --outDir dist/localization-characterization src/lib/localization.ts && node --test test/localization.test.mjs",
     "test:locale-preference": "tsc --ignoreConfig --noCheck --target ES2022 --module NodeNext --moduleResolution NodeNext --rootDir src --outDir dist/locale-preference-characterization src/lib/localization.ts src/lib/locale-preference.ts src/features/localization/locale-selector.ts && node --test test/locale-preference.test.mjs",
     "test:ui-catalog": "tsc --ignoreConfig --noCheck --target ES2022 --module NodeNext --moduleResolution NodeNext --rootDir src --outDir dist/ui-catalog-characterization src/lib/localization.ts src/lib/ui-catalog.ts && node --test test/ui-catalog.test.mjs",

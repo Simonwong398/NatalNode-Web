@@ -1,5 +1,5 @@
 import type { CanonicalResolvedLocation } from './location-resolution';
-import type { BirthInputResolver } from './resolver';
+import { BirthInputResolverError, type BirthInputResolver } from './resolver.js';
 import type {
   AmbiguousTimeCandidate,
   BirthInputDraft,
@@ -62,9 +62,16 @@ function parseCandidates(value: unknown): readonly [AmbiguousTimeCandidate, Ambi
 }
 
 export class ServerBackedDevelopmentBirthInputResolver implements BirthInputResolver {
+  private readonly fetchImplementation: typeof globalThis.fetch;
+
   public constructor(
-    private readonly fetchImplementation: typeof globalThis.fetch = globalThis.fetch
-  ) {}
+    fetchImplementation: typeof globalThis.fetch = globalThis.fetch
+  ) {
+    if (typeof fetchImplementation !== 'function') {
+      throw new TypeError('A browser fetch implementation is required.');
+    }
+    this.fetchImplementation = fetchImplementation.bind(globalThis);
+  }
 
   public async resolve(
     draft: BirthInputDraft,
@@ -74,36 +81,63 @@ export class ServerBackedDevelopmentBirthInputResolver implements BirthInputReso
       selectedLocation === undefined || selectedLocation === null ||
       selectedLocation.status !== 'RESOLVED'
     ) {
-      throw new Error('Select a canonical birthplace before resolving birth time.');
+      throw new BirthInputResolverError(
+        'CANONICAL_LOCATION_REQUIRED',
+        'Select a canonical birthplace before resolving birth time.'
+      );
     }
 
-    const response = await this.fetchImplementation(RESOLUTION_ENDPOINT, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
-      credentials: 'same-origin',
-      cache: 'no-store',
-      body: JSON.stringify({
-        civilTime: {
-          localDate: draft.localDate,
-          localTime: draft.localTime,
-          calendar: 'ISO_8601_GREGORIAN',
-          precision: 'MINUTE'
-        },
-        location: {
-          resolutionId: selectedLocation.resolutionId,
-          coordinates: selectedLocation.coordinates,
-          ianaTimeZone: selectedLocation.ianaTimeZone
-        },
-        disambiguation: 'REJECT',
-        expectedTimezoneDatabaseVersion: null
-      })
-    });
+    let response: Response;
+    try {
+      response = await this.fetchImplementation(RESOLUTION_ENDPOINT, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+        credentials: 'same-origin',
+        cache: 'no-store',
+        body: JSON.stringify({
+          civilTime: {
+            localDate: draft.localDate,
+            localTime: draft.localTime,
+            calendar: 'ISO_8601_GREGORIAN',
+            precision: 'MINUTE'
+          },
+          location: {
+            resolutionId: selectedLocation.resolutionId,
+            coordinates: selectedLocation.coordinates,
+            ianaTimeZone: selectedLocation.ianaTimeZone
+          },
+          disambiguation: 'REJECT',
+          expectedTimezoneDatabaseVersion: null
+        })
+      });
+    } catch {
+      throw new BirthInputResolverError(
+        'LOCAL_BFF_UNAVAILABLE',
+        'The local birth-time verification service could not be reached.'
+      );
+    }
 
     let payload: unknown;
     try {
       payload = await response.json();
     } catch {
-      throw new Error('The time-resolution response is invalid.');
+      throw new BirthInputResolverError(
+        'INVALID_TIME_RESOLUTION_RESPONSE',
+        'The local birth-time verification response was invalid.'
+      );
+    }
+    if (
+      !response.ok && isRecord(payload) && isRecord(payload.error) &&
+      !(payload.outcome === 'REJECTED' && isRecord(payload.authority))
+    ) {
+      const code = payload.error.code;
+      const safeCode = typeof code === 'string' && /^[A-Z0-9_]{1,64}$/u.test(code)
+        ? code
+        : 'LOCAL_BFF_REJECTED';
+      throw new BirthInputResolverError(
+        safeCode,
+        `The local birth-time verification service rejected the request (${safeCode}).`
+      );
     }
     if (
       !isRecord(payload) ||
@@ -111,7 +145,10 @@ export class ServerBackedDevelopmentBirthInputResolver implements BirthInputReso
       typeof payload.authority.timezoneDatabaseVersion !== 'string' ||
       typeof payload.authority.profileId !== 'string'
     ) {
-      throw new Error('Birth time could not be resolved by the local BFF.');
+      throw new BirthInputResolverError(
+        'INVALID_TIME_RESOLUTION_RESPONSE',
+        'The local birth-time verification response was invalid.'
+      );
     }
 
     const base = resolutionBase(
@@ -128,7 +165,10 @@ export class ServerBackedDevelopmentBirthInputResolver implements BirthInputReso
         typeof instant !== 'string' || !UTC_INSTANT_PATTERN.test(instant) ||
         !Number.isSafeInteger(offset)
       ) {
-        throw new Error('The time-resolution response is invalid.');
+        throw new BirthInputResolverError(
+          'INVALID_TIME_RESOLUTION_RESPONSE',
+          'The local birth-time verification response was invalid.'
+        );
       }
       return {
         ...base,
@@ -140,7 +180,10 @@ export class ServerBackedDevelopmentBirthInputResolver implements BirthInputReso
     }
 
     if (payload.outcome !== 'REJECTED' || !isRecord(payload.error)) {
-      throw new Error('The time-resolution response is invalid.');
+      throw new BirthInputResolverError(
+        'INVALID_TIME_RESOLUTION_RESPONSE',
+        'The local birth-time verification response was invalid.'
+      );
     }
 
     switch (payload.error.code) {
@@ -171,9 +214,19 @@ export class ServerBackedDevelopmentBirthInputResolver implements BirthInputReso
         };
       default:
         if (!response.ok) {
-          throw new Error('Birth time could not be verified by the local BFF.');
+          const code = typeof payload.error.code === 'string' &&
+            /^[A-Z0-9_]{1,64}$/u.test(payload.error.code)
+            ? payload.error.code
+            : 'TIME_RESOLUTION_REJECTED';
+          throw new BirthInputResolverError(
+            code,
+            `The local birth-time verification service rejected the request (${code}).`
+          );
         }
-        throw new Error('The time-resolution response is invalid.');
+        throw new BirthInputResolverError(
+          'INVALID_TIME_RESOLUTION_RESPONSE',
+          'The local birth-time verification response was invalid.'
+        );
     }
   }
 }

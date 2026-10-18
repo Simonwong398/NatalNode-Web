@@ -90,6 +90,20 @@ test('resolver sends only the selected canonical place and accepts server-owned 
   });
 });
 
+test('resolver binds the native fetch receiver to globalThis', async () => {
+  let receiver;
+  const resolver = new ServerBackedDevelopmentBirthInputResolver(function () {
+    receiver = this;
+    return response({ outcome: 'VERIFIED', authority, resolution: {
+      resolvedUtcInstant: '2025-10-22T09:52:00.000Z',
+      utcOffsetSeconds: 3_600
+    } });
+  });
+
+  await resolver.resolve(DRAFT, LOCATION);
+  assert.equal(receiver, globalThis);
+});
+
 test('resolver refuses missing canonical selection instead of inventing coordinates or time', async () => {
   let called = false;
   const resolver = new ServerBackedDevelopmentBirthInputResolver(async () => {
@@ -131,12 +145,35 @@ test('unavailable or malformed BFF responses fail closed', async () => {
   const unavailable = new ServerBackedDevelopmentBirthInputResolver(async () => response({
     outcome: 'REJECTED', authority, error: { code: 'LOCATION_RESOLUTION_UNAVAILABLE' }
   }, 503));
-  await assert.rejects(unavailable.resolve(DRAFT, LOCATION), /could not be verified/u);
+  await assert.rejects(
+    unavailable.resolve(DRAFT, LOCATION),
+    /LOCATION_RESOLUTION_UNAVAILABLE/u
+  );
 
   const malformed = new ServerBackedDevelopmentBirthInputResolver(async () => response({
     outcome: 'VERIFIED',
     authority,
     resolution: { resolvedUtcInstant: 'not-a-utc-instant', utcOffsetSeconds: 0 }
   }));
-  await assert.rejects(malformed.resolve(DRAFT, LOCATION), /response is invalid/u);
+  await assert.rejects(malformed.resolve(DRAFT, LOCATION), /response was invalid/u);
+});
+
+test('resolver exposes only a bounded BFF error code for rejected or unreachable requests', async () => {
+  const rejected = new ServerBackedDevelopmentBirthInputResolver(async () => response({
+    error: { code: 'SAME_ORIGIN_REQUIRED', message: 'do not expose this server message' }
+  }, 403));
+  await assert.rejects(rejected.resolve(DRAFT, LOCATION), (error) => {
+    assert.match(error.message, /SAME_ORIGIN_REQUIRED/u);
+    assert.doesNotMatch(error.message, /do not expose/u);
+    return true;
+  });
+
+  const unreachable = new ServerBackedDevelopmentBirthInputResolver(async () => {
+    throw new TypeError('sensitive transport detail');
+  });
+  await assert.rejects(unreachable.resolve(DRAFT, LOCATION), (error) => {
+    assert.match(error.message, /could not be reached/u);
+    assert.doesNotMatch(error.message, /sensitive transport detail/u);
+    return true;
+  });
 });

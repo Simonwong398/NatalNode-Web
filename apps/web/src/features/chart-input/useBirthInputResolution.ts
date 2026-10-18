@@ -1,5 +1,5 @@
 import { useRef, useState } from 'react';
-import type { BirthInputResolver } from './resolver';
+import { BirthInputResolverError, type BirthInputResolver } from './resolver.js';
 import type { CanonicalResolvedLocation } from './location-resolution';
 import type {
   AmbiguousTimeCandidate,
@@ -88,13 +88,15 @@ export function useBirthInputResolution(
       setResolution(nextResolution);
       onResolutionAccepted(nextResolution);
       return nextResolution;
-    } catch {
+    } catch (error) {
       if (latestRequestRef.current !== requestId) {
         return null;
       }
 
       setResolution(null);
-      setResolutionError(RESOLUTION_ERROR);
+      setResolutionError(
+        error instanceof BirthInputResolverError ? error.message : RESOLUTION_ERROR
+      );
       return null;
     } finally {
       if (latestRequestRef.current === requestId) {
