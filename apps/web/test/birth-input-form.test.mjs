@@ -323,15 +323,19 @@ describe('initial render, validation, and configuration', () => {
   });
 
   test('isCalculationPending controls the label and disables every interactive form control', async () => {
-    await withBirthInputForm({ isCalculationPending: true }, async (scope) => {
+    await withBirthInputForm({
+      isCalculationPending: true,
+      submitButtonLabel: 'Load historical chart fixture',
+      pendingButtonLabel: 'Loading historical chart fixture…'
+    }, async (scope) => {
       await scope.mount();
-      assert.equal(scope.button('Calculating chart…').disabled, true);
+      assert.equal(scope.button('Loading historical chart fixture…').disabled, true);
       for (const control of scope.container.querySelectorAll('input, select, button')) {
         assert.equal(control.disabled, true);
       }
 
       await scope.rerender({ isCalculationPending: false });
-      assert.equal(scope.button('Calculate Chart').disabled, false);
+      assert.equal(scope.button('Load historical chart fixture').disabled, false);
       assert.equal(scope.control('Day').disabled, false);
       assert.equal(scope.id('unknown-time').disabled, false);
     });

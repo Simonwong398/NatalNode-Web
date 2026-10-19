@@ -1,5 +1,5 @@
 import { useId } from 'react';
-import type { ChartResult } from '@natalnode/contracts';
+import type { ChartResult, ChartResultV2 } from '@natalnode/contracts';
 import {
   DEFAULT_LOCALE,
   type SupportedLocale
@@ -14,11 +14,15 @@ import {
 import type { ChartPresentationPolicy } from '@/core/chart/chart-presentation-policy';
 
 export type CalculationDetailsProps = {
-  chart: ChartResult;
+  chart: ChartResult | ChartResultV2;
   locale?: SupportedLocale;
   presentationPolicy: ChartPresentationPolicy;
   requestedHouseSystem: string;
 };
+
+function isChartResultV2(chart: ChartResult | ChartResultV2): chart is ChartResultV2 {
+  return !('calculationStatus' in chart);
+}
 
 type DetailRowProps = {
   label: string;
@@ -53,11 +57,14 @@ export default function CalculationDetails({
   const titleId = `${detailsId}-title`;
   const researchTitleId = `${detailsId}-research-title`;
   const warningsTitleId = `${detailsId}-warnings-title`;
-  const isResearchConfiguration = chart.calculationStatus === 'INCOMPLETE_RESEARCH';
+  const isV2Result = isChartResultV2(chart);
+  const calculationStatus = isV2Result ? 'INCOMPLETE_RESEARCH' : chart.calculationStatus;
+  const configurationStatus = isV2Result ? 'INCOMPLETE_RESEARCH' : chart.metadata.configurationStatus;
+  const isResearchConfiguration = calculationStatus === 'INCOMPLETE_RESEARCH';
   const isUiFixture = chart.engineVersion === 'UI_FIXTURE_V1';
   const unavailable = chartUi(locale, 'calculation.unavailable');
-  const astronomyConfiguration = chart.metadata.astronomyConfigurationId ?? unavailable;
-  const provenanceEnvelope = chart.metadata.provenanceEnvelopeId ?? unavailable;
+  const astronomyConfiguration = isV2Result ? unavailable : chart.metadata.astronomyConfigurationId ?? unavailable;
+  const provenanceEnvelope = isV2Result ? unavailable : chart.metadata.provenanceEnvelopeId ?? unavailable;
   const houseSystemValue = presentationPolicy.showHouses
     ? chart.houses?.system
     : requestedHouseSystem;
@@ -69,9 +76,11 @@ export default function CalculationDetails({
   const houseSystemLabel = presentationPolicy.showHouses
     ? chartUi(locale, 'calculation.houseSystem')
     : chartUi(locale, 'calculation.requestedHouseSystem');
-  const researchReason = chart.calculationStatus === 'INCOMPLETE_RESEARCH'
-    ? chart.metadata.reason
-    : null;
+  const researchReason = isV2Result
+    ? 'INCOMPLETE_RESEARCH'
+    : chart.calculationStatus === 'INCOMPLETE_RESEARCH'
+      ? chart.metadata.reason
+      : null;
 
   return (
     <section
@@ -108,21 +117,21 @@ export default function CalculationDetails({
           />
           <DetailRow
             label={chartUi(locale, 'calculation.calculationStatus')}
-            value={chartCalculationStatus(locale, chart.calculationStatus)}
+            value={chartCalculationStatus(locale, calculationStatus)}
           />
           <DetailRow
             label={chartUi(locale, 'calculation.configurationStatus')}
-            value={chartCalculationStatus(locale, chart.metadata.configurationStatus)}
+            value={chartCalculationStatus(locale, configurationStatus)}
           />
           <DetailRow
             label={chartUi(locale, 'calculation.astronomyConfiguration')}
             value={astronomyConfiguration}
-            identifier={chart.metadata.astronomyConfigurationId !== null}
+            identifier={!isV2Result && chart.metadata.astronomyConfigurationId !== null}
           />
           <DetailRow
             label={chartUi(locale, 'calculation.provenanceEnvelope')}
             value={provenanceEnvelope}
-            identifier={chart.metadata.provenanceEnvelopeId !== null}
+            identifier={!isV2Result && chart.metadata.provenanceEnvelopeId !== null}
           />
           <DetailRow label={houseSystemLabel} value={houseSystem} />
         </dl>
@@ -139,7 +148,7 @@ export default function CalculationDetails({
             <dl className="mt-3 grid min-w-0 gap-2">
               <DetailRow
                 label={chartUi(locale, 'calculation.calculationStatus')}
-                value={chartCalculationStatus(locale, chart.calculationStatus)}
+                value={chartCalculationStatus(locale, calculationStatus)}
               />
               <DetailRow
                 label={chartUi(locale, 'calculation.astronomyConfiguration')}
@@ -169,7 +178,7 @@ export default function CalculationDetails({
             <p className="nn-type-body-small mt-2">{chartUi(locale, 'workspace.none')}</p>
           ) : (
             <ul className="mt-3 grid min-w-0 gap-3">
-              {chart.warnings.map((warning, index) => (
+              {chart.warnings.map((warning: ChartResultV2['warnings'][number] | ChartResult['warnings'][number], index) => (
                 <li
                   className="nn-surface min-w-0 p-3"
                   key={`${warning.code}-${index}`}
@@ -178,9 +187,11 @@ export default function CalculationDetails({
                     <span className="nn-calculation-details__identifier nn-type-metadata font-mono font-semibold">
                       {warning.code}
                     </span>
-                    <span className="nn-type-metadata font-semibold uppercase tracking-[0.12em]">
-                      {chartWarningSeverity(locale, warning.severity)}
-                    </span>
+                    {warning.severity !== null ? (
+                      <span className="nn-type-metadata font-semibold uppercase tracking-[0.12em]">
+                        {chartWarningSeverity(locale, warning.severity)}
+                      </span>
+                    ) : null}
                   </div>
                   <p className="nn-type-body-small mt-2 break-words">{chartWarningMessage(locale, warning)}</p>
                 </li>

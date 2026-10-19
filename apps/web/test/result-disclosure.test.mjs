@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import { afterEach, test } from 'node:test';
+import { WEB_UI_FIXTURE_V1 } from '@natalnode/test-fixtures';
 
 import {
   assertNoResultDisclosureHarnessLeak,
@@ -167,6 +168,31 @@ test('complete Chart facts open once and preserve the full existing notation aft
   });
 });
 
+test('a complete ten-body chart keeps placements, house assignments, and major aspects available', async () => {
+  await withResultWorkspace({ chart: WEB_UI_FIXTURE_V1 }, async (scope) => {
+    const chartPanel = scope.panel('Chart');
+    const orientation = [...chartPanel.querySelectorAll('h4')].find(
+      (heading) => scope.text(heading) === 'Chart facts at a glance'
+    ).closest('section');
+    assert.match(scope.text(orientation), /10 body placements · 7 major aspects/u);
+
+    const completeFacts = scope.disclosure('Complete chart facts');
+    await scope.click(completeFacts);
+    const content = scope.disclosureContent('Complete chart facts');
+    assert.equal(content.querySelectorAll('dl > div').length, 10);
+    assert.equal(content.querySelectorAll('li').length, 7);
+    for (const body of ['Sun', 'Moon', 'Mercury', 'Venus', 'Mars', 'Jupiter', 'Saturn', 'Uranus', 'Neptune', 'Pluto']) {
+      assert.match(scope.text(content), new RegExp(body, 'u'));
+    }
+    assert.match(scope.text(content), /House XI/u);
+    assert.match(scope.text(content), /Opposition/u);
+
+    await scope.click(scope.tab('Details'));
+    assert.match(scope.text(scope.panel('Details')), /Development source/u);
+    assert.match(scope.text(scope.panel('Details')), /UI_FIXTURE_V1/u);
+  });
+});
+
 test('mouse and keyboard mode navigation expose exactly one panel with stable relationships', async () => {
   await withResultWorkspace({}, async (scope) => {
     await scope.click(scope.tab('Interpretation'));
@@ -305,10 +331,11 @@ test('an available result with no supported major aspects shows a non-error empt
   );
 });
 
-test('development disclosures and the production SaveChartPanel integration remain present in source', async () => {
-  const [experienceSource, workspaceSource] = await Promise.all([
+test('development disclosures, the full isolated result workspace, and production save integration remain present in source', async () => {
+  const [experienceSource, workspaceSource, localWorkflowSource] = await Promise.all([
     readFile(new URL('../src/features/chart-experience/ChartExperience.tsx', import.meta.url), 'utf8'),
-    readFile(new URL('../src/features/chart-workspace/ChartWorkspace.tsx', import.meta.url), 'utf8')
+    readFile(new URL('../src/features/chart-workspace/ChartWorkspace.tsx', import.meta.url), 'utf8'),
+    readFile(new URL('../src/features/chart-experience/LocalEngineChartWorkflow.tsx', import.meta.url), 'utf8')
   ]);
 
   for (const disclosure of [
@@ -324,4 +351,7 @@ test('development disclosures and the production SaveChartPanel integration rema
     workspaceSource,
     /<SaveChartPanel[\s\S]*chartRequest=\{snapshot\.request\}[\s\S]*chartResult=\{snapshot\.result\}[\s\S]*locale=\{locale\}[\s\S]*\/>/u
   );
+  assert.match(localWorkflowSource, /<ChartWorkspaceView[\s\S]*chart=\{snapshot\.receipt\.chart\}[\s\S]*requestedHouseSystem=\{snapshot\.request\.houseSystem\}/u);
+  assert.doesNotMatch(localWorkflowSource, /<ChartRenderer\b/u);
+  assert.match(localWorkflowSource, /calculate\.status\.fixtureLoaded/u);
 });

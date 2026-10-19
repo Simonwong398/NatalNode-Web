@@ -201,7 +201,8 @@ function renderProps(state, onResolvedInputCalls) {
     'onInputChanged',
     'showInputSavePanel',
     'showDevelopmentInformation',
-    'submitButtonLabel'
+    'submitButtonLabel',
+    'pendingButtonLabel'
   ]) {
     if (state[key] !== undefined) {
       props[key] = state[key];

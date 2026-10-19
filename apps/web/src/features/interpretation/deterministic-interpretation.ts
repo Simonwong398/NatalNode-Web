@@ -1,4 +1,13 @@
-import type { AngleFact, AspectFact, BodyFact, ChartResult } from '@natalnode/contracts';
+import type {
+  AngleFact,
+  AngleFactV2,
+  AspectFact,
+  AspectFactV2,
+  BodyFact,
+  BodyFactV2,
+  ChartResult,
+  ChartResultV2
+} from '@natalnode/contracts';
 import type { SupportedLocale } from '@/lib/localization';
 import {
   SUPPORTED_PLANETS,
@@ -34,15 +43,20 @@ export type InterpretationResult = {
 
 const BIG_THREE_PLANETS = ['Sun', 'Moon'] as const satisfies readonly SupportedPlanet[];
 
-function findBody(chart: ChartResult, bodyId: SupportedPlanet): BodyFact | undefined {
+type InterpretationChart = ChartResult | ChartResultV2;
+type InterpretationBody = BodyFact | BodyFactV2;
+type InterpretationAngle = AngleFact | AngleFactV2;
+type InterpretationAspect = AspectFact | AspectFactV2;
+
+function findBody(chart: InterpretationChart, bodyId: SupportedPlanet): InterpretationBody | undefined {
   return chart.bodies.find((body) => body.bodyId === bodyId);
 }
 
-function findAngle(chart: ChartResult, angleId: string): AngleFact | undefined {
+function findAngle(chart: InterpretationChart, angleId: string): InterpretationAngle | undefined {
   return chart.angles.find((angle) => angle.angleId === angleId);
 }
 
-function findSupportedBody(chart: ChartResult, bodyId: string) {
+function findSupportedBody(chart: InterpretationChart, bodyId: string) {
   const body = chart.bodies.find((candidate) => candidate.bodyId === bodyId);
   const planet = SUPPORTED_PLANETS.find((candidate) => candidate === body?.bodyId);
 
@@ -50,7 +64,7 @@ function findSupportedBody(chart: ChartResult, bodyId: string) {
 }
 
 function createPlanetItem(
-  body: BodyFact,
+  body: InterpretationBody,
   planet: SupportedPlanet,
   idPrefix: string,
   copy: InterpretationUiCopy
@@ -72,7 +86,7 @@ function createPlanetItem(
 }
 
 function createPlanetInHouseItem(
-  body: BodyFact,
+  body: InterpretationBody,
   planet: SupportedPlanet,
   copy: InterpretationUiCopy
 ): InterpretationItem | null {
@@ -102,7 +116,9 @@ function isSupportedAspectType(type: string): type is SupportedAspectType {
   return Object.prototype.hasOwnProperty.call(ASPECT_DYNAMICS, type);
 }
 
-function isSupportedPhaseState(phaseState: AspectFact['phaseState']): boolean {
+function isSupportedPhaseState(
+  phaseState: AspectFact['phaseState'] | AspectFactV2['phaseState']
+): boolean {
   return (
     phaseState === null ||
     phaseState === 'APPLYING' ||
@@ -112,8 +128,8 @@ function isSupportedPhaseState(phaseState: AspectFact['phaseState']): boolean {
 }
 
 function createAspectItem(
-  chart: ChartResult,
-  aspect: AspectFact,
+  chart: InterpretationChart,
+  aspect: InterpretationAspect,
   copy: InterpretationUiCopy
 ): InterpretationItem | null {
   if (!isSupportedAspectType(aspect.type) || !Number.isFinite(aspect.orb) || aspect.orb < 0) {
@@ -149,7 +165,7 @@ function createAspectItem(
   };
 }
 
-function createAscendantItem(angle: AngleFact, copy: InterpretationUiCopy): InterpretationItem | null {
+function createAscendantItem(angle: InterpretationAngle, copy: InterpretationUiCopy): InterpretationItem | null {
   const style = SIGN_STYLES[angle.sign];
 
   if (!style) {
@@ -166,7 +182,7 @@ function createAscendantItem(angle: AngleFact, copy: InterpretationUiCopy): Inte
 }
 
 export function createDeterministicInterpretation(
-  chart: ChartResult,
+  chart: InterpretationChart,
   presentationPolicy: ChartPresentationPolicy,
   locale?: SupportedLocale
 ): InterpretationResult {

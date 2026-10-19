@@ -151,6 +151,8 @@ export interface BirthInputFormProps {
   showDevelopmentInformation?: boolean;
   /** Replaces the calculation CTA for local-only validation experiences. */
   submitButtonLabel?: string;
+  /** Replaces the pending label when a local-only action is not a calculation. */
+  pendingButtonLabel?: string;
 }
 
 export interface ResolvedBirthInputSelection {
@@ -258,7 +260,8 @@ export default function BirthInputForm({
   showDevelopmentDiagnostics = false,
   showDevelopmentInformation = true,
   showInputSavePanel = true,
-  submitButtonLabel
+  submitButtonLabel,
+  pendingButtonLabel
 }: BirthInputFormProps) {
   const [draft, setDraft] = useState<BirthInputDraft>(() =>
     draftFromChartRequest(initialChartRequest)
@@ -598,7 +601,7 @@ export default function BirthInputForm({
               type="submit"
             >
               {isCalculationPending
-                ? chartUi(locale, 'birthInput.calculating')
+                ? pendingButtonLabel ?? chartUi(locale, 'birthInput.calculating')
                 : isResolving
                   ? chartUi(locale, 'birthInput.resolving')
                   : submitButtonLabel ?? chartUi(locale, 'birthInput.calculate')}

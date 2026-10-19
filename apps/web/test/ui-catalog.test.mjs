@@ -71,6 +71,12 @@ test('representative global-shell labels are localized for English, Spanish, Jap
 test('Calculate and Chart Workspace Class A labels are localized without changing stable catalog identities', () => {
   for (const key of [
     'calculate.title',
+    'calculate.status.loadingFixture',
+    'calculate.status.fixtureLoaded',
+    'calculate.fixtureContextMismatch',
+    'calculate.fixtureLoadError',
+    'birthInput.loadChartFixture',
+    'birthInput.loadingChartFixture',
     'birthInput.birthDate',
     'birthInput.calculate',
     'workspace.chartTab',

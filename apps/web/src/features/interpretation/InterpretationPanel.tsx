@@ -1,5 +1,5 @@
 import { useId, useState } from 'react';
-import type { ChartResult } from '@natalnode/contracts';
+import type { ChartResult, ChartResultV2 } from '@natalnode/contracts';
 import type { SupportedLocale } from '@/lib/localization';
 import { chartUi, chartUiFormat } from '@/core/chart/chart-ui';
 import {
@@ -9,7 +9,7 @@ import {
 import type { ChartPresentationPolicy } from '@/core/chart/chart-presentation-policy';
 
 export type InterpretationPanelProps = {
-  chart: ChartResult;
+  chart: ChartResult | ChartResultV2;
   locale?: SupportedLocale;
   presentationPolicy: ChartPresentationPolicy;
 };
@@ -155,7 +155,8 @@ export default function InterpretationPanel({
   const majorAspectsAvailabilityId = `${panelId}-major-aspects-availability-title`;
   const planetsInSignsAvailabilityId = `${panelId}-planets-in-signs-availability-title`;
   const interpretation = createDeterministicInterpretation(chart, presentationPolicy, locale);
-  const isResearchConfiguration = chart.calculationStatus === 'INCOMPLETE_RESEARCH';
+  const isResearchConfiguration = !('calculationStatus' in chart) ||
+    chart.calculationStatus === 'INCOMPLETE_RESEARCH';
   const bigThreeTitle = presentationPolicy.showAngles
     ? chartUi(locale, 'interpretation.bigThree')
     : chartUi(locale, 'interpretation.corePlacements');

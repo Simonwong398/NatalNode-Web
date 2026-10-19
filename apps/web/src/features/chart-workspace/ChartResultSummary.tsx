@@ -1,4 +1,4 @@
-import type { ChartResult } from '@natalnode/contracts';
+import type { ChartResult, ChartResultV2 } from '@natalnode/contracts';
 import { useId } from 'react';
 import {
   DEFAULT_LOCALE,
@@ -77,7 +77,7 @@ const LEARN_LINKS = [
 ] as const;
 
 function countByClassification(
-  chart: ChartResult
+  chart: ChartResult | ChartResultV2
 ): { elements: Record<ElementName, number>; modalities: Record<ModalityName, number> } {
   const elements: Record<ElementName, number> = {
     Fire: 0,
@@ -164,7 +164,7 @@ function getLargestLabels(items: readonly DistributionItem[]): string[] {
 }
 
 export type ChartResultSummaryProps = {
-  chart: ChartResult;
+  chart: ChartResult | ChartResultV2;
   locale?: SupportedLocale;
   presentationPolicy: ChartPresentationPolicy;
 };

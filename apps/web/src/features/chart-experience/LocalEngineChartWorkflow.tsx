@@ -1,9 +1,9 @@
 import { useMemo, useRef, useState } from 'react';
 import type { ChartResultV2 } from '@natalnode/contracts';
-import { ChartRenderer } from '@/core/chart';
 import { createChartPresentationPolicy } from '@/core/chart/chart-presentation-policy';
 import { chartUi } from '@/core/chart/chart-ui';
 import { BirthInputForm, useLocationResolution } from '@/features/chart-input';
+import { ChartWorkspaceView } from '@/features/chart-workspace';
 import type { ResolvedBirthInputSelection } from '@/features/chart-input';
 import { ServerBackedDevelopmentBirthInputResolver } from '@/features/chart-input/server-backed-development-resolver';
 import type { SupportedLocale } from '@/lib/localization';
@@ -134,7 +134,8 @@ function parseReceipt(
 
 async function calculateDevelopmentChart(
   request: ReturnType<typeof toChartRequest>,
-  mode: 'synthetic' | 'real-research' | 'archived-r5-fixture'
+  mode: 'synthetic' | 'real-research' | 'archived-r5-fixture',
+  locale?: SupportedLocale
 ): Promise<DevelopmentChartReceipt> {
   const response = await fetch('/api/dev/chart/calculate', {
     method: 'POST',
@@ -167,6 +168,11 @@ async function calculateDevelopmentChart(
     }
     if (mode === 'real-research' && code === 'SERVICE_UNAVAILABLE') {
       throw new Error('The private Engine service is unavailable.');
+    }
+    if (mode === 'archived-r5-fixture') {
+      throw new Error(code === 'FIXTURE_CONTEXT_MISMATCH'
+        ? chartUi(locale, 'calculate.fixtureContextMismatch')
+        : chartUi(locale, 'calculate.fixtureLoadError'));
     }
     throw new Error('The chart calculation could not be completed.');
   }
@@ -218,7 +224,7 @@ export default function LocalEngineChartWorkflow({
     setCalculationError(null);
     const request = toChartRequest(resolution, houseSystem, selectedLocation.resolutionId);
     try {
-      const receipt = await calculateDevelopmentChart(request, mode);
+      const receipt = await calculateDevelopmentChart(request, mode, locale);
       setSnapshot({ request, receipt });
     } catch (error) {
       setSnapshot(null);
@@ -287,6 +293,10 @@ export default function LocalEngineChartWorkflow({
         showDevelopmentDiagnostics={false}
         showDevelopmentInformation={false}
         showInputSavePanel={false}
+        {...(mode === 'archived-r5-fixture' ? {
+          submitButtonLabel: chartUi(locale, 'birthInput.loadChartFixture'),
+          pendingButtonLabel: chartUi(locale, 'birthInput.loadingChartFixture')
+        } : {})}
       />
 
       <section
@@ -296,9 +306,13 @@ export default function LocalEngineChartWorkflow({
         <p className="nn-eyebrow">{chartUi(locale, 'calculate.eyebrow')}</p>
         <h2 className="nn-type-card-title mt-1" id="local-engine-calculation-title">
           {isCalculating
-            ? chartUi(locale, 'calculate.status.calculating')
+            ? mode === 'archived-r5-fixture'
+              ? chartUi(locale, 'calculate.status.loadingFixture')
+              : chartUi(locale, 'calculate.status.calculating')
             : snapshot
-              ? chartUi(locale, 'calculate.status.completed')
+              ? mode === 'archived-r5-fixture'
+                ? chartUi(locale, 'calculate.status.fixtureLoaded')
+                : chartUi(locale, 'calculate.status.completed')
               : chartUi(locale, 'calculate.status.ready')}
         </h2>
         {calculationError ? (
@@ -307,8 +321,14 @@ export default function LocalEngineChartWorkflow({
           </p>
         ) : null}
         {snapshot ? (
-          <p className="nn-notice nn-notice--success mt-4" role="status" data-testid="chart-calculation-success">
-            {chartUi(locale, 'calculate.status.completed')} · {snapshot.request.birth.resolvedUtcInstant}
+          <p
+            className="nn-notice nn-notice--success mt-4"
+            role="status"
+            data-testid={mode === 'archived-r5-fixture' ? 'chart-fixture-loaded' : 'chart-calculation-success'}
+          >
+            {mode === 'archived-r5-fixture'
+              ? chartUi(locale, 'calculate.status.fixtureLoaded')
+              : chartUi(locale, 'calculate.status.completed')} · {snapshot.request.birth.resolvedUtcInstant}
           </p>
         ) : null}
       </section>
@@ -342,21 +362,14 @@ export default function LocalEngineChartWorkflow({
       ) : null}
 
       {snapshot ? (
-        <section
-          aria-labelledby="local-engine-chart-result-title"
-          className="nn-surface mt-8 p-4 sm:p-6"
-          data-testid="rendered-development-chart"
-        >
-          <h2 className="nn-type-card-title" id="local-engine-chart-result-title">
-            {chartUi(locale, 'calculate.title')}
-          </h2>
-          <ChartRenderer
+        <div className="mt-8" data-testid="rendered-development-chart">
+          <ChartWorkspaceView
             chart={snapshot.receipt.chart}
-            chartKind="natal"
             locale={locale}
             presentationPolicy={createChartPresentationPolicy(snapshot.request)}
+            requestedHouseSystem={snapshot.request.houseSystem}
           />
-        </section>
+        </div>
       ) : null}
     </div>
   );

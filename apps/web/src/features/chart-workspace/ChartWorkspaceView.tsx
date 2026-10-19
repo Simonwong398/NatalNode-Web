@@ -7,7 +7,7 @@ import {
   type ReactNode,
   type Ref
 } from 'react';
-import type { ChartResult } from '@natalnode/contracts';
+import type { ChartResult, ChartResultV2 } from '@natalnode/contracts';
 import { CalculationDetails } from '@/features/calculation-details';
 import { ChartRenderer } from '@/core/chart';
 import { InterpretationPanel } from '@/features/interpretation';
@@ -44,13 +44,17 @@ const RESULT_MODE_KEYS = {
 } as const;
 
 export type ChartWorkspaceViewProps = {
-  chart: ChartResult;
+  chart: ChartResult | ChartResultV2;
   locale?: SupportedLocale;
   presentationPolicy: ChartPresentationPolicy;
   requestedHouseSystem: string;
   resultTargetRef?: Ref<HTMLElement>;
   children?: ReactNode;
 };
+
+function isChartResultV2(chart: ChartResult | ChartResultV2): chart is ChartResultV2 {
+  return !('calculationStatus' in chart);
+}
 
 /** Displays a trusted chart result without adding any calculation or persistence behavior. */
 export default function ChartWorkspaceView({
@@ -76,7 +80,9 @@ export default function ChartWorkspaceView({
   const [activeMode, setActiveMode] = useState<ResultMode>('chart');
   const [isSaveOpen, setIsSaveOpen] = useState(false);
   const [isChartFocusOpen, setIsChartFocusOpen] = useState(false);
-  const isResearchConfiguration = chart.calculationStatus === 'INCOMPLETE_RESEARCH';
+  const isV2Result = isChartResultV2(chart);
+  const calculationStatus = isV2Result ? 'INCOMPLETE_RESEARCH' : chart.calculationStatus;
+  const isResearchConfiguration = calculationStatus === 'INCOMPLETE_RESEARCH';
   const natalChartResolution = resolveAstrologyTerm(
     'chart_type.natal',
     locale ?? DEFAULT_LOCALE
@@ -173,7 +179,7 @@ export default function ChartWorkspaceView({
               })}
             </span>
             <span className="nn-badge">
-              {chartCalculationStatus(locale, chart.calculationStatus)}
+              {chartCalculationStatus(locale, calculationStatus)}
             </span>
             {isResearchConfiguration ? (
               <span className="nn-badge nn-status--research">
