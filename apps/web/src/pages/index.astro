@@ -2,7 +2,7 @@
 import LocaleNegotiationShell from '@/components/LocaleNegotiationShell.astro';
 import SiteLayout from '@/layouts/SiteLayout.astro';
 import { CurrentSkyInstrument } from '@/features/public-sky';
-import { getPresentationLocale, type SupportedLocale } from '@/lib/localization';
+import { getLocalizedPath, getPresentationLocale, type SupportedLocale } from '@/lib/localization';
 import { getUiMessage, type UiMessageKey } from '@/lib/ui-catalog';
 import type { SeoMetadata } from '@/lib/seo';
 
@@ -22,6 +22,7 @@ const seo: SeoMetadata = {
 } as const;
 const locale = localizedLocale ?? getPresentationLocale(Astro.url.pathname, Astro.locals.locale);
 const t = (key: UiMessageKey) => getUiMessage(locale, key);
+const quickChartPath = getLocalizedPath(locale, '/chart');
 ---
 
 {isLocalizedPage ? (
@@ -42,6 +43,9 @@ const t = (key: UiMessageKey) => getUiMessage(locale, key);
         <p class="nn-eyebrow">{t('calculate.eyebrow')}</p>
         <h1 class="nn-type-page-title max-w-2xl">{t('calculate.title')}</h1>
         <p class="nn-type-body max-w-xl">{t('calculate.description')}</p>
+        <a class="nn-button nn-button--primary mt-6 w-full sm:w-fit" href={quickChartPath}>
+          {t('quickChart.createMyChart')}
+        </a>
       </header>
       <div class="grid gap-8 md:grid-cols-[minmax(0,1fr)_minmax(20rem,0.78fr)]">
         <section class="nn-surface mt-8 p-5 sm:p-7" aria-labelledby="production-calculation-boundary-title">

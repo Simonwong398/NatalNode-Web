@@ -83,3 +83,22 @@ test('Calculate and Chart Workspace Class A labels are localized without changin
   assert.equal(getUiMessage('zh-Hant', 'birthInput.calculate'), '計算星盤');
   assert.equal(getUiMessage('ja', 'workspace.detailsTab'), '詳細');
 });
+
+test('guest Quick Chart labels are localized and never claim that a chart was calculated', () => {
+  const quickChartKeys = [
+    'quickChart.createMyChart',
+    'quickChart.checkInputs',
+    'quickChart.unavailable',
+    'quickChart.inputValidated'
+  ];
+
+  for (const key of quickChartKeys) {
+    const messages = EXPECTED_LOCALES.map((locale) => getUiMessage(locale, key));
+    assert.equal(new Set(messages).size, EXPECTED_LOCALES.length, key);
+  }
+
+  assert.equal(getUiMessage('en', 'quickChart.checkInputs'), 'Check birth details');
+  assert.match(getUiMessage('en', 'quickChart.unavailable'), /cannot be calculated/u);
+  assert.match(getUiMessage('en', 'quickChart.unavailable'), /not sent or saved/u);
+  assert.match(getUiMessage('en', 'quickChart.inputValidated'), /No chart was calculated/u);
+});

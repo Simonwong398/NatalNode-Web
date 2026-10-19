@@ -146,6 +146,8 @@ export interface BirthInputFormProps {
   onLocationQueryChange?: (rawQuery: string) => void;
   /** Invalidates any calculated snapshot when the live form input changes. */
   onInputChanged?: () => void;
+  /** Runs after local required-field validation without resolving or submitting input. */
+  onInputValidated?: () => void;
   onResolvedInput: (selection: ResolvedBirthInputSelection) => void;
   /** Keeps the current-input save path singular when a result workspace is present. */
   showInputSavePanel?: boolean;
@@ -154,6 +156,8 @@ export interface BirthInputFormProps {
   resolver?: BirthInputResolver;
   showDevelopmentDiagnostics?: boolean;
   showDevelopmentInformation?: boolean;
+  /** Replaces the calculation CTA for local-only validation experiences. */
+  submitButtonLabel?: string;
 }
 
 export interface ResolvedBirthInputSelection {
@@ -255,12 +259,14 @@ export default function BirthInputForm({
   onLocationPanelMounted,
   onLocationQueryChange,
   onInputChanged,
+  onInputValidated,
   onResolvedInput,
   requireResolvedLocation = false,
   resolver = defaultResolver,
   showDevelopmentDiagnostics = false,
   showDevelopmentInformation = true,
-  showInputSavePanel = true
+  showInputSavePanel = true,
+  submitButtonLabel
 }: BirthInputFormProps) {
   const [draft, setDraft] = useState<BirthInputDraft>(() =>
     draftFromChartRequest(initialChartRequest)
@@ -497,6 +503,11 @@ export default function BirthInputForm({
       return;
     }
 
+    if (onInputValidated !== undefined) {
+      onInputValidated();
+      return;
+    }
+
     const selectedHouseSystem = draft.houseSystem;
     const locationResolutionId = canSubmitProductionCalculation(
       locationResolution ?? EMPTY_LOCATION_RESOLUTION_STATE
@@ -592,13 +603,20 @@ export default function BirthInputForm({
             <button
               className="nn-button nn-button--primary w-full sm:w-auto"
               disabled={isInteractionDisabled}
-              type="submit"
+              onClick={
+                onInputValidated === undefined
+                  ? undefined
+                  : () => {
+                      void handleSubmit({ preventDefault: () => undefined });
+                    }
+              }
+              type={onInputValidated === undefined ? 'submit' : 'button'}
             >
               {isCalculationPending
                 ? chartUi(locale, 'birthInput.calculating')
                 : isResolving
                   ? chartUi(locale, 'birthInput.resolving')
-                  : chartUi(locale, 'birthInput.calculate')}
+                  : submitButtonLabel ?? chartUi(locale, 'birthInput.calculate')}
             </button>
             {isResolving ? (
               <p className="nn-status nn-status--info" role="status" aria-live="polite">

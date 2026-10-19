@@ -191,6 +191,18 @@ function renderProps(state, onResolvedInputCalls) {
     }
   };
 
+  for (const key of [
+    'onInputChanged',
+    'onInputValidated',
+    'showInputSavePanel',
+    'showDevelopmentInformation',
+    'submitButtonLabel'
+  ]) {
+    if (state[key] !== undefined) {
+      props[key] = state[key];
+    }
+  }
+
   if (state.resolver !== undefined) {
     props.resolver = state.resolver;
   }

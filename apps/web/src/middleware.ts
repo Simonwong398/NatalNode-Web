@@ -9,6 +9,7 @@ const PRESENTATION_PAGE_ROUTE_PATTERNS = new Set([
   '/',
   '/about',
   '/account',
+  '/chart',
   '/community',
   '/community/ask',
   '/community/moderation',

@@ -281,6 +281,48 @@ describe('initial render, validation, and configuration', () => {
     });
   });
 
+  test('local-only entry mode validates required fields without resolving, submitting, or saving input', async () => {
+    const resolver = capturingResolver(() => {
+      throw new Error('A public entry form must not invoke a birth resolver.');
+    });
+    let validationCount = 0;
+
+    await withBirthInputForm({
+      resolver,
+      onInputValidated: () => { validationCount += 1; },
+      submitButtonLabel: 'Check birth details',
+      showDevelopmentInformation: false,
+      showInputSavePanel: false
+    }, async (scope) => {
+      await scope.mount();
+
+      assert.equal(scope.button('Check birth details').disabled, false);
+      assert.equal(scope.button('Check birth details').type, 'button');
+      assert.doesNotMatch(scope.container.textContent, /UI DEVELOPMENT ONLY/u);
+      assert.equal(scope.container.querySelector('[data-vault-save-mode]'), null);
+
+      await scope.click(scope.button('Check birth details'));
+      assert.deepEqual(
+        scope.roles('alert').map((element) => scope.text(element)),
+        [
+          'Enter a birth date.',
+          'Enter a birth time or choose the unknown-time option.',
+          'Enter a birth place.'
+        ]
+      );
+      assert.equal(validationCount, 0);
+
+      await fillKnown(scope, { place: 'A place entered by the visitor' });
+      await scope.click(scope.button('Check birth details'));
+
+      assert.equal(validationCount, 1);
+      assert.equal(resolver.calls.length, 0);
+      assert.equal(scope.onResolvedInputCalls.length, 0);
+      assert.equal(scope.fetchCalls.length, 0);
+      assert.equal(scope.container.querySelector('[data-vault-save-mode]'), null);
+    });
+  });
+
   test('isCalculationPending controls the label and disables every interactive form control', async () => {
     await withBirthInputForm({ isCalculationPending: true }, async (scope) => {
       await scope.mount();

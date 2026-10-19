@@ -1,0 +1,33 @@
+---
+import GuestQuickChartEntry from '@/features/chart-experience/GuestQuickChartEntry';
+import SiteLayout from '@/layouts/SiteLayout.astro';
+import { getPresentationLocale, type SupportedLocale } from '@/lib/localization';
+import { getUiMessage, type UiMessageKey } from '@/lib/ui-catalog';
+import type { SeoMetadata } from '@/lib/seo';
+
+interface Props {
+  locale?: SupportedLocale;
+}
+
+const { locale: routeLocale } = Astro.props;
+const locale = routeLocale ?? getPresentationLocale(Astro.url.pathname, Astro.locals.locale);
+const t = (key: UiMessageKey): string => getUiMessage(locale, key);
+const seo: SeoMetadata = {
+  title: `${t('calculate.title')} | NatalNode`,
+  description: t('calculate.description'),
+  canonical: '/chart'
+};
+---
+
+<SiteLayout seo={seo} mode="observatory">
+  <main class="nn-container nn-container--calculate pb-16 pt-10 sm:pb-20 sm:pt-14">
+    <header class="nn-section-header max-w-3xl">
+      <p class="nn-eyebrow">{t('calculate.eyebrow')}</p>
+      <h1 class="nn-type-page-title mt-2">{t('calculate.title')}</h1>
+      <p class="nn-type-body mt-3">{t('calculate.description')}</p>
+    </header>
+    <section class="mt-8 max-w-5xl" aria-label={t('birthInput.detailsLabel')}>
+      <GuestQuickChartEntry client:load locale={locale} />
+    </section>
+  </main>
+</SiteLayout>
