@@ -97,6 +97,8 @@ function createNonexistentResolution(input: BirthInputDraft): NonexistentBirthIn
  * inputs use the fixed EXACT fixture; unknown time returns UNKNOWN_TIME.
  */
 export class DevelopmentBirthInputResolver implements BirthInputResolver {
+  public readonly provenance = 'UI_DEVELOPMENT_ONLY';
+
   async resolve(input: BirthInputDraft): Promise<BirthInputResolution> {
     if (input.localTime === null || input.ambiguityStatus === 'UNKNOWN_TIME') {
       return createUnknownTimeResolution(input);

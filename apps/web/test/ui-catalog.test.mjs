@@ -84,12 +84,17 @@ test('Calculate and Chart Workspace Class A labels are localized without changin
   assert.equal(getUiMessage('ja', 'workspace.detailsTab'), '詳細');
 });
 
-test('guest Quick Chart labels are localized and never claim that a chart was calculated', () => {
+test('guest Quick Chart verification copy is localized and keeps calculation unavailable', () => {
   const quickChartKeys = [
     'quickChart.createMyChart',
-    'quickChart.checkInputs',
-    'quickChart.unavailable',
-    'quickChart.inputValidated'
+    'quickChart.verifyBirthDetails',
+    'quickChart.verificationDisclosure',
+    'quickChart.verifiedNoCalculation',
+    'quickChart.timeVerificationUnavailable',
+    'quickChart.locationVerificationUnavailable',
+    'quickChart.locationSelectionExpired',
+    'quickChart.timeOutsideSupportedRange',
+    'quickChart.verificationFailed'
   ];
 
   for (const key of quickChartKeys) {
@@ -97,8 +102,9 @@ test('guest Quick Chart labels are localized and never claim that a chart was ca
     assert.equal(new Set(messages).size, EXPECTED_LOCALES.length, key);
   }
 
-  assert.equal(getUiMessage('en', 'quickChart.checkInputs'), 'Check birth details');
-  assert.match(getUiMessage('en', 'quickChart.unavailable'), /cannot be calculated/u);
-  assert.match(getUiMessage('en', 'quickChart.unavailable'), /not sent or saved/u);
-  assert.match(getUiMessage('en', 'quickChart.inputValidated'), /No chart was calculated/u);
+  assert.equal(getUiMessage('en', 'quickChart.verifyBirthDetails'), 'Verify birth details');
+  assert.match(getUiMessage('en', 'quickChart.verificationDisclosure'), /GeoNames/u);
+  assert.match(getUiMessage('en', 'quickChart.verificationDisclosure'), /not saved/u);
+  assert.match(getUiMessage('en', 'quickChart.verificationDisclosure'), /calculation is not available/u);
+  assert.match(getUiMessage('en', 'quickChart.verifiedNoCalculation'), /No chart was calculated/u);
 });

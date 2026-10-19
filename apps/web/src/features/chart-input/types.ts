@@ -1,3 +1,5 @@
+import type { TimeResolutionEvidence } from '@natalnode/contracts';
+
 export type BirthInputAmbiguityStatus =
   | 'UNRESOLVED'
   | 'EXACT'
@@ -49,6 +51,8 @@ export interface ExactBirthInputResolution extends ResolvedBirthInputBase {
   ambiguityStatus: 'EXACT';
   resolvedUtcInstant: string;
   utcOffsetSeconds: number;
+  /** Serialized authority evidence is for UI provenance, never calculation authority. */
+  timeResolutionEvidence?: TimeResolutionEvidence;
 }
 
 export interface AmbiguousBirthInputResolution extends ResolvedBirthInputBase {

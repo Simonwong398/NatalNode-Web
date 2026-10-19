@@ -454,6 +454,10 @@ export function selectP0StagingRateLimitPolicy(
     return P0_STAGING_RATE_LIMIT_POLICIES.locationResolve;
   }
 
+  if (method === 'POST' && pathname === '/api/birth-time/resolve') {
+    return P0_STAGING_RATE_LIMIT_POLICIES.locationResolve;
+  }
+
   if (method === 'POST' && (pathname === '/api/sky/snapshot' || pathname === '/api/sky/events')) {
     return P0_STAGING_RATE_LIMIT_POLICIES.skyQuery;
   }

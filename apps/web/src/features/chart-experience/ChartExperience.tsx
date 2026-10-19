@@ -18,6 +18,9 @@ import { toChartRequest } from './chart-request';
 import { chartUi } from '@/core/chart/chart-ui';
 import { resolveVaultSaveIntent } from '@/features/vault/vault-save-intent';
 import type { CalculatedChartSnapshot } from './types';
+import { DevelopmentBirthInputResolver } from '@/features/chart-input/development-resolver';
+
+const developmentResolver = new DevelopmentBirthInputResolver();
 
 interface ChartExperienceProps {
   readonly locale?: SupportedLocale;
@@ -297,6 +300,7 @@ export default function ChartExperience({
   return (
     <>
       <BirthInputForm
+        resolver={developmentResolver}
         key={
           reopenedChartRequest === null
             ? initialVaultRecordId === null ? 'new-input' : 'vault-input-loading'

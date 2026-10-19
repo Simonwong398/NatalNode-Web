@@ -35,6 +35,7 @@ import {
 } from '../runtime/duration-authentication-expiration-policy.js';
 import { SystemClock } from '../runtime/system-clock.js';
 import { createGeoNamesLocationResolutionService } from '../location-resolution/geonames-web-provider.js';
+import { createBirthTimeResolutionService } from '../time-resolution/index.js';
 import {
   PublicWebOriginMagicLinkUrlBuilder,
   Sha256TokenHasher,
@@ -46,7 +47,7 @@ import {
   assertPublicDevelopmentEnvironment,
   PUBLIC_DEVELOPMENT_AUTHENTICATION_TTLS,
   PUBLIC_DEVELOPMENT_CHART_RESULT_CACHE_IDENTITY,
-  PUBLIC_DEVELOPMENT_PUBLIC_ORIGIN,
+  resolvePublicDevelopmentNetworkConfig,
   PUBLIC_DEVELOPMENT_SESSION_COOKIE_POLICY,
   type PublicDevelopmentEnvironment
 } from './public-development-config.js';
@@ -266,6 +267,7 @@ export function createPublicDevelopmentDependencies(
   environment?: PublicDevelopmentEnvironment
 ): ServerDependencies {
   assertPublicDevelopmentEnvironment(environment);
+  const networkConfig = resolvePublicDevelopmentNetworkConfig(environment);
 
   const clock = new SystemClock();
   const engineClient = new MockEngineClient();
@@ -277,9 +279,12 @@ export function createPublicDevelopmentDependencies(
     geonamesUsername === undefined
       ? undefined
       : createGeoNamesLocationResolutionService(geonamesUsername);
+  const birthTimeResolutionService = locationResolutionService === undefined
+    ? undefined
+    : createBirthTimeResolutionService({ locationResolutionService });
 
   return {
-    publicWebOrigin: PUBLIC_DEVELOPMENT_PUBLIC_ORIGIN,
+    publicWebOrigin: networkConfig.publicOrigin,
     authenticator: new PublicDevelopmentRequestAuthenticator(),
     accountErasure: publicDevelopmentAccountErasure,
     accountDataExport: publicDevelopmentAccountDataExport,
@@ -295,6 +300,7 @@ export function createPublicDevelopmentDependencies(
     }),
     clock,
     locationResolutionService,
+    birthTimeResolutionService,
     secureTokenGenerator: publicDevelopmentSecureTokenGenerator,
     tokenHasher: new Sha256TokenHasher(),
     authenticationExpirationPolicy:
@@ -304,7 +310,7 @@ export function createPublicDevelopmentDependencies(
       ),
     emailMagicLinkDelivery: publicDevelopmentEmailMagicLinkDelivery,
     magicLinkUrlBuilder: new PublicWebOriginMagicLinkUrlBuilder(
-      PUBLIC_DEVELOPMENT_PUBLIC_ORIGIN
+      networkConfig.publicOrigin
     ),
     sessionCookiePolicy: PUBLIC_DEVELOPMENT_SESSION_COOKIE_POLICY
   };

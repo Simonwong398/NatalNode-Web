@@ -21,6 +21,7 @@ import {
 } from './security/runtime-operational-boundary.js';
 import { createChartRoute } from './routes/chart.js';
 import { registerLocationResolutionRoutes } from './routes/location.js';
+import { registerBirthTimeResolutionRoutes } from './routes/birth-time.js';
 import { createProblemDetailsContextResponse } from './problem-details/context-response.js';
 import { registerEmailAuthenticationRoutes } from './routes/auth-email.js';
 import { registerGoogleAuthenticationRoutes } from './routes/google-auth.js';
@@ -146,6 +147,7 @@ export function createApp(
   );
   app.post('/api/chart', createChartRoute(dependencies));
   registerLocationResolutionRoutes(app, dependencies);
+  registerBirthTimeResolutionRoutes(app, dependencies);
   registerSkyRoutes(app, dependencies);
   registerEmailAuthenticationRoutes(app, dependencies);
   registerGoogleAuthenticationRoutes(app, dependencies);

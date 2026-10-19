@@ -46,7 +46,7 @@ export interface ServerDependencies {
   readonly clock: Clock;
   /** Omitted until an approved geocoding provider is bound. */
   readonly locationResolutionService?: LocationResolutionService;
-  /** Explicitly bound by a future caller; does not open production Engine admission. */
+  /** Optional guest-safe civil-time endpoint service; does not open Engine admission. */
   readonly birthTimeResolutionService?: BirthTimeResolutionService;
   /** Omitted by public-development so authenticated notification use fails closed. */
   readonly notificationAccountService?: NotificationAccountService;

@@ -1,5 +1,11 @@
 import { useRef, useState } from 'react';
-import { BirthInputResolverError, type BirthInputResolver } from './resolver.js';
+import { chartUi } from '@/core/chart/chart-ui';
+import { DEFAULT_LOCALE, type SupportedLocale } from '@/lib/localization';
+import {
+  BirthInputResolverError,
+  type BirthInputResolver,
+  type BirthInputResolverOptions
+} from './resolver.js';
 import type { CanonicalResolvedLocation } from './location-resolution';
 import type {
   AmbiguousTimeCandidate,
@@ -7,35 +13,26 @@ import type {
   BirthInputResolution
 } from './types';
 
-type ExactResolution = Extract<BirthInputResolution, { ambiguityStatus: 'EXACT' }>;
-
-type AmbiguousResolution = Extract<BirthInputResolution, { ambiguityStatus: 'AMBIGUOUS' }>;
-
-const RESOLUTION_ERROR =
-  'Birth input resolution is unavailable in this development environment.';
-
-function toExactResolution(
-  resolution: AmbiguousResolution,
-  candidate: AmbiguousTimeCandidate
-): ExactResolution {
-  return {
-    localDate: resolution.localDate,
-    localTime: resolution.localTime,
-    locationLabel: resolution.locationLabel,
-    latitude: resolution.latitude,
-    longitude: resolution.longitude,
-    ianaTimeZone: resolution.ianaTimeZone,
-    resolvedUtcInstant: candidate.resolvedUtcInstant,
-    utcOffsetSeconds: candidate.utcOffsetSeconds,
-    timezoneDatabaseVersion: resolution.timezoneDatabaseVersion,
-    timezoneResolutionMethod: resolution.timezoneResolutionMethod,
-    ambiguityStatus: 'EXACT'
-  };
+function resolverErrorMessage(code: string, locale: SupportedLocale): string {
+  switch (code) {
+    case 'TIME_AUTHORITY_UNAVAILABLE':
+    case 'TIME_AUTHORITY_DATA_INVALID':
+      return chartUi(locale, 'quickChart.timeVerificationUnavailable');
+    case 'LOCATION_RESOLUTION_UNAVAILABLE':
+      return chartUi(locale, 'quickChart.locationVerificationUnavailable');
+    case 'LOCATION_BINDING_MISMATCH':
+      return chartUi(locale, 'quickChart.locationSelectionExpired');
+    case 'UNSUPPORTED_TIME_RANGE':
+      return chartUi(locale, 'quickChart.timeOutsideSupportedRange');
+    default:
+      return chartUi(locale, 'quickChart.verificationFailed');
+  }
 }
 
 export function useBirthInputResolution(
   resolver: BirthInputResolver,
-  initialResolution: BirthInputResolution | null = null
+  initialResolution: BirthInputResolution | null = null,
+  locale: SupportedLocale = DEFAULT_LOCALE
 ) {
   const [resolution, setResolution] = useState<BirthInputResolution | null>(
     initialResolution
@@ -55,31 +52,22 @@ export function useBirthInputResolution(
     setIsResolving(false);
   };
 
-  const selectCandidate = (candidate: AmbiguousTimeCandidate): ExactResolution | null => {
-    if (resolution?.ambiguityStatus !== 'AMBIGUOUS') {
-      return null;
-    }
-
-    const exactResolution = toExactResolution(resolution, candidate);
-    setResolution(exactResolution);
-    setResolutionError(null);
-    setIsResolving(false);
-    latestRequestRef.current += 1;
-
-    return exactResolution;
-  };
-
   const resolveDraft = async (
     draft: BirthInputDraft,
     onResolutionAccepted: (resolution: BirthInputResolution) => void,
-    selectedLocation?: CanonicalResolvedLocation | null
+    selectedLocation?: CanonicalResolvedLocation | null,
+    resolverOptions?: BirthInputResolverOptions
   ): Promise<BirthInputResolution | null> => {
     const requestId = latestRequestRef.current + 1;
     latestRequestRef.current = requestId;
     setIsResolving(true);
 
     try {
-      const nextResolution = await resolver.resolve({ ...draft }, selectedLocation);
+      const nextResolution = await resolver.resolve(
+        { ...draft },
+        selectedLocation,
+        resolverOptions
+      );
 
       if (latestRequestRef.current !== requestId) {
         return null;
@@ -95,7 +83,10 @@ export function useBirthInputResolution(
 
       setResolution(null);
       setResolutionError(
-        error instanceof BirthInputResolverError ? error.message : RESOLUTION_ERROR
+        resolverErrorMessage(
+          error instanceof BirthInputResolverError ? error.code : 'UNKNOWN',
+          locale
+        )
       );
       return null;
     } finally {
@@ -103,6 +94,27 @@ export function useBirthInputResolution(
         setIsResolving(false);
       }
     }
+  };
+
+  const selectCandidate = async (
+    draft: BirthInputDraft,
+    selectedLocation: CanonicalResolvedLocation | null,
+    candidate: AmbiguousTimeCandidate
+  ): Promise<Extract<BirthInputResolution, { ambiguityStatus: 'EXACT' }> | null> => {
+    if (resolution?.ambiguityStatus !== 'AMBIGUOUS') {
+      return null;
+    }
+
+    const selected = await resolveDraft(
+      draft,
+      () => undefined,
+      selectedLocation,
+      {
+        disambiguation: candidate.occurrence,
+        expectedTimezoneDatabaseVersion: resolution.timezoneDatabaseVersion
+      }
+    );
+    return selected?.ambiguityStatus === 'EXACT' ? selected : null;
   };
 
   return {

@@ -2,10 +2,8 @@ import { fileURLToPath } from 'node:url';
 import { startLocalPublicEdge, type LocalPublicEdgeRuntime } from './local-public-edge.js';
 import {
   PUBLIC_DEVELOPMENT_API_HOSTNAME,
-  PUBLIC_DEVELOPMENT_API_PORT,
-  PUBLIC_DEVELOPMENT_PUBLIC_ORIGIN,
-  PUBLIC_DEVELOPMENT_PUBLIC_PORT,
   assertPublicDevelopmentEnvironment,
+  resolvePublicDevelopmentNetworkConfig,
   type PublicDevelopmentEnvironment
 } from './public-development-config.js';
 import { createPublicDevelopmentApp } from './public-development-dependencies.js';
@@ -70,20 +68,21 @@ export async function createPublicDevelopmentRuntime(
   environment?: PublicDevelopmentEnvironment
 ): Promise<PublicDevelopmentRuntime> {
   assertPublicDevelopmentEnvironment(environment);
+  const networkConfig = resolvePublicDevelopmentNetworkConfig(environment);
 
   const app = createPublicDevelopmentApp(environment);
   const apiListener = await startNodeHttpListener(app, {
     hostname: PUBLIC_DEVELOPMENT_API_HOSTNAME,
-    port: PUBLIC_DEVELOPMENT_API_PORT
+    port: networkConfig.apiPort
   });
 
   let publicEdge: LocalPublicEdgeRuntime;
 
   try {
     publicEdge = await startLocalPublicEdge({
-      publicPort: PUBLIC_DEVELOPMENT_PUBLIC_PORT,
+      publicPort: networkConfig.publicPort,
       apiHostname: PUBLIC_DEVELOPMENT_API_HOSTNAME,
-      apiPort: PUBLIC_DEVELOPMENT_API_PORT,
+      apiPort: networkConfig.apiPort,
       staticDirectory: ASTRO_STATIC_DIRECTORY
     });
   } catch (edgeError) {
@@ -105,9 +104,10 @@ export async function createPublicDevelopmentRuntime(
 
 export async function runPublicDevelopmentComposition(): Promise<void> {
   const runtime = await createPublicDevelopmentRuntime();
+  const networkConfig = resolvePublicDevelopmentNetworkConfig();
 
   process.stdout.write(
-    `NatalNode public-development runtime ready at ${PUBLIC_DEVELOPMENT_PUBLIC_ORIGIN}\n`
+    `NatalNode public-development runtime ready at ${networkConfig.publicOrigin}\n`
   );
 
   await waitForProcessShutdown(runtime);

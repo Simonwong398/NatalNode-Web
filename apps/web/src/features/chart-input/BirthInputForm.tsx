@@ -5,9 +5,6 @@ import BirthAdvancedSettings from './BirthAdvancedSettings';
 import BirthDateTimeFields from './BirthDateTimeFields';
 import BirthLocationFields from './BirthLocationFields';
 import BirthResolutionFeedback from './BirthResolutionFeedback';
-import {
-  DevelopmentBirthInputResolver
-} from './development-resolver';
 import type { BirthInputResolver } from './resolver';
 import {
   INITIAL_BIRTH_INPUT_STATE,
@@ -49,8 +46,6 @@ type EditableDraft = Pick<
   BirthInputDraft,
   'localTime' | 'locationLabel' | 'houseSystem'
 >;
-
-const defaultResolver: BirthInputResolver = new DevelopmentBirthInputResolver();
 
 function draftFromChartRequest(chartRequest?: ChartRequest): BirthInputDraft {
   if (chartRequest === undefined) {
@@ -146,14 +141,12 @@ export interface BirthInputFormProps {
   onLocationQueryChange?: (rawQuery: string) => void;
   /** Invalidates any calculated snapshot when the live form input changes. */
   onInputChanged?: () => void;
-  /** Runs after local required-field validation without resolving or submitting input. */
-  onInputValidated?: () => void;
-  onResolvedInput: (selection: ResolvedBirthInputSelection) => void;
+  onResolvedInput?: (selection: ResolvedBirthInputSelection) => void;
   /** Keeps the current-input save path singular when a result workspace is present. */
   showInputSavePanel?: boolean;
   /** Production compositions must opt into the explicit location gate. */
   requireResolvedLocation?: boolean;
-  resolver?: BirthInputResolver;
+  resolver: BirthInputResolver;
   showDevelopmentDiagnostics?: boolean;
   showDevelopmentInformation?: boolean;
   /** Replaces the calculation CTA for local-only validation experiences. */
@@ -259,10 +252,9 @@ export default function BirthInputForm({
   onLocationPanelMounted,
   onLocationQueryChange,
   onInputChanged,
-  onInputValidated,
   onResolvedInput,
   requireResolvedLocation = false,
-  resolver = defaultResolver,
+  resolver,
   showDevelopmentDiagnostics = false,
   showDevelopmentInformation = true,
   showInputSavePanel = true,
@@ -289,11 +281,12 @@ export default function BirthInputForm({
     selectCandidate
   } = useBirthInputResolution(
     resolver,
-    resolutionFromChartRequest(initialChartRequest)
+    resolutionFromChartRequest(initialChartRequest),
+    locale
   );
   const unknownTime = draft.ambiguityStatus === 'UNKNOWN_TIME';
   const isInteractionDisabled = isResolving || isCalculationPending;
-  const isDevelopmentFixtureResolver = resolver instanceof DevelopmentBirthInputResolver;
+  const isDevelopmentFixtureResolver = resolver.provenance === 'UI_DEVELOPMENT_ONLY';
 
   const applyAcceptedResolution = (nextResolution: BirthInputResolution) => {
     const nextBirthDateParts = toBirthDateParts(nextResolution.localDate);
@@ -387,7 +380,7 @@ export default function BirthInputForm({
     invalidateResolution();
   };
 
-  const handleCandidateSelection = (candidate: AmbiguousTimeCandidate) => {
+  const handleCandidateSelection = async (candidate: AmbiguousTimeCandidate) => {
     if (
       resolution?.ambiguityStatus !== 'AMBIGUOUS' ||
       isCalculationPending ||
@@ -396,7 +389,11 @@ export default function BirthInputForm({
       return;
     }
 
-    const exactResolution = selectCandidate(candidate);
+    const exactResolution = await selectCandidate(
+      draft,
+      locationResolution?.selectedLocation ?? null,
+      candidate
+    );
     if (!exactResolution) {
       return;
     }
@@ -503,11 +500,6 @@ export default function BirthInputForm({
       return;
     }
 
-    if (onInputValidated !== undefined) {
-      onInputValidated();
-      return;
-    }
-
     const selectedHouseSystem = draft.houseSystem;
     const locationResolutionId = canSubmitProductionCalculation(
       locationResolution ?? EMPTY_LOCATION_RESOLUTION_STATE
@@ -516,7 +508,7 @@ export default function BirthInputForm({
       : undefined;
 
     if (resolution?.ambiguityStatus === 'EXACT') {
-      onResolvedInput({
+      onResolvedInput?.({
         resolution,
         houseSystem: selectedHouseSystem,
         ...(locationResolutionId === undefined ? {} : { locationResolutionId })
@@ -531,7 +523,7 @@ export default function BirthInputForm({
         nextResolution.ambiguityStatus === 'EXACT' ||
         nextResolution.ambiguityStatus === 'UNKNOWN_TIME'
       ) {
-        onResolvedInput({
+        onResolvedInput?.({
           resolution: nextResolution,
           houseSystem: selectedHouseSystem,
           ...(locationResolutionId === undefined ? {} : { locationResolutionId })
@@ -603,14 +595,7 @@ export default function BirthInputForm({
             <button
               className="nn-button nn-button--primary w-full sm:w-auto"
               disabled={isInteractionDisabled}
-              onClick={
-                onInputValidated === undefined
-                  ? undefined
-                  : () => {
-                      void handleSubmit({ preventDefault: () => undefined });
-                    }
-              }
-              type={onInputValidated === undefined ? 'submit' : 'button'}
+              type="submit"
             >
               {isCalculationPending
                 ? chartUi(locale, 'birthInput.calculating')

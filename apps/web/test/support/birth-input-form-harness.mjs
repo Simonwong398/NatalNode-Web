@@ -42,6 +42,7 @@ const COMPONENT_URL = new URL(
 
 let activeScope;
 let componentPromise;
+let defaultFixtureResolver;
 let reactDomClientPromise;
 
 function restoreDescriptor(object, property, descriptor) {
@@ -114,6 +115,10 @@ async function loadComponent() {
       });
 
       try {
+        const { DevelopmentBirthInputResolver } = await import(new URL(
+          'features/chart-input/development-resolver.js', COMPILED_ROOT_URL
+        ).href);
+        defaultFixtureResolver = new DevelopmentBirthInputResolver();
         return (await import(COMPONENT_URL.href)).default;
       } finally {
         hook.deregister();
@@ -185,6 +190,7 @@ function renderProps(state, onResolvedInputCalls) {
   const onResolvedInput = state.onResolvedInput;
   const props = {
     isCalculationPending: state.isCalculationPending ?? false,
+    resolver: state.resolver ?? defaultFixtureResolver,
     onResolvedInput(selection) {
       onResolvedInputCalls.push(selection);
       onResolvedInput?.(selection);
@@ -193,7 +199,6 @@ function renderProps(state, onResolvedInputCalls) {
 
   for (const key of [
     'onInputChanged',
-    'onInputValidated',
     'showInputSavePanel',
     'showDevelopmentInformation',
     'submitButtonLabel'

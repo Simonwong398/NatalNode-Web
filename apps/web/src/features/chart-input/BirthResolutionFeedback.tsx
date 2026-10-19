@@ -30,6 +30,9 @@ interface ResolutionTelemetryData {
   longitude: number;
   ianaTimeZone: string;
   utcOffsetSeconds: number | null;
+  resolvedUtcInstant?: string | null;
+  timezoneDatabaseVersion?: string;
+  timeAuthorityProfile?: string;
 }
 
 function ResolvedLocationTelemetry({
@@ -113,7 +116,7 @@ function ResolvedLocationTelemetry({
           </section>
         </div>
       ) : (
-        <dl className="mt-3 grid min-w-0 gap-3 sm:grid-cols-3">
+        <dl className="mt-3 grid min-w-0 gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {resolution.locationLabel ? (
             <div className="min-w-0">
               <dt className="nn-type-metadata">{chartUi(locale, 'birthInput.resolution.location')}</dt>
@@ -150,6 +153,30 @@ function ResolvedLocationTelemetry({
                 {chartUi(locale, 'birthInput.resolution.utcOffset')}
               </dt>
               <dd className="nn-type-numeric mt-1">{formatUtcOffset(resolution.utcOffsetSeconds)}</dd>
+            </div>
+          ) : null}
+          {resolution.resolvedUtcInstant ? (
+            <div className="min-w-0">
+              <dt className="nn-type-metadata">
+                {chartUi(locale, 'birthInput.resolution.utcInstant')}
+              </dt>
+              <dd className="nn-type-numeric mt-1 break-words">{resolution.resolvedUtcInstant}</dd>
+            </div>
+          ) : null}
+          {resolution.timezoneDatabaseVersion ? (
+            <div className="min-w-0">
+              <dt className="nn-type-metadata">
+                {chartUi(locale, 'birthInput.resolution.timezoneDatabaseVersion')}
+              </dt>
+              <dd className="nn-type-numeric mt-1">{resolution.timezoneDatabaseVersion}</dd>
+            </div>
+          ) : null}
+          {resolution.timeAuthorityProfile ? (
+            <div className="min-w-0">
+              <dt className="nn-type-metadata">
+                {chartUi(locale, 'birthInput.resolution.timeAuthorityProfile')}
+              </dt>
+              <dd className="nn-type-numeric mt-1 break-all">{resolution.timeAuthorityProfile}</dd>
             </div>
           ) : null}
         </dl>
@@ -198,7 +225,20 @@ function ExactResolutionPanel({
           : chartUi(locale, 'birthInput.resolution.locationResolved')}
         isDevelopmentFixture={isDevelopmentFixture}
         locale={locale}
-        resolution={resolution}
+        resolution={{
+          ...resolution,
+          ...(resolution.timeResolutionEvidence === undefined
+            ? {
+                timezoneDatabaseVersion: resolution.timezoneDatabaseVersion,
+                timeAuthorityProfile: resolution.timezoneResolutionMethod
+              }
+            : {
+                resolvedUtcInstant: resolution.timeResolutionEvidence.resolvedUtcInstant,
+                timezoneDatabaseVersion:
+                  resolution.timeResolutionEvidence.authority.timezoneDatabaseVersion,
+                timeAuthorityProfile: resolution.timeResolutionEvidence.authority.profileId
+              })
+        }}
       />
     </section>
   );
@@ -249,7 +289,11 @@ function AmbiguousResolutionPanel({
           : chartUi(locale, 'birthInput.resolution.locationContext')}
         isDevelopmentFixture={isDevelopmentFixture}
         locale={locale}
-        resolution={resolution}
+        resolution={{
+          ...resolution,
+          timezoneDatabaseVersion: resolution.timezoneDatabaseVersion,
+          timeAuthorityProfile: resolution.timezoneResolutionMethod
+        }}
       />
       <fieldset className="mt-4 grid gap-3">
         <legend className="nn-type-label">
@@ -334,7 +378,11 @@ function NonexistentResolutionPanel({
           : chartUi(locale, 'birthInput.resolution.locationContext')}
         isDevelopmentFixture={isDevelopmentFixture}
         locale={locale}
-        resolution={resolution}
+        resolution={{
+          ...resolution,
+          timezoneDatabaseVersion: resolution.timezoneDatabaseVersion,
+          timeAuthorityProfile: resolution.timezoneResolutionMethod
+        }}
       />
       <button
         className="nn-button nn-button--secondary mt-4 self-start"
@@ -379,7 +427,11 @@ function UnknownTimeResolutionPanel({
           : chartUi(locale, 'birthInput.resolution.locationResolved')}
         isDevelopmentFixture={isDevelopmentFixture}
         locale={locale}
-        resolution={resolution}
+        resolution={{
+          ...resolution,
+          timezoneDatabaseVersion: resolution.timezoneDatabaseVersion,
+          timeAuthorityProfile: resolution.timezoneResolutionMethod
+        }}
       />
     </section>
   );

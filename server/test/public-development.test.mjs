@@ -18,7 +18,8 @@ import {
   PUBLIC_DEVELOPMENT_API_HOSTNAME,
   PUBLIC_DEVELOPMENT_API_PORT,
   PUBLIC_DEVELOPMENT_PUBLIC_ORIGIN,
-  PUBLIC_DEVELOPMENT_PUBLIC_PORT
+  PUBLIC_DEVELOPMENT_PUBLIC_PORT,
+  resolvePublicDevelopmentNetworkConfig
 } from '../dist/executable/public-development-config.js';
 import {
   createPublicDevelopmentApp,
@@ -87,6 +88,8 @@ test('public-development composition uses code-owned defaults without full runti
   );
   assert.equal(dependencies.engineClient instanceof MockEngineClient, true);
   assert.equal(dependencies.chartCalculator instanceof CachedChartCalculator, true);
+  assert.equal(dependencies.locationResolutionService, undefined);
+  assert.equal(dependencies.birthTimeResolutionService, undefined);
 
   const response = await app.request('/api/health');
   assert.equal(response.status, 200);
@@ -94,6 +97,18 @@ test('public-development composition uses code-owned defaults without full runti
     service: 'natalnode-web-bff',
     status: 'ok'
   });
+});
+
+test('public-development binds the existing civil-time service only beside canonical location authority', () => {
+  const dependencies = createPublicDevelopmentDependencies({
+    NODE_ENV: 'test',
+    GEONAMES_USERNAME: 'isolated-test-username'
+  });
+  assert.ok(dependencies.locationResolutionService);
+  assert.equal(
+    dependencies.birthTimeResolutionService.profile.profileId,
+    'NN_WEB_CIVIL_TIME_JS_JODA_6.3.0_TZ_3.1.0_FULL_2026e_1970_2100_V1'
+  );
 });
 
 test('public-development composition rejects explicit production mode', () => {
@@ -219,4 +234,32 @@ test('public-development defaults keep public edge and API listeners distinct', 
   assert.equal(PUBLIC_DEVELOPMENT_API_HOSTNAME, '127.0.0.1');
   assert.equal(PUBLIC_DEVELOPMENT_API_PORT, 4_322);
   assert.notEqual(PUBLIC_DEVELOPMENT_PUBLIC_PORT, PUBLIC_DEVELOPMENT_API_PORT);
+});
+
+test('public-development accepts distinct explicit loopback ports and rejects invalid overrides', () => {
+  assert.deepEqual(
+    resolvePublicDevelopmentNetworkConfig({
+      NATALNODE_PUBLIC_DEVELOPMENT_PUBLIC_PORT: '4330',
+      NATALNODE_PUBLIC_DEVELOPMENT_API_PORT: '4331'
+    }),
+    {
+      publicOrigin: 'http://localhost:4330',
+      publicPort: 4_330,
+      apiHostname: '127.0.0.1',
+      apiPort: 4_331
+    }
+  );
+  assert.throws(
+    () => resolvePublicDevelopmentNetworkConfig({
+      NATALNODE_PUBLIC_DEVELOPMENT_PUBLIC_PORT: '4330',
+      NATALNODE_PUBLIC_DEVELOPMENT_API_PORT: '4330'
+    }),
+    /must be different/u
+  );
+  assert.throws(
+    () => resolvePublicDevelopmentNetworkConfig({
+      NATALNODE_PUBLIC_DEVELOPMENT_PUBLIC_PORT: '80'
+    }),
+    /valid loopback port/u
+  );
 });

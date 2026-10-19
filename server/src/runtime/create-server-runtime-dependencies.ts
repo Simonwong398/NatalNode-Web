@@ -24,6 +24,7 @@ import { NotificationAccountService } from '../notification-platform/notificatio
 import { createWebPushCapability } from '../notification-platform/web-push-capability.js';
 import { PostgresFoundationsLearningService } from '../learning/foundations/postgres-foundations-learning-service.js';
 import { createGeoNamesLocationResolutionService } from '../location-resolution/geonames-web-provider.js';
+import { createBirthTimeResolutionService } from '../time-resolution/index.js';
 import { createApprovedVaultResearchCaptureService } from '../vault/vault-research-capture.js';
 
 function assertValidTtl(seconds: number, name: string): void {
@@ -109,6 +110,9 @@ export function createServerRuntimeDependencies(
       : createGeoNamesLocationResolutionService(
           config.locationResolution.geonamesUsername
         );
+  const birthTimeResolutionService = locationResolutionService === undefined
+    ? undefined
+    : createBirthTimeResolutionService({ locationResolutionService });
 
   return {
     publicWebOrigin: config.publicWebOrigin,
@@ -143,7 +147,8 @@ export function createServerRuntimeDependencies(
     googleOAuthTransactionService,
     googleAuthAccountSessionLifecycle:
       bindings.googleAuthAccountSessionLifecycle,
-    locationResolutionService
+    locationResolutionService,
+    birthTimeResolutionService
   };
 }
 

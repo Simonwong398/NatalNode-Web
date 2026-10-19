@@ -1,10 +1,19 @@
 import type { BirthInputDraft, BirthInputResolution } from './types';
 import type { CanonicalResolvedLocation } from './location-resolution';
+import type { TimeDisambiguation } from '@natalnode/contracts';
+
+export interface BirthInputResolverOptions {
+  readonly disambiguation?: TimeDisambiguation;
+  readonly expectedTimezoneDatabaseVersion?: string | null;
+}
 
 export interface BirthInputResolver {
+  /** Presentation marker for an explicitly injected development fixture. */
+  readonly provenance?: 'UI_DEVELOPMENT_ONLY';
   resolve(
     input: BirthInputDraft,
-    selectedLocation?: CanonicalResolvedLocation | null
+    selectedLocation?: CanonicalResolvedLocation | null,
+    options?: BirthInputResolverOptions
   ): Promise<BirthInputResolution>;
 }
 

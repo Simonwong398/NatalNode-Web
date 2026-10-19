@@ -63,8 +63,11 @@ test('development location output distinguishes entered labels from fixture auth
   assert.match(resolver, /NOT PRODUCTION RESOLUTION/u);
   assert.match(resolver, /America\/New_York/u);
   assert.doesNotMatch(resolver, /\b(fetch|geocod|axios|timezonefinder)\b/iu);
-  assert.match(form, /new DevelopmentBirthInputResolver\(\)/u);
-  assert.match(form, /resolver = defaultResolver/u);
+  assert.doesNotMatch(form, /new DevelopmentBirthInputResolver\(\)/u);
+  assert.match(form, /resolver: BirthInputResolver/u);
+  const developmentExperience = readSource('features/chart-experience/ChartExperience.tsx');
+  assert.match(developmentExperience, /new DevelopmentBirthInputResolver\(\)/u);
+  assert.match(developmentExperience, /resolver=\{developmentResolver\}/u);
 });
 
 test('Calculation Details localizes human values while preserving fixture and production semantics', () => {

@@ -16,16 +16,19 @@ const DEVELOPMENT_NOTICE =
 const DEVELOPMENT_EXPLANATION =
   'This development resolver preserves your entered place label but uses fixed New York coordinate/timezone fixture data for UI testing; the fixture data is not derived from that place, is not historical timezone evidence, and is not production resolution.';
 const RESOLUTION_FAILURE =
-  'Birth input resolution is unavailable in this development environment.';
+  'Birth details could not be verified. Check the date, time, and selected location, then try again.';
 
 function capturingResolver(implementation) {
   const calls = [];
+  const invocations = [];
   return {
     calls,
-    async resolve(input) {
+    invocations,
+    async resolve(input, selectedLocation, options) {
       const captured = { ...input };
       calls.push(captured);
-      return implementation(captured, calls.length - 1);
+      invocations.push({ selectedLocation, options });
+      return implementation(captured, calls.length - 1, selectedLocation, options);
     }
   };
 }
@@ -281,27 +284,22 @@ describe('initial render, validation, and configuration', () => {
     });
   });
 
-  test('local-only entry mode validates required fields without resolving, submitting, or saving input', async () => {
-    const resolver = capturingResolver(() => {
-      throw new Error('A public entry form must not invoke a birth resolver.');
-    });
-    let validationCount = 0;
-
+  test('verification-only entry submits to its injected resolver and does not directly calculate or save a chart', async () => {
+    const resolver = capturingResolver((input) => exactFrom(input));
     await withBirthInputForm({
       resolver,
-      onInputValidated: () => { validationCount += 1; },
-      submitButtonLabel: 'Check birth details',
+      submitButtonLabel: 'Verify birth details',
       showDevelopmentInformation: false,
       showInputSavePanel: false
     }, async (scope) => {
       await scope.mount();
 
-      assert.equal(scope.button('Check birth details').disabled, false);
-      assert.equal(scope.button('Check birth details').type, 'button');
+      assert.equal(scope.button('Verify birth details').disabled, false);
+      assert.equal(scope.button('Verify birth details').type, 'submit');
       assert.doesNotMatch(scope.container.textContent, /UI DEVELOPMENT ONLY/u);
       assert.equal(scope.container.querySelector('[data-vault-save-mode]'), null);
 
-      await scope.click(scope.button('Check birth details'));
+      await scope.click(scope.button('Verify birth details'));
       assert.deepEqual(
         scope.roles('alert').map((element) => scope.text(element)),
         [
@@ -310,16 +308,17 @@ describe('initial render, validation, and configuration', () => {
           'Enter a birth place.'
         ]
       );
-      assert.equal(validationCount, 0);
+      assert.equal(resolver.calls.length, 0);
 
       await fillKnown(scope, { place: 'A place entered by the visitor' });
-      await scope.click(scope.button('Check birth details'));
+      await scope.click(scope.button('Verify birth details'));
 
-      assert.equal(validationCount, 1);
-      assert.equal(resolver.calls.length, 0);
-      assert.equal(scope.onResolvedInputCalls.length, 0);
+      assert.equal(resolver.calls.length, 1);
+      assert.equal(scope.onResolvedInputCalls.length, 1);
+      assert.equal(scope.onResolvedInputCalls[0].resolution.ambiguityStatus, 'EXACT');
       assert.equal(scope.fetchCalls.length, 0);
       assert.equal(scope.container.querySelector('[data-vault-save-mode]'), null);
+      assert.match(scope.container.textContent, /Resolution confirmed/u);
     });
   });
 
@@ -612,7 +611,19 @@ describe('place input and resolver result flows', () => {
   });
 
   test('ambiguous result presents two required candidates and withholds handoff until selection and resubmission', async () => {
-    await withBirthInputForm({}, async (scope) => {
+    const resolver = capturingResolver((input, index) => index === 0
+      ? makeAmbiguousResolution({
+          localDate: input.localDate,
+          localTime: input.localTime,
+          locationLabel: input.locationLabel
+        })
+      : exactFrom(input, {
+          resolvedUtcInstant: '2000-11-05T05:30:00.000Z',
+          utcOffsetSeconds: -14_400,
+          timezoneDatabaseVersion: 'fixture-tzdb-2026a',
+          timezoneResolutionMethod: 'fixture-ambiguous'
+        }));
+    await withBirthInputForm({ resolver }, async (scope) => {
       await scope.mount();
       await fillKnown(scope, {
         day: '05',
@@ -625,7 +636,7 @@ describe('place input and resolver result flows', () => {
       await scope.submit();
 
       const alert = scope.role('alert');
-      assert.match(scope.text(alert), /Ambiguous fixture state/);
+      assert.match(scope.text(alert), /This local time occurred twice/);
       assert.match(scope.text(alert), /NatalNode will not silently choose one/);
       assert.match(scope.text(alert), /Earlier occurrence/);
       assert.match(scope.text(alert), /The first occurrence of this local clock time/);
@@ -642,8 +653,12 @@ describe('place input and resolver result flows', () => {
 
       await scope.click(radios[0]);
       assert.equal(scope.container.querySelectorAll('input[name="ambiguous-occurrence"]').length, 0);
-      assert.match(scope.role('status').textContent, /Development fixture data/);
+      assert.match(scope.role('status').textContent, /Timezone resolved/);
       assert.equal(scope.onResolvedInputCalls.length, 0);
+      assert.deepEqual(resolver.invocations[1].options, {
+        disambiguation: 'EARLIER',
+        expectedTimezoneDatabaseVersion: 'fixture-tzdb-2026a'
+      });
 
       await scope.submit();
       assert.equal(scope.onResolvedInputCalls.length, 1);
@@ -657,11 +672,21 @@ describe('place input and resolver result flows', () => {
   });
 
   test('later ambiguity candidate preserves its exact UTC instant and offset with one-way selection', async () => {
-    const resolver = capturingResolver((input) => makeAmbiguousResolution({
-      localDate: input.localDate,
-      localTime: input.localTime,
-      locationLabel: input.locationLabel
-    }));
+    const resolver = capturingResolver((input, index) => index === 0
+      ? makeAmbiguousResolution({
+          localDate: input.localDate,
+          localTime: input.localTime,
+          locationLabel: input.locationLabel
+        })
+      : exactFrom(input, {
+          resolvedUtcInstant: '2000-11-05T06:30:00.000Z',
+          utcOffsetSeconds: -18_000,
+          latitude: 40.7128,
+          longitude: -74.006,
+          ianaTimeZone: 'America/New_York',
+          timezoneDatabaseVersion: 'fixture-tzdb-2026a',
+          timezoneResolutionMethod: 'fixture-ambiguous'
+        }));
     await withBirthInputForm({ resolver }, async (scope) => {
       await scope.mount();
       await fillKnown(scope, { day: '05', month: '11', time: '01:30' });
@@ -670,6 +695,10 @@ describe('place input and resolver result flows', () => {
       await scope.click(later);
       assert.equal(scope.container.querySelector('input[value="EARLIER"]'), null);
       assert.equal(scope.container.querySelector('input[value="LATER"]'), null);
+      assert.deepEqual(resolver.invocations[1].options, {
+        disambiguation: 'LATER',
+        expectedTimezoneDatabaseVersion: 'fixture-tzdb-2026a'
+      });
       await scope.submit();
       assert.equal(
         scope.onResolvedInputCalls[0].resolution.resolvedUtcInstant,
@@ -748,7 +777,7 @@ describe('resolver sequencing, stale work, and unmount behavior', () => {
 
       assert.equal(resolver.calls.length, 1);
       assert.equal(scope.button('Resolving birth time…').disabled, true);
-      assert.equal(scope.role('status', 'Reading the development resolver result…').getAttribute('aria-live'), 'polite');
+      assert.equal(scope.role('status', 'Verifying the birth time…').getAttribute('aria-live'), 'polite');
       for (const control of scope.container.querySelectorAll('input, select, button')) {
         assert.equal(control.disabled, true);
       }
@@ -1093,15 +1122,20 @@ describe('submission gating, accessibility, keyboard structure, and privacy boun
   });
 
   test('native click and form-submit behavior covers checkbox, radio, and submit without a synthetic component replica', async () => {
-    const resolver = capturingResolver((input) =>
-      input.localTime === null
-        ? unknownFrom(input)
-        : makeAmbiguousResolution({
+    const resolver = capturingResolver((input, index) => input.localTime === null
+      ? unknownFrom(input)
+      : index === 0
+        ? makeAmbiguousResolution({
             localDate: input.localDate,
             localTime: input.localTime,
             locationLabel: input.locationLabel
           })
-    );
+        : exactFrom(input, {
+            resolvedUtcInstant: '2000-11-05T05:30:00.000Z',
+            utcOffsetSeconds: -14_400,
+            timezoneDatabaseVersion: 'fixture-tzdb-2026a',
+            timezoneResolutionMethod: 'fixture-ambiguous'
+          }));
     await withBirthInputForm({ resolver }, async (scope) => {
       await scope.mount();
       await scope.click(scope.id('unknown-time'));

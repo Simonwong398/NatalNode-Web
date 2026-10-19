@@ -119,3 +119,18 @@ export type TimeResolutionError =
       readonly expectedVersion: string;
       readonly actualVersion: string;
     };
+
+/**
+ * Guest-safe BFF response. Serialized evidence is for display/provenance only;
+ * a later server calculation must resolve the input again against live state.
+ */
+export type CivilTimeResolutionApiResponse =
+  | {
+      readonly outcome: 'VERIFIED';
+      readonly evidence: TimeResolutionEvidence;
+    }
+  | {
+      readonly outcome: 'REJECTED';
+      readonly authority: CivilTimeAuthorityProfile;
+      readonly error: TimeResolutionError;
+    };
