@@ -11,7 +11,11 @@ import {
   createLocalBrowserChartBffApp
 } from '../server/test/support/local-browser-chart-bff.mjs';
 import { startLoopbackHonoServer } from '../server/test/support/private-engine-http-adapter.mjs';
-import { createSingleUseJ2000Evidence } from './single-use-j2000-evidence.mjs';
+import {
+  createSingleUseJ2000Evidence,
+  parseSingleUseJ2000TaskId,
+  selectSingleUseJ2000EvidenceBinding
+} from './single-use-j2000-evidence.mjs';
 
 const WEB_ROOT = fileURLToPath(new URL('../', import.meta.url));
 const WEB_APP_ROOT = join(WEB_ROOT, 'apps/web');
@@ -28,7 +32,6 @@ const HISTORICAL_VALIDATED_002_RUNTIME_IDENTITY = '3a7e863f7174e5f421cfc8ea1830c
 const ASTRO_CLI = join(WEB_ROOT, 'node_modules/astro/bin/astro.mjs');
 const FIXTURE_ONLY = process.argv.includes('--fixture-only');
 const REAL_RESEARCH = process.argv.includes('--real-research');
-const CAPTURE_SINGLE_USE = process.argv.includes('--capture-single-use-j2000');
 let singleUseEvidence;
 
 function git(root, args) {
@@ -190,20 +193,16 @@ async function cleanup() {
 async function main() {
   if (process.platform !== 'win32') throw new Error('WINDOWS_REQUIRED: this runtime path is Windows-specific.');
   if (FIXTURE_ONLY && REAL_RESEARCH) throw new Error('MODE_CONFLICT: fixture-only and real-research modes cannot be combined.');
+  const singleUseTaskId = parseSingleUseJ2000TaskId(process.argv);
+  const captureSingleUse = singleUseTaskId !== null;
   if (REAL_RESEARCH && process.env.NATALNODE_LOCAL_CHART_REAL_CALL_ENABLED !== 'true') {
     throw new Error('REAL_CALL_GATE_CLOSED: real calculation requires a separate explicit owner authorization and NATALNODE_LOCAL_CHART_REAL_CALL_ENABLED=true.');
   }
-  if (CAPTURE_SINGLE_USE && !REAL_RESEARCH) throw new Error('SINGLE_USE_CAPTURE_REQUIRES_REAL_MODE');
+  if (captureSingleUse && !REAL_RESEARCH) throw new Error('SINGLE_USE_CAPTURE_REQUIRES_REAL_MODE');
   // The opt-in is process-scoped, never inherited by the browser or persisted.
   delete process.env.NATALNODE_LOCAL_CHART_REAL_CALL_ENABLED;
   if (!existsSync(ASTRO_CLI)) throw new Error('ASTRO_DEPENDENCY_MISSING: run npm ci from the Web repository first.');
   requireEngineCheckout();
-  if (CAPTURE_SINGLE_USE) {
-    singleUseEvidence = createSingleUseJ2000Evidence(
-      join(WEB_ROOT, 'dist/nn-windows-single-real-browser-j2000-e2e-001-resume'),
-      { engineHead: ENGINE_HEAD, webHead: git(WEB_ROOT, ['rev-parse', 'HEAD']), taskId: 'NN-WINDOWS-SINGLE-REAL-BROWSER-J2000-E2E-001-RESUME' }
-    );
-  }
 
   let configuration = null;
   let engineAuthority;
@@ -221,6 +220,22 @@ async function main() {
     }
     if (engineAuthority.manifest.runtimeIdentity !== configuration.runtimeIdentity) {
       throw new Error('ENGINE_RUNTIME_IDENTITY_BINDING_MISMATCH');
+    }
+    if (captureSingleUse) {
+      if (git(WEB_ROOT, ['status', '--porcelain', '--untracked-files=no']) !== '') {
+        throw new Error('WEB_TRACKED_WORKTREE_DIRTY_FOR_SINGLE_USE_EVIDENCE');
+      }
+      const binding = selectSingleUseJ2000EvidenceBinding(
+        singleUseTaskId,
+        {
+          webRoot: WEB_ROOT,
+          webHead: git(WEB_ROOT, ['rev-parse', 'HEAD']),
+          engineHead: git(ENGINE_CHECKOUT, ['rev-parse', 'HEAD']),
+          runtimeIdentity: engineAuthority.manifest.runtimeIdentity,
+          manifestSha256: configuration.manifestSha256
+        }
+      );
+      singleUseEvidence = createSingleUseJ2000Evidence(binding.directory, binding.identity);
     }
     owned.engine = startEngineService(serviceRoot, configuration);
     const startup = await Promise.race([
