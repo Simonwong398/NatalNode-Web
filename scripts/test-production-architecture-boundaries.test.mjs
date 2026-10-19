@@ -128,7 +128,7 @@ test('real research chart remains dev-only, reuses the existing form and rendere
   assert.match(workflow, /NOT SCIENTIFICALLY OR PRODUCTION APPROVED/u);
   assert.match(workflow, /data-testid="real-research-chart-disclosure"/u);
   assert.match(workflow, /<BirthInputForm/u);
-  assert.match(workflow, /<ChartRenderer/u);
+  assert.match(workflow, /<ChartWorkspaceView/u);
   assert.match(workflow, /requireResolvedLocation/u);
   assert.match(route, /import\.meta\.env\.DEV/u);
   assert.match(route, /NATALNODE_LOCAL_CHART_WORKFLOW_MODE/u);
