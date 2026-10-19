@@ -1,6 +1,6 @@
 import { execFileSync, spawn } from 'node:child_process';
 import { randomBytes } from 'node:crypto';
-import { existsSync, readFileSync } from 'node:fs';
+import { existsSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import { setTimeout as delay } from 'node:timers/promises';
 import { fileURLToPath, pathToFileURL } from 'node:url';
@@ -15,13 +15,16 @@ import { createSingleUseJ2000Evidence } from './single-use-j2000-evidence.mjs';
 
 const WEB_ROOT = fileURLToPath(new URL('../', import.meta.url));
 const WEB_APP_ROOT = join(WEB_ROOT, 'apps/web');
-const ENGINE_HEAD = 'd446c0c8d4ba399929e8634e3e4c855b3b4f0c4e';
+const ENGINE_HEAD = '9cde9285d5ed74a1837d8be0dd5c807ca0134bc3';
 const ENGINE_CHECKOUT = process.env.NATALNODE_ENGINE_CHECKOUT?.trim()
   ? resolve(process.env.NATALNODE_ENGINE_CHECKOUT)
   : null;
 const RUNTIME_SERVICE_RELATIVE = 'packages/engine/research/nn-engine-private-service-runtime-unblock-001';
-const RUNTIME_EVIDENCE_RELATIVE = `${RUNTIME_SERVICE_RELATIVE}/validation-evidence.json`;
-const ACCEPTED_MANIFEST_RELATIVE = 'spike/dist/nn-engine-private-service-runtime-unblock-001/validated-002/runtime-manifest.local.json';
+const CORRECTED_RUNTIME_BUILD_HEAD = '43a3f6a965b202cb24c6d0b48e0be8f56a501789';
+const CORRECTED_RUNTIME_IDENTITY = 'a72e614ce632a5f94bb9864e45446781212fff740cd4a4d3f79987944535cfa4';
+const CORRECTED_MANIFEST_RELATIVE = 'spike/dist/nn-engine-private-service-runtime-unblock-001/corrected-sidereal-43a3f6a/runtime-manifest.local.json';
+const CORRECTED_MANIFEST_SHA256 = 'b5efee74acc01a702d429298afa8d6d3dd839de8b930328f21589f768e663d50';
+const HISTORICAL_VALIDATED_002_RUNTIME_IDENTITY = '3a7e863f7174e5f421cfc8ea1830cce3f428921fde820bc23ddfa849d05c0dfc';
 const ASTRO_CLI = join(WEB_ROOT, 'node_modules/astro/bin/astro.mjs');
 const FIXTURE_ONLY = process.argv.includes('--fixture-only');
 const REAL_RESEARCH = process.argv.includes('--real-research');
@@ -47,31 +50,13 @@ function requireEngineCheckout() {
 }
 
 function runtimeConfiguration(engineCheckout) {
-  let evidence;
-  try {
-    evidence = JSON.parse(readFileSync(join(engineCheckout, RUNTIME_EVIDENCE_RELATIVE), 'utf8'));
-  } catch {
-    throw new Error('PRIVATE_ENGINE_PREPARATION_EVIDENCE_INVALID');
-  }
-  const preparation = evidence?.runtimePreparation;
-  if (evidence?.schemaVersion !== 'natalnode.private-engine-runtime-unblock.validation-evidence.v1' ||
-      evidence?.taskId !== 'NN-ENGINE-PRIVATE-SERVICE-RUNTIME-UNBLOCK-001' ||
-      evidence?.status !== 'PREPARATION_AND_ADAPTER_VALIDATION_PASS' ||
-      preparation?.status !== 'PASS' || preparation.actualPrepareSelfVerification !== 'PASS' ||
-      preparation.scienceCalls !== 0 || preparation.manifestPathRelative !== ACCEPTED_MANIFEST_RELATIVE ||
-      !/^[a-f0-9]{64}$/u.test(preparation.expectedManifestSha256 ?? '') ||
-      !/^[a-f0-9]{64}$/u.test(preparation.runtimeIdentity ?? '') ||
-      evidence?.liveVerification?.realProviderCalls !== 0 || evidence.liveVerification.realChartCalls !== 0 ||
-      evidence.liveVerification.nativeAstronomyInvocations !== 0 || evidence.liveVerification.r5Replay !== false) {
-    throw new Error('PRIVATE_ENGINE_PREPARATION_EVIDENCE_INVALID');
-  }
-  const manifestPath = resolve(engineCheckout, preparation.manifestPathRelative);
-  if (!existsSync(manifestPath)) throw new Error('PRIVATE_ENGINE_MANIFEST_MISSING');
+  const manifestPath = resolve(engineCheckout, CORRECTED_MANIFEST_RELATIVE);
+  if (!existsSync(manifestPath)) throw new Error('CORRECTED_PRIVATE_ENGINE_MANIFEST_MISSING');
 
   return Object.freeze({
     manifestPath,
-    manifestSha256: preparation.expectedManifestSha256,
-    runtimeIdentity: preparation.runtimeIdentity,
+    manifestSha256: CORRECTED_MANIFEST_SHA256,
+    runtimeIdentity: CORRECTED_RUNTIME_IDENTITY,
     bearerToken: randomBytes(32).toString('base64url')
   });
 }
@@ -228,6 +213,12 @@ async function main() {
     configuration = runtimeConfiguration(ENGINE_CHECKOUT);
     const serviceRoot = join(ENGINE_CHECKOUT, RUNTIME_SERVICE_RELATIVE);
     engineAuthority = await loadEngineAuthority({ serviceRoot, configuration });
+    if (engineAuthority.manifest.runtimeIdentity === HISTORICAL_VALIDATED_002_RUNTIME_IDENTITY) {
+      throw new Error('STALE_VALIDATED_002_ENGINE_RUNTIME_REJECTED');
+    }
+    if (engineAuthority.manifest.observedGitHead !== CORRECTED_RUNTIME_BUILD_HEAD) {
+      throw new Error('CORRECTED_ENGINE_RUNTIME_SOURCE_HEAD_MISMATCH');
+    }
     if (engineAuthority.manifest.runtimeIdentity !== configuration.runtimeIdentity) {
       throw new Error('ENGINE_RUNTIME_IDENTITY_BINDING_MISMATCH');
     }
