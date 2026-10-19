@@ -7,16 +7,39 @@ export const J2000_WIRE = Object.freeze({
   input: Object.freeze({ instant: '2000-01-01T12:00:00Z', latitude: 51.4779, longitude: -0.0015 }),
   options: Object.freeze({ houseSystem: 'placidus', zodiac: 'tropical' })
 });
+export const J2000_ENGINE_REQUEST = Object.freeze({
+  input: Object.freeze({
+    instant: '2000-01-01T12:00:00.000Z',
+    latitude: J2000_WIRE.input.latitude,
+    longitude: J2000_WIRE.input.longitude
+  }),
+  options: Object.freeze({ houseSystem: 'placidus' })
+});
 const J2000_REQUEST_IDENTITY = `sha256:${createHash('sha256').update(JSON.stringify(J2000_WIRE)).digest('hex')}`;
 
-const SUPPORTED_SINGLE_USE_TASK = Object.freeze({
-  taskId: 'NN-ENGINE-WEB-CORRECTED-J2000-E2E-001',
-  engineHead: '9cde9285d5ed74a1837d8be0dd5c807ca0134bc3',
-  runtimeIdentity: 'a72e614ce632a5f94bb9864e45446781212fff740cd4a4d3f79987944535cfa4',
-  manifestSha256: 'b5efee74acc01a702d429298afa8d6d3dd839de8b930328f21589f768e663d50',
-  namespace: 'nn-engine-web-corrected-j2000-e2e-001'
-});
+const SUPPORTED_SINGLE_USE_TASKS = Object.freeze([
+  Object.freeze({
+    taskId: 'NN-ENGINE-WEB-CORRECTED-J2000-E2E-001',
+    engineHead: '9cde9285d5ed74a1837d8be0dd5c807ca0134bc3',
+    runtimeIdentity: 'a72e614ce632a5f94bb9864e45446781212fff740cd4a4d3f79987944535cfa4',
+    manifestSha256: 'b5efee74acc01a702d429298afa8d6d3dd839de8b930328f21589f768e663d50',
+    namespace: 'nn-engine-web-corrected-j2000-e2e-001',
+    dispatchChannel: 'BROWSER'
+  }),
+  Object.freeze({
+    taskId: 'NN-ENGINE-WEB-CORRECTED-HTTP-E2E-001',
+    engineHead: '9cde9285d5ed74a1837d8be0dd5c807ca0134bc3',
+    runtimeIdentity: 'a72e614ce632a5f94bb9864e45446781212fff740cd4a4d3f79987944535cfa4',
+    manifestSha256: 'b5efee74acc01a702d429298afa8d6d3dd839de8b930328f21589f768e663d50',
+    namespace: 'nn-engine-web-corrected-http-e2e-001',
+    dispatchChannel: 'BFF_HTTP'
+  })
+]);
 const CAPTURE_ARGUMENT = '--capture-single-use-j2000';
+
+function taskContractFor(taskId) {
+  return SUPPORTED_SINGLE_USE_TASKS.find((task) => task.taskId === taskId) ?? null;
+}
 
 export function parseSingleUseJ2000TaskId(argumentsList) {
   const selections = argumentsList.filter((argument) =>
@@ -30,10 +53,11 @@ export function parseSingleUseJ2000TaskId(argumentsList) {
 }
 
 function bindIdentity({ taskId, engineHead, webHead, runtimeIdentity, manifestSha256 }) {
-  if (taskId !== SUPPORTED_SINGLE_USE_TASK.taskId) throw new Error('SINGLE_USE_TASK_ID_UNSUPPORTED');
-  if (engineHead !== SUPPORTED_SINGLE_USE_TASK.engineHead ||
-      runtimeIdentity !== SUPPORTED_SINGLE_USE_TASK.runtimeIdentity ||
-      manifestSha256 !== SUPPORTED_SINGLE_USE_TASK.manifestSha256) {
+  const task = taskContractFor(taskId);
+  if (task === null) throw new Error('SINGLE_USE_TASK_ID_UNSUPPORTED');
+  if (engineHead !== task.engineHead ||
+      runtimeIdentity !== task.runtimeIdentity ||
+      manifestSha256 !== task.manifestSha256) {
     throw new Error('SINGLE_USE_IDENTITY_MISMATCH');
   }
   if (!/^[0-9a-f]{40}$/u.test(webHead)) throw new Error('SINGLE_USE_WEB_HEAD_INVALID');
@@ -46,7 +70,10 @@ function bindIdentity({ taskId, engineHead, webHead, runtimeIdentity, manifestSh
     manifestSha256,
     requestIdentity: J2000_REQUEST_IDENTITY,
     canonicalRequest: J2000_WIRE,
-    maximumBrowserSubmissions: 1,
+    evidenceNamespace: task.namespace,
+    dispatchChannel: task.dispatchChannel,
+    maximumBrowserSubmissions: task.dispatchChannel === 'BROWSER' ? 1 : 0,
+    maximumBffHttpSubmissions: task.dispatchChannel === 'BFF_HTTP' ? 1 : 0,
     maximumEngineChartRequests: 1
   });
 }
@@ -55,7 +82,7 @@ function bindIdentity({ taskId, engineHead, webHead, runtimeIdentity, manifestSh
 // not grant, infer, or consume owner authorization by itself.
 export function selectSingleUseJ2000EvidenceBinding(taskId, identities) {
   const identity = bindIdentity({ ...identities, taskId });
-  const directory = join(resolve(identities.webRoot), 'dist', SUPPORTED_SINGLE_USE_TASK.namespace);
+  const directory = join(resolve(identities.webRoot), 'dist', identity.evidenceNamespace);
   return Object.freeze({ directory, identity });
 }
 
@@ -64,9 +91,9 @@ export function selectSingleUseJ2000EvidenceBinding(taskId, identities) {
 export function createSingleUseJ2000Evidence(directory, identity, fetchOperation = fetch) {
   const boundIdentity = bindIdentity(identity);
   const absoluteDirectory = resolve(directory);
-  if (basename(absoluteDirectory) !== SUPPORTED_SINGLE_USE_TASK.namespace ||
+  if (basename(absoluteDirectory) !== boundIdentity.evidenceNamespace ||
       basename(dirname(absoluteDirectory)) !== 'dist' ||
-      !absoluteDirectory.endsWith(`${sep}dist${sep}${SUPPORTED_SINGLE_USE_TASK.namespace}`)) {
+      !absoluteDirectory.endsWith(`${sep}dist${sep}${boundIdentity.evidenceNamespace}`)) {
     throw new Error('SINGLE_USE_EVIDENCE_NAMESPACE_INVALID');
   }
   if (existsSync(absoluteDirectory)) throw new Error('SINGLE_USE_EVIDENCE_NAMESPACE_EXISTS');
@@ -76,6 +103,7 @@ export function createSingleUseJ2000Evidence(directory, identity, fetchOperation
   let closed = false;
   let engineRequests = 0;
   let browserRequests = 0;
+  let bffHttpSubmissions = 0;
   function record(name, value) {
     const fd = openSync(join(absoluteDirectory, `${name}.json`), 'wx');
     try {
@@ -83,7 +111,9 @@ export function createSingleUseJ2000Evidence(directory, identity, fetchOperation
       fsyncSync(fd);
     } finally { closeSync(fd); }
   }
-  record('preflight', { consumed: false, browserBudgetConsumed: false });
+  record('preflight', boundIdentity.dispatchChannel === 'BROWSER'
+    ? { consumed: false, browserBudgetConsumed: false }
+    : { consumed: false, bffHttpBudgetConsumed: false });
   return {
     record,
     async fetchOperation(url, init) {
@@ -105,7 +135,7 @@ export function createSingleUseJ2000Evidence(directory, identity, fetchOperation
         expectedRuntimeIdentity: client.expectedRuntimeIdentity,
         async calculateChart(request, signal) {
           if (closed || consumed) throw new Error('SINGLE_USE_BUDGET_CONSUMED');
-          assert.deepEqual(request, J2000_WIRE);
+          assert.deepEqual(request, J2000_ENGINE_REQUEST);
           // Synchronous exclusive, fsynced claim precedes any client/transport work.
           consumed = true;
           record('budget-consumed', { consumed: true, engineClientRequest: request });
@@ -119,19 +149,50 @@ export function createSingleUseJ2000Evidence(directory, identity, fetchOperation
     },
     async observeBff(context, next) {
       if (context.req.path !== '/api/dev/chart/calculate') return next();
-      if (closed || browserRequests !== 0) throw new Error('SINGLE_USE_BROWSER_BUDGET_CONSUMED');
-      browserRequests += 1;
-      const ordinal = browserRequests;
-      record('browser-budget-consumed', { browserBudgetConsumed: true, requestCount: ordinal });
-      const browserRequest = await context.req.raw.clone().json();
-      record(`browser-request-${ordinal}`, { requestCount: ordinal, browserRequest });
+      const isBrowserDispatch = boundIdentity.dispatchChannel === 'BROWSER';
+      if (isBrowserDispatch) {
+        if (closed || browserRequests >= boundIdentity.maximumBrowserSubmissions) {
+          throw new Error('SINGLE_USE_BROWSER_BUDGET_CONSUMED');
+        }
+        browserRequests += 1;
+        const ordinal = browserRequests;
+        record('browser-budget-consumed', { browserBudgetConsumed: true, requestCount: ordinal });
+        const browserRequest = await context.req.raw.clone().json();
+        record(`browser-request-${ordinal}`, { requestCount: ordinal, browserRequest });
+      } else {
+        if (closed || bffHttpSubmissions >= boundIdentity.maximumBffHttpSubmissions) {
+          throw new Error('SINGLE_USE_BFF_HTTP_BUDGET_CONSUMED');
+        }
+        bffHttpSubmissions += 1;
+        const ordinal = bffHttpSubmissions;
+        record('bff-http-budget-consumed', {
+          bffHttpBudgetConsumed: true,
+          requestCount: ordinal,
+          dispatchChannel: 'BFF_HTTP'
+        });
+        const bffRequest = await context.req.raw.clone().json();
+        record(`bff-http-request-${ordinal}`, {
+          requestCount: ordinal,
+          dispatchChannel: 'BFF_HTTP',
+          browserSubmission: false,
+          bffRequest
+        });
+      }
       await next();
       const payload = await context.res.clone().json();
-      record(`browser-response-${ordinal}`, { status: context.res.status, payload });
+      const ordinal = isBrowserDispatch ? browserRequests : bffHttpSubmissions;
+      record(`${isBrowserDispatch ? 'browser' : 'bff-http'}-response-${ordinal}`, {
+        status: context.res.status,
+        payload
+      });
     },
     close(results) {
       closed = true;
-      record('closed', { gate: 'CLOSED', consumed, engineRequests, browserRequests, cleanup: results });
+      record('closed', {
+        gate: 'CLOSED', consumed, engineRequests, browserRequests,
+        ...(boundIdentity.dispatchChannel === 'BFF_HTTP' ? { bffHttpSubmissions } : {}),
+        cleanup: results
+      });
     }
   };
 }

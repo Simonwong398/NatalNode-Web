@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
+import { mkdirSync, mkdtempSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
+import { tmpdir } from 'node:os';
 import test from 'node:test';
 import { pathToFileURL } from 'node:url';
 import { createBirthTimeResolutionService } from '../dist/time-resolution/index.js';
@@ -12,12 +13,21 @@ import {
   createLocalBrowserChartBffApp
 } from './support/local-browser-chart-bff.mjs';
 import { startLoopbackHonoServer } from './support/private-engine-http-adapter.mjs';
+import {
+  createSingleUseJ2000Evidence,
+  J2000_WIRE,
+  selectSingleUseJ2000EvidenceBinding
+} from '../../scripts/single-use-j2000-evidence.mjs';
 
 const WEB_ORIGIN = 'http://127.0.0.1:4321';
 // `canonicalChartResult` from the verified Engine R5 delivery at 4f707309edd65299b953527477222c7387cc16f4.
 const R5_CHART = JSON.parse(readFileSync(new URL('./fixtures/r5-canonical-chart-result.json', import.meta.url), 'utf8'));
 const RESEARCH_TOKEN = 'r5-private-service-bff-test-token-123456';
 const RUNTIME_IDENTITY = 'a'.repeat(64);
+const HTTP_TASK_ID = 'NN-ENGINE-WEB-CORRECTED-HTTP-E2E-001';
+const HTTP_RUNTIME_IDENTITY = 'a72e614ce632a5f94bb9864e45446781212fff740cd4a4d3f79987944535cfa4';
+const HTTP_ENGINE_HEAD = '9cde9285d5ed74a1837d8be0dd5c807ca0134bc3';
+const HTTP_MANIFEST_SHA256 = 'b5efee74acc01a702d429298afa8d6d3dd839de8b930328f21589f768e663d50';
 const RESEARCH_EXECUTION = Object.freeze({
   serviceInstanceId: 'service-550e8400-e29b-41d4-a716-446655440000',
   requestExecutionId: 'request-550e8400-e29b-41d4-a716-446655440001',
@@ -360,6 +370,146 @@ test('real research BFF maps the archived R5 fixture, retaining full chart, exec
   assert.equal(replay.status, 409);
   assert.equal((await replay.json()).error.code, 'SINGLE_USE_REAL_CALL_CONSUMED');
   assert.equal(harness.serviceCalls(), 1, 'The BFF does not send a second authenticated request.');
+});
+
+test('single-use HTTP task records one direct BFF submission and one Engine request without browser traffic or fixture fallback', async (context) => {
+  const tempRoot = mkdtempSync(join(tmpdir(), 'nn-corrected-http-e2e-test-'));
+  mkdirSync(join(tempRoot, 'dist'));
+  const binding = selectSingleUseJ2000EvidenceBinding(HTTP_TASK_ID, {
+    webRoot: tempRoot,
+    engineHead: HTTP_ENGINE_HEAD,
+    webHead: 'c'.repeat(40),
+    runtimeIdentity: HTTP_RUNTIME_IDENTITY,
+    manifestSha256: HTTP_MANIFEST_SHA256
+  });
+  const readEvidence = (name) => JSON.parse(readFileSync(join(binding.directory, `${name}.json`), 'utf8'));
+  let serviceCalls = 0;
+  let syntheticFallbackCalls = 0;
+  const execution = Object.freeze({
+    ...RESEARCH_EXECUTION,
+    runtimeIdentity: HTTP_RUNTIME_IDENTITY
+  });
+  const evidence = createSingleUseJ2000Evidence(binding.directory, binding.identity, async (_url, init) => {
+    serviceCalls += 1;
+    assert.equal(readEvidence('bff-http-budget-consumed').bffHttpBudgetConsumed, true,
+      'BFF submission budget is durable before the Engine request.');
+    assert.equal(readEvidence('engine-request').requestCount, 1,
+      'Engine request budget is durable before the private-service transport.');
+    assert.deepEqual(JSON.parse(init.body), J2000_WIRE);
+    return new Response(JSON.stringify({ chart: R5_CHART, execution }), {
+      status: 200,
+      headers: { 'Content-Type': 'application/json; charset=utf-8' }
+    });
+  });
+  const client = new RealEnginePrivateServiceClient({
+    baseUrl: 'http://127.0.0.1:45873',
+    bearerToken: RESEARCH_TOKEN,
+    expectedRuntimeIdentity: HTTP_RUNTIME_IDENTITY,
+    fetchImplementation: evidence.fetchOperation
+  });
+  const locationResolutionService = createArchivedR5FixtureLocationResolutionService();
+  const timeAuthority = createBirthTimeResolutionService({ locationResolutionService });
+  const app = createLocalBrowserChartBffApp({
+    allowedOrigin: WEB_ORIGIN,
+    engineClient: {
+      async calculateChart() { syntheticFallbackCalls += 1; throw new Error('Synthetic fallback must not run.'); },
+      async calculateChartWithPresentation() { syntheticFallbackCalls += 1; throw new Error('Synthetic fallback must not run.'); }
+    },
+    realResearchClient: evidence.wrapClient(client),
+    workflowMode: 'real-research',
+    requiredChartContext: {
+      instant: '2000-01-01T12:00:00.000Z',
+      latitude: 51.4779,
+      longitude: -0.0015,
+      houseSystem: 'placidus'
+    },
+    observeRequest: evidence.observeBff,
+    locationResolutionService,
+    timeAuthority
+  });
+  const server = await startLoopbackHonoServer(app);
+  let evidenceClosed = false;
+  context.after(async () => {
+    await server.close();
+    if (!evidenceClosed) {
+      evidence.close(['simulated HTTP BFF integration cleanup']);
+      evidenceClosed = true;
+    }
+  });
+
+  const search = await (await post(server, '/api/location/search', {
+    query: 'Greenwich', locale: 'en'
+  })).json();
+  assert.equal(search.state, 'CANDIDATES');
+  const selectionResponse = await post(server, '/api/location/resolve', {
+    candidateId: search.candidates[0].candidateId, locale: 'en'
+  });
+  assert.equal(selectionResponse.status, 200);
+  const selection = await selectionResponse.json();
+  assert.equal(selection.state, 'RESOLVED');
+  const timeResponse = await post(server, '/api/dev/chart/resolve-time', {
+    civilTime: {
+      localDate: '2000-01-01',
+      localTime: '12:00',
+      calendar: 'ISO_8601_GREGORIAN',
+      precision: 'MINUTE'
+    },
+    location: {
+      resolutionId: selection.location.resolutionId,
+      coordinates: selection.location.coordinates,
+      ianaTimeZone: selection.location.ianaTimeZone
+    },
+    disambiguation: 'REJECT',
+    expectedTimezoneDatabaseVersion: null
+  });
+  assert.equal(timeResponse.status, 200);
+  const time = await timeResponse.json();
+  assert.equal(time.outcome, 'VERIFIED');
+  const chartRequest = {
+    birth: {
+      localDate: '2000-01-01',
+      localTime: '12:00',
+      locationLabel: selection.location.canonicalDisplayName,
+      locationResolutionId: selection.location.resolutionId,
+      latitude: selection.location.coordinates.latitude,
+      longitude: selection.location.coordinates.longitude,
+      ianaTimeZone: selection.location.ianaTimeZone,
+      resolvedUtcInstant: time.resolution.resolvedUtcInstant,
+      utcOffsetSeconds: time.resolution.utcOffsetSeconds,
+      timezoneDatabaseVersion: time.authority.timezoneDatabaseVersion,
+      timezoneResolutionMethod: time.authority.profileId,
+      ambiguityStatus: 'EXACT'
+    },
+    houseSystem: 'Placidus'
+  };
+  const response = await post(server, '/api/dev/chart/calculate', { chart: chartRequest });
+  assert.equal(response.status, 200);
+  const payload = await response.json();
+  assert.equal(payload.receipt.chart.bodies.length, 10);
+  assert.equal(payload.receipt.chart.angles.length, 2);
+  assert.equal(payload.receipt.chart.houses.cusps.length, 12);
+  assert.equal(payload.receipt.execution.runtimeIdentity, HTTP_RUNTIME_IDENTITY);
+  assert.equal(payload.receipt.execution.status, 'RESEARCH_ONLY');
+  assert.equal(payload.receipt.execution.provenance, 'INCOMPLETE_RESEARCH');
+  assert.equal(payload.receipt.assessment.providerScientificAdmission, 'NOT_ADMITTED');
+  assert.equal(payload.receipt.assessment.productionResultCertification, 'NOT_CERTIFIED');
+  assert.equal(serviceCalls, 1);
+  assert.equal(syntheticFallbackCalls, 0);
+  assert.equal(readEvidence('bff-http-request-1').dispatchChannel, 'BFF_HTTP');
+  assert.equal(readEvidence('bff-http-request-1').browserSubmission, false);
+  assert.equal(readEvidence('bff-http-response-1').status, 200);
+  assert.equal(readEvidence('budget-consumed').consumed, true);
+  assert.throws(() => readEvidence('browser-request-1'), /ENOENT/);
+
+  const replay = await post(server, '/api/dev/chart/calculate', { chart: chartRequest });
+  assert.notEqual(replay.status, 200);
+  assert.equal(serviceCalls, 1, 'A repeated HTTP submission never reaches the Engine transport.');
+  assert.equal(syntheticFallbackCalls, 0);
+  evidence.close(['simulated HTTP BFF integration complete']);
+  evidenceClosed = true;
+  assert.equal(readEvidence('closed').bffHttpSubmissions, 1);
+  assert.equal(readEvidence('closed').browserRequests, 0);
+  assert.equal(readEvidence('closed').engineRequests, 1);
 });
 
 test('archived R5 browser fixture is context-bound, visibly non-executing, and preserves historical provenance', async (context) => {
