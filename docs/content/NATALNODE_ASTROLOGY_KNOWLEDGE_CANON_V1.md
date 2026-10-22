@@ -592,7 +592,7 @@ The audit classifies existing material by its safe role in this canon:
 | apps/web/src/content/learn and docs/content/foundations/v1/en | REUSABLE_CANON_INPUT; NEEDS_POLICY_REVIEW for any promotion | Existing course structure, boundaries, and source lists are useful inputs; a new canon must not silently reapprove or rewrite them |
 | apps/web/src/features/learn/foundations/registry.ts | REUSABLE_CANON_INPUT | Lesson identity, glossary links, and My Chart hooks; not a doctrinal source |
 | apps/web/src/features/learn/educational-chart-source.ts | EDITORIAL_ONLY | Educational fixture boundary; never a source of personal chart facts |
-| apps/web/src/features/my-chart/my-chart-evidence-projection.ts and Stage A UI | EDITORIAL_ONLY; NEEDS_POLICY_REVIEW for future admission | Explicit development/research disclosure and bounded existing language; unchanged by this task |
+| Retired My Chart evidence projection and Stage A UI | EDITORIAL_ONLY; NEEDS_POLICY_REVIEW for any future admission | Their development/research disclosure is preserved in historical evidence; no corresponding research UI currently ships |
 | Weekly POC documents and runtime | EDITORIAL_ONLY; TOO_SHALLOW for this canon | Useful for audience/style comparison only; no weekly prose is promoted into natal knowledge |
 | Detailed Sun/Taurus doctrine, school comparison, and rulership material | POLICY_ADMITTED_BOUNDED; RUNTIME_NOT_ADMITTED | Package A is approved with conditions; no production personal-interpretation record is admitted by this task |
 

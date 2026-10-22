@@ -1,15 +1,18 @@
 # NatalNode Weekly Reading Model V1
 
-Status: WEEKLY_READING_MODEL_ADMITTED
+Contract status: WEEKLY_READING_MODEL_ADMITTED
+
+Web implementation status: RETIRED
 
 Schema: NATALNODE_WEEKLY_READING_MODEL_V1@1.0.0
 
 Transformation policy: NATALNODE_WEEKLY_READING_TRANSFORMATION_V1@1.0.0
 
-This document freezes the bounded presentation-selection contract created by
-WEB-P2-WEEKLY-READING-MODEL-001. It sits between the existing
-WeeklyInterpretationDraft research/editorial output and future screen, print,
-or share projections.
+This document preserves the bounded presentation-selection contract created
+by WEB-P2-WEEKLY-READING-MODEL-001. The associated Web implementation and
+development demonstrations were retired by
+NN-WEB-FREE-BASELINE-CLEANUP-001. The contract remains research documentation,
+not an active Weekly product feature.
 
 It does not authorize a Weekly route, Weekly UI, production Weekly content,
 production interpretation authority, persistence, or a new calculation engine.
@@ -30,11 +33,9 @@ WeeklyReadingModel
 screen / print / share projections
 ~~~
 
-The implementation lives in:
-
-~~~text
-apps/web/src/features/interpretation/weekly-reading-model.ts
-~~~
+No Weekly model implementation is currently shipped in the Web application.
+A future implementation requires a separate product decision and renewed
+validation against this contract.
 
 The adapter is a pure, deterministic, side-effect-free transformation. It does
 not import an Engine client, provider, HTTP library, database, route, Astro
@@ -101,8 +102,7 @@ governance metadata and is not normal reader copy.
 
 ## 4. Canonical model fields
 
-The public feature export is
-apps/web/src/features/interpretation/index.ts. Its bounded model fields are:
+The contract's bounded model fields are:
 
 - schemaVersion and transformationVersion;
 - authority, locale, style, birthTimeAuthority;

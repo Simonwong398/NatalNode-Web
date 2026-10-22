@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { existsSync, readFileSync } from 'node:fs';
+import { readFileSync } from 'node:fs';
 import test from 'node:test';
 import {
   CHART_SEMANTIC_FOCUSES,
@@ -145,13 +145,9 @@ test('Learn consumes the existing mock boundary and never adds a browser science
   assert.doesNotMatch(educationalComponentSource, /Current sky|Live sky|Live chart|Today's chart/iu);
 });
 
-test('Learn replaces the hero teaching surface while retaining the existing brand instrument source', () => {
+test('Learn uses the educational chart instrument for its hero teaching surface', () => {
   assert.match(heroSource, /EducationalChartInstrument/);
   assert.doesNotMatch(heroSource, /NatalNodeBrandInstrument/);
-  assert.equal(
-    existsSync(new URL('../src/components/brand/NatalNodeBrandInstrument.astro', import.meta.url)),
-    true
-  );
 });
 
 test('Learn embeds a reserved focus-card slot and reuses the shared expandable chart dialog', () => {

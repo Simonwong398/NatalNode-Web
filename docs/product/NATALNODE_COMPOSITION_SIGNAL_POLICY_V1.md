@@ -357,10 +357,10 @@ This policy reconciles:
 - `docs/architecture/NATALNODE_INTERPRETATION_SYSTEM_V1.md`;
 - `docs/product/NATALNODE_CONTENT_VALUE_ARCHITECTURE_V1.md`;
 - `docs/research/personal-synthesis/PERSONAL_SYNTHESIS_POC_001_REVIEW.md`;
-- `apps/web/src/features/interpretation/interpretation-signal-contracts.ts`;
-- `apps/web/src/features/interpretation/interpretation-signal-engine.ts`; and
 - the Human Knowledge R2 and primitive source/policy packages.
 
-These existing files remain the authorities for their respective architecture,
-taxonomy, source, and runtime boundaries. This policy adds no parallel Signal
-taxonomy and no runtime authority.
+The two former Signal implementation modules and associated POC runtime were
+retired by `NN-WEB-FREE-BASELINE-CLEANUP-001`. This policy and the linked
+research artifacts remain historical policy evidence; they do not represent
+current executable code or runtime admission. This policy adds no parallel
+Signal taxonomy and no runtime authority.

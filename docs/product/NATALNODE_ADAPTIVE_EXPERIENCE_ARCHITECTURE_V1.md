@@ -584,19 +584,11 @@ STRUCTURAL RESEARCH BASELINE
 NOT FINAL VISUAL PRODUCT BASELINE
 ```
 
-The classification applies to:
-
-- `apps/web/src/features/interpretation/WeeklyReadingPrototype.tsx`;
-- `apps/web/src/features/interpretation/weekly-reading-prototype.ts`;
-- `apps/web/src/pages/dev/weekly-reading.astro`;
-- the admitted `WeeklyReadingModel` and its development-only POC path;
-- `docs/research/weekly-signal-poc/WEEKLY_SIGNAL_POC_REVIEW.md`;
-- `docs/research/weekly-signal-poc/scenario-a.md` through `scenario-e.md`.
-
-The prototype should be preserved as a structural baseline. It demonstrates
-semantic ownership, attention order, Timeline behavior, mixed evidence,
-unknown-time restraint, and inactive prototype actions. It should not be
-visually polished into a final product baseline in this architecture campaign.
+The classification describes the former Web research implementation. Its
+prototype modules and development route were retired by
+`NN-WEB-FREE-BASELINE-CLEANUP-001`; the research review and scenarios remain
+historical evidence. They may inform later product work, but do not imply that
+the prototype runtime or Weekly feature is currently shipped.
 
 ### Frozen research evidence
 

@@ -1516,10 +1516,11 @@ The model must not become a hidden calculation engine. It should not:
 
 ### 30.5 Implementation status
 
-The bounded WeeklyReadingModel contract and pure Draft-to-Model adapter are now
-implemented in `apps/web/src/features/interpretation/weekly-reading-model.ts`
-and documented in `docs/architecture/NATALNODE_WEEKLY_READING_MODEL_V1.md`.
-No Weekly route, UI component, or layout implementation is created here.
+The bounded WeeklyReadingModel contract remains documented in
+`docs/architecture/NATALNODE_WEEKLY_READING_MODEL_V1.md`. Its former pure
+Draft-to-Model adapter and development POC implementation were retired by
+`NN-WEB-FREE-BASELINE-CLEANUP-001`. This UX specification does not represent a
+currently shipped Weekly route or runtime feature.
 
 ## 31. Accessibility specification
 

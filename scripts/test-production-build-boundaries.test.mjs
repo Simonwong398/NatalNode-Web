@@ -103,10 +103,17 @@ test('production build artifact audit passes for the actual production output', 
 
 test('all current development route variants are excluded from the built artifact', () => {
   const audit = auditProductionBuildArtifacts({ distRoot: DIST_ROOT });
-  const sourceDevelopmentRouteCount = sourceRouteFiles()
-    .filter((route) => route.split('/').includes('dev')).length;
+  const sourceDevelopmentRoutes = sourceRouteFiles()
+    .filter((route) => route.split('/').includes('dev'))
+    .sort();
 
-  assert.ok(sourceDevelopmentRouteCount >= 7);
+  assert.deepEqual(sourceDevelopmentRoutes, [
+    '[locale]/dev/chart.astro',
+    '[locale]/dev/current-sky.astro',
+    'dev/chart.astro',
+    'dev/current-sky.astro',
+    'dev/educational-chart.astro'
+  ]);
   assert.equal(audit.excludedRouteArtifacts.length, 0);
   assert.equal(
     isExcludedProductionRoutePath('/en/dev/current-sky/'),
@@ -158,14 +165,14 @@ test('production build hook removes routes only in production mode', async () =>
   }
 });
 
-test('research/POC source remains available without becoming a route artifact', () => {
-  const expectedSources = [
+test('retired interpretation POC runtime sources are absent', () => {
+  const retiredSources = [
     'src/features/interpretation/weekly-reading-prototype.ts',
     'src/features/interpretation/composition-signal-personal-synthesis-poc.ts',
     'src/features/my-chart/MyChartRelationalPoc.tsx'
   ];
 
-  for (const source of expectedSources) {
-    assert.equal(existsSync(join(WEB_ROOT, source)), true, source);
+  for (const source of retiredSources) {
+    assert.equal(existsSync(join(WEB_ROOT, source)), false, source);
   }
 });

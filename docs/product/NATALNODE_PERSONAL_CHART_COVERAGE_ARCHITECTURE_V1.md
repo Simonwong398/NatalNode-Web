@@ -82,7 +82,7 @@ The architecture is constrained by the following existing authorities:
 | `docs/research/personal-synthesis/RELATIONAL_MY_CHART_POC_001_REVIEW.md` | Human-first relational presentation is a development-only reader POC, not production My Chart. |
 | `docs/research/astrology-knowledge-canon/primitives/PRIMITIVE_COVERAGE_MATRIX.md` | Primitive source and editorial readiness do not imply runtime readiness or professional/technical completeness. |
 | `packages/contracts/src/chart.ts` | Web consumes supplied body, angle, house, and aspect facts; it does not calculate them. |
-| `apps/web/src/features/my-chart/my-chart-evidence-projection.ts` | The current My Chart evidence projection is explicitly `DEVELOPMENT_RESEARCH_ONLY` and time-dependent facts are omitted in the unknown-time scenario. |
+| Former My Chart evidence projection (retired by `NN-WEB-FREE-BASELINE-CLEANUP-001`) | Its development-only disclosure and unknown-time behavior remain documented research evidence; no My Chart research projection currently ships. |
 
 The repository has proved bounded research/dev slices, not a mature production
 coverage system:

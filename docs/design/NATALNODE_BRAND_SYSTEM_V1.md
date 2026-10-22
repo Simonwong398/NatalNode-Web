@@ -97,16 +97,11 @@ dependency or application architecture.
 
 ## 8. Expanded Brand Instrument
 
-`NatalNodeBrandInstrument.astro` is the Learn-only large-scale instrument. It
-contains the recognizable Core Mark at the center, two restrained elliptical
-orbits, a bounded set of signal nodes, and faint reference geometry visible at
-large sizes. The Learn hero uses it as a right-side focal object; it is not a
-page-wide background and it is not a replacement for the real natal chart.
-
-The instrument uses SVG and CSS only. Orbital motion is slow and continuous,
-with separate 34-second and 27-second rotations. The central cyan signal has a
-subtle breathing highlight. No pointer parallax, canvas, WebGL, video, Lottie,
-or animation dependency is used.
+The former Learn-only expanded brand instrument was removed by
+`NN-WEB-FREE-BASELINE-CLEANUP-001`. The Core Mark, lockups, favicon, and active
+Learn presentation components remain. This section records the retired
+instrument's design direction for historical reference; it is not a current
+component specification.
 
 ## 9. Reduced motion
 

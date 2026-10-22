@@ -90,12 +90,21 @@ test('mechanism-only fixtures cannot masquerade as astrology admission', () => {
   }
 });
 
-test('all declared source references exist and no production interpretation entrypoint imports the POC', () => {
+test('source references resolve or identify intentionally retired research code, and production has no POC import', () => {
+  const retiredResearchSources = new Set([
+    'apps/web/src/features/interpretation/chart-level-personal-theme-selector-poc.ts',
+    'apps/web/src/features/interpretation/personal-synthesis-poc.ts',
+    'apps/web/src/features/interpretation/shared-root-relational-synthesis-poc.ts'
+  ]);
+  const missingReferences = [];
   for (const source of artifact.sourceCatalog) {
     assert.ok(source.refId);
     assert.ok(source.path);
-    assert.ok(existsSync(new URL(`../${source.path}`, import.meta.url)), source.path);
+    if (!existsSync(new URL(`../${source.path}`, import.meta.url))) {
+      missingReferences.push(source.path);
+    }
   }
+  assert.deepEqual(missingReferences.sort(), [...retiredResearchSources].sort());
   const productionIndex = readFileSync(
     new URL('../apps/web/src/features/interpretation/index.ts', import.meta.url),
     'utf8'

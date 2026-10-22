@@ -76,9 +76,12 @@ Browser
 ```
 
 The browser never calls an astronomy provider or an Engine URL directly. The
-Signal foundation lives in `apps/web/src/features/interpretation/` because it
-is interpretation-domain behavior. It does not import a concrete Engine
-client, a provider, an HTTP library, a chart renderer, or a route.
+Signal foundation described in this document was a bounded research POC. Its
+runtime source and demo routes were retired by
+`NN-WEB-FREE-BASELINE-CLEANUP-001`; this document and the research artifacts
+remain historical policy evidence, not a claim that Signal code currently
+ships in the website. The deterministic chart-result interpretation path
+remains separate.
 
 The existing `deterministic-interpretation.ts` remains the established current
 chart-result UI interpretation path. This foundation does not silently replace
@@ -605,24 +608,13 @@ Signal correctness, failure semantics, provenance, or safety.
 No paywall, ad decision, subscription lookup, billing provider, or entitlement
 mutation is introduced here.
 
-## 18. Implementation boundary in this task
+## 18. Research implementation status
 
-The bounded implementation is:
-
-```text
-apps/web/src/features/interpretation/
-├── interpretation-signal-contracts.ts
-├── interpretation-signal-engine.ts
-├── interpretation-signal-ranking.ts
-└── interpretation-signal-composition.ts
-```
-
-The existing feature `index.ts` re-exports this foundation for future feature
-composition. `apps/web/test/interpretation-signals.test.mjs` is a focused Node
-characterization harness and `apps/web/package.json` exposes the targeted
-`test:interpretation-signals` command. No public route, Astro page, React UI,
-BFF handler, server module, package dependency, migration, or Engine source is
-changed.
+The earlier bounded Signal implementation, its development demonstrations,
+and its dedicated characterization tests were retired by
+`NN-WEB-FREE-BASELINE-CLEANUP-001`. The policy and research documents remain
+available as historical evidence. They do not describe modules or routes in
+the current website and do not authorize runtime admission.
 
 ## 19. Acceptance gates for future product work
 
